@@ -38,8 +38,11 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 	if (dmgEvent->wasCrit)
 		damageCalc += damageCalc * dmgEvent->critMultiplier;
 
-	if (dmgEvent->damage_form == DF_MAGIC && !dmgEvent->source->AsPlayer())
-		damageCalc /= 2; //creatures do half magic damage. Unconfirmed but feels right. Should this be projectile spells only?
+	//if (dmgEvent->damage_form == DF_MAGIC && !dmgEvent->source->AsPlayer())
+		//damageCalc /= 2; //creatures do half magic damage. Unconfirmed but feels right. Should this be projectile spells only?
+
+	if (!dmgEvent->source->AsPlayer())
+		damageCalc /= 2;
 
 	dmgEvent->damageBeforeMitigation = dmgEvent->damageAfterMitigation = damageCalc;
 }
