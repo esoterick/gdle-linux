@@ -22,7 +22,7 @@ LRESULT CALLBACK AboutProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam
 	switch (message)
 	{
 	case WM_INITDIALOG:
-		SetWindowText(GetDlgItem(hDlg, IDC_CREDITS), "GDLEnhanced " SERVER_VERSION_NUMBER_STRING "\n" SERVER_VERSION_STRING "\n\nClassic Dereth created by Dekaru (dekaru@protonmail.com)\nhttps://github.com/bDekaru/ClassicDereth\n\nBased on the GamesDeadLol Server project.\nhttps://github.com/GamesDeadLol/GDL\n\nPhatAC originally created by Pea and halted in September 2017.\n\nPhatAC was created in C++ and compiled with Visual Studio. Third-party libraries used include zlib, SHA512 and ISAAC algorithms.");
+		SetWindowText(GetDlgItem(hDlg, IDC_CREDITS), "GDLEnhanced " SERVER_VERSION_NUMBER_STRING "\n" SERVER_VERSION_STRING "\n\nGDLEnhanced updated and maintained by Scribble, ChosenOne and LikeableLime" "\n\nClassic Dereth created by Dekaru (dekaru@protonmail.com)\nhttps://github.com/bDekaru/ClassicDereth\n\nBased on the GamesDeadLol Server project.\nhttps://github.com/GamesDeadLol/GDL\n\nPhatAC originally created by Pea and halted in September 2017.\n\nPhatAC was created in C++ and compiled with Visual Studio. Third-party libraries used include zlib, SHA512 and ISAAC algorithms.");
 		// SetWindowText(GetDlgItem(hDlg, IDC_PACKETCREDITS), PACKET_CAPTURE_CREDITS);
 		return TRUE;
 
