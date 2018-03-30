@@ -162,12 +162,12 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	{
 		BinaryWriter popupString;
 		popupString.Write<DWORD>(4);
-		popupString.WriteString(g_pConfig->WelcomePopup()); // "Welcome to GDL - Classic Dereth!"
+		popupString.WriteString(g_pConfig->WelcomePopup()); // "Welcome to GDLEnhanced"
 		m_pPlayer->SendNetMessage(&popupString, PRIVATE_MSG, FALSE, FALSE);
 	}
 	*/
 
-	m_pPlayer->SendText("GDL - Classic Dereth " SERVER_VERSION_NUMBER_STRING " " SERVER_VERSION_STRING, LTT_DEFAULT);
+	m_pPlayer->SendText("GDLEnhanced " SERVER_VERSION_NUMBER_STRING " " SERVER_VERSION_STRING, LTT_DEFAULT);
 	m_pPlayer->SendText("Powered by GamesDeadLol. Not an official Asheron's Call server.", LTT_DEFAULT);
 
 	/*
