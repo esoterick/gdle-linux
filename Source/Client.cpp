@@ -417,7 +417,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 		}
 	}
 
-	if (numCreditsUsed > 50)
+	if (numCreditsUsed > 56)
 	{
 		goto BadData;
 	}
