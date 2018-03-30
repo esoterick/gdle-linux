@@ -3985,7 +3985,7 @@ void GetDeathMessage(DAMAGE_TYPE dt, const std::string &killerName, const std::s
 			otherMessage = victimName + "'s last strength dissolves before " + killerName + "!";
 			break;
 		case 2:
-			killerMessage = victimName + "is liquified by your attack!";
+			killerMessage = victimName + " is liquified by your attack!";
 			victimMessage = "You are liquified by " + killerName + "'s attack!";
 			otherMessage = victimName + "is liquified by " + killerName + "'s attack!";
 			break;
