@@ -304,18 +304,18 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		switch (dmgEvent->damage_form)
 		{
 		case DF_MELEE:
-			dmgEvent->rendingMultiplier = 0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 0.5); //made up formula.
+			dmgEvent->rendingMultiplier = GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 1.5); //made up formula.
 			break;
 		case DF_MISSILE:
-			dmgEvent->rendingMultiplier = 0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 0.5); //made up formula.
+			dmgEvent->rendingMultiplier = GetImbueMultiplier(dmgEvent->attackSkillLevel, 120, 360, 1.5); //made up formula.
 			break;
 		case DF_MAGIC:
 		{
 			bool isPvP = dmgEvent->source->AsPlayer() && dmgEvent->target->AsPlayer();
 			if (isPvP)
-				dmgEvent->rendingMultiplier = 0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 0.5); //made up formula.
+				dmgEvent->rendingMultiplier = GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 1.0); //made up formula.
 			else
-				dmgEvent->rendingMultiplier = 0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 0.5); //made up formula.
+				dmgEvent->rendingMultiplier = GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 1.5); //made up formula.
 			break;
 		}
 		default:
