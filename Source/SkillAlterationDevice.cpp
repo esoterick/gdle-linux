@@ -24,7 +24,7 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 	// 1 = raise
 	// 2 = lower
 	int alterationType = InqIntQuality(TYPE_OF_ALTERATION_INT, 0);
-	STypeSkill skillToAlter = (STypeSkill)InqIntQuality(SKILL_TO_BE_ALTERED_INT, STypeSkill::UNDEF_SKILL);
+	STypeSkill skillToAlter = SkillTable::OldToNewSkill((STypeSkill)InqIntQuality(SKILL_TO_BE_ALTERED_INT, STypeSkill::UNDEF_SKILL));
 
 	if (alterationType <= 0 || alterationType > 2 || skillToAlter <= 0 || skillToAlter > NUM_SKILL)
 	{

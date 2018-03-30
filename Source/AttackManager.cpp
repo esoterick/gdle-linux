@@ -444,7 +444,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 		damageType = weapon->InqDamageType();
 	}
 	offenseMod = weapon->GetOffenseMod();
-	weaponSkill = (STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, UNARMED_COMBAT_SKILL, TRUE);
+	weaponSkill = SkillTable::OldToNewSkill((STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
 
 	//todo: maybe handle this differently as to integrate all possible damage type combos
 	if (damageType == (DAMAGE_TYPE::SLASH_DAMAGE_TYPE|DAMAGE_TYPE::PIERCE_DAMAGE_TYPE))
@@ -926,7 +926,7 @@ void CMissileAttackEvent::FireMissile()
 
 	_weenie->AdjustStamina(-necessaryStamina);
 
-	missile->_weaponSkill = (STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, UNDEF_SKILL, false);
+	missile->_weaponSkill = SkillTable::OldToNewSkill((STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, UNDEF_SKILL, false));
 	if (_weenie->InqSkill(missile->_weaponSkill, missile->_weaponSkillLevel, false))
 	{
 		double offenseMod = weapon->GetOffenseMod();

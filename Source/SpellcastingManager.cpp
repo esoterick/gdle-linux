@@ -1312,6 +1312,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 				enchant._last_time_degraded = -1.0;
 				enchant._smod = meta->_smod;
 
+				if (enchant._smod.type & Skill_EnchantmentType)
+				{
+					enchant._smod.key = (DWORD)SkillTable::OldToNewSkill((STypeSkill)enchant._smod.key);
+				}
+
+
 				std::list<CWeenieObject *> targets;
 				
 				if (CWeenieObject *castTarget = GetCastTarget())

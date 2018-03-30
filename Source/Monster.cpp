@@ -766,7 +766,7 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 			DWORD skillActivationTypeDID = 0;
 			if (sourceItem->m_Qualities.InqInt(ITEM_SKILL_LEVEL_LIMIT_INT, difficulty, TRUE, FALSE) && sourceItem->m_Qualities.InqDataID(ITEM_SKILL_LIMIT_DID, skillActivationTypeDID))
 			{
-				STypeSkill skillActivationType = (STypeSkill)skillActivationTypeDID;
+				STypeSkill skillActivationType = SkillTable::OldToNewSkill((STypeSkill)skillActivationTypeDID);
 
 				DWORD skillLevel = 0;
 				if (!m_Qualities.InqSkill(skillActivationType, skillLevel, FALSE) || (int)skillLevel < difficulty)

@@ -35,6 +35,32 @@ DEFINE_UNPACK(SkillTable)
 	return _skillBaseHash.UnPack(pReader);
 }
 
+STypeSkill SkillTable::OldToNewSkill(STypeSkill old) // Custom
+{
+	switch (old)
+	{
+	case SWORD_SKILL:
+		return HEAVY_WEAPONS_SKILL;
+
+	case DAGGER_SKILL:
+		return FINESSE_WEAPONS_SKILL;
+
+	case AXE_SKILL:
+	case MACE_SKILL:
+	case STAFF_SKILL:
+	case SPEAR_SKILL:
+	case UNARMED_COMBAT_SKILL:
+		return LIGHT_WEAPONS_SKILL;
+
+	case BOW_SKILL:
+	case CROSSBOW_SKILL:
+	case THROWN_WEAPON_SKILL:
+		return MISSILE_WEAPONS_SKILL;
+	}
+
+	return old;
+}
+
 const SkillBase *SkillTable::GetSkillBaseRaw(STypeSkill key) // custom
 {
 	return _skillBaseHash.lookup(key);

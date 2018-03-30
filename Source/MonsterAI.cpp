@@ -21,7 +21,7 @@ MonsterAIManager::MonsterAIManager(CMonsterWeenie *pWeenie, const Position &Home
 	_shield = m_pWeenie->GetWieldedCombat(COMBAT_USE_SHIELD);
 
 	SKILL_ADVANCEMENT_CLASS unarmedSkill;
-	m_pWeenie->m_Qualities.InqSkillAdvancementClass(UNARMED_COMBAT_SKILL, unarmedSkill);
+	m_pWeenie->m_Qualities.InqSkillAdvancementClass(LIGHT_WEAPONS_SKILL, unarmedSkill);
 	_hasUnarmedSkill = (unarmedSkill > UNTRAINED_SKILL_ADVANCEMENT_CLASS);
 
 	if (_meleeWeapon != NULL && _missileWeapon != NULL) //if we have both melee and missile weapons, favor missile

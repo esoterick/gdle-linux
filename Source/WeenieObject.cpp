@@ -1740,6 +1740,7 @@ void CWeenieObject::NotifyAttribute2ndStatUpdated(STypeAttribute2nd key)
 
 void CWeenieObject::NotifySkillStatUpdated(STypeSkill key)
 {
+	key = SkillTable::OldToNewSkill(key);
 	BinaryWriter statNotify;
 	statNotify.Write<DWORD>(0x2DD);
 	statNotify.Write<BYTE>(GetNextStatTimestamp(Skill_StatType, key));
@@ -1754,6 +1755,7 @@ void CWeenieObject::NotifySkillStatUpdated(STypeSkill key)
 
 void CWeenieObject::NotifySkillAdvancementClassUpdated(STypeSkill key)
 {
+	key = SkillTable::OldToNewSkill(key);
 	BinaryWriter statNotify;
 	statNotify.Write<DWORD>(0x2E1);
 	statNotify.Write<BYTE>(GetNextStatTimestamp(Skill_StatType, key));
@@ -1777,6 +1779,7 @@ void CWeenieObject::NotifyEnchantmentUpdated(Enchantment *enchant)
 
 DWORD CWeenieObject::GetCostToRaiseSkill(STypeSkill key)
 {
+	key = SkillTable::OldToNewSkill(key);
 	Skill skill;
 	m_Qualities.InqSkill(key, skill);
 
@@ -2079,6 +2082,7 @@ DWORD CWeenieObject::GiveAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 
 DWORD CWeenieObject::GiveSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CLASS sac)
 {
+	key = SkillTable::OldToNewSkill(key);
 	Skill skill;
 	m_Qualities.InqSkill(key, skill);
 
@@ -2122,6 +2126,7 @@ DWORD CWeenieObject::GiveSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT
 
 DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (amount <= 0)
 		return 0;
 
@@ -2187,6 +2192,7 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 
 DWORD CWeenieObject::GiveSkillPoints(STypeSkill key, DWORD amount)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (amount <= 0)
 		return 0;
 
@@ -4663,6 +4669,41 @@ void CWeenieObject::LoadEx(CWeenieSave &save)
 	m_Qualities.CopyFrom(&save.m_Qualities);
 	m_ObjDescOverride = save.m_ObjDesc;
 	m_WornObjDesc = save.m_WornObjDesc;
+
+	// fix for old wield reqs with old skills
+	int weaponSkill;
+	if (m_Qualities.InqInt(WEAPON_SKILL_INT, weaponSkill, TRUE, FALSE))
+		m_Qualities.SetInt(WEAPON_SKILL_INT, SkillTable::OldToNewSkill((STypeSkill)weaponSkill));
+
+	int wieldReq;
+
+	wieldReq = m_Qualities.GetInt(WIELD_REQUIREMENTS_INT, 0);
+	if (wieldReq == 1 || wieldReq == 2 || wieldReq == 8)
+	{
+		if (m_Qualities.InqInt(WIELD_SKILLTYPE_INT, weaponSkill, TRUE, FALSE))
+			m_Qualities.SetInt(WIELD_SKILLTYPE_INT, SkillTable::OldToNewSkill((STypeSkill)weaponSkill));
+	}
+
+	wieldReq = m_Qualities.GetInt(WIELD_REQUIREMENTS_2_INT, 0);
+	if (wieldReq == 1 || wieldReq == 2 || wieldReq == 8)
+	{
+		if (m_Qualities.InqInt(WIELD_SKILLTYPE_2_INT, weaponSkill, TRUE, FALSE))
+			m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, SkillTable::OldToNewSkill((STypeSkill)weaponSkill));
+	}
+
+	wieldReq = m_Qualities.GetInt(WIELD_REQUIREMENTS_3_INT, 0);
+	if (wieldReq == 1 || wieldReq == 2 || wieldReq == 8)
+	{
+		if (m_Qualities.InqInt(WIELD_SKILLTYPE_3_INT, weaponSkill, TRUE, FALSE))
+			m_Qualities.SetInt(WIELD_SKILLTYPE_3_INT, SkillTable::OldToNewSkill((STypeSkill)weaponSkill));
+	}
+
+	wieldReq = m_Qualities.GetInt(WIELD_REQUIREMENTS_4_INT, 0);
+	if (wieldReq == 1 || wieldReq == 2 || wieldReq == 8)
+	{
+		if (m_Qualities.InqInt(WIELD_SKILLTYPE_4_INT, weaponSkill, TRUE, FALSE))
+			m_Qualities.SetInt(WIELD_SKILLTYPE_4_INT, SkillTable::OldToNewSkill((STypeSkill)weaponSkill));
+	}
 }
 
 bool CWeenieObject::Load()
@@ -6281,6 +6322,7 @@ void CWeenieObject::DebugValidate()
 
 BOOL CWeenieObject::InqSkill(STypeSkill key, DWORD &value, BOOL raw)
 {
+	key = SkillTable::OldToNewSkill(key);
 	BOOL bResult = m_Qualities.InqSkill(key, value, raw);
 
 	return bResult;
