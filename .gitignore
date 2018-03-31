@@ -7,6 +7,8 @@ client_portal.dat
 [Bb]in/[Ll]ogs/console*
 [Bb]in/[Cc]lient
 enc_temp_folder
+./Client
+ferret_test.cfg
 
 //Default
 ## Ignore Visual Studio temporary files, build results, and

@@ -543,79 +543,60 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 	for (auto item : alwaysDropList)
 		FinishMoveItemToContainer(item, pCorpse, 0, true, true);
 
-	std::map <ITEM_TYPE, std::multimap<int, CWeenieObject *>> itemValueByTypeMap;
-
-	std::map <ITEM_TYPE, int> itemDropCountByCategory;
-
+	//CREATE value MULTIMAP
+	std::multimap <int, CWeenieObject *> itemValueList;
 	for (auto item : allValidItems)
 	{
-		ITEM_TYPE itemType = item->InqType();
-		int value = item->InqIntQuality(VALUE_INT, 0);
-		itemValueByTypeMap[itemType].insert(std::pair<int, CWeenieObject *>(value, item));
+		int value = NULL;
+		int stack_sz = NULL;
+		try
+		{
+			stack_sz = item->InqIntQuality(STACK_SIZE_INT, 0);
+			value = item->InqIntQuality(STACK_UNIT_VALUE_INT, 0);
+			for (int i = 0; i < stack_sz; i++)
+			{
+				itemValueList.insert(std::pair<int, CWeenieObject *>(value, item));
+			}
+		}
+		catch (...)
+		{
+		}
+		if (!value)
+		{
+			value = item->GetValue();
+			itemValueList.insert(std::pair<int, CWeenieObject *>(value, item));
+		}
 	}
 
+
+
+
+	// START item dropping BY VALUE
 	std::string itemsLostText;
 	int itemsLost = 0;
-	for (int i = 0; i < amountOfItemsToDrop; i++)
+	for (auto iter = itemValueList.rbegin(); iter != itemValueList.rend(); ++iter)
 	{
-		int highestValue = 0;
-		std::multimap<int, CWeenieObject *> *highestValueOwner = NULL;
-		for (auto iter = itemValueByTypeMap.begin(); iter != itemValueByTypeMap.end(); ++iter)
+		if (itemsLost >= amountOfItemsToDrop) { break; }
+		CWeenieObject *itemToDrop = iter->second;
+		if (itemToDrop->InqIntQuality(STACK_SIZE_INT, 1) > 1)
 		{
-			std::multimap<int, CWeenieObject *> *typeMap = &iter->second;
-			if (!typeMap->empty())
-			{
-				auto entry = (*typeMap->rbegin());
-				int modifiedValue = entry.first;
-				int categoryCount = itemDropCountByCategory[entry.second->InqType()];
-				if(categoryCount > 0)
-					modifiedValue = round((double)modifiedValue / (double)(categoryCount + 1) * Random::GenFloat(0.9, 1.1));
-				if (modifiedValue > highestValue)
-				{
-					highestValue = modifiedValue;
-					highestValueOwner = typeMap;
-				}
-			}
-		}
-
-		if (highestValueOwner)
-		{
-			CWeenieObject *itemToDrop = highestValueOwner->rbegin()->second;
-			highestValueOwner->erase(--highestValueOwner->end());
-
-			if (itemToDrop->InqIntQuality(STACK_SIZE_INT, 1) > 1)
-			{
-				//stackable items drop only a single unit, 
-				//this replicates retail where stacked items count as the value of the full stack but only a single unit will drop if it is selected.
-				itemToDrop->DecrementStackNum();
-				pCorpse->SpawnCloneInContainer(itemToDrop, 1);
-			}
-			else
-				FinishMoveItemToContainer(itemToDrop, pCorpse, 0, true, true);
-			itemsLost++;
-			itemDropCountByCategory[itemToDrop->InqType()]++;
-
-			if(amountOfItemsToDrop > 1 && i == amountOfItemsToDrop - 1)
-				itemsLostText.append(" and your ");
-			else if (!itemsLostText.empty())
-				itemsLostText.append(", your ");
-			else
-				itemsLostText.append("your ");
-			int stackSize = itemToDrop->InqIntQuality(STACK_SIZE_INT, 1);
-			//if (stackSize > 1)
-			//{
-			//	std::string pluralName = itemToDrop->GetPluralName();
-			//	if(pluralName.empty())
-			//		std::string pluralName = csprintf("%ss", itemToDrop->GetName().c_str());
-			//	itemsLostText.append(csprintf("%s %s", FormatNumberString(stackSize).c_str(), pluralName.c_str()));
-			//}
-			//else
-			itemsLostText.append(itemToDrop->GetName());
+			itemToDrop->DecrementStackNum();
+			pCorpse->SpawnCloneInContainer(itemToDrop, 1);
 		}
 		else
-			break; //we're out of items to drop!
+			FinishMoveItemToContainer(itemToDrop, pCorpse, 0, true, true);
+		itemsLost++;
+		if (amountOfItemsToDrop > 1 && itemsLost == amountOfItemsToDrop)
+			itemsLostText.append(" and your ");
+		else if (!itemsLostText.empty())
+			itemsLostText.append(", your ");
+		else
+			itemsLostText.append("your ");
+		int stackSize = itemToDrop->InqIntQuality(STACK_SIZE_INT, 1);
+		itemsLostText.append(itemToDrop->GetName());
 	}
-
+	// END item dropping BY VALUE
+	// WRITE it out to the player
 	std::string text;
 	if (coinConsumed)
 		text = csprintf("You've lost %s Pyreal%s", FormatNumberString(coinConsumed).c_str(), coinConsumed > 1 ? "s" : "");
@@ -624,16 +605,109 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 
 	if (!itemsLostText.empty())
 	{
-		if(coinConsumed && itemsLost > 1)
+		if (coinConsumed && itemsLost > 1)
 			text.append(", ");
-		else if(coinConsumed)
+		else if (coinConsumed)
 			text.append(" and ");
 		text.append(itemsLostText);
 	}
 	text.append("!");
 
-	if(coinConsumed || itemsLost)
+	if (coinConsumed || itemsLost)
 		SendText(text.c_str(), LTT_DEFAULT);
+
+
+	//std::map <ITEM_TYPE, std::multimap<int, CWeenieObject *>> itemValueByTypeMap;
+
+	//std::map <ITEM_TYPE, int> itemDropCountByCategory;
+
+	//for (auto item : allValidItems)
+	//{
+	//	ITEM_TYPE itemType = item->InqType();
+	//	int value = item->InqIntQuality(VALUE_INT, 0);
+	//	itemValueByTypeMap[itemType].insert(std::pair<int, CWeenieObject *>(value, item));
+	//}
+
+	//std::string itemsLostText;
+	//int itemsLost = 0;
+	//for (int i = 0; i < amountOfItemsToDrop; i++)
+	//{
+	//	int highestValue = 0;
+	//	std::multimap<int, CWeenieObject *> *highestValueOwner = NULL;
+	//	for (auto iter = itemValueByTypeMap.begin(); iter != itemValueByTypeMap.end(); ++iter)
+	//	{
+	//		std::multimap<int, CWeenieObject *> *typeMap = &iter->second;
+	//		if (!typeMap->empty())
+	//		{
+	//			auto entry = (*typeMap->rbegin());
+	//			int modifiedValue = entry.first;
+	//			int categoryCount = itemDropCountByCategory[entry.second->InqType()];
+	//			if(categoryCount > 0)
+	//				modifiedValue = round((double)modifiedValue / (double)(categoryCount + 1) * Random::GenFloat(0.9, 1.1));
+	//			if (modifiedValue > highestValue)
+	//			{
+	//				highestValue = modifiedValue;
+	//				highestValueOwner = typeMap;
+	//			}
+	//		}
+	//	}
+
+	//	if (highestValueOwner)
+	//	{
+	//		CWeenieObject *itemToDrop = highestValueOwner->rbegin()->second;
+	//		highestValueOwner->erase(--highestValueOwner->end());
+
+	//		if (itemToDrop->InqIntQuality(STACK_SIZE_INT, 1) > 1)
+	//		{
+	//			//stackable items drop only a single unit, 
+	//			//this replicates retail where stacked items count as the value of the full stack but only a single unit will drop if it is selected.
+	//			itemToDrop->DecrementStackNum();
+	//			pCorpse->SpawnCloneInContainer(itemToDrop, 1);
+	//		}
+	//		else
+	//			FinishMoveItemToContainer(itemToDrop, pCorpse, 0, true, true);
+	//		itemsLost++;
+	//		itemDropCountByCategory[itemToDrop->InqType()]++;
+
+	//		if(amountOfItemsToDrop > 1 && i == amountOfItemsToDrop - 1)
+	//			itemsLostText.append(" and your ");
+	//		else if (!itemsLostText.empty())
+	//			itemsLostText.append(", your ");
+	//		else
+	//			itemsLostText.append("your ");
+	//		int stackSize = itemToDrop->InqIntQuality(STACK_SIZE_INT, 1);
+	//		//if (stackSize > 1)
+	//		//{
+	//		//	std::string pluralName = itemToDrop->GetPluralName();
+	//		//	if(pluralName.empty())
+	//		//		std::string pluralName = csprintf("%ss", itemToDrop->GetName().c_str());
+	//		//	itemsLostText.append(csprintf("%s %s", FormatNumberString(stackSize).c_str(), pluralName.c_str()));
+	//		//}
+	//		//else
+	//		itemsLostText.append(itemToDrop->GetName());
+	//	}
+	//	else
+	//		break; //we're out of items to drop!
+	//}
+
+	//std::string text;
+	//if (coinConsumed)
+	//	text = csprintf("You've lost %s Pyreal%s", FormatNumberString(coinConsumed).c_str(), coinConsumed > 1 ? "s" : "");
+	//else
+	//	text = "You've lost ";
+
+	//if (!itemsLostText.empty())
+	//{
+	//	if(coinConsumed && itemsLost > 1)
+	//		text.append(", ");
+	//	else if(coinConsumed)
+	//		text.append(" and ");
+	//	text.append(itemsLostText);
+	//}
+	//text.append("!");
+
+	//if(coinConsumed || itemsLost)
+	//	SendText(text.c_str(), LTT_DEFAULT);
 }
 
 void CPlayerWeenie::OnDeath(DWORD killer_id)
