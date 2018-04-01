@@ -598,8 +598,6 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iterI->second));
 		else
 			finaliVL.insert(std::pair<int, CWeenieObject *>(curval, iterI->second));
-		break;
-
 	}
 
 	// START item dropping BY VALUE
@@ -625,6 +623,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 			itemsLostText.append("your ");
 		int stackSize = itemToDrop->InqIntQuality(STACK_SIZE_INT, 1);
 		itemsLostText.append(itemToDrop->GetName());
+		break;
 	}
 	// END item dropping BY VALUE
 	// WRITE it out to the player
