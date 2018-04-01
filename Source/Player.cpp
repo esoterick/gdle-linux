@@ -593,7 +593,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 			inFinal = finaliVL.count(iterI->first);
 			curval = iterI->first;
 			nVal = iterI->first / 2;
-			break;
+			break; // this is stupid but i don't know how else to just tap tmpVLstr
 		}
 		if (amtOfEleV > 1 && amtOfEleN > 1 && inFinal > 0)
 			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iterI->second));
