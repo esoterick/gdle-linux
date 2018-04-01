@@ -1872,6 +1872,24 @@ CLIENT_COMMAND(setbael, "", "Sets you to be Bael'Zharon.", ADMIN_ACCESS)
 }
 #endif
 
+#ifndef PUBLIC_BUILD
+CLIENT_COMMAND(setplayer, "[wcid]", "Sets your Player Character defaults to that of the given wcid.", ADMIN_ACCESS)
+{
+	if (argc < 1)
+		return true;
+
+	g_pWeenieFactory->ApplyWeenieDefaults(pPlayer, atoi(argv[0]));
+	pPlayer->m_Qualities.SetInt(RADARBLIP_COLOR_INT, 2);
+	pPlayer->m_Qualities.SetInt(PLAYER_KILLER_STATUS_INT, Baelzharon_PKStatus);
+	pPlayer->m_Qualities.SetInt(CONTAINERS_CAPACITY_INT, 7);
+	pPlayer->m_Qualities.SetInt(ITEMS_CAPACITY_INT, 200);
+
+	player_client->GetEvents()->BeginLogout();
+
+	return false;
+}
+#endif
+
 CLIENT_COMMAND(setname, "[name]", "Changes the last assessed target's name.", ADMIN_ACCESS)
 {
 	if (argc < 1)
