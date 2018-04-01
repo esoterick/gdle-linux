@@ -593,12 +593,14 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 			inFinal = finaliVL.count(iterI->first);
 			curval = iterI->first;
 			nVal = iterI->first / 2;
+			break;
 		}
 		if (amtOfEleV > 1 && amtOfEleN > 1 && inFinal > 0)
 			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iterI->second));
 		else
 			finaliVL.insert(std::pair<int, CWeenieObject *>(curval, iterI->second));
 	}
+	//@dropitemsondeath on
 
 	// START item dropping BY VALUE
 	std::string itemsLostText;
@@ -606,14 +608,13 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 	for (auto iter = finaliVL.rbegin(); iter != finaliVL.rend(); ++iter)
 	{
 		if (itemsLost >= amountOfItemsToDrop) { break; }
-		CWeenieObject *itemToDrop = iter->second;
-		if (itemToDrop->InqIntQuality(STACK_SIZE_INT, 1) > 1)
+		if (iter->second->InqIntQuality(STACK_SIZE_INT, 1) > 1)
 		{
-			itemToDrop->DecrementStackNum();
-			pCorpse->SpawnCloneInContainer(itemToDrop, 1);
+			iter->second->DecrementStackNum();
+			pCorpse->SpawnCloneInContainer(iter->second, 1);
 		}
 		else
-			FinishMoveItemToContainer(itemToDrop, pCorpse, 0, true, true);
+			FinishMoveItemToContainer(iter->second, pCorpse, 0, true, true);
 		itemsLost++;
 		if (amountOfItemsToDrop > 1 && itemsLost == amountOfItemsToDrop)
 			itemsLostText.append(" and your ");
@@ -621,8 +622,8 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 			itemsLostText.append(", your ");
 		else
 			itemsLostText.append("your ");
-		int stackSize = itemToDrop->InqIntQuality(STACK_SIZE_INT, 1);
-		itemsLostText.append(itemToDrop->GetName());
+		int stackSize = iter->second->InqIntQuality(STACK_SIZE_INT, 1);
+		itemsLostText.append(iter->second->GetName());
 		break;
 	}
 	// END item dropping BY VALUE
