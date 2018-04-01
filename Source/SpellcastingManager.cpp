@@ -73,9 +73,14 @@ bool CSpellcastingManager::ResolveSpellBeingCasted()
 	// item enchantment
 	if (m_SpellCastData.equipped && (m_SpellCastData.spell->_school == 3) && (m_SpellCastData.spell->_bitfield & SelfTargeted_SpellIndex))
 	{
-		m_SpellCastData.target_id = m_SpellCastData.caster_id;
+		if (m_SpellCastData.spell->_category == 152 || m_SpellCastData.spell->_category == 154 || m_SpellCastData.spell->_category == 156 || m_SpellCastData.spell->_category == 158 || m_SpellCastData.spell->_category == 195 || m_SpellCastData.spell->_category == 695)
+		{
+			m_SpellCastData.target_id = m_SpellCastData.source_id;
+		}
+		else {
+			m_SpellCastData.target_id = m_SpellCastData.caster_id;
+		}
 	}
-
 	return true;
 }
 
