@@ -482,7 +482,6 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 	int amountOfItemsToDrop = min(max(level / 10, 1), maxItemsToDrop);
 	if (level > 10)
 		amountOfItemsToDrop += Random::GenUInt(0, 2);
-
 	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
 	pCorpse->_shouldSave = true;
 	pCorpse->m_bDontClear = true;
@@ -568,13 +567,23 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 		}
 	}
 
-
-
+	// 50% value of second+ instance of itemValueList
+	std::multimap<int, CWeenieObject *> finaliVL;
+	for (auto iter = itemValueList.begin(); iter != itemValueList.end(); ++iter)
+	{
+		int amtOfEle = finaliVL.count(iter->first);
+		int curval = iter->first;
+		int nVal = iter->first / 2;
+		if (amtOfEle > 0)
+			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iter->second));
+		else
+			finaliVL.insert(std::pair<int, CWeenieObject *>(curval, iter->second));
+	}
 
 	// START item dropping BY VALUE
 	std::string itemsLostText;
 	int itemsLost = 0;
-	for (auto iter = itemValueList.rbegin(); iter != itemValueList.rend(); ++iter)
+	for (auto iter = finaliVL.rbegin(); iter != finaliVL.rend(); ++iter)
 	{
 		if (itemsLost >= amountOfItemsToDrop) { break; }
 		CWeenieObject *itemToDrop = iter->second;
@@ -615,99 +624,6 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 
 	if (coinConsumed || itemsLost)
 		SendText(text.c_str(), LTT_DEFAULT);
-
-
-	//std::map <ITEM_TYPE, std::multimap<int, CWeenieObject *>> itemValueByTypeMap;
-
-	//std::map <ITEM_TYPE, int> itemDropCountByCategory;
-
-	//for (auto item : allValidItems)
-	//{
-	//	ITEM_TYPE itemType = item->InqType();
-	//	int value = item->InqIntQuality(VALUE_INT, 0);
-	//	itemValueByTypeMap[itemType].insert(std::pair<int, CWeenieObject *>(value, item));
-	//}
-
-	//std::string itemsLostText;
-	//int itemsLost = 0;
-	//for (int i = 0; i < amountOfItemsToDrop; i++)
-	//{
-	//	int highestValue = 0;
-	//	std::multimap<int, CWeenieObject *> *highestValueOwner = NULL;
-	//	for (auto iter = itemValueByTypeMap.begin(); iter != itemValueByTypeMap.end(); ++iter)
-	//	{
-	//		std::multimap<int, CWeenieObject *> *typeMap = &iter->second;
-	//		if (!typeMap->empty())
-	//		{
-	//			auto entry = (*typeMap->rbegin());
-	//			int modifiedValue = entry.first;
-	//			int categoryCount = itemDropCountByCategory[entry.second->InqType()];
-	//			if(categoryCount > 0)
-	//				modifiedValue = round((double)modifiedValue / (double)(categoryCount + 1) * Random::GenFloat(0.9, 1.1));
-	//			if (modifiedValue > highestValue)
-	//			{
-	//				highestValue = modifiedValue;
-	//				highestValueOwner = typeMap;
-	//			}
-	//		}
-	//	}
-
-	//	if (highestValueOwner)
-	//	{
-	//		CWeenieObject *itemToDrop = highestValueOwner->rbegin()->second;
-	//		highestValueOwner->erase(--highestValueOwner->end());
-
-	//		if (itemToDrop->InqIntQuality(STACK_SIZE_INT, 1) > 1)
-	//		{
-	//			//stackable items drop only a single unit, 
-	//			//this replicates retail where stacked items count as the value of the full stack but only a single unit will drop if it is selected.
-	//			itemToDrop->DecrementStackNum();
-	//			pCorpse->SpawnCloneInContainer(itemToDrop, 1);
-	//		}
-	//		else
-	//			FinishMoveItemToContainer(itemToDrop, pCorpse, 0, true, true);
-	//		itemsLost++;
-	//		itemDropCountByCategory[itemToDrop->InqType()]++;
-
-	//		if(amountOfItemsToDrop > 1 && i == amountOfItemsToDrop - 1)
-	//			itemsLostText.append(" and your ");
-	//		else if (!itemsLostText.empty())
-	//			itemsLostText.append(", your ");
-	//		else
-	//			itemsLostText.append("your ");
-	//		int stackSize = itemToDrop->InqIntQuality(STACK_SIZE_INT, 1);
-	//		//if (stackSize > 1)
-	//		//{
-	//		//	std::string pluralName = itemToDrop->GetPluralName();
-	//		//	if(pluralName.empty())
-	//		//		std::string pluralName = csprintf("%ss", itemToDrop->GetName().c_str());
-	//		//	itemsLostText.append(csprintf("%s %s", FormatNumberString(stackSize).c_str(), pluralName.c_str()));
-	//		//}
-	//		//else
-	//		itemsLostText.append(itemToDrop->GetName());
-	//	}
-	//	else
-	//		break; //we're out of items to drop!
-	//}
-
-	//std::string text;
-	//if (coinConsumed)
-	//	text = csprintf("You've lost %s Pyreal%s", FormatNumberString(coinConsumed).c_str(), coinConsumed > 1 ? "s" : "");
-	//else
-	//	text = "You've lost ";
-
-	//if (!itemsLostText.empty())
-	//{
-	//	if(coinConsumed && itemsLost > 1)
-	//		text.append(", ");
-	//	else if(coinConsumed)
-	//		text.append(" and ");
-	//	text.append(itemsLostText);
-	//}
-	//text.append("!");
-
-	//if(coinConsumed || itemsLost)
-	//	SendText(text.c_str(), LTT_DEFAULT);
 }
 
 void CPlayerWeenie::OnDeath(DWORD killer_id)
