@@ -586,21 +586,16 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 	int nVal = 0;
 	for (auto iterI = tmpVLint.begin(); iterI != tmpVLint.end(); ++iterI)
 	{
-		for (auto iterS = tmpVLstr.begin(); iterS != tmpVLstr.end(); ++iterS)
-		{
-			amtOfEleN = tmpVLstr.count(iterS->first);
-			amtOfEleV = tmpVLint.count(iterI->first);
-			inFinal = finaliVL.count(iterI->first);
-			curval = iterI->first;
-			nVal = iterI->first / 2;
-			break; // this is stupid but i don't know how else to just tap tmpVLstr
-		}
+		amtOfEleN = tmpVLstr.count(iterI->second->InqStringQuality(NAME_STRING, objName));
+		amtOfEleV = tmpVLint.count(iterI->first);
+		inFinal = finaliVL.count(iterI->first);
+		curval = iterI->first;
+		nVal = iterI->first / 2;
 		if (amtOfEleV > 1 && amtOfEleN > 1 && inFinal > 0)
 			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iterI->second));
 		else
 			finaliVL.insert(std::pair<int, CWeenieObject *>(curval, iterI->second));
 	}
-	//@dropitemsondeath on
 
 	// START item dropping BY VALUE
 	std::string itemsLostText;
@@ -2763,6 +2758,8 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		NotifyWeenieError(WERROR_SALVAGE_DONT_OWN_TOOL);
 		return;
 	}
+
+	//STypeSkill::SALVAGING_SKILL
 
 	DWORD highestSalvagingSkillValue;
 	InqSkill(STypeSkill::ARMOR_APPRAISAL_SKILL, highestSalvagingSkillValue, false);
