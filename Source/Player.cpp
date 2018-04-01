@@ -624,7 +624,6 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 			itemsLostText.append("your ");
 		int stackSize = iter->second->InqIntQuality(STACK_SIZE_INT, 1);
 		itemsLostText.append(iter->second->GetName());
-		break;
 	}
 	// END item dropping BY VALUE
 	// WRITE it out to the player
