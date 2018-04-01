@@ -1361,7 +1361,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 						CWeenieObject *topLevelOwner = target->GetWorldTopLevelOwner();
 
-						if (target->m_Qualities.m_WeenieType == 5) //do not allow enchanting ammunition
+						if (target->InqIntQuality(MAX_STACK_SIZE_INT, 1) > 1) //do not allow enchanting stackable items(ammunition)
 						{
 							m_pWeenie->SendText(csprintf("The %s can't be enchanted.", target->GetName().c_str()), LTT_MAGIC);
 							continue;
