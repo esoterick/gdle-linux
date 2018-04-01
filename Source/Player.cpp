@@ -598,6 +598,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iterI->second));
 		else
 			finaliVL.insert(std::pair<int, CWeenieObject *>(curval, iterI->second));
+		break;
 
 	}
 
