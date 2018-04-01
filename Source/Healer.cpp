@@ -45,8 +45,8 @@ void CHealerUseEvent::OnReadyToUse()
 	}
 	else
 	{
-		// TODO find the right animation for healing another player
-		ExecuteUseAnimation(Motion_SkillHealSelf);
+		// TODO find the right animation for healing another player - using Woah animation now, seems right.
+		ExecuteUseAnimation(Motion_Woah);
 	}
 }
 
