@@ -568,16 +568,37 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 	}
 
 	// 50% value of second+ instance of itemValueList
-	std::multimap<int, CWeenieObject *> finaliVL;
+	// used 2 multimaps so i could count. hackjob.
+	std::multimap<int, CWeenieObject *> tmpVLint;
+	std::multimap<std::string, int> tmpVLstr;
+	std::string objName;
 	for (auto iter = itemValueList.begin(); iter != itemValueList.end(); ++iter)
 	{
-		int amtOfEle = finaliVL.count(iter->first);
-		int curval = iter->first;
-		int nVal = iter->first / 2;
-		if (amtOfEle > 0)
-			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iter->second));
+		tmpVLint.insert(std::pair<int, CWeenieObject *>(iter->first, iter->second));
+		tmpVLstr.insert(std::pair<std::string, int>(iter->second->InqStringQuality(NAME_STRING, objName), iter->first));
+	}
+
+	std::multimap<int, CWeenieObject *> finaliVL;
+	int amtOfEleN = 0;
+	int amtOfEleV = 0;
+	int inFinal = 0;
+	int curval = 0;
+	int nVal = 0;
+	for (auto iterI = tmpVLint.begin(); iterI != tmpVLint.end(); ++iterI)
+	{
+		for (auto iterS = tmpVLstr.begin(); iterS != tmpVLstr.end(); ++iterS)
+		{
+			amtOfEleN = tmpVLstr.count(iterS->first);
+			amtOfEleV = tmpVLint.count(iterI->first);
+			inFinal = finaliVL.count(iterI->first);
+			curval = iterI->first;
+			nVal = iterI->first / 2;
+		}
+		if (amtOfEleV > 1 && amtOfEleN > 1 && inFinal > 0)
+			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iterI->second));
 		else
-			finaliVL.insert(std::pair<int, CWeenieObject *>(curval, iter->second));
+			finaliVL.insert(std::pair<int, CWeenieObject *>(curval, iterI->second));
+
 	}
 
 	// START item dropping BY VALUE
