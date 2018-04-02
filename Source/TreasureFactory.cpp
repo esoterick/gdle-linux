@@ -2287,7 +2287,7 @@ void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpe
 					else if (spell.spellCategory == eSpellCategory::magicSkillMastery)
 					{
 						ITEM_TYPE itemType = (ITEM_TYPE)newItem->InqIntQuality(ITEM_TYPE_INT, TYPE_UNDEF, true);
-						STypeSkill wieldSkill = (STypeSkill)newItem->InqIntQuality(WIELD_SKILLTYPE_INT, UNDEF_SKILL, true);
+						STypeSkill wieldSkill = SkillTable::OldToNewSkill((STypeSkill)newItem->InqIntQuality(WIELD_SKILLTYPE_INT, UNDEF_SKILL, true));
 						if (itemType != TYPE_CASTER || wieldSkill == UNDEF_SKILL)
 							magicMasterySpells.push_back(spell);
 					}

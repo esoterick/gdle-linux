@@ -63,16 +63,19 @@ STypeSkill SkillTable::OldToNewSkill(STypeSkill old) // Custom
 
 const SkillBase *SkillTable::GetSkillBaseRaw(STypeSkill key) // custom
 {
+	key = SkillTable::OldToNewSkill(key);
 	return _skillBaseHash.lookup(key);
 }
 
 const SkillBase *SkillTable::GetSkillBase(STypeSkill key)
 {
+	key = SkillTable::OldToNewSkill(key);
 	return _skillBaseHash.lookup(key);
 }
 
 std::string SkillTable::GetSkillName(STypeSkill key) // custom
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (const SkillBase *skillBase = GetSkillBaseRaw(key))
 	{
 		return skillBase->_name;
@@ -88,6 +91,7 @@ SkillTable *SkillSystem::GetSkillTable()
 
 BOOL SkillSystem::GetSkillName(STypeSkill key, std::string &value)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (SkillTable *pSkillTable = SkillSystem::GetSkillTable())
 	{
 		const SkillBase *pSkillBase = pSkillTable->GetSkillBase(key);

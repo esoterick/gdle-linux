@@ -5328,6 +5328,7 @@ BOOL CACQualities::EnchantAttribute2nd(STypeAttribute2nd key, DWORD &value)
 
 BOOL CACQualities::EnchantSkill(STypeSkill key, DWORD &value)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (_enchantment_reg)
 		return _enchantment_reg->EnchantSkill(key, (int *)&value);
 
@@ -5336,6 +5337,8 @@ BOOL CACQualities::EnchantSkill(STypeSkill key, DWORD &value)
 
 BOOL CACQualities::InqSkill(STypeSkill key, DWORD &value, BOOL raw)
 {
+	key = SkillTable::OldToNewSkill(key);
+
 	if (!InqSkillBaseLevel(key, value, raw))
 		return FALSE;
 
@@ -5411,6 +5414,8 @@ BOOL CACQualities::InqSkill(STypeSkill key, DWORD &value, BOOL raw)
 
 BOOL CACQualities::InqSkill(STypeSkill key, Skill &value)
 {
+	key = SkillTable::OldToNewSkill(key);
+
 	if (_skillStatsTable)
 	{
 		const Skill *pValue = _skillStatsTable->lookup(key);
@@ -5427,6 +5432,7 @@ BOOL CACQualities::InqSkill(STypeSkill key, Skill &value)
 
 BOOL CACQualities::InqSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CLASS &value)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (_skillStatsTable)
 	{
 		const Skill *pValue = _skillStatsTable->lookup(key);
@@ -5443,6 +5449,7 @@ BOOL CACQualities::InqSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CL
 
 void CACQualities::SetSkill(STypeSkill key, const Skill &val)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (!_skillStatsTable)
 	{
 		_skillStatsTable = new PackableHashTableWithJson<STypeSkill, Skill>();
@@ -5453,6 +5460,7 @@ void CACQualities::SetSkill(STypeSkill key, const Skill &val)
 
 void CACQualities::SetSkillLevel(STypeSkill key, DWORD val)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (!_skillStatsTable)
 	{
 		_skillStatsTable = new PackableHashTableWithJson<STypeSkill, Skill>();
@@ -5463,6 +5471,7 @@ void CACQualities::SetSkillLevel(STypeSkill key, DWORD val)
 
 void CACQualities::SetSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CLASS val)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (!_skillStatsTable)
 	{
 		_skillStatsTable = new PackableHashTableWithJson<STypeSkill, Skill>();
@@ -5473,6 +5482,7 @@ void CACQualities::SetSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CL
 
 BOOL CACQualities::InqSkillLevel(STypeSkill key, DWORD &value)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (_skillStatsTable)
 	{
 		const Skill *pValue = _skillStatsTable->lookup(key);
@@ -5489,6 +5499,7 @@ BOOL CACQualities::InqSkillLevel(STypeSkill key, DWORD &value)
 
 BOOL CACQualities::InqSkillBaseLevel(STypeSkill key, DWORD &value, BOOL raw)
 {
+	key = SkillTable::OldToNewSkill(key);
 	SkillTable *pSkillTable = SkillSystem::GetSkillTable();
 
 	if (!pSkillTable)
