@@ -16,7 +16,11 @@ MonsterAIManager::MonsterAIManager(CMonsterWeenie *pWeenie, const Position &Home
 	_aiOptions = pWeenie->InqIntQuality(AI_OPTIONS_INT, 0, TRUE);
 	_cachedVisualAwarenessRange = m_pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE);
 
+	if(!m_pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
 	_meleeWeapon = m_pWeenie->GetWieldedCombat(COMBAT_USE_MELEE);
+	else {
+		_meleeWeapon = m_pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+	}
 	_missileWeapon = m_pWeenie->GetWieldedCombat(COMBAT_USE_MISSILE);
 	_shield = m_pWeenie->GetWieldedCombat(COMBAT_USE_SHIELD);
 
@@ -392,7 +396,11 @@ void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height
 	if (m_pWeenie->_combatTable)
 	{
 		if(weapon == NULL)
+		if (!m_pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
 			weapon = m_pWeenie->GetWieldedCombat(COMBAT_USE_MELEE);
+		else {
+			weapon = m_pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+		}
 		if (weapon)
 		{
 			AttackType attackType = (AttackType)weapon->InqIntQuality(ATTACK_TYPE_INT, 0);

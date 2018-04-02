@@ -278,7 +278,12 @@ void CMeleeAttackEvent::Setup()
 	{
 		if (_weenie->_combatTable)
 		{
-			CWeenieObject *weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+			CWeenieObject *weapon = NULL;
+				if (!_weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
+				weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+				else {
+					weapon = _weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+				}
 			if (weapon)
 			{
 				//_max_attack_distance = weapon->InqFloatQuality(WEAPON_LENGTH_FLOAT, 0.5); //todo: this would be interesting but something makes the character still move next to the target anyway. Is it the client?
@@ -406,7 +411,12 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	double offenseMod = 1.0;
 
 	bool isBodyPart = false;
-	CWeenieObject *weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+	CWeenieObject *weapon = NULL;
+	if (!_weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
+		weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+	else {
+		weapon = _weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+	}
 
 	if (!weapon) //if we still don't have a weapon use our body parts
 	{

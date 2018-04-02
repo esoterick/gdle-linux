@@ -243,7 +243,7 @@ CContainerWeenie *CMonsterWeenie::FindValidNearbyContainer(DWORD containerId, fl
 
 bool CMonsterWeenie::GetEquipPlacementAndHoldLocation(CWeenieObject *item, DWORD location, DWORD *pPlacementFrame, DWORD *pHoldLocation)
 {
-	if (location & MELEE_WEAPON_LOC)
+	if (location & (MELEE_WEAPON_LOC | TWO_HANDED_LOC))
 	{
 		*pPlacementFrame = Placement::RightHandCombat;
 		*pHoldLocation = PARENT_RIGHT_HAND;
@@ -1752,9 +1752,13 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 		break;
 
 	case MELEE_COMBAT_MODE:
-		{
-			CWeenieObject *weapon = GetWieldedMelee();
-
+		{	
+		CWeenieObject *weapon =NULL;
+			if(!GetWieldedMelee())
+				weapon = GetWieldedTwoHanded();
+			else {
+				weapon = GetWieldedMelee();
+			}
 			CombatStyle default_combat_style = weapon ? (CombatStyle)weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, Undef_CombatStyle) : Undef_CombatStyle;
 
 			switch (default_combat_style)
@@ -1777,6 +1781,11 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 					newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
 					break;
 				}
+			
+			case TwoHanded_CombatStyle:
+					new_motion_style = Motion_2HandedSwordCombat;
+					newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
+					break;				
 			}
 
 			break;
