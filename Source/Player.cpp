@@ -1840,6 +1840,7 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, CWeenie
 
 void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem)
 {
+	double currentVar = pTarget->InqFloatQuality(DAMAGE_VARIANCE_FLOAT, 0, TRUE);
 	switch (scriptId)
 	{
 	case 0x3800000f: //flag stamp failure
@@ -1894,7 +1895,7 @@ void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation
 		pTarget->m_Qualities.SetInt(NUM_TIMES_TINKERED_INT, pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0, TRUE) + 1);
 		break;
 	case 0x3800001c: //granite
-		pTarget->m_Qualities.SetFloat(DAMAGE_VARIANCE_FLOAT, max(pTarget->InqFloatQuality(DAMAGE_VARIANCE_FLOAT, 0, TRUE) - 0.20, 0.0));
+		pTarget->m_Qualities.SetFloat(DAMAGE_VARIANCE_FLOAT, max(currentVar - (currentVar / 5), 0.0));
 		pTarget->m_Qualities.SetInt(NUM_TIMES_TINKERED_INT, pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0, TRUE) + 1);
 		break;
 	case 0x3800001d: //oak
