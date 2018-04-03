@@ -1430,6 +1430,22 @@ int CSpellcastingManager::LaunchSpellEffect()
 									continue;
 								}
 							}
+							if (bool resistProjectileMagic = target->InqBoolQuality(NON_PROJECTILE_MAGIC_IMMUNE_BOOL, 0))
+							{
+								if (resistProjectileMagic == 1 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD)resistProjectileMagic))
+								{
+									target->EmitSound(Sound_ResistSpell, 1.0f, false);
+
+									if (m_pWeenie != topLevelOwner)
+									{
+										topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+									}
+
+									m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+									target->OnResistSpell(m_pWeenie);
+									continue;
+								}
+							}
 						}
 
 						topLevelOwner->HandleAggro(m_pWeenie);
