@@ -38,6 +38,7 @@
 #include "InferredPortalData.h"
 #include "RandomRange.h"
 #include "House.h"
+#include "GameEventManager.h"
 
 // Most of these commands are just for experimenting and never meant to be used in a real game
 // TODO: Add flags to these commands so they are only accessible under certain modes such as a sandbox mode
@@ -2719,7 +2720,7 @@ CLIENT_COMMAND(activeevents, "", "", ADMIN_ACCESS)
 {
 	std::string eventText = "Enabled events:";
 
-	for (auto &entry : g_pPortalDataEx->_gameEvents._gameEvents)
+	for (auto &entry : g_pGameEventManager->_gameEvents)
 	{
 		if (entry.second._eventState != GameEventState::Off_GameEventState)
 		{		
@@ -2728,6 +2729,52 @@ CLIENT_COMMAND(activeevents, "", "", ADMIN_ACCESS)
 		}
 	}
 
+	pPlayer->SendText(eventText.c_str(), LTT_DEFAULT);
+	return false;
+}
+
+CLIENT_COMMAND(startevent, "[event]", "Starts an event.", BASIC_ACCESS)
+{
+	auto &events = g_pGameEventManager->_gameEvents;
+
+	std::string eventText = "Event started.";
+
+	std::string normalizedEventName = g_pGameEventManager->NormalizeEventName(argv[0]);
+	
+	if (GameEventDef *eventDesc = events.lookup(normalizedEventName.c_str()))
+	{
+		if (eventDesc->_eventState != GameEventState::On_GameEventState)
+		{
+			eventDesc->_eventState = GameEventState::On_GameEventState;
+			g_pWorld->NotifyEventStarted(normalizedEventName.c_str());
+		}
+	}
+	else {
+		eventText = "Event already started.";
+	}
+	pPlayer->SendText(eventText.c_str(), LTT_DEFAULT);
+	return false;
+}
+
+CLIENT_COMMAND(stopevent, "[event]", "Stops an event.", BASIC_ACCESS)
+{
+	auto &events = g_pGameEventManager->_gameEvents;
+
+	std::string eventText = "Event stopped.";
+
+	std::string normalizedEventName = g_pGameEventManager->NormalizeEventName(argv[0]);
+
+	if (GameEventDef *eventDesc = events.lookup(normalizedEventName.c_str()))
+	{
+		if (eventDesc->_eventState != GameEventState::Off_GameEventState)
+		{
+			eventDesc->_eventState = GameEventState::Off_GameEventState;
+			g_pWorld->NotifyEventStopped(normalizedEventName.c_str());
+		}
+	}
+	else {
+		eventText = "Event not active.";
+	}
 	pPlayer->SendText(eventText.c_str(), LTT_DEFAULT);
 	return false;
 }
