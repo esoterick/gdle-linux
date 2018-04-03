@@ -479,7 +479,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 
 	int level = InqIntQuality(LEVEL_INT, 1);
 	int maxItemsToDrop = 12; // Limit the amount of items that can be dropped + random adjustment
-	int amountOfItemsToDrop = min(max(level / 10, 1), maxItemsToDrop);
+	int amountOfItemsToDrop = min(max(level / 20, 1), maxItemsToDrop);
 	if (level > 10)
 		amountOfItemsToDrop += Random::GenUInt(0, 2);
 	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
