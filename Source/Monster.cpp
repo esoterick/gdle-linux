@@ -330,14 +330,14 @@ int CMonsterWeenie::CheckWieldRequirements(CWeenieObject *item, CWeenieObject *w
 	{
 		DWORD skillLevel = 0;
 		if (!wielder->m_Qualities.InqSkill((STypeSkill)skillType, skillLevel, FALSE) || (int)skillLevel < wieldDifficulty)
-			return WERROR_ACTIVATION_SKILL_TOO_LOW;
+			return WERROR_SKILL_TOO_LOW;
 		break;
 	}
 	case 2: // base skill
 	{
 		DWORD skillLevel = 0;
 		if (!wielder->m_Qualities.InqSkill((STypeSkill)skillType, skillLevel, TRUE) || (int)skillLevel < wieldDifficulty)
-			return WERROR_ACTIVATION_SKILL_TOO_LOW;
+			return WERROR_SKILL_TOO_LOW;
 		break;
 	}
 	case 3: // attribute
@@ -2227,7 +2227,7 @@ float CMonsterWeenie::GetEffectiveArmorLevel(DamageEventData &damageData, bool b
 	buffDetails.CalculateEnchantedValue();
 
 	if (bIgnoreMagicArmor)
-		return buffDetails.enchantedValue_DecreasingOnly; //debuffs still count
+		return buffDetails.rawValue; //Take the Raw value for Hollows. Debuffs should not count.
 	else
 		return buffDetails.enchantedValue;
 }

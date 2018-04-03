@@ -4078,7 +4078,7 @@ float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bI
 	GetIntEnchantmentDetails(ARMOR_LEVEL_INT, 0, &buffDetails);
 
 	if (bIgnoreMagicArmor)
-		armorLevel = buffDetails.enchantedValue_DecreasingOnly; //debuffs still count
+		armorLevel = buffDetails.rawValue; //take the Raw armor value for Hollows. Debuffs should not count
 	else
 		armorLevel = buffDetails.enchantedValue;
 
@@ -4166,7 +4166,7 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 
 	float resistanceRegular = buffDetails.enchantedValue;
 	if (damageData.ignoreMagicResist)
-		resistanceRegular = buffDetails.enchantedValue_IncreasingOnly; //debuffs still count
+		resistanceRegular = buffDetails.rawValue; //take the Raw resistance value for Hollows. Debuffs should not count
 
 	if (damageData.damageAfterMitigation > 0 || damageData.damage_type == HEALTH_DAMAGE_TYPE || damageData.damage_type == STAMINA_DAMAGE_TYPE || damageData.damage_type == MANA_DAMAGE_TYPE)
 	{
