@@ -567,7 +567,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		profile._intStatsTable->remove(PHYSICS_STATE_INT);
 		profile._intStatsTable->remove(XP_OVERRIDE_INT);
 		profile._intStatsTable->remove(MAX_GENERATED_OBJECTS_INT);
-		//profile._intStatsTable->remove(STRUCTURE_INT); // ADDED
+		//profile._intStatsTable->remove(NUM_ITEMS_IN_MATERIAL_INT); // ADDED -- removed the mysterious double used for calculations (divison against amt of items in bag)
 		//[NUM_ITEMS_IN_MATERIAL_INT(170)] == Correct one to keep for SHOWING bags' workmanship
 		//[STRUCTURE_INT (92)] == Number of Uses on Salvage ID...actually Double SalvageWorkmanship (SHOWN)
 		//----not sure where to change msg prepended to it.
