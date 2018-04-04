@@ -587,7 +587,11 @@ PublicWeenieDesc *PublicWeenieDesc::CreateFromQualities(CACQualities *qualities)
 	desc->_blipColor = qualities->GetInt(RADARBLIP_COLOR_INT, 0);
 	desc->_radar_enum = (RadarEnum)qualities->GetInt(SHOWABLE_ON_RADAR_INT, 0);
 	desc->_pscript = (PScriptType) qualities->GetDID(RESTRICTION_EFFECT_DID, 0);
-	desc->_workmanship = (float) qualities->GetInt(ITEM_WORKMANSHIP_INT, 0); // questionable, casts to float
+	//calculate here for Salvage Workmanship Bags
+	double itemsFrom = qualities->GetInt(NUM_ITEMS_IN_MATERIAL_INT, 0);
+	double SalvageTotal = qualities->GetInt(ITEM_WORKMANSHIP_INT, 0);
+	float SalvageBagWorkmanship = SalvageTotal/itemsFrom;
+	desc->_workmanship = (float)SalvageBagWorkmanship; // Fixed salvage bag worksmanship w/ vTank
 	desc->_burden = qualities->GetInt(ENCUMB_VAL_INT, 0);
 	desc->_spellID = qualities->GetDID(SPELL_DID, 0); // questionable
 	desc->_house_owner_iid = qualities->GetIID(HOUSE_OWNER_IID, 0);

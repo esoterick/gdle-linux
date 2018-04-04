@@ -2741,7 +2741,10 @@ struct SalvageInfo
 	int totalValue = 0;
 	int totalWorkmanship = 0;
 
-	int itemsSalvagedCount = 0;
+	//int itemsSalvagedCount = 0;
+	//Discrete/Continous vars into the structure of salvageMap
+	int itemsSalvagedCountCont = 0;
+	int itemsSalvagedCountDiscrete = 0;
 };
 
 void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
@@ -2760,22 +2763,9 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		return;
 	}
 
-	//STypeSkill::SALVAGING_SKILL
-
+	//SALVAGING SKILL DETERMINES SALVAGE AMOUNT
 	DWORD highestSalvagingSkillValue;
-	InqSkill(STypeSkill::ARMOR_APPRAISAL_SKILL, highestSalvagingSkillValue, false);
-
-	DWORD candidateSkill;
-	InqSkill(STypeSkill::WEAPON_APPRAISAL_SKILL, candidateSkill, false);
-	if (candidateSkill > highestSalvagingSkillValue)
-		highestSalvagingSkillValue = candidateSkill;
-	InqSkill(STypeSkill::MAGIC_ITEM_APPRAISAL_SKILL, candidateSkill, false);
-	if (candidateSkill > highestSalvagingSkillValue)
-		highestSalvagingSkillValue = candidateSkill;
-	InqSkill(STypeSkill::ITEM_APPRAISAL_SKILL, candidateSkill, false);
-	if (candidateSkill > highestSalvagingSkillValue)
-		highestSalvagingSkillValue = candidateSkill;
-
+	InqSkill(STypeSkill::SALVAGING_SKILL, highestSalvagingSkillValue, false);
 	std::map<MaterialType, SalvageInfo> salvageMap;
 	std::list<CWeenieObject *> itemsToDestroy;
 
@@ -2808,24 +2798,26 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		}
 
 		itemsToDestroy.push_back(pItem);
-		if(itemType == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
-		{ 
-			salvageMap[material].itemsSalvagedCount += pItem->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
+		/*keep Discrete and Continous .itemsSalvaged
+		Discrete for immediate calculations, Continous for reference sake and foolish number porn*/
+		if (itemType == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
+		{
 			salvageMap[material].amount += pItem->InqIntQuality(STRUCTURE_INT, 1);
 			salvageMap[material].totalValue += itemValue;
-			salvageMap[material].totalWorkmanship += workmanship;
+			salvageMap[material].itemsSalvagedCountCont += pItem->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
+			//salvageMap[material].itemsSalvagedCountDiscrete++;
 		}
 		else
 		{
-			double multiplier = GetSkillChance(highestSalvagingSkillValue, 100); 
-			int salvageAmount = (int)round(max(workmanship * multiplier, 1)); //made up formula.
-			int salvageValue = (int)round(max(itemValue * 0.75 * multiplier, 1)); //made up formula.
-
-			salvageMap[material].itemsSalvagedCount++;
-			salvageMap[material].amount += salvageAmount;
+			double multiplier = GetSkillChance(highestSalvagingSkillValue, 100);
+			int salvageAmount = (int)round(max(workmanship * multiplier, 1));
+			int salvageValue = (int)round(max(itemValue * 0.75 * multiplier, 1));
 			salvageMap[material].totalValue += salvageValue;
-			salvageMap[material].totalWorkmanship += workmanship;
+			salvageMap[material].amount += salvageAmount;
+			salvageMap[material].itemsSalvagedCountCont++;
+			//salvageMap[material].itemsSalvagedCountDiscrete++;
 		}
+		salvageMap[material].totalWorkmanship += workmanship;
 	}
 
 	if (itemsToDestroy.empty())
@@ -2838,16 +2830,14 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	{
 		MaterialType material = salvageEntry.first;
 		SalvageInfo salvageInfo = salvageEntry.second;
-
 		int valuePerUnit = salvageInfo.totalValue / salvageInfo.amount;
 		int fullBags = floor(salvageInfo.amount / 100.0);
 		int partialBagAmount = salvageInfo.amount % 100;
-
 		for (int i = 0; i < fullBags; i++)
-			SpawnSalvageBagInContainer(material, 100, salvageInfo.totalWorkmanship, valuePerUnit * 100, salvageInfo.itemsSalvagedCount);
+			SpawnSalvageBagInContainer(material, 100, salvageInfo.totalWorkmanship, valuePerUnit * 100, salvageInfo.itemsSalvagedCountCont);
 
 		if(partialBagAmount > 0)
-			SpawnSalvageBagInContainer(material, partialBagAmount, salvageInfo.totalWorkmanship, valuePerUnit * partialBagAmount, salvageInfo.itemsSalvagedCount);
+			SpawnSalvageBagInContainer(material, partialBagAmount, salvageInfo.totalWorkmanship, valuePerUnit * partialBagAmount, salvageInfo.itemsSalvagedCountCont);
 	}
 }
 
@@ -2867,6 +2857,14 @@ bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount
 	weenie->m_Qualities.SetInt(VALUE_INT, value);
 	weenie->m_Qualities.SetInt(STRUCTURE_INT, amount);
 	weenie->m_Qualities.SetInt(NUM_ITEMS_IN_MATERIAL_INT, numItems);
+	//weenie->m_Qualities.SetFloat(SalvageWorkmanship, )
+
+	//Which one of these is Vtank missing to make it not calculate the real workmanship
+	//none. it has them all. where is SalvageWorkmanship double being calculated
+
+	//NumberItemsSalvagedFrom = 170, // 0x000000AA
+	//SalvageWorkmanship = 167772169, // 0x0A000009
+	//	Divide SalvageWorkmanship by NumberItemsSalvagedFrom
 
 	return SpawnInContainer(weenie);
 }
