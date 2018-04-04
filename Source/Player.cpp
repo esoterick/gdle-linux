@@ -2761,20 +2761,9 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	}
 
 	//STypeSkill::SALVAGING_SKILL
-
+	//SALVAGING SKILL DETERMINES SALVAGE AMOUNT
 	DWORD highestSalvagingSkillValue;
-	InqSkill(STypeSkill::ARMOR_APPRAISAL_SKILL, highestSalvagingSkillValue, false);
-
-	DWORD candidateSkill;
-	InqSkill(STypeSkill::WEAPON_APPRAISAL_SKILL, candidateSkill, false);
-	if (candidateSkill > highestSalvagingSkillValue)
-		highestSalvagingSkillValue = candidateSkill;
-	InqSkill(STypeSkill::MAGIC_ITEM_APPRAISAL_SKILL, candidateSkill, false);
-	if (candidateSkill > highestSalvagingSkillValue)
-		highestSalvagingSkillValue = candidateSkill;
-	InqSkill(STypeSkill::ITEM_APPRAISAL_SKILL, candidateSkill, false);
-	if (candidateSkill > highestSalvagingSkillValue)
-		highestSalvagingSkillValue = candidateSkill;
+	InqSkill(STypeSkill::SALVAGING_SKILL, highestSalvagingSkillValue, false);
 
 	std::map<MaterialType, SalvageInfo> salvageMap;
 	std::list<CWeenieObject *> itemsToDestroy;
