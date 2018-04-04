@@ -4164,9 +4164,11 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		buffDetails.CalculateEnchantedValue();
 	}
 
-	float resistanceRegular = buffDetails.enchantedValue;
+	float resistanceRegular;
 	if (damageData.ignoreMagicResist)
 		resistanceRegular = buffDetails.rawValue; //take the Raw resistance value for Hollows. Debuffs should not count
+	else
+		resistanceRegular = buffDetails.enchantedValue;
 
 	if (damageData.damageAfterMitigation > 0 || damageData.damage_type == HEALTH_DAMAGE_TYPE || damageData.damage_type == STAMINA_DAMAGE_TYPE || damageData.damage_type == MANA_DAMAGE_TYPE)
 	{
