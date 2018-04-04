@@ -2805,7 +2805,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 			salvageMap[material].amount += pItem->InqIntQuality(STRUCTURE_INT, 1);
 			salvageMap[material].totalValue += itemValue;
 			salvageMap[material].itemsSalvagedCountCont += pItem->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
-			salvageMap[material].itemsSalvagedCountDiscrete++;
+			//salvageMap[material].itemsSalvagedCountDiscrete++;
 		}
 		else
 		{
@@ -2815,7 +2815,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 			salvageMap[material].totalValue += salvageValue;
 			salvageMap[material].amount += salvageAmount;
 			salvageMap[material].itemsSalvagedCountCont++;
-			salvageMap[material].itemsSalvagedCountDiscrete++;
+			//salvageMap[material].itemsSalvagedCountDiscrete++;
 		}
 		salvageMap[material].totalWorkmanship += workmanship;
 	}
@@ -2857,6 +2857,8 @@ bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount
 	weenie->m_Qualities.SetInt(VALUE_INT, value);
 	weenie->m_Qualities.SetInt(STRUCTURE_INT, amount);
 	weenie->m_Qualities.SetInt(NUM_ITEMS_IN_MATERIAL_INT, numItems);
+
+	//Which one of these is Vtank missing to make it not calculate the real workmanship
 
 	return SpawnInContainer(weenie);
 }
