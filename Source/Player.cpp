@@ -2857,8 +2857,14 @@ bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount
 	weenie->m_Qualities.SetInt(VALUE_INT, value);
 	weenie->m_Qualities.SetInt(STRUCTURE_INT, amount);
 	weenie->m_Qualities.SetInt(NUM_ITEMS_IN_MATERIAL_INT, numItems);
+	//weenie->m_Qualities.SetFloat(SalvageWorkmanship, )
 
 	//Which one of these is Vtank missing to make it not calculate the real workmanship
+	//none. it has them all. where is SalvageWorkmanship double being calculated
+
+	//NumberItemsSalvagedFrom = 170, // 0x000000AA
+	//SalvageWorkmanship = 167772169, // 0x0A000009
+	//	Divide SalvageWorkmanship by NumberItemsSalvagedFrom
 
 	return SpawnInContainer(weenie);
 }
