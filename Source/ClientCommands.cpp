@@ -2974,7 +2974,13 @@ CLIENT_COMMAND(spawnjewelerytoinvbymatid, "<tier> <num> <mat>", "Spawn treasure 
 	int num = atoi(argv[1]);
 	int mat = atoi(argv[2]);
 
-	for (int i = 0; i < num; i)
+	if (pPlayer->GetAccessLevel() < SENTINEL_ACCESS)
+	{
+		pPlayer->SendText("You do not have access to this command.", LTT_DEFAULT);
+		return false;
+	}
+
+	for (int i = 0; i < num; i++)
 	{
 		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Jewelry);
 		treasure->m_Qualities.SetInt(MATERIAL_TYPE_INT, atoi(argv[2]));
