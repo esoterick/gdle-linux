@@ -2965,6 +2965,37 @@ CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid in
 	return false;
 }
 
+CLIENT_COMMAND(spawnjewelerytoinvbymatid, "<tier> <num> <mat>", "Spawn treasure by material", ADMIN_ACCESS)
+{
+	if (argc < 2)
+		return true;
+
+	int tier = atoi(argv[0]);
+	int num = atoi(argv[1]);
+	int mat = atoi(argv[2]);
+
+	for (int i = 0; i < num; i)
+	{
+		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Jewelry);
+		treasure->m_Qualities.SetInt(MATERIAL_TYPE_INT, atoi(argv[2]));
+
+		if (treasure)
+		{
+			pPlayer->SpawnCloneInContainer(treasure, 1);
+			if (!g_pWorld->CreateEntity(treasure))
+			{
+				delete treasure;
+				return false;
+			}
+		}
+		else
+			continue;
+	}
+
+	return false;
+}
+
+
 CLIENT_COMMAND(spawnwcid, "<name> [ptid] [shade]", "Spawn by wcid.", ADMIN_ACCESS)
 {
 	if (g_pConfig->GetValue("weapons_testing", "0") == 0)
