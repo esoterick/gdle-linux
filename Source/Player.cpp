@@ -2091,6 +2091,10 @@ void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation
 	case 0x38000043: //leather
 		pTarget->m_Qualities.SetBool(RETAINED_BOOL, 1);
 		break;
+	case 0x38000044: //green garnet
+		pTarget->m_Qualities.SetFloat(ELEMENTAL_DAMAGE_MOD_FLOAT, pTarget->InqFloatQuality(ELEMENTAL_DAMAGE_MOD_FLOAT, 0, TRUE) + 0.01);
+		pTarget->m_Qualities.SetInt(NUM_TIMES_TINKERED_INT, pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0, TRUE) + 1);
+		break;
 	case 0x38000046: //fetish of the dark idol
 		pTarget->AddImbueEffect(ImbuedEffectType::IgnoreSomeMagicProjectileDamage_ImbuedEffectType);
 		break;
