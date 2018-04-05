@@ -1059,8 +1059,7 @@ void CWeenieFactory::AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject
 		else
 			pos = profile->pos_val;
 
-		//Only calculate SurfaceZ if above ground
-		if(pos.frame.m_origin.z > 0)
+		if ((pos.objcell_id & 0xFFFF) < 0x100) //outdoors
 		pos.frame.m_origin.z = CalcSurfaceZ(pos.objcell_id, pos.frame.m_origin.x, pos.frame.m_origin.y, false);
 
 		weenie->SetInitialPosition(pos);
