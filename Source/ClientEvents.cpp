@@ -1845,7 +1845,13 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 		case 0x0035: //Use Item Ex
 			{
-				//SendText("Use extended not implemented yet.", 9);
+			if (m_pPlayer->_nextUseTime > Timer::cur_time) //fix for using stuff multiple times at once by spamming the buttom
+			{
+				ActionComplete(WERROR_ACTIONS_LOCKED);
+				break;
+			}
+			else
+			{
 				DWORD dwSourceID = pReader->ReadDWORD();
 				DWORD dwDestID = pReader->ReadDWORD();
 				if (pReader->GetLastError()) break;
@@ -1853,14 +1859,25 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				UseItemEx(dwSourceID, dwDestID);
 				break;
 			}
+			}
 		case 0x0036: //Use Object
+		{
+			if (m_pPlayer->_nextUseTime > Timer::cur_time) //fix for using stuff multiple times at once by spamming the buttom
 			{
+				ActionComplete(WERROR_ACTIONS_LOCKED);
+				break;
+			}
+			else
+			{
+				m_pPlayer->_nextUseTime = Timer::cur_time + 0.1;
+
 				DWORD dwEID = pReader->ReadDWORD();
 				if (pReader->GetLastError()) break;
 
 				UseObject(dwEID);
 				break;
 			}
+		}
 		case 0x0044: // spend XP on vitals
 			{
 				DWORD dwAttribute2nd = pReader->ReadDWORD();
