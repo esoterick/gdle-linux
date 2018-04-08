@@ -115,7 +115,7 @@ int CPlayerWeenie::GetAccessLevel()
 {
 	if (!m_pClient)
 		return BASIC_ACCESS;
-	
+
 	return m_pClient->GetAccessLevel();
 }
 
@@ -282,7 +282,7 @@ void CPlayerWeenie::MakeAware(CWeenieObject *pEntity, bool bForceUpdate)
 		{
 			MakeAware(item);
 		}
-		
+
 		for (auto item : m_Packs)
 		{
 			MakeAware(item);
@@ -438,7 +438,7 @@ void CPlayerWeenie::OnGivenXP(long long amount, bool allegianceXP)
 	if (m_Qualities.GetVitaeValue() < 1.0 && !allegianceXP)
 	{
 		DWORD64 vitae_pool = InqIntQuality(VITAE_CP_POOL_INT, 0) + min(amount, 1000000000);
-		float new_vitae = 1.0;		
+		float new_vitae = 1.0;
 		bool has_new_vitae = VitaeSystem::DetermineNewVitaeLevel(m_Qualities.GetVitaeValue(), InqIntQuality(DEATH_LEVEL_INT, 1), &vitae_pool, &new_vitae);
 
 		UpdateVitaePool(vitae_pool);
@@ -501,20 +501,20 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 			removeList.push_back(wielded);
 		else if (wielded->IsDroppedOnDeath())
 			alwaysDropList.push_back(wielded);
-		else if(!wielded->IsBonded())
+		else if (!wielded->IsBonded())
 			allValidItems.push_back(wielded);
 	}
 
 	for (auto item : m_Items)
 	{
-		if(item->m_Qualities.id == W_COINSTACK_CLASS)
+		if (item->m_Qualities.id == W_COINSTACK_CLASS)
 			continue;
 		else if (item->IsDestroyedOnDeath())
 			removeList.push_back(item);
 		else if (item->IsDroppedOnDeath())
 			alwaysDropList.push_back(item);
 		else if (!item->IsBonded())
-			allValidItems.push_back(item);	
+			allValidItems.push_back(item);
 	}
 
 	for (auto packAsWeenie : m_Packs)
@@ -648,7 +648,7 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 
 	m_bReviveAfterAnim = true;
 	CMonsterWeenie::OnDeath(killer_id);
-	
+
 	m_Qualities.SetFloat(DEATH_TIMESTAMP_FLOAT, Timer::cur_time);
 	NotifyFloatStatUpdated(DEATH_TIMESTAMP_FLOAT);
 
@@ -824,8 +824,8 @@ bool CPlayerWeenie::ImmuneToDamage(CWeenieObject *other)
 			}
 			else
 			{
-				PKStatusEnum selfStatus = (PKStatusEnum) InqIntQuality(PLAYER_KILLER_STATUS_INT, PKStatusEnum::Undef_PKStatus);
-				PKStatusEnum otherStatus = (PKStatusEnum) other->InqIntQuality(PLAYER_KILLER_STATUS_INT, PKStatusEnum::Undef_PKStatus);
+				PKStatusEnum selfStatus = (PKStatusEnum)InqIntQuality(PLAYER_KILLER_STATUS_INT, PKStatusEnum::Undef_PKStatus);
+				PKStatusEnum otherStatus = (PKStatusEnum)other->InqIntQuality(PLAYER_KILLER_STATUS_INT, PKStatusEnum::Undef_PKStatus);
 
 				if (selfStatus == PKStatusEnum::Baelzharon_PKStatus || otherStatus == PKStatusEnum::Baelzharon_PKStatus)
 				{
@@ -1118,7 +1118,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			pTarget = swapHelper;
 		}
 
-		if(pTool->IsWielded() || pTarget->IsWielded())
+		if (pTool->IsWielded() || pTarget->IsWielded())
 			return WERROR_CRAFT_ALL_OBJECTS_NOT_FROZEN;
 
 		if (get_minterp()->interpreted_state.current_style != Motion_NonCombat)
@@ -1427,8 +1427,8 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, CWeenie
 #endif
 				break;
 			}
-		}
 	}
+}
 
 	if (!op->_requirements[index]._boolRequirement.empty())
 	{
@@ -2154,7 +2154,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 					value = 0;
 				break;
 			case 3: //copy value from modificationSource to target
-				if(modificationSource)
+				if (modificationSource)
 					value = modificationSource->InqIntQuality(intMod._stat, 0);
 				break;
 			case 4: //copy value from modificationSource to created item
@@ -2187,8 +2187,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetInt(intMod._stat, value);
 				pTarget->NotifyIntStatUpdated(intMod._stat, false);
 			}
+			}
 		}
-	}
 
 	if (!op->_mods[index]._boolMod.empty())
 	{
@@ -2251,8 +2251,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetBool(boolMod._stat, value);
 				pTarget->NotifyBoolStatUpdated(boolMod._stat, false);
 			}
-		}
-	}
+			}
+			}
 
 	if (!op->_mods[index]._floatMod.empty())
 	{
@@ -2317,8 +2317,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetFloat(floatMod._stat, value);
 				pTarget->NotifyFloatStatUpdated(floatMod._stat, false);
 			}
-		}
-	}
+			}
+			}
 
 	if (!op->_mods[index]._stringMod.empty())
 	{
@@ -2405,8 +2405,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetString(stringMod._stat, value);
 				pTarget->NotifyStringStatUpdated(stringMod._stat, false);
 			}
-		}
-	}
+			}
+			}
 
 	if (!op->_mods[index]._didMod.empty())
 	{
@@ -2469,8 +2469,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetDataID(didMod._stat, value);
 				pTarget->NotifyDIDStatUpdated(didMod._stat, false);
 			}
-		}
-	}
+			}
+			}
 
 	if (!op->_mods[index]._iidMod.empty())
 	{
@@ -2514,7 +2514,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 					default:
 						value = modificationSource->InqIIDQuality(iidMod._stat, 0);
 						break;
-					}					
+					}
 				}
 				break;
 			case 4: //copy value from modificationSource to created item
@@ -2555,8 +2555,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetInstanceID(iidMod._stat, value);
 				pTarget->NotifyIIDStatUpdated(iidMod._stat, false);
 			}
-		}
-	}
+			}
+			}
 
 	if (op->_mods[index]._unknown7) //this is a guess
 	{
@@ -2583,7 +2583,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			}
 		}
 	}
-}
+		}
 
 DWORD CPlayerWeenie::MaterialToSalvageBagId(MaterialType material)
 {
@@ -2840,7 +2840,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		for (int i = 0; i < fullBags; i++)
 			SpawnSalvageBagInContainer(material, 100, salvageInfo.totalWorkmanship, valuePerUnit * 100, salvageInfo.itemsSalvagedCountCont);
 
-		if(partialBagAmount > 0)
+		if (partialBagAmount > 0)
 			SpawnSalvageBagInContainer(material, partialBagAmount, salvageInfo.totalWorkmanship, valuePerUnit * partialBagAmount, salvageInfo.itemsSalvagedCountCont);
 	}
 }
@@ -2896,7 +2896,7 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 
 	// Position startPos = Position(0xDB75003B, Vector(186.000000f, 65.000000f, 36.088333f), Quaternion(1.000000, 0.000000, 0.000000, 0.000000));
 	// Position startPos = Position(0xA9B4001F, Vector(87.750603f, 147.722321f, 66.005005f), Quaternion(0.011819f, 0.000000, 0.000000, -0.999930f));
-	
+
 	// Your location is: 0xC98C0028 [113.665604 190.259003 22.004999] -0.707107 0.000000 0.000000 -0.707107 Rithwic
 	// Position startPos = Position(0xC98C0028, Vector(113.665604f, 190.259003f, 22.004999f), Quaternion(-0.707107f, 0.000000, 0.000000, -0.707107f));
 	// SetInitialPosition(startPos);
@@ -3114,7 +3114,7 @@ void CWandSpellUseEvent::OnReadyToUse()
 	}
 
 	_spellId = wand->InqDIDQuality(SPELL_DID, 0);
-	if(!_spellId)
+	if (!_spellId)
 	{
 		Cancel();
 		return;
@@ -3124,7 +3124,7 @@ void CWandSpellUseEvent::OnReadyToUse()
 	DWORD skillValue;
 	if (skill != 0 && _weenie->InqSkill(skill, skillValue, false))
 	{
-		if(skillValue < wand->InqIntQuality(ITEM_SKILL_LEVEL_LIMIT_INT, 0))
+		if (skillValue < wand->InqIntQuality(ITEM_SKILL_LEVEL_LIMIT_INT, 0))
 		{
 			SkillTable *pSkillTable = SkillSystem::GetSkillTable();
 			const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skill);
@@ -3168,6 +3168,8 @@ void CWandSpellUseEvent::OnReadyToUse()
 		_newManaValue = itemCurrentMana - manaCost;
 	}
 
+	_weenie->MakeSpellcastingManager()->m_bCasting = true;
+
 	if (motion)
 		ExecuteUseAnimation(motion);
 	else
@@ -3192,6 +3194,21 @@ void CWandSpellUseEvent::OnUseAnimSuccess(DWORD motion)
 	_weenie->DoForcedStopCompletely();
 	Done();
 }
+
+void CWandSpellUseEvent::Cancel(DWORD error)
+{
+	_weenie->MakeSpellcastingManager()->m_bCasting = false;
+
+	CUseEventData::Cancel(error);
+}
+
+void CWandSpellUseEvent::Done(DWORD error)
+{
+	_weenie->MakeSpellcastingManager()->m_bCasting = false;
+
+	CUseEventData::Done(error);
+}
+
 
 void CLifestoneRecallUseEvent::OnReadyToUse()
 {
