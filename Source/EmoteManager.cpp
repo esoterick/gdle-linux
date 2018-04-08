@@ -1196,6 +1196,34 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
+	case InqInt64Stat_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		if (target)
+		{
+			bool success = false;
+			bool hasQuality = false;
+
+			long long intStat64;
+			if (target->m_Qualities.InqInt64((STypeInt64)emote.stat, intStat64))
+			{
+				hasQuality = true;
+				if (intStat64 >= emote.min64 && intStat64 <= emote.max64)
+				{
+					success = true;
+				}
+			}
+
+			if (!hasQuality && ChanceExecuteEmoteSet(TestNoQuality_EmoteCategory, emote.msg, target_id))
+				break; //if we have a TestNoQuality_EmoteCategory break otherwise try the categories below.
+			ChanceExecuteEmoteSet(success ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, emote.msg, target_id);
+		}
+
+		break;
+	}
 	}
 }
 
