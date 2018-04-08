@@ -117,7 +117,9 @@ void from_json(const nlohmann::json &reader, CPossibleSpells &output)
 void from_json(const nlohmann::json &reader, CWieldTier &output)
 {
 	output.weaponSkillRequired = reader.value("weaponSkillRequired", 0);
+	output.minAttackSkillBonus = reader.value("minAttackSkillBonus", 0.0f);
 	output.maxAttackSkillBonus = reader.value("maxAttackSkillBonus", 0.0f);
+	output.minMeleeDefenseBonus = reader.value("minMeleeDefenseBonus", 0.0f);
 	output.maxMeleeDefenseBonus = reader.value("maxMeleeDefenseBonus", 0.0f);
 	output.maxMissileDefenseBonus = reader.value("maxMissileDefenseBonus", 0.0f);
 	output.maxMagicDefenseBonus = reader.value("maxMagicDefenseBonus", 0.0f);
@@ -1706,7 +1708,7 @@ void CTreasureFactory::MutateWeapon(CWeenieObject *newItem, CWieldTier *wieldTie
 		newItem->m_Qualities.SetFloat(WEAPON_MISSILE_DEFENSE_FLOAT, round(getRandomDouble(1, 1 + (wieldTier->maxMissileDefenseBonus / 100), eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2));
 
 	if (wieldTier->maxMeleeDefenseBonus > 0 && getRandomNumberExclusive(100) < wieldTier->meleeDefenseBonusChance * 100 * (1 + (creationInfo.qualityModifier * 2)))
-		newItem->m_Qualities.SetFloat(WEAPON_DEFENSE_FLOAT, round(getRandomDouble(1, 1 + (wieldTier->maxMeleeDefenseBonus / 100), eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2));
+		newItem->m_Qualities.SetFloat(WEAPON_DEFENSE_FLOAT, round(getRandomDouble(1 + (wieldTier->minMeleeDefenseBonus / 100), 1 + (wieldTier->maxMeleeDefenseBonus / 100), eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2));
 
 	if (_TreasureProfile->extraMutations)
 	{
@@ -1748,7 +1750,7 @@ void CTreasureFactory::MutateMeleeWeapon(CWeenieObject *newItem, CWieldTier *wie
 	}
 
 	if (wieldTier->maxAttackSkillBonus > 0 && getRandomNumberExclusive(100) < wieldTier->attackSkillBonusChance * 100 * (1 + (creationInfo.qualityModifier * 2)))
-		newItem->m_Qualities.SetFloat(WEAPON_OFFENSE_FLOAT, round(getRandomDouble(1, 1 + (wieldTier->maxAttackSkillBonus / 100), eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2));
+		newItem->m_Qualities.SetFloat(WEAPON_OFFENSE_FLOAT, round(getRandomDouble(1 + (wieldTier->minAttackSkillBonus / 100), 1 + (wieldTier->maxAttackSkillBonus / 100), eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2));
 
 	if (!entry->elementalVariants.empty())
 	{

@@ -112,7 +112,9 @@ class CWieldTier
 {
 public:
 	int weaponSkillRequired;
+	float minAttackSkillBonus;
 	float maxAttackSkillBonus;
+	float minMeleeDefenseBonus;
 	float maxMeleeDefenseBonus;
 	float maxMissileDefenseBonus;
 	float maxMagicDefenseBonus;
