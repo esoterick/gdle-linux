@@ -156,6 +156,7 @@ public:
 	int maxElementalDamageBonus;
 
 	//casters
+	float minManaConversionBonus;
 	float maxManaConversionBonus;
 	float minElementalDamageMod;
 	float maxElementalDamageMod;
