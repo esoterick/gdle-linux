@@ -30,16 +30,23 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 	CalculateRendingAndMiscData(dmgEvent);
 
 	double damageCalc = dmgEvent->baseDamage;
-
-	dmgEvent->wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent->critChance) ? true : false;
-	if (dmgEvent->wasCrit) 
-	{
-		damageCalc += damageCalc * dmgEvent->critMultiplier;
-	}
-
 		damageCalc += dmgEvent->attributeDamageBonus;
 		damageCalc += dmgEvent->skillDamageBonus;
 		damageCalc += dmgEvent->slayerDamageBonus;
+
+		dmgEvent->wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent->critChance) ? true : false;
+		if (dmgEvent->wasCrit)
+		{
+			damageCalc += damageCalc * dmgEvent->critMultiplier; //Leave the old formula for Melee/Missile crits.
+			
+			if (dmgEvent->damage_form == DF_MAGIC) //Multiply base spell damage by the critMultiplier before adding skill and slayer damage bonuses for Magic.
+			{
+				damageCalc = dmgEvent->baseDamage;
+				damageCalc += damageCalc * dmgEvent->critMultiplier;
+				damageCalc += dmgEvent->skillDamageBonus;
+				damageCalc += dmgEvent->slayerDamageBonus;
+			}
+		}
 
 	if (dmgEvent->damage_form == DF_MAGIC && !dmgEvent->source->AsPlayer())
 		damageCalc /= 2; //creatures do half magic damage. Unconfirmed but feels right. Should this be projectile spells only?
@@ -207,7 +214,7 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 				//PvP: Crippling Blow for War Magic currently scales from adding 50 % of the spells damage on critical hits 
 				//to adding 100 % at maximum effectiveness
 				if (isPvP)
-					dmgEvent->critMultiplier += GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 1.0);
+					dmgEvent->critMultiplier += GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 0.5);
 				else
 					dmgEvent->critMultiplier += GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 5.0);
 			}
