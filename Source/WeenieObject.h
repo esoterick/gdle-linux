@@ -203,6 +203,7 @@ public:
 	virtual class CSwitchWeenie *AsSwitch() { return NULL; }
 	virtual class CTownCrier *AsTownCrier() { return NULL; }
 	virtual class CVendor *AsVendor() { return NULL; }
+	virtual class CAugmentationDeviceWeenie *AsAugmentationDevice() { return NULL; }
 
 	virtual bool IsAdvocate() { return false; }
 	virtual bool IsSentinel() { return false; }

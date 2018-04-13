@@ -165,6 +165,7 @@ void from_json(const nlohmann::json &reader, CWieldTier &output)
 	output.minElementalDamageBonus = reader.value("minElementalDamageBonus", 0);
 	output.maxElementalDamageBonus = reader.value("maxElementalDamageBonus", 0);
 
+	output.minManaConversionBonus = reader.value("minManaConversionBonus", 0.0f);
 	output.maxManaConversionBonus = reader.value("maxManaConversionBonus", 0.0f);
 	output.minElementalDamageMod = reader.value("minElementalDamageMod", 0.0f);
 	output.maxElementalDamageMod = reader.value("maxElementalDamageMod", 0.0f);
@@ -1906,7 +1907,7 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 
 		if (wieldTier->maxManaConversionBonus > 0 && getRandomNumberExclusive(100) < wieldTier->manaConversionBonusChance * 100 * (1 + (creationInfo.qualityModifier * 2)))
 		{
-			double manaConversionMod = round(getRandomDouble(0, wieldTier->maxManaConversionBonus / 100, eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 1);
+			double manaConversionMod = round(getRandomDouble(wieldTier->minManaConversionBonus / 100, wieldTier->maxManaConversionBonus / 100, eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2);
 			if (manaConversionMod > 0)
 				newItem->m_Qualities.SetFloat(MANA_CONVERSION_MOD_FLOAT, manaConversionMod);
 		}
@@ -1961,6 +1962,12 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 				break;
 			}
 		}
+	}
+	else 
+	{
+		double manaConversionnowield = getRandomDouble(0, 0.10);
+		if (manaConversionnowield > 0)
+			newItem->m_Qualities.SetFloat(MANA_CONVERSION_MOD_FLOAT, manaConversionnowield);
 	}
 }
 

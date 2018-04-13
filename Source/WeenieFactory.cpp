@@ -35,6 +35,7 @@
 #include "SkillAlterationDevice.h"
 #include "GameEventManager.h"
 #include "TreasureFactory.h"
+#include "AugmentationDevice.h"
 
 CWeenieFactory::CWeenieFactory()
 {
@@ -906,7 +907,11 @@ CWeenieObject *CWeenieFactory::CreateBaseWeenieByType(int weenieType, unsigned i
 			weenie = new CStorageWeenie();
 			break;
 		}
-
+	case AugmentationDevice_WeenieType:
+		{
+			weenie = new CAugmentationDeviceWeenie();
+			break;
+		}
 	default:
 		weenie = new CWeenieObject();
 		break;
