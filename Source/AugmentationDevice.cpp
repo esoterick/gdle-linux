@@ -27,7 +27,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 	switch (aug)
 	{
 	case 40:
-	{
 		int augJackOfTrades = player->InqIntQuality(AUGMENTATION_JACK_OF_ALL_TRADES_INT, 0);
 		if (augJackOfTrades == 1)
 		{
@@ -59,7 +58,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			else
 				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
 		}
-	}
 	}
 
 	player->NotifyUseDone(WERROR_NONE);
