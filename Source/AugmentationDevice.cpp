@@ -43,6 +43,15 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			//player->EmitSound(Sound_SkillDownVoid, 1.0, true);
 			player->EmitEffect(159, 1.0f);
 			player->SendText("Congratulations! You have succeeded in acquiring the Jack of All Trades augmentation.", LTT_DEFAULT);
+			//Cycle through the skills and notify the updated values
+			if (m_Qualities._skillStatsTable)
+			{
+				for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = m_Qualities._skillStatsTable->begin(); entry != m_Qualities._skillStatsTable->end(); entry++)
+				{
+					STypeSkill skill = entry->first;
+					player->NotifySkillStatUpdated(skill);
+				}
+			}
 			
 		}
 		else
