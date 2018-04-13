@@ -57,9 +57,9 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			}
 			else
 				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			
+			player->NotifyUseDone(WERROR_NONE);
+			return WERROR_NONE;
 		}
 	}
-
-	player->NotifyUseDone(WERROR_NONE);
-	return WERROR_NONE;
 }
