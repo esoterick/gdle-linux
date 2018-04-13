@@ -23,16 +23,16 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 	long long augCost = InqInt64Quality(AUGMENTATION_COST_INT64, 0);
 	long long unassignedXP = player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0);
 	int aug = InqIntQuality(AUGMENTATION_STAT_INT, 0);
+	int augJackOfTrades = player->InqIntQuality(AUGMENTATION_JACK_OF_ALL_TRADES_INT, 0);
 
 	switch (aug)
 	{
 	case 40:
-		int augJackOfTrades = player->InqIntQuality(AUGMENTATION_JACK_OF_ALL_TRADES_INT, 0);
+
 		if (augJackOfTrades == 1)
 		{
 			player->SendText("This augmentation is already active.", LTT_DEFAULT);
-			player->NotifyUseDone(WERROR_NONE);
-			return WERROR_NONE;
+			break;
 		}
 		if (augJackOfTrades == 0)
 		{
@@ -44,22 +44,32 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Jack of All Trades augmentation.", LTT_DEFAULT);
-				//Cycle through the skills and notify the updated values
-				if (m_Qualities._skillStatsTable)
-				{
-					for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = m_Qualities._skillStatsTable->begin(); entry != m_Qualities._skillStatsTable->end(); entry++)
-					{
-						STypeSkill skill = entry->first;
-						player->NotifySkillStatUpdated(skill);
-					}
-				}
+				//Need to cycle through the skills and notify the updated values here. Previous code was no good
 
+				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
+				//{
+					//DWORD val = 5;
+					//DWORD &valptr = val;
+					//STypeSkill skill = entry->first;
+					//player->InqSkill(skill, valptr, false);
+					//player->NotifySkillStatUpdated(skill);
+
+				//}
+
+				break;
 			}
 			else
 				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
-			
-			player->NotifyUseDone(WERROR_NONE);
-			return WERROR_NONE;
+			break;
+
+
 		}
+	default:
+		player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+		break;
 	}
-}
+
+	player->NotifyUseDone(WERROR_NONE);
+	return WERROR_NONE;
+
+	}
