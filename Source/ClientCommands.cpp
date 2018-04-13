@@ -167,9 +167,10 @@ CLIENT_COMMAND(global, "<text> [color=1]", "Displays text globally.", ADMIN_ACCE
 	return false;
 }
 
-/*
+
 CLIENT_COMMAND(animationall, "<num> [speed]", "Performs an animation for everyone.", ADMIN_ACCESS)
 {
+
 	if (argc < 1)
 	{
 		return true;
@@ -177,17 +178,33 @@ CLIENT_COMMAND(animationall, "<num> [speed]", "Performs an animation for everyon
 
 	WORD wIndex = atoi(argv[0]);
 	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	float fDelay = 0.5f;
+	fSpeed = min(10.0, max(0.1, fSpeed));
 
 	PlayerWeenieMap *pPlayers = g_pWorld->GetPlayers();
 	for (PlayerWeenieMap::iterator i = pPlayers->begin(); i != pPlayers->end(); i++)
 	{
-		i->second->Animation_PlayPrimary(wIndex, fSpeed, fDelay);
+		i->second->_server_control_timestamp += 2;
+
+		i->second->last_move_was_autonomous = false;
+
+		MovementParameters params;
+		params.action_stamp = ++pPlayer->m_wAnimSequence;
+		params.speed = fSpeed;
+		params.autonomous = 0;
+		params.modify_interpreted_state = 1;
+
+		MovementStruct mvs;
+		mvs.motion = GetCommandID(wIndex);
+		mvs.params = &params;
+		mvs.type = MovementTypes::RawCommand;
+		i->second->get_minterp()->PerformMovement(mvs);
+		i->second->Animation_Update();
+
 	}
 
 	return false;
 }
-*/
+
 
 CLIENT_COMMAND(freezeall, "", "Freezes or unfreezes everyone.", ADMIN_ACCESS)
 {

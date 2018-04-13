@@ -46,6 +46,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of The Steel Circle augmentation.", LTT_DEFAULT);
+				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
 				//Need to cycle through the skills and notify the updated values here. Previous code was no good
 
 				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
@@ -80,6 +81,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of the Focused Eye augmentation.", LTT_DEFAULT);
+				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
 				//Need to cycle through the skills and notify the updated values here. Previous code was no good
 
 				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
@@ -114,6 +116,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of The Five Fold Path augmentation.", LTT_DEFAULT);
+				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
 				//Need to cycle through the skills and notify the updated values here. Previous code was no good
 
 				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
@@ -148,6 +151,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Jack of All Trades augmentation.", LTT_DEFAULT);
+				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
 				//Need to cycle through the skills and notify the updated values here. Previous code was no good
 
 				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
