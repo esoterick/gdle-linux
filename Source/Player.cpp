@@ -1209,11 +1209,26 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 		case 1: //tinkers
 		{
 			double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+			double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
 			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
+			//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
+			int salvageMod = 12;
+			int multiple = 1;
+			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
 
-			double successChance = GetSkillChance(skillLevel, ((int)round(((1.0 - ((double)toolWorkmanship / 10.0)) * 400.0) + (amountOfTimesTinkered * 10)))); //made up formula.
+				if (toolWorkmanship >= itemWorkmanship)
+				{
+					multiple = 2;
+				}
+	
+				if (amountOfTimesTinkered > 2)
+				{
+					difficulty = amountOfTimesTinkered * 0.5;
+				}
+					
+			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod)+(2 * itemWorkmanship * salvageMod)-(toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
 
 			if (Random::RollDice(0.0, 1.0) <= successChance)
 				success = true;
@@ -1224,11 +1239,27 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 		case 2: //imbues
 		{
 			double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+			double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
 			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
 
-			double successChance = GetSkillChance(skillLevel, ((int)round(((1.0 - ((double)toolWorkmanship / 10.0)) * 400.0) + (amountOfTimesTinkered * 10)))); //made up formula.
+			//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
+			int salvageMod = 20;
+			int multiple = 1;
+			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
+
+			if (toolWorkmanship >= itemWorkmanship)
+			{
+				multiple = 2;
+			}
+
+			if (amountOfTimesTinkered > 2)
+			{
+				difficulty = amountOfTimesTinkered * 0.5;
+			}
+
+			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
 
 			successChance /= 3; //maximum success chance for imbues is 33%
 
