@@ -1965,9 +1965,13 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 	}
 	else 
 	{
-		double manaConversionnowield = getRandomDouble(0, 0.10);
+		double manaConversionnowield = round(getRandomDouble(0, 0.10), 2);
 		if (manaConversionnowield > 0)
 			newItem->m_Qualities.SetFloat(MANA_CONVERSION_MOD_FLOAT, manaConversionnowield);
+
+		double meleeDefensenowield = round(getRandomDouble(1.0, 1.15), 2);
+		if (meleeDefensenowield > 0)
+			newItem->m_Qualities.SetFloat(WEAPON_DEFENSE_FLOAT, meleeDefensenowield);
 	}
 }
 
