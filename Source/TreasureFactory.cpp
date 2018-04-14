@@ -2051,24 +2051,21 @@ void CTreasureFactory::MutateArmor(CWeenieObject *newItem, CWieldTier *wieldTier
 		}
 	}
 
-	if (_TreasureProfile->extraMutations)
-	{
 		if (wieldTier->minLevel > 0)
 		{
 			if (hasRequirement1)
 			{
 				newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_2_INT, eWieldRequirements::level);
-				newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 1);
+				newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 2);
 				newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_2_INT, wieldTier->minLevel);
 			}
 			else
 			{
 				newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_INT, eWieldRequirements::level);
-				newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 1);
+				newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 2);
 				newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_INT, wieldTier->minLevel);
 			}
 		}
-	}
 }
 
 std::vector<CPossibleSpells> CTreasureFactory::MergeSpellLists(std::vector<CPossibleSpells> list1, std::vector<CPossibleSpells> list2)
@@ -2203,7 +2200,7 @@ void CTreasureFactory::AddSpells(CWeenieObject *newItem, sItemCreationInfo &crea
 
 		newItem->m_Qualities.SetInt(ITEM_SPELLCRAFT_INT, getRandomNumber(creationInfo.highestPower, creationInfo.highestPower * 1.3, eRandomFormula::favorMid, 2, 0));
 		newItem->m_Qualities.SetInt(ITEM_MAX_MANA_INT, creationInfo.totalMana);
-		newItem->m_Qualities.SetInt(ITEM_CUR_MANA_INT, getRandomNumber(creationInfo.totalMana / 2, creationInfo.totalMana, eRandomFormula::favorMid, 2, 0));
+		newItem->m_Qualities.SetInt(ITEM_CUR_MANA_INT, creationInfo.totalMana);
 
 		double averagePower = (double)creationInfo.totalPower / creationInfo.totalSpellsCount;
 
