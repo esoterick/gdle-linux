@@ -421,7 +421,9 @@ public:
 	DWORD GetSpellID();
 
 	virtual DWORD RecalculateCoinAmount() { return 0; };
+	virtual DWORD RecalculateAltCoinAmount(int currencyid) { return 0; };
 	virtual DWORD ConsumeCoin(int amountToConsume) { return 0; };
+	virtual DWORD ConsumeAltCoin(int amountToConsume, int currencyid) { return 0; };
 	void SetValue(DWORD amount);
 	DWORD GetValue();
 

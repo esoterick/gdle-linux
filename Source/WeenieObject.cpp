@@ -6241,6 +6241,7 @@ void CWeenieObject::SetStackSize(DWORD stackSize)
 		owner->RecalculateEncumbrance();
 		if (owner->AsPlayer() && m_Qualities.id == W_COINSTACK_CLASS)
 			owner->RecalculateCoinAmount();
+		
 	}
 }
 
