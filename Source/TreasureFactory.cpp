@@ -1591,8 +1591,8 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 	//valueCalc += baseValue * materialValueMultiplier;
 	//valueCalc += baseValue * (gemValueMultiplier * gemCount);
 
-	valueCalc += _TreasureProfile->workmanshipProperties[itemWorkmanship].valueMultiplier;
-	valueCalc += _TreasureProfile->materialProperties[material].valueMultiplier;
+	valueCalc *= _TreasureProfile->workmanshipProperties[itemWorkmanship].valueMultiplier;
+	valueCalc *= _TreasureProfile->materialProperties[material].valueMultiplier;
 	valueCalc += _TreasureProfile->materialProperties[gemType].gemValue * gemCount;
 
 	if (creationInfo.isMagical)
