@@ -151,7 +151,15 @@ int CVendor::TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<ItemProf
 	{
 		//This shouldn't happen.
 		buyer->SendText("Couldn't find all the money for the payment.", LTT_DEFAULT);
-		buyer->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed); //give back what we consumed and abort.
+		if (currencyid > 0)
+		{
+			buyer->SpawnInContainer(currencyid, coinConsumed); //give back what we consumed and abort.
+		}
+		if (currencyid < 1)
+		{
+			buyer->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed); //give back what we consumed and abort.
+		}
+		
 		return WERROR_NO_OBJECT;
 	}
 
