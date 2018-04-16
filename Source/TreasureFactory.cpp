@@ -1172,8 +1172,8 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * pare
 		lootChance = tier->chestLootChance;
 
 		//chests do not drop mundane items.
-		mundaneLootChance = 0;
-		maxMundaneAmount = 0;
+		//mundaneLootChance = 0;
+		//maxMundaneAmount = 0;
 	}
 
 	for (int i = 0; i < maxTreasureAmount; i++)
