@@ -62,7 +62,7 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 						numSkillCredits += pSkillBase->_trained_cost;
 						if (numSkillCredits < pSkillBase->_specialized_cost)
 						{
-							player->SendText(csprintf("You need %d credits to specialize this skill.", numSkillCredits), LTT_DEFAULT);							
+							player->SendText(csprintf("You need %d credits to specialize this skill.", pSkillBase->_specialized_cost - pSkillBase->_trained_cost), LTT_DEFAULT);
 						}
 						else
 						{
