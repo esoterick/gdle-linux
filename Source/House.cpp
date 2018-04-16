@@ -327,11 +327,15 @@ bool CHouseWeenie::HasAccess(CPlayerWeenie *requester)
 
 	if (houseData->_allegianceAccess)
 	{
-		AllegianceTreeNode *ownerAllegianceNode = g_pAllegianceManager->GetTreeNode(houseOwnerId);
-		AllegianceTreeNode *requesterAllegianceNode = g_pAllegianceManager->GetTreeNode(requesterId);
+		std::string alleg;
+		if (requester->m_Qualities.InqString(ALLEGIANCE_NAME_STRING, alleg)) {
 
-		if (ownerAllegianceNode->_monarchID == requesterAllegianceNode->_monarchID)
-			return true;
+			AllegianceTreeNode *ownerAllegianceNode = g_pAllegianceManager->GetTreeNode(houseOwnerId);
+			AllegianceTreeNode *requesterAllegianceNode = g_pAllegianceManager->GetTreeNode(requesterId);
+
+			if (ownerAllegianceNode->_monarchID == requesterAllegianceNode->_monarchID)
+				return true;
+		}
 	}
 
 	return HasStorageAccess(requester); //storage access automatically grants access.
@@ -361,11 +365,14 @@ bool CHouseWeenie::HasStorageAccess(CPlayerWeenie *requester)
 
 	if (houseData->_allegianceStorageAccess)
 	{
-		AllegianceTreeNode *ownerAllegianceNode = g_pAllegianceManager->GetTreeNode(houseOwnerId);
-		AllegianceTreeNode *requesterAllegianceNode = g_pAllegianceManager->GetTreeNode(requesterId);
+		std::string alleg;
+		if (requester->m_Qualities.InqString(ALLEGIANCE_NAME_STRING, alleg)) {
+			AllegianceTreeNode *ownerAllegianceNode = g_pAllegianceManager->GetTreeNode(houseOwnerId);
+			AllegianceTreeNode *requesterAllegianceNode = g_pAllegianceManager->GetTreeNode(requesterId);
 
-		if (ownerAllegianceNode->_monarchID == requesterAllegianceNode->_monarchID)
-			return true;
+			if (ownerAllegianceNode->_monarchID == requesterAllegianceNode->_monarchID)
+				return true;
+		}
 	}
 
 	return false;
