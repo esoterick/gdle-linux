@@ -323,9 +323,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
-				player->NotifySkillStatUpdated(HEAVY_WEAPONS_SKILL);
-				player->NotifySkillStatUpdated(LIGHT_WEAPONS_SKILL);
-				player->NotifySkillStatUpdated(FINESSE_WEAPONS_SKILL);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of The Steel Circle augmentation.", LTT_DEFAULT);
 				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
@@ -361,7 +358,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
-				player->NotifySkillStatUpdated(MISSILE_WEAPONS_SKILL);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of the Focused Eye augmentation.", LTT_DEFAULT);
 				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
@@ -397,10 +393,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
-				player->NotifySkillStatUpdated(WAR_MAGIC_SKILL);
-				player->NotifySkillStatUpdated(CREATURE_ENCHANTMENT_SKILL);
-				player->NotifySkillStatUpdated(ITEM_ENCHANTMENT_SKILL);
-				player->NotifySkillStatUpdated(LIFE_MAGIC_SKILL);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of The Five Fold Path augmentation.", LTT_DEFAULT);
 				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
