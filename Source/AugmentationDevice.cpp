@@ -49,7 +49,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				if (strength._init_level == 100)
 				{
 
-					player->SendText("You can't do this dipshit.", LTT_DEFAULT);
+					player->SendText("You are already at the maximum innate level.", LTT_DEFAULT);
 					break;
 
 				}
@@ -89,7 +89,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				if (endurance._init_level == 100)
 				{
 
-					player->SendText("You can't do this dipshit.", LTT_DEFAULT);
+					player->SendText("You are already at the maximum innate level.", LTT_DEFAULT);
 					break;
 
 				}
@@ -129,7 +129,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				if (coordination._init_level == 100)
 				{
 
-					player->SendText("You can't do this dipshit.", LTT_DEFAULT);
+					player->SendText("You are already at the maximum innate level.", LTT_DEFAULT);
 					break;
 
 				}
@@ -169,7 +169,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				if (quickness._init_level == 100)
 				{
 
-					player->SendText("You can't do this dipshit.", LTT_DEFAULT);
+					player->SendText("You are already at the maximum innate level.", LTT_DEFAULT);
 					break;
 
 				}
@@ -209,7 +209,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				if (focus._init_level == 100)
 				{
 
-					player->SendText("You can't do this dipshit.", LTT_DEFAULT);
+					player->SendText("You are already at the maximum innate level.", LTT_DEFAULT);
 					break;
 
 				}
@@ -249,7 +249,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				if (self._init_level == 100)
 				{
 
-					player->SendText("You can't do this dipshit.", LTT_DEFAULT);
+					player->SendText("You are already at the maximum innate level.", LTT_DEFAULT);
 					break;
 
 				}
