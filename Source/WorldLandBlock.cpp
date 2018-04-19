@@ -439,13 +439,15 @@ void CWorldLandBlock::Insert(CWeenieObject *pEntity, WORD wOld, BOOL bNew, bool 
 {
 	if (CPlayerWeenie *player = pEntity->AsPlayer())
 	{
+		Position pos = pEntity->GetPosition();
 		m_PlayerMap.insert(std::pair<DWORD, CPlayerWeenie *>(pEntity->GetID(), player));
 		m_PlayerList.push_back(player);
 
 		MakeNotDormant();
 
-		// spawn up adjacent landblocks
-		ActivateLandblocksWithinPVS(pEntity->GetLandcell());
+		// spawn up adjacent landblocks only if outdoors, otherwise only load the block you're on.
+		if ((pos.objcell_id & 0xFFFF) < 0x100) //outdoors
+			ActivateLandblocksWithinPVS(pEntity->GetLandcell());
 	}
 
 	m_EntityMap.insert(std::pair<DWORD, CWeenieObject *>(pEntity->GetID(), pEntity));

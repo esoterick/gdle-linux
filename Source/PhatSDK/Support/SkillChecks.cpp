@@ -29,7 +29,7 @@ int GetManaCost(int skill, int difficulty, int manaCost, int manaConversion)
 	if (!manaConversion)
 		return manaCost;
 
-	double conversionFactor = min(1.0, round(difficulty / manaConversion));
+	double conversionFactor = min(1.0, (double)difficulty / (double)manaConversion);
 
 	int baseManaCost = round(conversionFactor * manaCost);
 	
