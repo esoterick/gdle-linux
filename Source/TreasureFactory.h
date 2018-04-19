@@ -49,7 +49,8 @@ enum eTreasureCategory
 	TreasureCategory_Consumable = 11, //unconfirmed
 	TreasureCategory_Healer = 12, //unconfirmed
 	TreasureCategory_Lockpick = 13, //unconfirmed
-	TreasureCategory_Pea = 14 //unconfirmed
+	TreasureCategory_Pea = 14, //unconfirmed
+	TreasureCategory_Gem = 15 //unconfirmed
 };
 
 enum eAppraisalLongDescDecorations
@@ -162,6 +163,10 @@ public:
 	float maxElementalDamageMod;
 	float manaConversionBonusChance;
 
+	//gems
+	int gemTier;
+	float spellChance;
+
 	//armor
 	int armorWieldTier;
 	int meleeDefenseSkillRequired;
@@ -215,6 +220,8 @@ public:
 	int maxMissileWeaponWieldTier;
 	int minCasterWieldTier;
 	int maxCasterWieldTier;
+	int minGemTier;
+	int maxGemTier;
 
 	int minArmorWieldTier;
 	int maxArmorWieldTier;
@@ -231,6 +238,7 @@ public:
 	int armorLootProportion;
 	int clothingLootProportion;
 	int jewelryLootProportion;
+	int gemLootProportion;
 
 	std::vector<std::string> commonArmorCategoryNames;
 	std::vector<std::string> rareArmorCategoryNames;
@@ -299,6 +307,7 @@ public:
 	std::vector<CTreasureProfileCategory> meleeWeapons;
 	std::vector<CTreasureProfileCategory> missileWeapons;
 	CTreasureProfileCategory casters;
+	CTreasureProfileCategory gemstones;
 	CTreasureArmorProfile armor;
 	std::vector<CTreasureProfileCategory> clothing;
 	std::vector<CTreasureProfileCategory> jewelry;
@@ -310,6 +319,7 @@ public:
 	std::vector<CPossibleSpells> meleeWeaponSpells;
 	std::vector<CPossibleSpells> missileWeaponSpells;
 	std::vector<CPossibleSpells> casterSpells;
+	std::vector<CPossibleSpells> gemSpells;
 	std::vector<CPossibleSpells> shieldSpells;
 	std::vector<CPossibleSpells> jewelrySpells;
 
@@ -409,6 +419,7 @@ public:
 	void MutateMeleeWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
 	void MutateMissileWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
 	void MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
+	void MutateGem(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
 	void MutateArmor(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
 	std::vector<CPossibleSpells> MergeSpellLists(std::vector<CPossibleSpells> list1, std::vector<CPossibleSpells> list2);
 	void AddSpells(CWeenieObject *newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);

@@ -786,9 +786,11 @@ int CSpellcastingManager::LaunchSpellEffect()
 						return WERROR_MAGIC_FIZZLE;
 
 					int compId = component->InqDIDQuality(SPELL_COMPONENT_DID, 0);
-					int manaconskill = (int)m_pWeenie->m_Qualities._skillStatsTable->lookup(MANA_CONVERSION_SKILL);
+					DWORD manaconskill;
+					m_pWeenie->m_Qualities.InqSkillLevel(MANA_CONVERSION_SKILL, manaconskill);
 					const SpellComponentBase *componentBase = pSpellComponents->InqSpellComponentBase(compId);
-					float burnChance = componentBase->_CDM * (spellComponentLossMod / min(2.0, max(1.0, manaconskill/200)));
+					float burnChance = componentBase->_CDM * spellComponentLossMod;
+					burnChance /=  min(2.0, max(1.0, manaconskill / 200));
 					for (int i = 0; i < iter->second; i++) // one chance to burn for every instance of the component in the spell formula
 					{
 						if (Random::RollDice(0.0, 1.0) < burnChance)

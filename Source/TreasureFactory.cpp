@@ -171,6 +171,9 @@ void from_json(const nlohmann::json &reader, CWieldTier &output)
 	output.maxElementalDamageMod = reader.value("maxElementalDamageMod", 0.0f);
 	output.manaConversionBonusChance = reader.value("manaConversionBonusChance", 0.0f);
 
+	output.gemTier = reader.value("gemTier", 0.0f);
+	output.spellChance = reader.value("spellChance", 0.0f);
+
 	output.armorWieldTier = reader.value("armorWieldTier", 0);
 	output.meleeDefenseSkillRequired = reader.value("meleeDefenseSkillRequired", 0);
 	output.missileDefenseSkillRequired = reader.value("missileDefenseSkillRequired", 0);
@@ -238,6 +241,9 @@ void from_json(const nlohmann::json &reader, CTreasureTier &output)
 	output.minCasterWieldTier = reader.value("minCasterWieldTier", 0);
 	output.maxCasterWieldTier = reader.value("maxCasterWieldTier", 0);
 
+	output.minCasterWieldTier = reader.value("minGemTier", 0);
+	output.maxCasterWieldTier = reader.value("maxGemTier", 0);
+
 	output.minArmorWieldTier = reader.value("minArmorWieldTier", 0);
 	output.maxArmorWieldTier = reader.value("maxArmorWieldTier", 0);
 	output.minArmorMeleeWieldTier = reader.value("minArmorMeleeWieldTier", 0);
@@ -253,6 +259,7 @@ void from_json(const nlohmann::json &reader, CTreasureTier &output)
 	output.armorLootProportion = reader.value("armorLootProportion", 0);
 	output.clothingLootProportion = reader.value("clothingLootProportion", 0);
 	output.jewelryLootProportion = reader.value("jewelryLootProportion", 0);
+	output.gemLootProportion = reader.value("gemLootProportion", 0);
 
 	if (HasField(reader, "commonArmorCategories"))
 		output.commonArmorCategoryNames = reader.at("commonArmorCategories").get<std::vector<std::string>>();
@@ -382,6 +389,8 @@ DEFINE_UNPACK_JSON(CTreasureProfile)
 		missileWeapons = reader.at("missileWeapons").get<std::vector<CTreasureProfileCategory>>();
 	if (HasField(reader, "casters"))
 		casters = reader.at("casters");
+	if (HasField(reader, "gemstones"))
+		gemstones = reader.at("gemstones");
 	if (HasField(reader, "armor"))
 		armor = reader.at("armor");
 	if (HasField(reader, "clothing"))
@@ -402,6 +411,8 @@ DEFINE_UNPACK_JSON(CTreasureProfile)
 		missileWeaponSpells = reader.at("missileWeaponSpells").get<std::vector<CPossibleSpells>>();
 	if (HasField(reader, "casterSpells"))
 		casterSpells = reader.at("casterSpells").get<std::vector<CPossibleSpells>>();
+	if (HasField(reader, "gemSpells"))
+		gemSpells = reader.at("gemSpells").get<std::vector<CPossibleSpells>>();
 	if (HasField(reader, "shieldSpells"))
 		shieldSpells = reader.at("shieldSpells").get<std::vector<CPossibleSpells>>();
 	if (HasField(reader, "jewelrySpells"))
@@ -510,6 +521,7 @@ void CTreasureProfile::Initialize()
 	ComputeUniqueSpellIds(shieldSpells);
 	ComputeUniqueSpellIds(clothingSpells);
 	ComputeUniqueSpellIds(jewelrySpells);
+	ComputeUniqueSpellIds(gemSpells);
 
 	ComputeUniqueSpellIds(armorItemSpells);
 	ComputeUniqueSpellIds(armorHeadSpells);
@@ -531,7 +543,8 @@ void CTreasureProfile::Initialize()
 			tier->castersLootProportion +
 			tier->armorLootProportion +
 			tier->clothingLootProportion +
-			tier->jewelryLootProportion;
+			tier->jewelryLootProportion +
+			tier->gemLootProportion;
 
 		float meleeWeaponChance = tier->meleeWeaponsLootProportion / totalProportion;
 		float missileWeaponChance = tier->missileWeaponsLootProportion / totalProportion;
@@ -539,6 +552,7 @@ void CTreasureProfile::Initialize()
 		float armorChance = tier->armorLootProportion / totalProportion;
 		float clothingChance = tier->clothingLootProportion / totalProportion;
 		float jewelryChance = tier->jewelryLootProportion / totalProportion;
+		float gemChance = tier->gemLootProportion / totalProportion;
 
 		float cumulativeMeleeWeaponChance = meleeWeaponChance;
 		float cumulativeMissileWeaponChance = cumulativeMeleeWeaponChance + missileWeaponChance;
@@ -546,6 +560,7 @@ void CTreasureProfile::Initialize()
 		float cumulativeArmorChance = cumulativeCasterChance + armorChance;
 		float cumulativeClothingChance = cumulativeArmorChance + clothingChance;
 		float cumulativeJewelryChance = cumulativeClothingChance + jewelryChance;
+		float cumulativeGemChance = cumulativeJewelryChance + gemChance;
 
 		tier->categoryChances.emplace(cumulativeMeleeWeaponChance, eTreasureCategory::TreasureCategory_Melee_Weapon);
 		tier->categoryChances.emplace(cumulativeMissileWeaponChance, eTreasureCategory::TreasureCategory_Missile_Weapon);
@@ -553,6 +568,7 @@ void CTreasureProfile::Initialize()
 		tier->categoryChances.emplace(cumulativeArmorChance, eTreasureCategory::TreasureCategory_Armor);
 		tier->categoryChances.emplace(cumulativeClothingChance, eTreasureCategory::TreasureCategory_Clothing);
 		tier->categoryChances.emplace(cumulativeJewelryChance, eTreasureCategory::TreasureCategory_Jewelry);
+		tier->categoryChances.emplace(cumulativeGemChance, eTreasureCategory::TreasureCategory_Gem);
 
 		for (auto iter2 = iter->second.commonArmorCategoryNames.begin(); iter2 != iter->second.commonArmorCategoryNames.end(); ++iter2)
 		{
@@ -1314,6 +1330,9 @@ CWeenieObject *CTreasureFactory::GenerateTreasure(int tierId, eTreasureCategory 
 	case TreasureCategory_Caster:
 		category = &_TreasureProfile->casters;
 		break;
+	case TreasureCategory_Gem:
+		category = &_TreasureProfile->gemstones;
+		break;
 	case TreasureCategory_Clothing:
 		if (!_TreasureProfile->clothing.empty())
 			category = &_TreasureProfile->clothing[getRandomNumberExclusive((int)_TreasureProfile->clothing.size())];
@@ -1364,17 +1383,16 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 		itemType != TYPE_CASTER &&
 		itemType != TYPE_ARMOR &&
 		itemType != TYPE_CLOTHING &&
-		itemType != TYPE_JEWELRY)
+		itemType != TYPE_JEWELRY &&
+		itemType != TYPE_GEM)
 	{
 		return false; // we only know how to mutate the above types.
 	}
 
-	int itemWorkmanship = getRandomNumber(tier->minWorkmanship, tier->maxWorkmanship, eRandomFormula::favorMid, 2, creationInfo.qualityModifier);
-	newItem->m_Qualities.SetInt(ITEM_WORKMANSHIP_INT, itemWorkmanship);
 
 	if (itemType == TYPE_MELEE_WEAPON ||
 		itemType == TYPE_MISSILE_WEAPON ||
-		itemType == TYPE_CASTER)
+		itemType == TYPE_CASTER || itemType == TYPE_GEM)
 	{
 		if (!category->wieldTiers.empty())
 		{
@@ -1392,6 +1410,10 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 				else if (itemType == TYPE_MISSILE_WEAPON &&
 					wieldTierEntry.weaponSkillRequired >= tier->minMissileWeaponWieldTier &&
 					wieldTierEntry.weaponSkillRequired <= tier->maxMissileWeaponWieldTier)
+				{
+					possibleWieldTiers.push_back(wieldTierEntry);
+				}
+				else if (itemType == TYPE_GEM)
 				{
 					possibleWieldTiers.push_back(wieldTierEntry);
 				}
@@ -1425,6 +1447,8 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 				MutateMissileWeapon(newItem, wieldTier, creationInfo, tier, category, entry);
 			else if (itemType == TYPE_CASTER)
 				MutateCaster(newItem, wieldTier, creationInfo, tier, category, entry);
+			else if (itemType == TYPE_GEM)
+				MutateGem(newItem, wieldTier, creationInfo, tier, category, entry);
 		}
 	}
 	else if (itemType == TYPE_ARMOR)
@@ -1466,6 +1490,10 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 		}
 	}
 
+
+	int itemWorkmanship = getRandomNumber(tier->minWorkmanship, tier->maxWorkmanship, eRandomFormula::favorMid, 2, creationInfo.qualityModifier);
+	newItem->m_Qualities.SetInt(ITEM_WORKMANSHIP_INT, itemWorkmanship);
+
 	int tsysMutationDataInt = 0;
 	float materialValueMultiplier = 1.0;
 	float gemValueMultiplier = 1.0;
@@ -1473,7 +1501,7 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 	int gemCount = 0;
 	MaterialType gemType = Undef_MaterialType;
 
-	if (newItem->m_Qualities.InqInt(TSYS_MUTATION_DATA_INT, tsysMutationDataInt, TRUE, TRUE) && tsysMutationDataInt)
+	if (newItem->m_Qualities.InqInt(TSYS_MUTATION_DATA_INT, tsysMutationDataInt, TRUE, TRUE) && tsysMutationDataInt && itemType != TYPE_GEM)
 	{
 		DWORD tsysMutationData = (DWORD)tsysMutationDataInt;
 
@@ -1525,7 +1553,7 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 		}
 		material = possibleMaterialsList[getRandomNumberExclusive(possibleMaterialsList.size())];
 
-		if (material != MaterialType::Undef_MaterialType)
+		if (material != MaterialType::Undef_MaterialType && itemType != TYPE_GEM)
 		{
 			newItem->m_Qualities.SetInt(MATERIAL_TYPE_INT, material);
 
@@ -1564,7 +1592,7 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 	}
 
 	int maxGemCount = _TreasureProfile->workmanshipProperties[itemWorkmanship].maxGemCount;
-	if (maxGemCount > 0)
+	if (maxGemCount > 0 && itemType != TYPE_GEM)
 	{
 		if (getRandomNumberExclusive(100) < _TreasureProfile->workmanshipProperties[itemWorkmanship].gemChance * 100)
 		{
@@ -1575,9 +1603,10 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 
 			//gemType = g_pPortalDataEx->_treasureTableData.RollMaterialFromBaseMaterial(Gem_MaterialType, tier->tierId);
 			//gemValueMultiplier = *g_pPortalDataEx->_treasureTableData._materialValueAddedPossibly.lookup(gemType);
-
-			newItem->m_Qualities.SetInt(GEM_COUNT_INT, gemCount);
-			newItem->m_Qualities.SetInt(GEM_TYPE_INT, gemType);
+	
+				newItem->m_Qualities.SetInt(GEM_COUNT_INT, gemCount);
+				newItem->m_Qualities.SetInt(GEM_TYPE_INT, gemType);
+			
 		}
 	}
 
@@ -1975,6 +2004,28 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 	}
 }
 
+
+void CTreasureFactory::MutateGem(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+{	
+	if (!entry->elementalVariants.empty())
+	{
+			int variantId = entry->elementalVariants[getRandomNumberExclusive((int)entry->elementalVariants.size())];
+
+
+			CWeenieDefaults *weenieDefs = g_pWeenieFactory->GetWeenieDefaults(variantId);
+
+			if (weenieDefs == NULL)
+				return;
+			else
+			{
+				g_pWeenieFactory->ApplyWeenieDefaults(newItem, variantId);
+				newItem->m_Qualities.SetInt(ITEM_USEABLE_INT, 8);
+				newItem->m_Qualities.m_WeenieType = 38;
+			}
+
+	}
+}
+
 void CTreasureFactory::MutateArmor(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	int encumbValue = newItem->InqIntQuality(ENCUMB_VAL_INT, 0, TRUE);
@@ -2124,6 +2175,9 @@ void CTreasureFactory::AddSpells(CWeenieObject *newItem, sItemCreationInfo &crea
 	case TYPE_JEWELRY:
 		AddSpell(newItem, _TreasureProfile->jewelrySpells, creationInfo, tier, category, entry);
 		break;
+	case TYPE_GEM:
+		AddSpell(newItem, _TreasureProfile->gemSpells, creationInfo, tier, category, entry);
+		break;
 	case TYPE_ARMOR:
 		int spellAmountMultiplier = 0;
 		std::vector<CPossibleSpells> armorSpells = std::vector<CPossibleSpells>(_TreasureProfile->armorItemSpells);
@@ -2263,6 +2317,12 @@ void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpe
 	if (possibleSpellsTemplate.size() == 0)
 		return;
 
+	if (category->category == "gemstones")
+	{
+		tier->maxAmountOfSpells = 1;
+
+	}
+
 	if (tier->maxAmountOfSpells > 0 && tier->minSpellLevel > 0 && tier->maxSpellLevel > 0)
 	{
 		//we have possible spells
@@ -2327,12 +2387,18 @@ void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpe
 				if (!spell || !pSpellTable || !pSpellTable->GetSpellBase(spell))
 					continue; //invalid spell id
 
-				newItem->m_Qualities.AddSpell(spell);
-				creationInfo.spellIds.push_back(spell);
-				creationInfo.spells.push_back(possibleSpell);
-				creationInfo.isMagical = true;
-				creationInfo.totalSpellsCount++;
-
+				if (category->category == "gemstones")
+				{	
+					newItem->m_Qualities.SetDataID(SPELL_DID, spell);
+					newItem->m_Qualities.SetInt(ITEM_USEABLE_INT, 8);
+				}
+				
+					newItem->m_Qualities.AddSpell(spell);
+					creationInfo.spellIds.push_back(spell);
+					creationInfo.spells.push_back(possibleSpell);
+					creationInfo.isMagical = true;
+					creationInfo.totalSpellsCount++;
+			
 				int spellPower = _TreasureProfile->spellProperties.spellPower[spellVariantIndex];
 				creationInfo.totalPower += spellPower;
 				creationInfo.totalMana += _TreasureProfile->spellProperties.spellMana[spellVariantIndex];
