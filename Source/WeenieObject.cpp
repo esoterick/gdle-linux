@@ -6220,16 +6220,17 @@ void CWeenieObject::SetStackSize(DWORD stackSize)
 		// not a stackable... ??
 		return;
 	}
-
+	CWeenieDefaults *weenieDefs = g_pWeenieFactory->GetWeenieDefaults(m_Qualities.GetID());
+	
 	m_Qualities.SetInt(STACK_SIZE_INT, stackSize);
 	//if (m_bWorldIsAware)
 	//	NotifyIntStatUpdated(STACK_SIZE_INT, false);
 
-	m_Qualities.SetInt(ENCUMB_VAL_INT, stackSize * InqIntQuality(STACK_UNIT_ENCUMB_INT, 0));
+	m_Qualities.SetInt(ENCUMB_VAL_INT, stackSize *  weenieDefs->m_Qualities.GetInt(STACK_UNIT_ENCUMB_INT, 0));
 	//if (m_bWorldIsAware)
 	//	NotifyIntStatUpdated(ENCUMB_VAL_INT, false);
 
-	m_Qualities.SetInt(VALUE_INT, stackSize * InqIntQuality(STACK_UNIT_VALUE_INT, 0));
+	m_Qualities.SetInt(VALUE_INT, stackSize * weenieDefs->m_Qualities.GetInt(STACK_UNIT_VALUE_INT, 0));
 	//if (m_bWorldIsAware)
 	//	NotifyIntStatUpdated(VALUE_INT, false);
 
