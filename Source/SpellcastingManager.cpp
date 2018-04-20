@@ -12,6 +12,9 @@
 #include "Client.h"
 #include "Config.h"
 #include "CombatFormulas.h"
+#include "RandomRange.h"
+#include "Random.h"
+#include <random>
 
 const float MAX_HEADING_TO_TARGET_FOR_CAST = 45.0f;
 const float MAX_TURN_TIME_FOR_CAST = 8.0f;
@@ -791,10 +794,10 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 					const SpellComponentBase *componentBase = pSpellComponents->InqSpellComponentBase(compId);
 					float burnChance = componentBase->_CDM * spellComponentLossMod;
-					burnChance *=  max(1.0, (double)spellPower / (double)currentSkill);
+					burnChance *=  min(1.0, (double)spellPower / (double)currentSkill);
 						if (Random::RollDice(0.0, 1.0) < burnChance)
 						{
-							for (int i = 0; i < Random::GenInt(1, iter->second); ++i)
+							for (int i = 0; i < getRandomNumber(1, iter->second, eRandomFormula::favorMid, 1.5, 0); ++i)
 							{
 								component->DecrementStackOrStructureNum();
 								if (componentsConsumedString.length() > 0)
