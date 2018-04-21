@@ -22,6 +22,7 @@
 #include "Vendor.h"
 #include "AllegianceManager.h"
 #include "House.h"
+#include "SpellcastingManager.h"
 
 #include "Config.h"
 
@@ -156,6 +157,56 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	m_pPlayer->SetLoginPlayerQualities(); // overrides
 	m_pPlayer->RecalculateEncumbrance();
 	m_pPlayer->LoginCharacter();
+
+	//temporarily send a purge all enchantments packet on login to wipe stacked characters.
+	if (m_pPlayer->m_Qualities._enchantment_reg)
+	{
+		PackableList<DWORD> removed;
+
+		if (m_pPlayer->m_Qualities._enchantment_reg->_add_list)
+		{
+			for (auto it = m_pPlayer->m_Qualities._enchantment_reg->_add_list->begin(); it != m_pPlayer->m_Qualities._enchantment_reg->_add_list->end();)
+			{
+				if (it->_duration = -1.0)
+				{
+					removed.push_back(it->_id);
+					it = m_pPlayer->m_Qualities._enchantment_reg->_add_list->erase(it);
+				}
+				else
+				{
+					it++;
+				}
+			}
+		}
+
+		if (m_pPlayer->m_Qualities._enchantment_reg->_mult_list)
+		{
+			for (auto it = m_pPlayer->m_Qualities._enchantment_reg->_mult_list->begin(); it != m_pPlayer->m_Qualities._enchantment_reg->_mult_list->end();)
+			{
+				if (it->_duration = -1.0)
+				{
+					removed.push_back(it->_id);
+					it = m_pPlayer->m_Qualities._enchantment_reg->_mult_list->erase(it);
+				}
+				else
+				{
+					it++;
+				}
+			}
+		}
+
+		if (removed.size())
+		{
+			// m_Qualities._enchantment_reg->PurgeEnchantments();
+
+			BinaryWriter expireMessage;
+			expireMessage.Write<DWORD>(0x2C8);
+			removed.Pack(&expireMessage);
+
+			m_pClient->SendNetMessage(&expireMessage, PRIVATE_MSG, TRUE, FALSE);
+		}
+	}
+
 	
 	/*
 	if (*g_pConfig->WelcomePopup() != 0)
@@ -178,6 +229,98 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	*/
 
 	g_pWorld->CreateEntity(m_pPlayer);
+
+	//temporarily add all enchantments back from the character's wielded items
+	for (auto item : m_pPlayer->m_Wielded)
+	{
+		if (item->m_Qualities._spell_book)
+		{
+			bool bShouldCast = true;
+
+			std::string name;
+			if (item->m_Qualities.InqString(CRAFTSMAN_NAME_STRING, name))
+			{
+				if (!name.empty() && name != item->InqStringQuality(NAME_STRING, ""))
+				{
+					bShouldCast = false;
+
+					m_pPlayer->NotifyWeenieErrorWithString(WERROR_ACTIVATION_NOT_CRAFTSMAN, name.c_str());
+				}
+			}
+
+			int difficulty;
+			difficulty = 0;
+			if (item->m_Qualities.InqInt(ITEM_DIFFICULTY_INT, difficulty, TRUE, FALSE))
+			{
+				DWORD skillLevel = 0;
+				if (!m_pPlayer->m_Qualities.InqSkill(ARCANE_LORE_SKILL, skillLevel, FALSE) || (int)skillLevel < difficulty)
+				{
+					bShouldCast = false;
+
+					m_pPlayer->NotifyWeenieError(WERROR_ACTIVATION_ARCANE_LORE_TOO_LOW);
+				}
+			}
+
+			if (bShouldCast)
+			{
+				difficulty = 0;
+				DWORD skillActivationTypeDID = 0;
+				if (item->m_Qualities.InqInt(ITEM_SKILL_LEVEL_LIMIT_INT, difficulty, TRUE, FALSE) && item->m_Qualities.InqDataID(ITEM_SKILL_LIMIT_DID, skillActivationTypeDID))
+				{
+					STypeSkill skillActivationType = SkillTable::OldToNewSkill((STypeSkill)skillActivationTypeDID);
+
+					DWORD skillLevel = 0;
+					if (!m_pPlayer->m_Qualities.InqSkill(skillActivationType, skillLevel, FALSE) || (int)skillLevel < difficulty)
+					{
+						bShouldCast = false;
+
+						m_pPlayer->NotifyWeenieErrorWithString(WERROR_ACTIVATION_SKILL_TOO_LOW, CachedSkillTable->GetSkillName(skillActivationType).c_str());
+					}
+				}
+			}
+
+			if (bShouldCast && item->InqIntQuality(ITEM_ALLEGIANCE_RANK_LIMIT_INT, 0) > item->InqIntQuality(ALLEGIANCE_RANK_INT, 0))
+			{
+				bShouldCast = false;
+				m_pPlayer->NotifyInventoryFailedEvent(item->GetID(), WERROR_ACTIVATION_RANK_TOO_LOW);
+			}
+
+			if (bShouldCast)
+			{
+				int heritageRequirement = item->InqIntQuality(HERITAGE_GROUP_INT, -1);
+				if (heritageRequirement != -1 && heritageRequirement != item->InqIntQuality(HERITAGE_GROUP_INT, 0))
+				{
+					bShouldCast = false;
+					std::string heritageString = item->InqStringQuality(ITEM_HERITAGE_GROUP_RESTRICTION_STRING, "of the correct heritage");
+					m_pPlayer->NotifyWeenieErrorWithString(WERROR_ACTIVATION_WRONG_RACE, heritageString.c_str());
+				}
+			}
+
+			int currentMana = 0;
+			if (bShouldCast && item->m_Qualities.InqInt(ITEM_CUR_MANA_INT, currentMana, TRUE, FALSE))
+			{
+				if (currentMana == 0)
+				{
+					bShouldCast = false;
+					m_pPlayer->NotifyWeenieError(WERROR_ACTIVATION_NOT_ENOUGH_MANA);
+				}
+				else
+					item->_nextManaUse = Timer::cur_time;
+			}
+
+			if (bShouldCast)
+			{
+				DWORD serial = 0;
+				serial |= ((DWORD)m_pPlayer->GetEnchantmentSerialByteForMask(item->InqIntQuality(LOCATIONS_INT, 0, TRUE)) << (DWORD)0);
+				serial |= ((DWORD)m_pPlayer->GetEnchantmentSerialByteForMask(item->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE)) << (DWORD)8);
+
+				for (auto &spellPage : item->m_Qualities._spell_book->_spellbook)
+				{
+					item->MakeSpellcastingManager()->CastSpellEquipped(m_pPlayer->GetID(), spellPage.first, (WORD)serial);
+				}
+			}
+		}
+	}
 	m_pPlayer->DebugValidate();
 
 	return;

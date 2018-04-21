@@ -241,8 +241,8 @@ void from_json(const nlohmann::json &reader, CTreasureTier &output)
 	output.minCasterWieldTier = reader.value("minCasterWieldTier", 0);
 	output.maxCasterWieldTier = reader.value("maxCasterWieldTier", 0);
 
-	output.minCasterWieldTier = reader.value("minGemTier", 0);
-	output.maxCasterWieldTier = reader.value("maxGemTier", 0);
+	output.minGemTier = reader.value("minGemTier", 0);
+	output.maxGemTier = reader.value("maxGemTier", 0);
 
 	output.minArmorWieldTier = reader.value("minArmorWieldTier", 0);
 	output.maxArmorWieldTier = reader.value("maxArmorWieldTier", 0);
