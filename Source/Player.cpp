@@ -1194,7 +1194,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			if (sac < TRAINED_SKILL_ADVANCEMENT_CLASS)
 				return WERROR_CRAFT_NOT_HAVE_SKILL;
 
-			InqSkill(op->_skill, skillLevel, TRUE);
+			InqSkill(op->_skill, skillLevel, FALSE);
 		}
 
 		bool success = false;

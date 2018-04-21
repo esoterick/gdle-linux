@@ -1055,7 +1055,7 @@ void AttackManager::OnAttackCancelled(DWORD error)
 	if (_attackData)
 	{
 		_weenie->NotifyAttackDone();
-		_weenie->DoForcedStopCompletely();
+		//_weenie->DoForcedStopCompletely();
 		_weenie->unstick_from_object();
 
 		MarkForCleanup(_attackData);
@@ -1076,8 +1076,8 @@ bool AttackManager::RepeatAttacks()
 
 void AttackManager::OnAttackDone(DWORD error)
 {
-	if(_weenie->_blockNewAttacksUntil < Timer::cur_time) //fix for cancelling reload animation making attacking faster 
-		_weenie->_blockNewAttacksUntil = Timer::cur_time + 1.0;
+	//if(_weenie->_blockNewAttacksUntil < Timer::cur_time) //fix for cancelling reload animation making attacking faster 
+		//_weenie->_blockNewAttacksUntil = Timer::cur_time + 1.0;
 	if (_attackData)
 	{
 		if (RepeatAttacks() && _attackData->IsValidTarget())
