@@ -167,7 +167,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		{
 			for (auto it = m_pPlayer->m_Qualities._enchantment_reg->_add_list->begin(); it != m_pPlayer->m_Qualities._enchantment_reg->_add_list->end();)
 			{
-				if (it->_duration = -1.0)
+				if (it->_duration == -1.0)
 				{
 					removed.push_back(it->_id);
 					it = m_pPlayer->m_Qualities._enchantment_reg->_add_list->erase(it);
@@ -183,7 +183,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		{
 			for (auto it = m_pPlayer->m_Qualities._enchantment_reg->_mult_list->begin(); it != m_pPlayer->m_Qualities._enchantment_reg->_mult_list->end();)
 			{
-				if (it->_duration = -1.0)
+				if (it->_duration == -1.0)
 				{
 					removed.push_back(it->_id);
 					it = m_pPlayer->m_Qualities._enchantment_reg->_mult_list->erase(it);

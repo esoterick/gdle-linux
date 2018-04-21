@@ -23,11 +23,12 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 	if (!dmgEvent->source)
 		return;
 
+	CalculateRendingAndMiscData(dmgEvent);
 	CalculateAttributeDamageBonus(dmgEvent);
 	CalculateSkillDamageBonus(dmgEvent, spellData);
 	CalculateCriticalHitData(dmgEvent, spellData);
 	CalculateSlayerData(dmgEvent);
-	CalculateRendingAndMiscData(dmgEvent);
+
 
 	double damageCalc = dmgEvent->baseDamage;
 		damageCalc += dmgEvent->attributeDamageBonus;
@@ -77,7 +78,7 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 			attribDamageMod = ((int)attrib - 55.0) / 33.0;
 		else
 			attribDamageMod = 6.75*(1.0 - exp(-0.005*((int)attrib - 55)));
-		if (attribDamageMod < 0)
+		if (attribDamageMod < 0 || dmgEvent->ignoreMagicArmor || dmgEvent->ignoreMagicResist) //half attribute bonus for hollow weapons.
 			dmgEvent->attributeDamageBonus = dmgEvent->baseDamage * (attribDamageMod / 2.0);
 		else
 			dmgEvent->attributeDamageBonus = dmgEvent->baseDamage * (attribDamageMod - 1.0);
