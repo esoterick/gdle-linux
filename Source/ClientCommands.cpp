@@ -1360,11 +1360,11 @@ SERVER_COMMAND(kick, "<player name>", "Kicks the specified player.", SENTINEL_AC
 
 	if (pPlayer)
 	{
-		LOG(Command, Normal, "\"%s\" is using the kick command.\n", pPlayer->GetName().c_str());
+		WINLOG(Command, Normal, "\"%s\" is using the kick command.\n", pPlayer->GetName().c_str());
 	}
 	else
 	{
-		LOG(Command, Normal, "Server is using the kick command.\n");
+		WINLOG(Command, Normal, "Server is using the kick command.\n");
 	}
 
 	CPlayerWeenie *pTarget = g_pWorld->FindPlayer(argv[0]);
@@ -4404,7 +4404,7 @@ bool CommandBase::Execute(char *command, CClient *client)
 			{
 				if (!pCommand->source || player_weenie)
 				{
-					LOG(Temp, Normal, "EXECUTING CLIENT COMMAND %s FROM %s\n", command, client->GetDescription());
+					WINLOG(Temp, Normal, "EXECUTING CLIENT COMMAND %s FROM %s\n", command, client->GetDescription());
 
 					// run the command callback
 					if ((*pCommand->func)(client, player_weenie, player_physobj, argv + 1, argc - 1))

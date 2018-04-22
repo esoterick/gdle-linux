@@ -17,7 +17,7 @@
 
 CWorld::CWorld()
 {
-	LOG(Temp, Normal, "Initializing World..\n");
+	WINLOG(Temp, Normal, "Initializing World..\n");
 
 	ZeroMemory(m_pBlocks, sizeof(m_pBlocks));
 
@@ -309,7 +309,7 @@ CWorldLandBlock *CWorld::ActivateBlock(WORD wHeader)
 	pBlock = *ppBlock;
 	if (pBlock != NULL)
 	{
-		LOG(Temp, Normal, "Landblock already active!\n");
+		WINLOG(Temp, Normal, "Landblock already active!\n");
 		return pBlock;
 	}
 #endif
@@ -428,7 +428,7 @@ bool CWorld::CreateEntity(CWeenieObject *pEntity, bool bMakeAware)
 	}
 
 #ifdef _DEBUG
-	LOG(World, Verbose, "Spawned ID 0x%08X \"%s\" memory object @ 0x%I64X\n", pEntity->GetID(), pEntity->GetName().c_str(), (DWORD64)pEntity);
+	WINLOG(World, Verbose, "Spawned ID 0x%08X \"%s\" memory object @ 0x%I64X\n", pEntity->GetID(), pEntity->GetName().c_str(), (DWORD64)pEntity);
 #endif
 
 	return true;
@@ -837,36 +837,36 @@ void CWorld::BroadcastGlobal(void *_data, DWORD _len, WORD _group, DWORD ignore_
 
 void CWorld::Test()
 {
-	LOG(Temp, Normal, "<CWorld::Test()>\n");
-	LOG(Temp, Normal, "Portal: v%lu, %lu files.\n", g_pPortal->GetVersion(), g_pPortal->GetFileCount());
-	LOG(Temp, Normal, "Cell: v%lu, %u files.\n", g_pCell->GetVersion(), g_pCell->GetFileCount());
-	LOG(Temp, Normal, "%u objects", m_mAllObjects.size());
-	LOG(Temp, Normal, "%u players:\n", m_mAllPlayers.size());
+	WINLOG(Temp, Normal, "<CWorld::Test()>\n");
+	WINLOG(Temp, Normal, "Portal: v%lu, %lu files.\n", g_pPortal->GetVersion(), g_pPortal->GetFileCount());
+	WINLOG(Temp, Normal, "Cell: v%lu, %u files.\n", g_pCell->GetVersion(), g_pCell->GetFileCount());
+	WINLOG(Temp, Normal, "%u objects", m_mAllObjects.size());
+	WINLOG(Temp, Normal, "%u players:\n", m_mAllPlayers.size());
 	for (PlayerWeenieMap::iterator pit = m_mAllPlayers.begin(); pit != m_mAllPlayers.end(); pit++)
 	{
 		CPlayerWeenie *pPlayer = pit->second;
-		LOG(Temp, Normal, "%08X %s\n", pPlayer->GetID(), pPlayer->GetName().c_str());
+		WINLOG(Temp, Normal, "%08X %s\n", pPlayer->GetID(), pPlayer->GetName().c_str());
 	}
-	LOG(Temp, Normal, "%u active blocks:\n", m_vBlocks.size());
+	WINLOG(Temp, Normal, "%u active blocks:\n", m_vBlocks.size());
 	for (LandblockVector::iterator it = m_vBlocks.begin(); it != m_vBlocks.end(); it++)
 	{
 		CWorldLandBlock *pBlock = *it;
-		LOG(Temp, Normal, "%04X %u players %u entities\n", pBlock->GetHeader(), pBlock->PlayerCount(), pBlock->LiveCount());
+		WINLOG(Temp, Normal, "%04X %u players %u entities\n", pBlock->GetHeader(), pBlock->PlayerCount(), pBlock->LiveCount());
 	}
-	LOG(Temp, Normal, "%u dormant blocks:\n", m_mDormantBlocks.size());
+	WINLOG(Temp, Normal, "%u dormant blocks:\n", m_mDormantBlocks.size());
 	for (LandblockMap::iterator it = m_mDormantBlocks.begin(); it != m_mDormantBlocks.end(); it++)
 	{
 		CWorldLandBlock *pBlock = it->second;
-		LOG(Temp, Normal, "%04X %u players %u entities\n", pBlock->GetHeader(), pBlock->PlayerCount(), pBlock->LiveCount());
+		WINLOG(Temp, Normal, "%04X %u players %u entities\n", pBlock->GetHeader(), pBlock->PlayerCount(), pBlock->LiveCount());
 	}
-	LOG(Temp, Normal, "%u unloaded blocks:\n", m_mUnloadedBlocks.size());
+	WINLOG(Temp, Normal, "%u unloaded blocks:\n", m_mUnloadedBlocks.size());
 	for (LandblockMap::iterator it = m_mUnloadedBlocks.begin(); it != m_mUnloadedBlocks.end(); it++)
 	{
 		CWorldLandBlock *pBlock = it->second;
-		LOG(Temp, Normal, "%04X %u players %u entities\n", pBlock->GetHeader(), pBlock->PlayerCount(), pBlock->LiveCount());
+		WINLOG(Temp, Normal, "%04X %u players %u entities\n", pBlock->GetHeader(), pBlock->PlayerCount(), pBlock->LiveCount());
 	}
 
-	LOG(Temp, Normal, "</CWorld::Test()>\n");
+	WINLOG(Temp, Normal, "</CWorld::Test()>\n");
 }
 
 void CWorld::RemoveEntity(CWeenieObject *pEntity)

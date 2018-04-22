@@ -14,7 +14,7 @@ public:
 #ifdef _DEBUG
 		if (szSource)
 		{
-			LOG(Temp, Debug, "Kill() @ %s: %u\n", szSource, dwLine);
+			WINLOG(Temp, Debug, "Kill() @ %s: %u\n", szSource, dwLine);
 		}
 
 #endif

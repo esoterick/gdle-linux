@@ -121,7 +121,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	if (!m_pClient->HasCharacter(char_weenie_id))
 	{
 		LoginError(13); // update error codes
-		LOG(Client, Warning, "Logging in with a character that doesn't belong to this account!\n");
+		WINLOG(Client, Warning, "Logging in with a character that doesn't belong to this account!\n");
 		return;
 	}
 
@@ -129,7 +129,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	{
 		// LOG(Temp, Normal, "Character already logged in!\n");
 		LoginError(13); // update error codes
-		LOG(Client, Warning, "Login request, but character already logged in!\n");
+		WINLOG(Client, Warning, "Login request, but character already logged in!\n");
 		return;
 	}
 
@@ -147,7 +147,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	if (!m_pPlayer->Load())
 	{
 		LoginError(13); // update error codes
-		LOG(Client, Warning, "Login request, but character failed to load!\n");
+		WINLOG(Client, Warning, "Login request, but character failed to load!\n");
 
 		delete m_pPlayer;
 
@@ -336,13 +336,13 @@ void CClientEvents::Attack(DWORD target, DWORD height, float power)
 {
 	if (height <= 0 || height >= ATTACK_HEIGHT::NUM_ATTACK_HEIGHTS)
 	{
-		LOG(Temp, Warning, "Bad melee attack height %u sent by player 0x%08X\n", height, m_pPlayer->GetID());
+		WINLOG(Temp, Warning, "Bad melee attack height %u sent by player 0x%08X\n", height, m_pPlayer->GetID());
 		return;
 	}
 
 	if (power < 0.0f || power > 1.0f)
 	{
-		LOG(Temp, Warning, "Bad melee attack power %f sent by player 0x%08X\n", power, m_pPlayer->GetID());
+		WINLOG(Temp, Warning, "Bad melee attack power %f sent by player 0x%08X\n", power, m_pPlayer->GetID());
 		return;
 	}
 
@@ -353,13 +353,13 @@ void CClientEvents::MissileAttack(DWORD target, DWORD height, float power)
 {
 	if (height <= 0 || height >= ATTACK_HEIGHT::NUM_ATTACK_HEIGHTS)
 	{
-		LOG(Temp, Warning, "Bad missile attack height %u sent by player 0x%08X\n", height, m_pPlayer->GetID());
+		WINLOG(Temp, Warning, "Bad missile attack height %u sent by player 0x%08X\n", height, m_pPlayer->GetID());
 		return;
 	}
 
 	if (power < 0.0f || power > 1.0f)
 	{
-		LOG(Temp, Warning, "Bad missile attack power %f sent by player 0x%08X\n", power, m_pPlayer->GetID());
+		WINLOG(Temp, Warning, "Bad missile attack power %f sent by player 0x%08X\n", power, m_pPlayer->GetID());
 		return;
 	}
 
@@ -506,28 +506,28 @@ void CClientEvents::ChannelText(DWORD channel_id, const char *text)
 				return;
 
 			g_pFellowshipManager->Chat(fellowName, m_pPlayer->GetID(), text);
-			LOG(Client, Normal, "[%s] %s says (fellowship), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
+			WINLOG(Client, Normal, "[%s] %s says (fellowship), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
 			break;
 		}
 
 	case Patron_ChannelID:
 		g_pAllegianceManager->ChatPatron(m_pPlayer->GetID(), text);
-		LOG(Client, Normal, "[%s] %s says (patron), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
+		WINLOG(Client, Normal, "[%s] %s says (patron), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
 		break;
 
 	case Vassals_ChannelID:
 		g_pAllegianceManager->ChatVassals(m_pPlayer->GetID(), text);
-		LOG(Client, Normal, "[%s] %s says (vassals), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
+		WINLOG(Client, Normal, "[%s] %s says (vassals), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
 		break;
 
 	case Covassals_ChannelID:
 		g_pAllegianceManager->ChatCovassals(m_pPlayer->GetID(), text);
-		LOG(Client, Normal, "[%s] %s says (covassals), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
+		WINLOG(Client, Normal, "[%s] %s says (covassals), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
 		break;
 
 	case Monarch_ChannelID:
 		g_pAllegianceManager->ChatMonarch(m_pPlayer->GetID(), text);
-		LOG(Client, Normal, "[%s] %s says (monarch), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
+		WINLOG(Client, Normal, "[%s] %s says (monarch), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
 		break;
 	}
 }
@@ -742,7 +742,7 @@ void CClientEvents::SpendSkillCredits(STypeSkill key, DWORD credits)
 
 	if (m_pPlayer->GetCostToRaiseSkill(key) != credits)
 	{
-		LOG(Temp, Warning, "Credit cost to raise skill does not match what player is trying to spend.\n");
+		WINLOG(Temp, Warning, "Credit cost to raise skill does not match what player is trying to spend.\n");
 		return;
 	}
 
@@ -1862,7 +1862,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 	if (pReader->GetLastError()) return;
 
 #ifdef _DEBUG
-	LOG(Client, Verbose, "Processing event: 0x%X\n", dwEvent);
+	WINLOG(Client, Verbose, "Processing event: 0x%X\n", dwEvent);
 #endif
 
 	switch (dwEvent)
@@ -3020,7 +3020,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		{
 			//Unknown Event
 #ifdef _DEBUG
-			LOG(Temp, Normal, "Unhandled client event 0x%X:\n", dwEvent);
+			WINLOG(Temp, Normal, "Unhandled client event 0x%X:\n", dwEvent);
 #endif
 			// LOG_BYTES(Temp, Verbose, in->GetDataPtr(), in->GetDataEnd() - in->GetDataPtr() );
 		}

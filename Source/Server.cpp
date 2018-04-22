@@ -23,6 +23,7 @@
 #include "Player.h"
 #include "GameEventManager.h"
 #include "House.h"
+#include "easylogging++.h"
 
 // should all be encapsulated realistically, but we aren't going to multi-instance the server...
 CDatabase *g_pDB = NULL;
@@ -175,7 +176,8 @@ bool CPhatServer::Init()
 	g_ClothingCache.LoadAll();
 	//#endif
 
-	LOG(Temp, Normal, "The server is now online.\n");
+	WINLOG(Temp, Normal, "The server is now online.\n");
+	SERVER_INFO << "The server is now online.";
 
 #if 0
 	FILE *fp = fopen("d:\\temp\\houses.bin", "wb");
@@ -360,16 +362,17 @@ void CPhatServer::InitializeSocket(unsigned short port, in_addr address)
 		localhost.sin_port = htons(port);
 		if (!bind(m_sockets[0], (struct sockaddr *)&localhost, sizeof(SOCKADDR_IN)))
 		{
-			LOG(Temp, Normal, "Bound to port %u!\n", port);
+			WINLOG(Temp, Normal, "Bound to port %u!\n", port);
+			SERVER_INFO << "Bound to port" << port << "!";
 			break;
 		}
-		LOG(Temp, Normal, "Failed bind on port %u!\n", port);
+		WINLOG(Temp, Normal, "Failed bind on port %u!\n", port);
 		port++;
 	}
 
 	if (port == failport)
 	{
-		LOG(Temp, Normal, "Failure to bind socket!\n");
+		WINLOG(Temp, Normal, "Failure to bind socket!\n");
 	}
 	else
 	{
@@ -383,7 +386,7 @@ void CPhatServer::InitializeSocket(unsigned short port, in_addr address)
 			localhost.sin_port = htons(basePort + i);
 			if (bind(m_sockets[i], (struct sockaddr *)&localhost, sizeof(SOCKADDR_IN)))
 			{
-				LOG(Temp, Normal, "Failure to bind socket port %d!\n", basePort + i);
+				WINLOG(Temp, Normal, "Failure to bind socket port %d!\n", basePort + i);
 			}
 		}
 	}
@@ -406,7 +409,7 @@ void CPhatServer::SystemBroadcast(char *text)
 	if (!g_pNetwork || !g_pWorld)
 		return;
 
-	LOG(Temp, Normal, "Broadcast, \"%s\"\n", text);
+	WINLOG(Temp, Normal, "Broadcast, \"%s\"\n", text);
 	g_pWorld->BroadcastGlobal(ServerBroadcast("System", text, LTT_DEFAULT), PRIVATE_MSG);
 }
 

@@ -9,6 +9,7 @@
 #include "Container.h"
 #include "Config.h"
 #include "Monster.h"
+#include "easylogging++.h"
 
 double round(double value, int decimalPlaces)
 {
@@ -871,7 +872,7 @@ CreatureType CTreasureFactory::TranslateCreatureStringToEnumValue(std::string st
 
 void CTreasureFactory::Initialize()
 {
-	LOG(Data, Normal, "Loading treasure generation profile...\n");
+	WINLOG(Data, Normal, "Loading treasure generation profile...\n");
 
 	std::ifstream fileStream("data\\json\\treasureProfile.json");
 
@@ -885,7 +886,8 @@ void CTreasureFactory::Initialize()
 		}
 		catch (const nlohmann::detail::parse_error &e)
 		{
-			LOG(Data, Error, "----------------------\nError parsing treasureProfile.json:\n%s\n----------------------\n", e.what());
+			WINLOG(Data, Error, "----------------------\nError parsing treasureProfile.json:\n%s\n----------------------\n", e.what());
+			SERVER_ERROR << "Error parsing treasureProfile.json";
 			return;
 		}
 
@@ -898,13 +900,13 @@ void CTreasureFactory::Initialize()
 		}
 		catch (...)
 		{
-			LOG(Data, Error, "----------------------\nError loading treasure generation profile!\n----------------------\n");
+			WINLOG(Data, Error, "----------------------\nError loading treasure generation profile!\n----------------------\n");
 			SafeDelete(_TreasureProfile);
 			return;
 		}
 	}
 
-	LOG(Data, Normal, "Finished loading treasure generation profile.\n");
+	WINLOG(Data, Normal, "Finished loading treasure generation profile.\n");
 }
 
 CWeenieObject *CreateFromEntry(PackableList<TreasureEntry>::iterator entry, unsigned int ptid, float shade)

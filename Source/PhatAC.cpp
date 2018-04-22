@@ -4,6 +4,10 @@
 #include "World.h"
 #include "PacketCaptureCredits.h"
 #include "Client.h"
+#include "Logging.h"
+#include "easylogging++.h"
+
+INITIALIZE_EASYLOGGINGPP
 
 #if defined(_WIN32) && !defined(_WINDLL)
 
@@ -366,7 +370,7 @@ INT_PTR CALLBACK MainProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 						HWND hWndConsole = GetDlgItem(hDlg, IDC_CONSOLE);
 
 						SetWindowText(hWndConsole, "");
-						LOG(Temp, Normal, "Console cleared.\n");
+						SERVER_INFO << "Console cleared.";
 					}
 				}
 				break;
@@ -375,7 +379,7 @@ INT_PTR CALLBACK MainProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					if (!g_pPhatServer)
 					{
-						LOG(Temp, Normal, "You must be running a server to broadcast a system message.\n");
+						SERVER_INFO << "You must be running a server to broadcast a system message.";
 						break;
 					}
 
@@ -491,7 +495,7 @@ INT_PTR CALLBACK MainProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 						SetWindowText(GetDlgItem(hDlg, IDC_TOGGLE), "Start");
 						SetWindowText(GetDlgItem(hDlg, IDC_CONNECTLINK), "");
 
-						LOG(Temp, Normal, "Server shutdown.\n");
+						SERVER_INFO << "Server shutdown.";
 					}
 				}
 				break;
@@ -520,7 +524,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 #if !defined(QUICKSTART) && defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-
+	el::Loggers::configureFromGlobal("./GDLELogging.conf");
+	el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 	srand((unsigned int)time(NULL));
 	Random::Init();
@@ -550,7 +555,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	extern DWORD64 g_RandomAdminPassword;
 	g_RandomAdminPassword = ((DWORD64)Random::GenUInt(0, 0xFFFFFFF0) << 32) | Random::GenUInt(0, 0xFFFFFFF0) + GetTickCount64();
 
-	LOG(UserInterface, Normal, "Welcome to GDLEnhanced!\n");
+	WINLOG(Temp, Normal, "Welcome to GDLEnhanced!\n");
+	SERVER_INFO << "Welcome to GDLEnhanced!";
 
 	ShowWindow(g_hWndMain, nCmdShow);
 
