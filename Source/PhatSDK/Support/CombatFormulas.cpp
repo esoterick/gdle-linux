@@ -23,23 +23,35 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 	if (!dmgEvent->source)
 		return;
 
+	CalculateRendingAndMiscData(dmgEvent);
 	CalculateAttributeDamageBonus(dmgEvent);
 	CalculateSkillDamageBonus(dmgEvent, spellData);
 	CalculateCriticalHitData(dmgEvent, spellData);
 	CalculateSlayerData(dmgEvent);
-	CalculateRendingAndMiscData(dmgEvent);
+
 
 	double damageCalc = dmgEvent->baseDamage;
-	damageCalc += dmgEvent->attributeDamageBonus;
-	damageCalc += dmgEvent->skillDamageBonus;
-	damageCalc += dmgEvent->slayerDamageBonus;
+		damageCalc += dmgEvent->attributeDamageBonus;
+		damageCalc += dmgEvent->skillDamageBonus;
+		damageCalc += dmgEvent->slayerDamageBonus;
 
-	dmgEvent->wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent->critChance) ? true : false;
-	if (dmgEvent->wasCrit)
-		damageCalc += damageCalc * dmgEvent->critMultiplier;
+		dmgEvent->wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent->critChance) ? true : false;
+		if (dmgEvent->wasCrit)
+		{
+			damageCalc += damageCalc * dmgEvent->critMultiplier; //Leave the old formula for Melee/Missile crits.
+			
+			if (dmgEvent->damage_form == DF_MAGIC) //Multiply base spell damage by the critMultiplier before adding skill and slayer damage bonuses for Magic.
+			{
+				damageCalc = dmgEvent->baseDamage;
+				damageCalc += damageCalc * dmgEvent->critMultiplier;
+				damageCalc += dmgEvent->skillDamageBonus;
+				damageCalc += dmgEvent->slayerDamageBonus;
+			}
+		}
 
 	if (dmgEvent->damage_form == DF_MAGIC && !dmgEvent->source->AsPlayer())
 		damageCalc /= 2; //creatures do half magic damage. Unconfirmed but feels right. Should this be projectile spells only?
+
 
 	dmgEvent->damageBeforeMitigation = dmgEvent->damageAfterMitigation = damageCalc;
 }
@@ -57,8 +69,7 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 	case DF_MISSILE:
 	{
 		DWORD attrib = 0;
-		if (dmgEvent->attackSkill == DAGGER_SKILL || dmgEvent->attackSkill == BOW_SKILL || dmgEvent->attackSkill == CROSSBOW_SKILL)
-			dmgEvent->source->m_Qualities.InqAttribute(COORDINATION_ATTRIBUTE, attrib, FALSE);
+		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL)			dmgEvent->source->m_Qualities.InqAttribute(COORDINATION_ATTRIBUTE, attrib, FALSE);
 		else
 			dmgEvent->source->m_Qualities.InqAttribute(STRENGTH_ATTRIBUTE, attrib, FALSE);
 
@@ -67,7 +78,7 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 			attribDamageMod = ((int)attrib - 55.0) / 33.0;
 		else
 			attribDamageMod = 6.75*(1.0 - exp(-0.005*((int)attrib - 55)));
-		if (attribDamageMod < 0)
+		if (attribDamageMod < 0 || dmgEvent->ignoreMagicArmor || dmgEvent->ignoreMagicResist) //half attribute bonus for hollow weapons.
 			dmgEvent->attributeDamageBonus = dmgEvent->baseDamage * (attribDamageMod / 2.0);
 		else
 			dmgEvent->attributeDamageBonus = dmgEvent->baseDamage * (attribDamageMod - 1.0);
@@ -204,7 +215,7 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 				//PvP: Crippling Blow for War Magic currently scales from adding 50 % of the spells damage on critical hits 
 				//to adding 100 % at maximum effectiveness
 				if (isPvP)
-					dmgEvent->critMultiplier += GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 1.0);
+					dmgEvent->critMultiplier += GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 0.5);
 				else
 					dmgEvent->critMultiplier += GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 5.0);
 			}
@@ -297,33 +308,36 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		break;
 	}
 
-	if (dmgEvent->isArmorRending || dmgEvent->isElementalRending)
+	if (dmgEvent->isElementalRending)
 	{
 		switch (dmgEvent->damage_form)
 		{
 		case DF_MELEE:
-			dmgEvent->rendingMultiplier = 0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 0.5); //made up formula.
+			dmgEvent->rendingMultiplier = max(GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 400, 2.5), 1.0f);
 			break;
 		case DF_MISSILE:
-			dmgEvent->rendingMultiplier = 0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 0.5); //made up formula.
+			dmgEvent->rendingMultiplier = max(0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 360, 2.25), 1.0f);
 			break;
 		case DF_MAGIC:
-		{
-			bool isPvP = dmgEvent->source->AsPlayer() && dmgEvent->target->AsPlayer();
-			if (isPvP)
-				dmgEvent->rendingMultiplier = 0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 0.5); //made up formula.
-			else
-				dmgEvent->rendingMultiplier = 0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 0.5); //made up formula.
+			dmgEvent->rendingMultiplier = max(0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 360, 2.25), 1.0f);
 			break;
-		}
 		default:
 			return;
 		}
 	}
 
-	//prepare rendingMultiplier for use.
-	if (dmgEvent->isElementalRending)
-		dmgEvent->rendingMultiplier += 1.0; //positive multiplier
-	else if (dmgEvent->isArmorRending)
-		dmgEvent->rendingMultiplier = 1.0 - dmgEvent->rendingMultiplier; //negative multiplier
+	if (dmgEvent->isArmorRending)
+	{
+		switch (dmgEvent->damage_form)
+		{
+		case DF_MELEE:
+			dmgEvent->armorRendingMultiplier = 1.0 / max(GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 400, 2.5), 1.0f);
+		case DF_MISSILE:
+			dmgEvent->armorRendingMultiplier = 1.0 / max(0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 360, 2.25), 1.0f);
+			break;
+		case DF_MAGIC:
+		default:
+			return;
+		}
+	}
 }

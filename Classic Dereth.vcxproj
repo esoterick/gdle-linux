@@ -140,13 +140,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>GDL - Classic Dereth - Debug</TargetName>
+    <TargetName>GDLEnhanced - Debug</TargetName>
     <OutDir>$(SolutionDir)\Bin\</OutDir>
     <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>GDL - Classic Dereth</TargetName>
+    <TargetName>GDLEnhanced</TargetName>
     <OutDir>$(SolutionDir)\Bin\</OutDir>
     <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -160,7 +160,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\Bin\</OutDir>
     <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>GDL - Classic Dereth - Debug</TargetName>
+    <TargetName>GDLEnhanced - Debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)\Bin\</OutDir>
@@ -176,13 +176,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>GDL - Classic Dereth</TargetName>
+    <TargetName>GDLEnhanced</TargetName>
     <OutDir>$(SolutionDir)\Bin\</OutDir>
     <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release - Public|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>GDL - Classic Dereth</TargetName>
+    <TargetName>GDLEnhanced</TargetName>
     <OutDir>$(SolutionDir)\Bin\</OutDir>
     <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -454,6 +454,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\AugmentationDevice.cpp" />
     <ClCompile Include="Source\BindStone.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\CombatFormulas.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\Random.cpp" />
@@ -640,6 +641,7 @@
     <ClCompile Include="Source\WorldLandBlock.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\AugmentationDevice.h" />
     <ClInclude Include="Source\BindStone.h" />
     <ClInclude Include="Source\PhatSDK\Support\CombatFormulas.h" />
     <ClInclude Include="Source\PhatSDK\Support\Random.h" />

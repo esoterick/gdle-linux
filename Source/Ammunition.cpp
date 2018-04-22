@@ -47,7 +47,7 @@ void CAmmunitionWeenie::MakeIntoAmmo()
 
 	SetPlacementFrame(Placement::Resting, TRUE);
 
-	_timeToRot = Timer::cur_time + 60.0;
+	_timeToRot = Timer::cur_time + 1.0;
 	_beganRot = false;
 	m_Qualities.SetFloat(TIME_TO_ROT_FLOAT, _timeToRot);
 }
@@ -163,6 +163,14 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 
 					preVarianceDamage = GetAttackDamage();
 					variance = InqFloatQuality(DAMAGE_VARIANCE_FLOAT, 0.0f);
+
+					bool isThrownWeapon = (weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) == ThrownWeapon_CombatStyle);
+					int weaponDamage = !isThrownWeapon ? weapon->GetAttackDamage() : 0;
+					int elementalDamageBonus = weapon->InqDamageType() == InqDamageType() ? weapon->InqIntQuality(ELEMENTAL_DAMAGE_BONUS_INT, 0) : 0;
+					double damageMod = weapon->InqFloatQuality(DAMAGE_MOD_FLOAT, 1.0);
+
+					preVarianceDamage += weaponDamage + elementalDamageBonus;
+					preVarianceDamage *= damageMod;
 
 					DamageEventData dmgEvent;
 					dmgEvent.source = pSource;

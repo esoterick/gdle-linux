@@ -439,13 +439,15 @@ void CWorldLandBlock::Insert(CWeenieObject *pEntity, WORD wOld, BOOL bNew, bool 
 {
 	if (CPlayerWeenie *player = pEntity->AsPlayer())
 	{
+		Position pos = pEntity->GetPosition();
 		m_PlayerMap.insert(std::pair<DWORD, CPlayerWeenie *>(pEntity->GetID(), player));
 		m_PlayerList.push_back(player);
 
 		MakeNotDormant();
 
-		// spawn up adjacent landblocks
-		ActivateLandblocksWithinPVS(pEntity->GetLandcell());
+		// spawn up adjacent landblocks only if outdoors, otherwise only load the block you're on.
+		if ((pos.objcell_id & 0xFFFF) < 0x100) //outdoors
+			ActivateLandblocksWithinPVS(pEntity->GetLandcell());
 	}
 
 	m_EntityMap.insert(std::pair<DWORD, CWeenieObject *>(pEntity->GetID(), pEntity));
@@ -587,7 +589,13 @@ void CWorldLandBlock::ExchangePVS(CWeenieObject *pSource, WORD old_block_id)
 {
 	if (!pSource)
 		return;
-
+	
+	CWorldLandBlock *pBlock = pSource->GetBlock();
+	if (pBlock && (pSource->GetLandcell() & 0xFFFF) > 0x100) //if indoors only exchange data on this landblock.
+	{
+			pBlock->ExchangeData(pSource);
+	}
+	else
 	{
 		// outdoor exchange -- this should eventually become obselete
 

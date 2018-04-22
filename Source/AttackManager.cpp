@@ -278,7 +278,12 @@ void CMeleeAttackEvent::Setup()
 	{
 		if (_weenie->_combatTable)
 		{
-			CWeenieObject *weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+			CWeenieObject *weapon = NULL;
+				if (!_weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
+				weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+				else {
+					weapon = _weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+				}
 			if (weapon)
 			{
 				//_max_attack_distance = weapon->InqFloatQuality(WEAPON_LENGTH_FLOAT, 0.5); //todo: this would be interesting but something makes the character still move next to the target anyway. Is it the client?
@@ -340,8 +345,8 @@ void CMeleeAttackEvent::Setup()
 	int attackTime = (creatureAttackTime + weaponAttackTime) / 2; //our attack time is the average between our speed and the speed of our weapon.
 	attackTime = max(0, min(120, attackTime));
 
-	_attack_speed = 2.5f - (attackTime * (1.0 / 70.0));
-	_attack_speed = max(min(_attack_speed, 2.5), 0.8);
+	_attack_speed = 2.25f - (attackTime * (1.0 / 50.0));
+	_attack_speed = max(min(_attack_speed, 2.25), 0.8);
 
 	//old formula:
 	//int attackTime = max(0, min(120, _weenie->GetAttackTimeUsingWielded()));
@@ -406,7 +411,12 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	double offenseMod = 1.0;
 
 	bool isBodyPart = false;
-	CWeenieObject *weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+	CWeenieObject *weapon = NULL;
+	if (!_weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
+		weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+	else {
+		weapon = _weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+	}
 
 	if (!weapon) //if we still don't have a weapon use our body parts
 	{
@@ -444,7 +454,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 		damageType = weapon->InqDamageType();
 	}
 	offenseMod = weapon->GetOffenseMod();
-	weaponSkill = (STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, UNARMED_COMBAT_SKILL, TRUE);
+	weaponSkill = SkillTable::OldToNewSkill((STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
 
 	//todo: maybe handle this differently as to integrate all possible damage type combos
 	if (damageType == (DAMAGE_TYPE::SLASH_DAMAGE_TYPE|DAMAGE_TYPE::PIERCE_DAMAGE_TYPE))
@@ -926,7 +936,7 @@ void CMissileAttackEvent::FireMissile()
 
 	_weenie->AdjustStamina(-necessaryStamina);
 
-	missile->_weaponSkill = (STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, UNDEF_SKILL, false);
+	missile->_weaponSkill = SkillTable::OldToNewSkill((STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, UNDEF_SKILL, false));
 	if (_weenie->InqSkill(missile->_weaponSkill, missile->_weaponSkillLevel, false))
 	{
 		double offenseMod = weapon->GetOffenseMod();
@@ -1045,7 +1055,7 @@ void AttackManager::OnAttackCancelled(DWORD error)
 	if (_attackData)
 	{
 		_weenie->NotifyAttackDone();
-		_weenie->DoForcedStopCompletely();
+		//_weenie->DoForcedStopCompletely();
 		_weenie->unstick_from_object();
 
 		MarkForCleanup(_attackData);
@@ -1066,8 +1076,8 @@ bool AttackManager::RepeatAttacks()
 
 void AttackManager::OnAttackDone(DWORD error)
 {
-	if(_weenie->_blockNewAttacksUntil < Timer::cur_time) //fix for cancelling reload animation making attacking faster 
-		_weenie->_blockNewAttacksUntil = Timer::cur_time + 1.0;
+	//if(_weenie->_blockNewAttacksUntil < Timer::cur_time) //fix for cancelling reload animation making attacking faster 
+		//_weenie->_blockNewAttacksUntil = Timer::cur_time + 1.0;
 	if (_attackData)
 	{
 		if (RepeatAttacks() && _attackData->IsValidTarget())

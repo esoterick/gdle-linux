@@ -243,7 +243,7 @@ CContainerWeenie *CMonsterWeenie::FindValidNearbyContainer(DWORD containerId, fl
 
 bool CMonsterWeenie::GetEquipPlacementAndHoldLocation(CWeenieObject *item, DWORD location, DWORD *pPlacementFrame, DWORD *pHoldLocation)
 {
-	if (location & MELEE_WEAPON_LOC)
+	if (location & (MELEE_WEAPON_LOC | TWO_HANDED_LOC))
 	{
 		*pPlacementFrame = Placement::RightHandCombat;
 		*pHoldLocation = PARENT_RIGHT_HAND;
@@ -330,14 +330,14 @@ int CMonsterWeenie::CheckWieldRequirements(CWeenieObject *item, CWeenieObject *w
 	{
 		DWORD skillLevel = 0;
 		if (!wielder->m_Qualities.InqSkill((STypeSkill)skillType, skillLevel, FALSE) || (int)skillLevel < wieldDifficulty)
-			return WERROR_ACTIVATION_SKILL_TOO_LOW;
+			return WERROR_SKILL_TOO_LOW;
 		break;
 	}
 	case 2: // base skill
 	{
 		DWORD skillLevel = 0;
 		if (!wielder->m_Qualities.InqSkill((STypeSkill)skillType, skillLevel, TRUE) || (int)skillLevel < wieldDifficulty)
-			return WERROR_ACTIVATION_SKILL_TOO_LOW;
+			return WERROR_SKILL_TOO_LOW;
 		break;
 	}
 	case 3: // attribute
@@ -766,7 +766,7 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 			DWORD skillActivationTypeDID = 0;
 			if (sourceItem->m_Qualities.InqInt(ITEM_SKILL_LEVEL_LIMIT_INT, difficulty, TRUE, FALSE) && sourceItem->m_Qualities.InqDataID(ITEM_SKILL_LIMIT_DID, skillActivationTypeDID))
 			{
-				STypeSkill skillActivationType = (STypeSkill)skillActivationTypeDID;
+				STypeSkill skillActivationType = SkillTable::OldToNewSkill((STypeSkill)skillActivationTypeDID);
 
 				DWORD skillLevel = 0;
 				if (!m_Qualities.InqSkill(skillActivationType, skillLevel, FALSE) || (int)skillLevel < difficulty)
@@ -1615,7 +1615,7 @@ void CMonsterWeenie::DropAllLoot(CCorpseWeenie *pCorpse)
 void CMonsterWeenie::GenerateDeathLoot(CCorpseWeenie *pCorpse)
 {
 	if (m_Qualities._create_list)
-		g_pWeenieFactory->AddFromCreateList(pCorpse, m_Qualities._create_list, (DestinationType)(Contain_DestinationType | ContainTreasure_DestinationType));
+		g_pWeenieFactory->AddFromCreateList(pCorpse, m_Qualities._create_list, (DestinationType)(Contain_DestinationType | Treasure_DestinationType));
 
 	if (DWORD deathTreasureType = InqDIDQuality(DEATH_TREASURE_TYPE_DID, 0))
 		g_pWeenieFactory->GenerateFromTypeOrWcid(pCorpse, DestinationType::ContainTreasure_DestinationType, deathTreasureType);
@@ -1659,6 +1659,7 @@ void CMonsterWeenie::OnDeathAnimComplete()
 		player->_pendingCorpse->m_Qualities.RemoveBool(VISIBILITY_BOOL);
 		player->_pendingCorpse->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
 		player->_pendingCorpse->NotifyObjectCreated(false);
+		player->_pendingCorpse->Save();
 		player->_pendingCorpse = NULL;
 	}
 }
@@ -1752,9 +1753,13 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 		break;
 
 	case MELEE_COMBAT_MODE:
-		{
-			CWeenieObject *weapon = GetWieldedMelee();
-
+		{	
+		CWeenieObject *weapon =NULL;
+			if(!GetWieldedMelee())
+				weapon = GetWieldedTwoHanded();
+			else {
+				weapon = GetWieldedMelee();
+			}
 			CombatStyle default_combat_style = weapon ? (CombatStyle)weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, Undef_CombatStyle) : Undef_CombatStyle;
 
 			switch (default_combat_style)
@@ -1777,6 +1782,11 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 					newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
 					break;
 				}
+			
+			case TwoHanded_CombatStyle:
+					new_motion_style = Motion_2HandedSwordCombat;
+					newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
+					break;				
 			}
 
 			break;
@@ -2201,37 +2211,26 @@ float CMonsterWeenie::GetEffectiveArmorLevel(DamageEventData &damageData, bool b
 	std::list<CWeenieObject *> wielded;
 	Container_GetWieldedByMask(wielded, ARMOR_LOC|CLOTHING_LOC|SHIELD_LOC);
 
-	//body
-	float armorLevel = CWeenieObject::GetEffectiveArmorLevel(damageData, bIgnoreMagicArmor);
-
-	//body part
-	int bodyPartArmor = 0;
-	m_Qualities.InqBodyArmorValue(damageData.hitPart, damageData.damage_type, bodyPartArmor, true);
-
 	EnchantedQualityDetails buffDetails;
-	GetIntEnchantmentDetails(ARMOR_LEVEL_INT, 0, &buffDetails); //body enchantments also affect body parts.
-	buffDetails.rawValue = bodyPartArmor; //overwrite armor level with the body part armor level for these calculations.
-	buffDetails.CalculateEnchantedValue();
+	
+	//body part
+	GetBodyArmorEnchantmentDetails(damageData.hitPart, damageData.damage_type, &buffDetails);
 
-	if (damageData.isArmorRending && damageData.rendingMultiplier < buffDetails.valueDecreasingMultiplier)
-	{
-		//our armor rending is better than the debuffs applied, replace debuffs with rending.
-		buffDetails.valueDecreasingMultiplier = damageData.rendingMultiplier;
-		buffDetails.CalculateEnchantedValue();
-	}
-
-	if (bIgnoreMagicArmor)
-		armorLevel += buffDetails.enchantedValue_DecreasingOnly; //debuffs still count
-	else
-		armorLevel += buffDetails.enchantedValue;
+	//body
+	buffDetails.rawValue += CWeenieObject::GetEffectiveArmorLevel(damageData, bIgnoreMagicArmor);
 
 	//equipment
 	for (auto item : wielded)
-	{
-		armorLevel += item->GetEffectiveArmorLevel(damageData, bIgnoreMagicArmor);
-	}
+		buffDetails.rawValue += item->GetEffectiveArmorLevel(damageData, bIgnoreMagicArmor);
 
-	return armorLevel;
+	if (damageData.isArmorRending && damageData.armorRendingMultiplier < buffDetails.valueDecreasingMultiplier)
+		buffDetails.valueDecreasingMultiplier = damageData.armorRendingMultiplier;
+	buffDetails.CalculateEnchantedValue();
+
+	if (bIgnoreMagicArmor)
+		return buffDetails.rawValue; //Take the Raw value for Hollows. Debuffs should not count.
+	else
+		return buffDetails.enchantedValue;
 }
 
 void CMonsterWeenie::TryMeleeAttack(DWORD target_id, ATTACK_HEIGHT height, float power, DWORD motion)

@@ -121,6 +121,7 @@ struct DamageEventData
 	bool ignoreArmorEntirely = false;
 
 	bool isArmorRending = false;
+	double armorRendingMultiplier = 0.0;
 	bool isElementalRending = false;
 	double rendingMultiplier = 0.0;
 
@@ -202,6 +203,7 @@ public:
 	virtual class CSwitchWeenie *AsSwitch() { return NULL; }
 	virtual class CTownCrier *AsTownCrier() { return NULL; }
 	virtual class CVendor *AsVendor() { return NULL; }
+	virtual class CAugmentationDeviceWeenie *AsAugmentationDevice() { return NULL; }
 
 	virtual bool IsAdvocate() { return false; }
 	virtual bool IsSentinel() { return false; }
@@ -419,7 +421,9 @@ public:
 	DWORD GetSpellID();
 
 	virtual DWORD RecalculateCoinAmount() { return 0; };
+	virtual DWORD RecalculateAltCoinAmount(int currencyid) { return 0; };
 	virtual DWORD ConsumeCoin(int amountToConsume) { return 0; };
+	virtual DWORD ConsumeAltCoin(int amountToConsume, int currencyid) { return 0; };
 	void SetValue(DWORD amount);
 	DWORD GetValue();
 
@@ -436,6 +440,7 @@ public:
 
 	bool GetFloatEnchantmentDetails(STypeFloat stype, double defaultValue, EnchantedQualityDetails *enchantmentDetails);
 	bool GetIntEnchantmentDetails(STypeInt stype, int defaultValue, EnchantedQualityDetails *enchantmentDetails);
+	bool GetBodyArmorEnchantmentDetails(unsigned int bodyPart, DAMAGE_TYPE damageType, EnchantedQualityDetails *enchantmentDetails);
 
 	void TryCancelAttack();
 

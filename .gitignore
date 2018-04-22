@@ -1,12 +1,16 @@
 //Custom
 client_cell_1.dat
 client_portal.dat
+Classic Dereth.vcxproj.user
+Classic Dereth.vcxproj
 [Ii]ntermediate/
 *.exe
 *.lnk
 [Bb]in/[Ll]ogs/console*
 [Bb]in/[Cc]lient
 enc_temp_folder
+./Client
+ferret_test.cfg
 
 //Default
 ## Ignore Visual Studio temporary files, build results, and
@@ -331,3 +335,5 @@ ASALocalRun/
 # MSBuild Binary and Structured Log
 *.binlog
 
+/Bin/Data/client_local_English.dat
+/Bin/GDLEnhanced.exe.lastcodeanalysissucceeded

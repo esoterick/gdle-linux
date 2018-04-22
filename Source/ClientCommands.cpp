@@ -38,6 +38,7 @@
 #include "InferredPortalData.h"
 #include "RandomRange.h"
 #include "House.h"
+#include "GameEventManager.h"
 
 // Most of these commands are just for experimenting and never meant to be used in a real game
 // TODO: Add flags to these commands so they are only accessible under certain modes such as a sandbox mode
@@ -166,9 +167,10 @@ CLIENT_COMMAND(global, "<text> [color=1]", "Displays text globally.", ADMIN_ACCE
 	return false;
 }
 
-/*
+
 CLIENT_COMMAND(animationall, "<num> [speed]", "Performs an animation for everyone.", ADMIN_ACCESS)
 {
+
 	if (argc < 1)
 	{
 		return true;
@@ -176,17 +178,33 @@ CLIENT_COMMAND(animationall, "<num> [speed]", "Performs an animation for everyon
 
 	WORD wIndex = atoi(argv[0]);
 	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	float fDelay = 0.5f;
+	fSpeed = min(10.0, max(0.1, fSpeed));
 
 	PlayerWeenieMap *pPlayers = g_pWorld->GetPlayers();
 	for (PlayerWeenieMap::iterator i = pPlayers->begin(); i != pPlayers->end(); i++)
 	{
-		i->second->Animation_PlayPrimary(wIndex, fSpeed, fDelay);
+		i->second->_server_control_timestamp += 2;
+
+		i->second->last_move_was_autonomous = false;
+
+		MovementParameters params;
+		params.action_stamp = ++pPlayer->m_wAnimSequence;
+		params.speed = fSpeed;
+		params.autonomous = 0;
+		params.modify_interpreted_state = 1;
+
+		MovementStruct mvs;
+		mvs.motion = GetCommandID(wIndex);
+		mvs.params = &params;
+		mvs.type = MovementTypes::RawCommand;
+		i->second->get_minterp()->PerformMovement(mvs);
+		i->second->Animation_Update();
+
 	}
 
 	return false;
 }
-*/
+
 
 CLIENT_COMMAND(freezeall, "", "Freezes or unfreezes everyone.", ADMIN_ACCESS)
 {
@@ -1872,6 +1890,24 @@ CLIENT_COMMAND(setbael, "", "Sets you to be Bael'Zharon.", ADMIN_ACCESS)
 }
 #endif
 
+#ifndef PUBLIC_BUILD
+CLIENT_COMMAND(setplayer, "[wcid]", "Sets your Player Character defaults to that of the given wcid.", ADMIN_ACCESS)
+{
+	if (argc < 1)
+		return true;
+
+	g_pWeenieFactory->ApplyWeenieDefaults(pPlayer, atoi(argv[0]));
+	pPlayer->m_Qualities.SetInt(RADARBLIP_COLOR_INT, 2);
+	pPlayer->m_Qualities.SetInt(PLAYER_KILLER_STATUS_INT, Baelzharon_PKStatus);
+	pPlayer->m_Qualities.SetInt(CONTAINERS_CAPACITY_INT, 7);
+	pPlayer->m_Qualities.SetInt(ITEMS_CAPACITY_INT, 200);
+
+	player_client->GetEvents()->BeginLogout();
+
+	return false;
+}
+#endif
+
 CLIENT_COMMAND(setname, "[name]", "Changes the last assessed target's name.", ADMIN_ACCESS)
 {
 	if (argc < 1)
@@ -2701,7 +2737,7 @@ CLIENT_COMMAND(activeevents, "", "", ADMIN_ACCESS)
 {
 	std::string eventText = "Enabled events:";
 
-	for (auto &entry : g_pPortalDataEx->_gameEvents._gameEvents)
+	for (auto &entry : g_pGameEventManager->_gameEvents)
 	{
 		if (entry.second._eventState != GameEventState::Off_GameEventState)
 		{		
@@ -2710,6 +2746,52 @@ CLIENT_COMMAND(activeevents, "", "", ADMIN_ACCESS)
 		}
 	}
 
+	pPlayer->SendText(eventText.c_str(), LTT_DEFAULT);
+	return false;
+}
+
+CLIENT_COMMAND(startevent, "[event]", "Starts an event.", BASIC_ACCESS)
+{
+	auto &events = g_pGameEventManager->_gameEvents;
+
+	std::string eventText = "Event started.";
+
+	std::string normalizedEventName = g_pGameEventManager->NormalizeEventName(argv[0]);
+	
+	if (GameEventDef *eventDesc = events.lookup(normalizedEventName.c_str()))
+	{
+		if (eventDesc->_eventState != GameEventState::On_GameEventState)
+		{
+			eventDesc->_eventState = GameEventState::On_GameEventState;
+			g_pWorld->NotifyEventStarted(normalizedEventName.c_str());
+		}
+	}
+	else {
+		eventText = "Event already started.";
+	}
+	pPlayer->SendText(eventText.c_str(), LTT_DEFAULT);
+	return false;
+}
+
+CLIENT_COMMAND(stopevent, "[event]", "Stops an event.", BASIC_ACCESS)
+{
+	auto &events = g_pGameEventManager->_gameEvents;
+
+	std::string eventText = "Event stopped.";
+
+	std::string normalizedEventName = g_pGameEventManager->NormalizeEventName(argv[0]);
+
+	if (GameEventDef *eventDesc = events.lookup(normalizedEventName.c_str()))
+	{
+		if (eventDesc->_eventState != GameEventState::Off_GameEventState)
+		{
+			eventDesc->_eventState = GameEventState::Off_GameEventState;
+			g_pWorld->NotifyEventStopped(normalizedEventName.c_str());
+		}
+	}
+	else {
+		eventText = "Event not active.";
+	}
 	pPlayer->SendText(eventText.c_str(), LTT_DEFAULT);
 	return false;
 }
@@ -2899,6 +2981,43 @@ CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid in
 
 	return false;
 }
+
+CLIENT_COMMAND(spawnjewelerytoinvbymatid, "<tier> <num> <mat>", "Spawn treasure by material", ADMIN_ACCESS)
+{
+	if (argc < 2)
+		return true;
+
+	int tier = atoi(argv[0]);
+	int num = atoi(argv[1]);
+	int mat = atoi(argv[2]);
+
+	if (pPlayer->GetAccessLevel() < SENTINEL_ACCESS)
+	{
+		pPlayer->SendText("You do not have access to this command.", LTT_DEFAULT);
+		return false;
+	}
+
+	for (int i = 0; i < num; i++)
+	{
+		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Jewelry);
+		treasure->m_Qualities.SetInt(MATERIAL_TYPE_INT, atoi(argv[2]));
+
+		if (treasure)
+		{
+			pPlayer->SpawnCloneInContainer(treasure, 1);
+			if (!g_pWorld->CreateEntity(treasure))
+			{
+				delete treasure;
+				return false;
+			}
+		}
+		else
+			continue;
+	}
+
+	return false;
+}
+
 
 CLIENT_COMMAND(spawnwcid, "<name> [ptid] [shade]", "Spawn by wcid.", ADMIN_ACCESS)
 {

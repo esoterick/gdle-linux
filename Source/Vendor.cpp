@@ -93,6 +93,9 @@ int CVendor::TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<ItemProf
 	if (desiredItems.size() >= 100)
 		return WERROR_NO_OBJECT;
 
+	int currencyid = profile.trade_id;
+	int pyreals = buyer->InqIntQuality(COIN_VALUE_INT, 0);
+
 	// check cost of items
 	UINT64 totalCost = 0;
 	DWORD totalSlotsRequired = 0;
@@ -121,8 +124,8 @@ int CVendor::TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<ItemProf
 	if (totalCost >= MAX_COIN_PURCHASE)
 		return WERROR_NO_OBJECT; // limit to purchases less than 2 billion pyreal
 	
-	if (buyer->InqIntQuality(COIN_VALUE_INT, 0) < totalCost)
-	{
+	if (profile.trade_num == 0 && pyreals < totalCost)
+	{		
 		buyer->SendText("You don't have enough money.", LTT_DEFAULT);
 		return WERROR_NO_OBJECT;
 	}
@@ -133,12 +136,30 @@ int CVendor::TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<ItemProf
 		return WERROR_NO_OBJECT;
 	}
 
-	DWORD coinConsumed = buyer->ConsumeCoin(totalCost);
+	DWORD coinConsumed = 0;
+
+	if (currencyid < 1)
+	{
+		coinConsumed = buyer->ConsumeCoin(totalCost);
+	}
+	if (currencyid > 0)
+	{	
+		coinConsumed = buyer->ConsumeAltCoin(totalCost, currencyid);
+	}
+
 	if (coinConsumed < totalCost)
 	{
 		//This shouldn't happen.
 		buyer->SendText("Couldn't find all the money for the payment.", LTT_DEFAULT);
-		buyer->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed); //give back what we consumed and abort.
+		if (currencyid > 0)
+		{
+			buyer->SpawnInContainer(currencyid, coinConsumed); //give back what we consumed and abort.
+		}
+		if (currencyid < 1)
+		{
+			buyer->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed); //give back what we consumed and abort.
+		}
+		
 		return WERROR_NO_OBJECT;
 	}
 
@@ -201,7 +222,8 @@ int CVendor::TryBuyItemsFromPlayer(CPlayerWeenie *seller, const std::list<ItemPr
 		totalSlotsRequired = max(totalValue / maxStackSize, 1);
 	}
 
-	if (seller->Container_GetNumFreeMainPackSlots() < max(totalSlotsRequired - (int)desiredItems.size(), 1))
+	//if (seller->Container_GetNumFreeMainPackSlots() < max(totalSlotsRequired - (int)desiredItems.size(), 1)) -- This doesn't take in to account that the items are coming out of side packs, causes error when attempting to spawn pyreals into pack. Eats all items.
+	if (seller->Container_GetNumFreeMainPackSlots() < totalSlotsRequired)
 	{
 		seller->SendText("There's not enough room for the coins in your inventory.", LTT_DEFAULT);
 		return WERROR_NO_OBJECT;
@@ -266,6 +288,9 @@ void CVendor::PreSpawnCreate()
 	profile.max_value = InqIntQuality(MERCHANDISE_MAX_VALUE_INT, 0, TRUE);
 	profile.magic = InqBoolQuality(DEAL_MAGICAL_ITEMS_BOOL, FALSE);
 	profile.item_types = InqIntQuality(MERCHANDISE_ITEM_TYPES_INT, 0, TRUE);
+	profile.buy_price = InqFloatQuality(BUY_PRICE_FLOAT, 0, TRUE);
+	profile.sell_price = InqFloatQuality(SELL_PRICE_FLOAT, 0, TRUE);
+	profile.trade_id = InqDIDQuality(ALTERNATE_CURRENCY_DID, 0);
 
 	if (m_Qualities._create_list)
 	{
@@ -286,6 +311,16 @@ void CVendor::SendVendorInventory(CWeenieObject *other)
 	BinaryWriter vendorInfo;
 	vendorInfo.Write<DWORD>(0x62);
 	vendorInfo.Write<DWORD>(GetID());
+	// set profile.trade_num here, look through player inventory to find profile.trade_id and trade_name this is a poor method. There is probably a better way.
+	if (profile.trade_id > 0)
+	{
+		profile.trade_num = other->RecalculateAltCoinAmount(profile.trade_id);
+		for (auto item : m_Items)
+		{
+			if (item->weenie->m_Qualities.GetID() == profile.trade_id)
+				profile.trade_name = item->weenie->GetName();
+		}
+	}
 	profile.Pack(&vendorInfo);
 	
 	vendorInfo.Write<DWORD>(m_Items.size());
@@ -337,7 +372,7 @@ int CVendor::DoUseResponse(CWeenieObject *player)
 		MovementParameters params;
 		TurnToObject(player->GetID(), &params);
 	}
-
+		
 	SendVendorInventory(player);
 	DoVendorEmote(Open_VendorTypeEmote, player->GetID());
 	return WERROR_NONE;

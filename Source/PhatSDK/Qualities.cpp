@@ -5328,6 +5328,7 @@ BOOL CACQualities::EnchantAttribute2nd(STypeAttribute2nd key, DWORD &value)
 
 BOOL CACQualities::EnchantSkill(STypeSkill key, DWORD &value)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (_enchantment_reg)
 		return _enchantment_reg->EnchantSkill(key, (int *)&value);
 
@@ -5336,6 +5337,8 @@ BOOL CACQualities::EnchantSkill(STypeSkill key, DWORD &value)
 
 BOOL CACQualities::InqSkill(STypeSkill key, DWORD &value, BOOL raw)
 {
+	key = SkillTable::OldToNewSkill(key);
+
 	if (!InqSkillBaseLevel(key, value, raw))
 		return FALSE;
 
@@ -5411,6 +5414,8 @@ BOOL CACQualities::InqSkill(STypeSkill key, DWORD &value, BOOL raw)
 
 BOOL CACQualities::InqSkill(STypeSkill key, Skill &value)
 {
+	key = SkillTable::OldToNewSkill(key);
+
 	if (_skillStatsTable)
 	{
 		const Skill *pValue = _skillStatsTable->lookup(key);
@@ -5427,6 +5432,7 @@ BOOL CACQualities::InqSkill(STypeSkill key, Skill &value)
 
 BOOL CACQualities::InqSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CLASS &value)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (_skillStatsTable)
 	{
 		const Skill *pValue = _skillStatsTable->lookup(key);
@@ -5443,6 +5449,7 @@ BOOL CACQualities::InqSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CL
 
 void CACQualities::SetSkill(STypeSkill key, const Skill &val)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (!_skillStatsTable)
 	{
 		_skillStatsTable = new PackableHashTableWithJson<STypeSkill, Skill>();
@@ -5453,6 +5460,7 @@ void CACQualities::SetSkill(STypeSkill key, const Skill &val)
 
 void CACQualities::SetSkillLevel(STypeSkill key, DWORD val)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (!_skillStatsTable)
 	{
 		_skillStatsTable = new PackableHashTableWithJson<STypeSkill, Skill>();
@@ -5463,6 +5471,7 @@ void CACQualities::SetSkillLevel(STypeSkill key, DWORD val)
 
 void CACQualities::SetSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CLASS val)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (!_skillStatsTable)
 	{
 		_skillStatsTable = new PackableHashTableWithJson<STypeSkill, Skill>();
@@ -5473,6 +5482,7 @@ void CACQualities::SetSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CL
 
 BOOL CACQualities::InqSkillLevel(STypeSkill key, DWORD &value)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (_skillStatsTable)
 	{
 		const Skill *pValue = _skillStatsTable->lookup(key);
@@ -5489,6 +5499,7 @@ BOOL CACQualities::InqSkillLevel(STypeSkill key, DWORD &value)
 
 BOOL CACQualities::InqSkillBaseLevel(STypeSkill key, DWORD &value, BOOL raw)
 {
+	key = SkillTable::OldToNewSkill(key);
 	SkillTable *pSkillTable = SkillSystem::GetSkillTable();
 
 	if (!pSkillTable)
@@ -6110,6 +6121,20 @@ BOOL CEnchantmentRegistry::GetFloatEnchantmentDetails(unsigned int stype, Enchan
 	return TRUE;
 }
 
+BOOL CEnchantmentRegistry::GetBodyArmorEnchantmentDetails(unsigned int part, DAMAGE_TYPE dt, EnchantedQualityDetails *val) // custom, implied
+{
+	BOOL bEnchanted = FALSE;
+
+	PackableListWithJson<Enchantment> affecting;
+	CullEnchantmentsFromList(_mult_list, BodyArmorValue_EnchantmentType, dt, &affecting);
+	CullEnchantmentsFromList(_add_list, BodyArmorValue_EnchantmentType, dt, &affecting);
+
+	if (Enchant(&affecting, val))
+		bEnchanted = TRUE;
+
+	return bEnchanted;
+}
+
 BOOL CEnchantmentRegistry::GetIntEnchantmentDetails(unsigned int stype, EnchantedQualityDetails *val) // custom, implied
 {
 	ACQualityFilter *filter = CachedEnchantableFilter; // Enchantable
@@ -6123,6 +6148,159 @@ BOOL CEnchantmentRegistry::GetIntEnchantmentDetails(unsigned int stype, Enchante
 	CullEnchantmentsFromList(_add_list, Int_EnchantmentType, stype, &affecting);
 	Enchant(&affecting, val);
 	return TRUE;
+}
+
+BOOL CACQualities::GetBodyArmorEnchantmentDetails(unsigned int part, DAMAGE_TYPE dt, EnchantedQualityDetails *val) // custom, implied
+{
+	bool tryEnchanting = false;
+	if (_enchantment_reg)
+		tryEnchanting = true;
+
+	int baseArmor1 = 0;
+	if (tryEnchanting)
+		_enchantment_reg->GetBodyArmorEnchantmentDetails(part, DAMAGE_TYPE::UNDEF_DAMAGE_TYPE, val);
+
+	if (!_body)
+	{
+		val->rawValue += baseArmor1;
+
+		switch (dt)
+		{
+		case DAMAGE_TYPE::SLASH_DAMAGE_TYPE:
+			val->rawValue *= GetFloat(ARMOR_MOD_VS_SLASH_FLOAT, 1.0);
+			return TRUE;
+
+		case DAMAGE_TYPE::PIERCE_DAMAGE_TYPE:
+			val->rawValue *= GetFloat(ARMOR_MOD_VS_PIERCE_FLOAT, 1.0);
+			return TRUE;
+
+		case DAMAGE_TYPE::BLUDGEON_DAMAGE_TYPE:
+			val->rawValue *= GetFloat(ARMOR_MOD_VS_BLUDGEON_FLOAT, 1.0);
+			return TRUE;
+
+		case DAMAGE_TYPE::FIRE_DAMAGE_TYPE:
+			val->rawValue *= GetFloat(ARMOR_MOD_VS_FIRE_FLOAT, 1.0);
+			return TRUE;
+
+		case DAMAGE_TYPE::COLD_DAMAGE_TYPE:
+			val->rawValue *= GetFloat(ARMOR_MOD_VS_COLD_FLOAT, 1.0);
+			return TRUE;
+
+		case DAMAGE_TYPE::ACID_DAMAGE_TYPE:
+			val->rawValue *= GetFloat(ARMOR_MOD_VS_ACID_FLOAT, 1.0);
+			return TRUE;
+
+		case DAMAGE_TYPE::ELECTRIC_DAMAGE_TYPE:
+			val->rawValue *= GetFloat(ARMOR_MOD_VS_ELECTRIC_FLOAT, 1.0);
+			return TRUE;
+
+		case DAMAGE_TYPE::NETHER_DAMAGE_TYPE:
+			val->rawValue *= GetFloat(ARMOR_MOD_VS_NETHER_FLOAT, 1.0);
+			return TRUE;
+		}
+
+		return TRUE;
+	}
+	else
+	{
+		BodyPart *pPart = _body->_body_part_table.lookup(part);
+
+		if (pPart)
+		{
+			int baseArmor2 = pPart->_acache._base_armor;
+			if (tryEnchanting)
+				_enchantment_reg->GetBodyArmorEnchantmentDetails(part, DAMAGE_TYPE::BASE_DAMAGE_TYPE, val);
+
+			int baseArmor = baseArmor1; // + baseArmor2;
+
+			bool bAddBaseArmor = true;
+
+			switch (dt)
+			{
+			case DAMAGE_TYPE::SLASH_DAMAGE_TYPE:
+				val->rawValue = pPart->_acache._armor_vs_slash;
+				if (tryEnchanting)
+					_enchantment_reg->GetBodyArmorEnchantmentDetails(part, dt, val);
+
+				if (bAddBaseArmor)
+					val->rawValue += baseArmor;
+
+				return TRUE;
+
+			case DAMAGE_TYPE::PIERCE_DAMAGE_TYPE:
+				val->rawValue = pPart->_acache._armor_vs_pierce;
+				if (tryEnchanting)
+					_enchantment_reg->GetBodyArmorEnchantmentDetails(part, dt, val);
+				if (bAddBaseArmor)
+					val->rawValue += baseArmor;
+
+				return TRUE;
+
+			case DAMAGE_TYPE::BLUDGEON_DAMAGE_TYPE:
+				val->rawValue = pPart->_acache._armor_vs_bludgeon;
+				if (tryEnchanting)
+					_enchantment_reg->GetBodyArmorEnchantmentDetails(part, dt, val);
+
+				if (bAddBaseArmor)
+					val->rawValue += baseArmor;
+
+				return TRUE;
+
+			case DAMAGE_TYPE::FIRE_DAMAGE_TYPE:
+				val->rawValue = pPart->_acache._armor_vs_fire;
+				if (tryEnchanting)
+					_enchantment_reg->GetBodyArmorEnchantmentDetails(part, dt, val);
+
+				if (bAddBaseArmor)
+					val->rawValue += baseArmor;
+
+				return TRUE;
+
+			case DAMAGE_TYPE::COLD_DAMAGE_TYPE:
+				val->rawValue = pPart->_acache._armor_vs_cold;
+				if (tryEnchanting)
+					_enchantment_reg->GetBodyArmorEnchantmentDetails(part, dt, val);
+
+				if (bAddBaseArmor)
+					val->rawValue += baseArmor;
+
+				return TRUE;
+
+			case DAMAGE_TYPE::ACID_DAMAGE_TYPE:
+
+				val->rawValue = pPart->_acache._armor_vs_acid;
+				if (tryEnchanting)
+					_enchantment_reg->GetBodyArmorEnchantmentDetails(part, dt, val);
+
+				if (bAddBaseArmor)
+					val->rawValue += baseArmor;
+
+				return TRUE;
+
+			case DAMAGE_TYPE::ELECTRIC_DAMAGE_TYPE:
+				val->rawValue = pPart->_acache._armor_vs_electric;
+				if (tryEnchanting)
+					_enchantment_reg->GetBodyArmorEnchantmentDetails(part, dt, val);
+
+				if (bAddBaseArmor)
+					val->rawValue += baseArmor;
+
+				return TRUE;
+
+			case DAMAGE_TYPE::NETHER_DAMAGE_TYPE:
+				val->rawValue = pPart->_acache._armor_vs_nether;
+				if (tryEnchanting)
+					_enchantment_reg->GetBodyArmorEnchantmentDetails(part, dt, val);
+
+				if (bAddBaseArmor)
+					val->rawValue += baseArmor;
+
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
 }
 
 BOOL CACQualities::GetIntEnchantmentDetails(unsigned int stype, EnchantedQualityDetails *val) // custom, implied

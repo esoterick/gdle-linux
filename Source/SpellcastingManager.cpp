@@ -12,6 +12,9 @@
 #include "Client.h"
 #include "Config.h"
 #include "CombatFormulas.h"
+#include "RandomRange.h"
+#include "Random.h"
+#include <random>
 
 const float MAX_HEADING_TO_TARGET_FOR_CAST = 45.0f;
 const float MAX_TURN_TIME_FOR_CAST = 8.0f;
@@ -73,9 +76,14 @@ bool CSpellcastingManager::ResolveSpellBeingCasted()
 	// item enchantment
 	if (m_SpellCastData.equipped && (m_SpellCastData.spell->_school == 3) && (m_SpellCastData.spell->_bitfield & SelfTargeted_SpellIndex))
 	{
-		m_SpellCastData.target_id = m_SpellCastData.caster_id;
+		if (m_SpellCastData.spell->_category == 152 || m_SpellCastData.spell->_category == 154 || m_SpellCastData.spell->_category == 156 || m_SpellCastData.spell->_category == 158 || m_SpellCastData.spell->_category == 195 || m_SpellCastData.spell->_category == 695)
+		{
+			m_SpellCastData.target_id = m_SpellCastData.source_id;
+		}
+		else {
+			m_SpellCastData.target_id = m_SpellCastData.caster_id;
+		}
 	}
-
 	return true;
 }
 
@@ -751,7 +759,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 			fizzled = true;
 		}
-		else if (m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0)
+		else if (m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
 		{
 			// fizzle
 			m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
@@ -781,18 +789,22 @@ int CSpellcastingManager::LaunchSpellEffect()
 						return WERROR_MAGIC_FIZZLE;
 
 					int compId = component->InqDIDQuality(SPELL_COMPONENT_DID, 0);
+					int spellPower = m_SpellCastData.spell->_power;
+					int currentSkill = m_SpellCastData.current_skill;
+
 					const SpellComponentBase *componentBase = pSpellComponents->InqSpellComponentBase(compId);
 					float burnChance = componentBase->_CDM * spellComponentLossMod;
-					for (int i = 0; i < iter->second; i++) // one chance to burn for every instance of the component in the spell formula
-					{
+					burnChance *=  min(1.0, (double)spellPower / (double)currentSkill);
 						if (Random::RollDice(0.0, 1.0) < burnChance)
 						{
-							component->DecrementStackOrStructureNum();
-							if (componentsConsumedString.length() > 0)
-								componentsConsumedString.append(", ");
-							componentsConsumedString.append(componentBase->_name);
+							for (int i = 0; i < getRandomNumber(1, iter->second, eRandomFormula::favorMid, 1.5, 0); ++i)
+							{
+								component->DecrementStackOrStructureNum();
+								if (componentsConsumedString.length() > 0)
+									componentsConsumedString.append(", ");
+								componentsConsumedString.append(componentBase->_name);
+							}
 						}
-					}
 				}
 				m_UsedComponents.clear();
 
@@ -1312,6 +1324,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 				enchant._last_time_degraded = -1.0;
 				enchant._smod = meta->_smod;
 
+				if (enchant._smod.type & Skill_EnchantmentType)
+				{
+					enchant._smod.key = (DWORD)SkillTable::OldToNewSkill((STypeSkill)enchant._smod.key);
+				}
+
+
 				std::list<CWeenieObject *> targets;
 				
 				if (CWeenieObject *castTarget = GetCastTarget())
@@ -1355,6 +1373,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 						CWeenieObject *topLevelOwner = target->GetWorldTopLevelOwner();
 
+						if (target->InqIntQuality(MAX_STACK_SIZE_INT, 1) > 1) //do not allow enchanting stackable items(ammunition)
+						{
+							m_pWeenie->SendText(csprintf("The %s can't be enchanted.", target->GetName().c_str()), LTT_MAGIC);
+							continue;
+						}
+
 						bool bAlreadyExisted = false;
 						if (target->m_Qualities._enchantment_reg && target->m_Qualities._enchantment_reg->IsEnchanted(enchant._id))
 							bAlreadyExisted = true;
@@ -1384,6 +1408,38 @@ int CSpellcastingManager::LaunchSpellEffect()
 							if (int resistMagic = target->InqIntQuality(RESIST_MAGIC_INT, 0, FALSE))
 							{
 								if (resistMagic >= 9999 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD) resistMagic))
+								{
+									target->EmitSound(Sound_ResistSpell, 1.0f, false);
+
+									if (m_pWeenie != topLevelOwner)
+									{
+										topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+									}
+
+									m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+									target->OnResistSpell(m_pWeenie);
+									continue;
+								}
+							}
+							if (int resistLifeMagic = target->InqIntQuality(LIFE_RESIST_RATING_INT, 0, FALSE))
+							{
+								if (resistLifeMagic >= 9999 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD)resistLifeMagic))
+								{
+									target->EmitSound(Sound_ResistSpell, 1.0f, false);
+
+									if (m_pWeenie != topLevelOwner)
+									{
+										topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+									}
+
+									m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+									target->OnResistSpell(m_pWeenie);
+									continue;
+								}
+							}
+							if (bool resistProjectileMagic = target->InqBoolQuality(NON_PROJECTILE_MAGIC_IMMUNE_BOOL, 0))
+							{
+								if (resistProjectileMagic == 1 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD)resistProjectileMagic))
 								{
 									target->EmitSound(Sound_ResistSpell, 1.0f, false);
 
@@ -1490,25 +1546,27 @@ int CSpellcastingManager::LaunchSpellEffect()
 					portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
 					portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
 
-					int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
+					if (m_pWeenie->AsPlayer())
+					{
+						int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
+						if (minLevel && currentLevel < minLevel)
+						{
+							m_pWeenie->SendText("You are not powerful enough to summon this portal yet.", LTT_MAGIC);
+							break;
+						}
+						else if (maxLevel && currentLevel > maxLevel)
+						{
+							m_pWeenie->SendText("You are too powerful to summon this portal.", LTT_MAGIC);
+							break;
+						}
 
-					if (minLevel && currentLevel < minLevel)
-					{
-						m_pWeenie->SendText("You are not powerful enough to summon this portal yet.", LTT_MAGIC);
-						break;
+						if ((portalDefaults->m_Qualities.GetInt(PORTAL_BITMASK_INT, 0) & 0x10))
+						{
+							m_pWeenie->SendText("That portal may not be summoned.", LTT_MAGIC);
+							break;
+						}
 					}
-					else if (maxLevel && currentLevel > maxLevel)
-					{
-						m_pWeenie->SendText("You are too powerful to summon this portal.", LTT_MAGIC);
-						break;
-					}
-
-					if ((portalDefaults->m_Qualities.GetInt(PORTAL_BITMASK_INT, 0) & 0x10) && m_pWeenie->AsPlayer())
-					{
-						m_pWeenie->SendText("That portal may not be summoned.", LTT_MAGIC);
-						break;
-					}
-					else if (!m_pWeenie->AsPlayer())
+					else
 						canFlagForQuest = true;
 				}
 				
@@ -1926,6 +1984,15 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	double preVarianceDamage = boostMax;
 	double damageOrHealAmount = Random::RollDice(boostMin, boostMax);
 
+	CWeenieObject *wand = g_pWorld->FindObject(m_SpellCastData.wand_id);
+	if (wand)
+	{
+		double elementalDamageMod = wand->InqDamageType() == meta->_dt ? wand->InqFloatQuality(ELEMENTAL_DAMAGE_MOD_FLOAT, 1.0) : 1.0;
+		if (m_pWeenie->AsPlayer() && target->AsPlayer()) //pvp
+			elementalDamageMod = ((elementalDamageMod - 1.0) / 2.0) + 1.0;
+		damageOrHealAmount *= elementalDamageMod;
+	}
+
 	// negative spell
 	if (isDamage)
 	{
@@ -1952,7 +2019,7 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 		DamageEventData dmgEvent;
 		dmgEvent.source = m_pWeenie;
 		dmgEvent.target = target;
-		dmgEvent.weapon = g_pWorld->FindObject(m_SpellCastData.wand_id);
+		dmgEvent.weapon = wand;
 		dmgEvent.damage_form = DF_MAGIC;
 		dmgEvent.damage_type = meta->_dt;
 		dmgEvent.hit_quadrant = DAMAGE_QUADRANT::DQ_UNDEF; //should spells have hit quadrants?
@@ -2251,7 +2318,31 @@ int CSpellcastingManager::GenerateManaCost()
 {
 	DWORD manaConvSkill = m_pWeenie->GetEffectiveManaConversionSkill();
 
-	return GetManaCost(m_SpellCastData.current_skill, m_SpellCastData.spell->_power, m_SpellCastData.spell->_base_mana, manaConvSkill);
+	int spellLevel = 0;
+	int scarab = m_SpellCastData.spell_formula._comps[0];
+	switch (scarab)
+	{
+	case 110: spellLevel = 6; break;
+	case 112: spellLevel = 7; break;
+	case 193: spellLevel = 8; break;
+	default:
+	{
+		if (scarab <= 110 && scarab > 0) 
+		{
+			spellLevel = scarab;
+			break;
+		}
+		else
+		{
+			spellLevel = 1;
+			break;
+		}
+	}
+	}
+	
+	int difficulty = 50 + (25 * (spellLevel - 1));
+
+	return GetManaCost(m_SpellCastData.current_skill, difficulty, m_SpellCastData.spell->_base_mana, manaConvSkill);
 }
 
 int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)

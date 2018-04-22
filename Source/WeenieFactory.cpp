@@ -35,6 +35,7 @@
 #include "SkillAlterationDevice.h"
 #include "GameEventManager.h"
 #include "TreasureFactory.h"
+#include "AugmentationDevice.h"
 
 CWeenieFactory::CWeenieFactory()
 {
@@ -192,6 +193,62 @@ void CWeenieFactory::ApplyWeenieDefaults(CWeenieObject *weenie, CWeenieDefaults 
 	weenie->m_Qualities.CopyFrom(&defaults->m_Qualities);
 
 	weenie->m_Qualities.RemoveInt(PARENT_LOCATION_INT);
+
+	int weaponSkill;
+	if (weenie->m_Qualities.InqInt(WEAPON_SKILL_INT, weaponSkill, TRUE, FALSE))
+		weenie->m_Qualities.SetInt(WEAPON_SKILL_INT, SkillTable::OldToNewSkill((STypeSkill)weaponSkill));
+
+	int wieldReq;
+	wieldReq = weenie->m_Qualities.GetInt(WIELD_REQUIREMENTS_INT, 0);
+	if (wieldReq == 1 || wieldReq == 2 || wieldReq == 8)
+	{
+		if (weenie->m_Qualities.InqInt(WIELD_SKILLTYPE_INT, weaponSkill, TRUE, FALSE))
+			weenie->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, SkillTable::OldToNewSkill((STypeSkill)weaponSkill));
+	}
+
+	wieldReq = weenie->m_Qualities.GetInt(WIELD_REQUIREMENTS_2_INT, 0);
+	if (wieldReq == 1 || wieldReq == 2 || wieldReq == 8)
+	{
+		if (weenie->m_Qualities.InqInt(WIELD_SKILLTYPE_2_INT, weaponSkill, TRUE, FALSE))
+			weenie->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, SkillTable::OldToNewSkill((STypeSkill)weaponSkill));
+	}
+
+	wieldReq = weenie->m_Qualities.GetInt(WIELD_REQUIREMENTS_3_INT, 0);
+	if (wieldReq == 1 || wieldReq == 2 || wieldReq == 8)
+	{
+		if (weenie->m_Qualities.InqInt(WIELD_SKILLTYPE_3_INT, weaponSkill, TRUE, FALSE))
+			weenie->m_Qualities.SetInt(WIELD_SKILLTYPE_3_INT, SkillTable::OldToNewSkill((STypeSkill)weaponSkill));
+	}
+
+	wieldReq = weenie->m_Qualities.GetInt(WIELD_REQUIREMENTS_4_INT, 0);
+	if (wieldReq == 1 || wieldReq == 2 || wieldReq == 8)
+	{
+		if (weenie->m_Qualities.InqInt(WIELD_SKILLTYPE_4_INT, weaponSkill, TRUE, FALSE))
+			weenie->m_Qualities.SetInt(WIELD_SKILLTYPE_4_INT, SkillTable::OldToNewSkill((STypeSkill)weaponSkill));
+	}
+
+	Skill uaSkill;
+	if (weenie->m_Qualities.InqSkill(UNARMED_COMBAT_SKILL, uaSkill))
+	{
+		Skill finSkill;
+		if (!weenie->m_Qualities.InqSkill(LIGHT_WEAPONS_SKILL, finSkill))
+		{
+			weenie->m_Qualities.SetSkill(LIGHT_WEAPONS_SKILL, uaSkill);
+		}
+	}
+
+	if (weenie->m_Qualities._skillStatsTable)
+	{
+		for (auto &entry : *weenie->m_Qualities._skillStatsTable)
+		{
+			STypeSkill newSkill = SkillTable::OldToNewSkill((STypeSkill)entry.first);
+
+			if (newSkill != entry.first)
+			{
+				weenie->m_Qualities.SetSkill(newSkill, entry.second);
+			}
+		}
+	}
 
 	std::string eventString;
 	if (weenie->m_Qualities.InqString(GENERATOR_EVENT_STRING, eventString))
@@ -850,7 +907,11 @@ CWeenieObject *CWeenieFactory::CreateBaseWeenieByType(int weenieType, unsigned i
 			weenie = new CStorageWeenie();
 			break;
 		}
-
+	case AugmentationDevice_WeenieType:
+		{
+			weenie = new CAugmentationDeviceWeenie();
+			break;
+		}
 	default:
 		weenie = new CWeenieObject();
 		break;
@@ -946,6 +1007,8 @@ void CWeenieFactory::AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject
 	case WieldTreasure_RegenLocationType:
 		if (CMonsterWeenie *creature = parent->AsMonster())
 			creature->SpawnWielded(weenie);
+		else if (CContainerWeenie *container = parent->AsContainer())
+			container->SpawnInContainer(weenie);
 		break;
 	case Specific_RegenLocationType:
 	case SpecificTreasure_RegenLocationType:
@@ -1001,9 +1064,15 @@ void CWeenieFactory::AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject
 		else
 			pos = profile->pos_val;
 
+		if ((pos.objcell_id & 0xFFFF) < 0x100) //outdoors
 		pos.frame.m_origin.z = CalcSurfaceZ(pos.objcell_id, pos.frame.m_origin.x, pos.frame.m_origin.y, false);
 
 		weenie->SetInitialPosition(pos);
+		if (!g_pWorld->CreateEntity(weenie))
+		{
+			LOG(Temp, Normal, TEXT("Failed creating generated spawn %s.\n"), GetWCIDName(profile->type));
+			return;
+		}
 		break;
 	case Shop_RegenLocationType:
 	case ShopTreasure_RegenLocationType:

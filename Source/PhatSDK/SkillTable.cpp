@@ -35,18 +35,47 @@ DEFINE_UNPACK(SkillTable)
 	return _skillBaseHash.UnPack(pReader);
 }
 
+STypeSkill SkillTable::OldToNewSkill(STypeSkill old) // Custom
+{
+	switch (old)
+	{
+	case SWORD_SKILL:
+		return HEAVY_WEAPONS_SKILL;
+
+	case DAGGER_SKILL:
+		return FINESSE_WEAPONS_SKILL;
+
+	case AXE_SKILL:
+	case MACE_SKILL:
+	case STAFF_SKILL:
+	case SPEAR_SKILL:
+	case UNARMED_COMBAT_SKILL:
+		return LIGHT_WEAPONS_SKILL;
+
+	case BOW_SKILL:
+	case CROSSBOW_SKILL:
+	case THROWN_WEAPON_SKILL:
+		return MISSILE_WEAPONS_SKILL;
+	}
+
+	return old;
+}
+
 const SkillBase *SkillTable::GetSkillBaseRaw(STypeSkill key) // custom
 {
+	key = SkillTable::OldToNewSkill(key);
 	return _skillBaseHash.lookup(key);
 }
 
 const SkillBase *SkillTable::GetSkillBase(STypeSkill key)
 {
+	key = SkillTable::OldToNewSkill(key);
 	return _skillBaseHash.lookup(key);
 }
 
 std::string SkillTable::GetSkillName(STypeSkill key) // custom
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (const SkillBase *skillBase = GetSkillBaseRaw(key))
 	{
 		return skillBase->_name;
@@ -62,6 +91,7 @@ SkillTable *SkillSystem::GetSkillTable()
 
 BOOL SkillSystem::GetSkillName(STypeSkill key, std::string &value)
 {
+	key = SkillTable::OldToNewSkill(key);
 	if (SkillTable *pSkillTable = SkillSystem::GetSkillTable())
 	{
 		const SkillBase *pSkillBase = pSkillTable->GetSkillBase(key);

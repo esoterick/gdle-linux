@@ -115,7 +115,7 @@ int CPlayerWeenie::GetAccessLevel()
 {
 	if (!m_pClient)
 		return BASIC_ACCESS;
-	
+
 	return m_pClient->GetAccessLevel();
 }
 
@@ -282,7 +282,7 @@ void CPlayerWeenie::MakeAware(CWeenieObject *pEntity, bool bForceUpdate)
 		{
 			MakeAware(item);
 		}
-		
+
 		for (auto item : m_Packs)
 		{
 			MakeAware(item);
@@ -438,7 +438,7 @@ void CPlayerWeenie::OnGivenXP(long long amount, bool allegianceXP)
 	if (m_Qualities.GetVitaeValue() < 1.0 && !allegianceXP)
 	{
 		DWORD64 vitae_pool = InqIntQuality(VITAE_CP_POOL_INT, 0) + min(amount, 1000000000);
-		float new_vitae = 1.0;		
+		float new_vitae = 1.0;
 		bool has_new_vitae = VitaeSystem::DetermineNewVitaeLevel(m_Qualities.GetVitaeValue(), InqIntQuality(DEATH_LEVEL_INT, 1), &vitae_pool, &new_vitae);
 
 		UpdateVitaePool(vitae_pool);
@@ -479,10 +479,9 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 
 	int level = InqIntQuality(LEVEL_INT, 1);
 	int maxItemsToDrop = 12; // Limit the amount of items that can be dropped + random adjustment
-	int amountOfItemsToDrop = min(max(level / 10, 1), maxItemsToDrop);
+	int amountOfItemsToDrop = min(max(level / 20, 1), maxItemsToDrop);
 	if (level > 10)
 		amountOfItemsToDrop += Random::GenUInt(0, 2);
-
 	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
 	pCorpse->_shouldSave = true;
 	pCorpse->m_bDontClear = true;
@@ -502,20 +501,20 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 			removeList.push_back(wielded);
 		else if (wielded->IsDroppedOnDeath())
 			alwaysDropList.push_back(wielded);
-		else if(!wielded->IsBonded())
+		else if (!wielded->IsBonded())
 			allValidItems.push_back(wielded);
 	}
 
 	for (auto item : m_Items)
 	{
-		if(item->m_Qualities.id == W_COINSTACK_CLASS)
+		if (item->m_Qualities.id == W_COINSTACK_CLASS)
 			continue;
 		else if (item->IsDestroyedOnDeath())
 			removeList.push_back(item);
 		else if (item->IsDroppedOnDeath())
 			alwaysDropList.push_back(item);
 		else if (!item->IsBonded())
-			allValidItems.push_back(item);	
+			allValidItems.push_back(item);
 	}
 
 	for (auto packAsWeenie : m_Packs)
@@ -543,79 +542,86 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 	for (auto item : alwaysDropList)
 		FinishMoveItemToContainer(item, pCorpse, 0, true, true);
 
-	std::map <ITEM_TYPE, std::multimap<int, CWeenieObject *>> itemValueByTypeMap;
-
-	std::map <ITEM_TYPE, int> itemDropCountByCategory;
-
+	//CREATE value MULTIMAP
+	std::multimap <int, CWeenieObject *> itemValueList;
 	for (auto item : allValidItems)
 	{
-		ITEM_TYPE itemType = item->InqType();
-		int value = item->InqIntQuality(VALUE_INT, 0);
-		itemValueByTypeMap[itemType].insert(std::pair<int, CWeenieObject *>(value, item));
+		int value = NULL;
+		int stack_sz = NULL;
+		try
+		{
+			stack_sz = item->InqIntQuality(STACK_SIZE_INT, 0);
+			value = item->InqIntQuality(STACK_UNIT_VALUE_INT, 0);
+			for (int i = 0; i < stack_sz; i++)
+			{
+				itemValueList.insert(std::pair<int, CWeenieObject *>(value, item));
+			}
+		}
+		catch (...)
+		{
+		}
+		if (!value)
+		{
+			value = item->GetValue();
+			itemValueList.insert(std::pair<int, CWeenieObject *>(value, item));
+		}
 	}
 
+	// 50% value of second+ instance of itemValueList
+	// used 2 multimaps so i could count. hackjob.
+	std::multimap<int, CWeenieObject *> tmpVLint;
+	std::multimap<std::string, int> tmpVLstr;
+	std::string objName;
+	for (auto iter = itemValueList.begin(); iter != itemValueList.end(); ++iter)
+	{
+		tmpVLint.insert(std::pair<int, CWeenieObject *>(iter->first, iter->second));
+		tmpVLstr.insert(std::pair<std::string, int>(iter->second->InqStringQuality(NAME_STRING, objName), iter->first));
+	}
+
+	std::multimap<int, CWeenieObject *> finaliVL;
+	int amtOfEleN = 0;
+	int amtOfEleV = 0;
+	int inFinal = 0;
+	int curval = 0;
+	int nVal = 0;
+	for (auto iterI = tmpVLint.begin(); iterI != tmpVLint.end(); ++iterI)
+	{
+		amtOfEleN = tmpVLstr.count(iterI->second->InqStringQuality(NAME_STRING, objName));
+		amtOfEleV = tmpVLint.count(iterI->first);
+		inFinal = finaliVL.count(iterI->first);
+		curval = iterI->first;
+		nVal = iterI->first / 2;
+		if (amtOfEleV > 1 && amtOfEleN > 1 && inFinal > 0)
+			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iterI->second));
+		else
+			finaliVL.insert(std::pair<int, CWeenieObject *>(curval, iterI->second));
+	}
+
+	// START item dropping BY VALUE
 	std::string itemsLostText;
 	int itemsLost = 0;
-	for (int i = 0; i < amountOfItemsToDrop; i++)
+	for (auto iter = finaliVL.rbegin(); iter != finaliVL.rend(); ++iter)
 	{
-		int highestValue = 0;
-		std::multimap<int, CWeenieObject *> *highestValueOwner = NULL;
-		for (auto iter = itemValueByTypeMap.begin(); iter != itemValueByTypeMap.end(); ++iter)
+		if (itemsLost >= amountOfItemsToDrop) { break; }
+		if (iter->second->InqIntQuality(STACK_SIZE_INT, 1) > 1)
 		{
-			std::multimap<int, CWeenieObject *> *typeMap = &iter->second;
-			if (!typeMap->empty())
-			{
-				auto entry = (*typeMap->rbegin());
-				int modifiedValue = entry.first;
-				int categoryCount = itemDropCountByCategory[entry.second->InqType()];
-				if(categoryCount > 0)
-					modifiedValue = round((double)modifiedValue / (double)(categoryCount + 1) * Random::GenFloat(0.9, 1.1));
-				if (modifiedValue > highestValue)
-				{
-					highestValue = modifiedValue;
-					highestValueOwner = typeMap;
-				}
-			}
-		}
-
-		if (highestValueOwner)
-		{
-			CWeenieObject *itemToDrop = highestValueOwner->rbegin()->second;
-			highestValueOwner->erase(--highestValueOwner->end());
-
-			if (itemToDrop->InqIntQuality(STACK_SIZE_INT, 1) > 1)
-			{
-				//stackable items drop only a single unit, 
-				//this replicates retail where stacked items count as the value of the full stack but only a single unit will drop if it is selected.
-				itemToDrop->DecrementStackNum();
-				pCorpse->SpawnCloneInContainer(itemToDrop, 1);
-			}
-			else
-				FinishMoveItemToContainer(itemToDrop, pCorpse, 0, true, true);
-			itemsLost++;
-			itemDropCountByCategory[itemToDrop->InqType()]++;
-
-			if(amountOfItemsToDrop > 1 && i == amountOfItemsToDrop - 1)
-				itemsLostText.append(" and your ");
-			else if (!itemsLostText.empty())
-				itemsLostText.append(", your ");
-			else
-				itemsLostText.append("your ");
-			int stackSize = itemToDrop->InqIntQuality(STACK_SIZE_INT, 1);
-			//if (stackSize > 1)
-			//{
-			//	std::string pluralName = itemToDrop->GetPluralName();
-			//	if(pluralName.empty())
-			//		std::string pluralName = csprintf("%ss", itemToDrop->GetName().c_str());
-			//	itemsLostText.append(csprintf("%s %s", FormatNumberString(stackSize).c_str(), pluralName.c_str()));
-			//}
-			//else
-			itemsLostText.append(itemToDrop->GetName());
+			iter->second->DecrementStackNum();
+			pCorpse->SpawnCloneInContainer(iter->second, 1);
 		}
 		else
-			break; //we're out of items to drop!
+			FinishMoveItemToContainer(iter->second, pCorpse, 0, true, true);
+		itemsLost++;
+		if (amountOfItemsToDrop > 1 && itemsLost == amountOfItemsToDrop)
+			itemsLostText.append(" and your ");
+		else if (!itemsLostText.empty())
+			itemsLostText.append(", your ");
+		else
+			itemsLostText.append("your ");
+		int stackSize = iter->second->InqIntQuality(STACK_SIZE_INT, 1);
+		itemsLostText.append(iter->second->GetName());
 	}
-
+	// END item dropping BY VALUE
+	// WRITE it out to the player
 	std::string text;
 	if (coinConsumed)
 		text = csprintf("You've lost %s Pyreal%s", FormatNumberString(coinConsumed).c_str(), coinConsumed > 1 ? "s" : "");
@@ -624,15 +630,15 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 
 	if (!itemsLostText.empty())
 	{
-		if(coinConsumed && itemsLost > 1)
+		if (coinConsumed && itemsLost > 1)
 			text.append(", ");
-		else if(coinConsumed)
+		else if (coinConsumed)
 			text.append(" and ");
 		text.append(itemsLostText);
 	}
 	text.append("!");
 
-	if(coinConsumed || itemsLost)
+	if (coinConsumed || itemsLost)
 		SendText(text.c_str(), LTT_DEFAULT);
 }
 
@@ -642,7 +648,7 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 
 	m_bReviveAfterAnim = true;
 	CMonsterWeenie::OnDeath(killer_id);
-	
+
 	m_Qualities.SetFloat(DEATH_TIMESTAMP_FLOAT, Timer::cur_time);
 	NotifyFloatStatUpdated(DEATH_TIMESTAMP_FLOAT);
 
@@ -818,8 +824,8 @@ bool CPlayerWeenie::ImmuneToDamage(CWeenieObject *other)
 			}
 			else
 			{
-				PKStatusEnum selfStatus = (PKStatusEnum) InqIntQuality(PLAYER_KILLER_STATUS_INT, PKStatusEnum::Undef_PKStatus);
-				PKStatusEnum otherStatus = (PKStatusEnum) other->InqIntQuality(PLAYER_KILLER_STATUS_INT, PKStatusEnum::Undef_PKStatus);
+				PKStatusEnum selfStatus = (PKStatusEnum)InqIntQuality(PLAYER_KILLER_STATUS_INT, PKStatusEnum::Undef_PKStatus);
+				PKStatusEnum otherStatus = (PKStatusEnum)other->InqIntQuality(PLAYER_KILLER_STATUS_INT, PKStatusEnum::Undef_PKStatus);
 
 				if (selfStatus == PKStatusEnum::Baelzharon_PKStatus || otherStatus == PKStatusEnum::Baelzharon_PKStatus)
 				{
@@ -1112,7 +1118,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			pTarget = swapHelper;
 		}
 
-		if(pTool->IsWielded() || pTarget->IsWielded())
+		if (pTool->IsWielded() || pTarget->IsWielded())
 			return WERROR_CRAFT_ALL_OBJECTS_NOT_FROZEN;
 
 		if (get_minterp()->interpreted_state.current_style != Motion_NonCombat)
@@ -1188,7 +1194,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			if (sac < TRAINED_SKILL_ADVANCEMENT_CLASS)
 				return WERROR_CRAFT_NOT_HAVE_SKILL;
 
-			InqSkill(op->_skill, skillLevel, TRUE);
+			InqSkill(op->_skill, skillLevel, FALSE);
 		}
 
 		bool success = false;
@@ -1203,11 +1209,26 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 		case 1: //tinkers
 		{
 			double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+			double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
 			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
+			//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
+			int salvageMod = 12;
+			int multiple = 1;
+			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
 
-			double successChance = GetSkillChance(skillLevel, ((int)round(((1.0 - ((double)toolWorkmanship / 10.0)) * 400.0) + (amountOfTimesTinkered * 10)))); //made up formula.
+				if (toolWorkmanship >= itemWorkmanship)
+				{
+					multiple = 2;
+				}
+	
+				if (amountOfTimesTinkered > 2)
+				{
+					difficulty = amountOfTimesTinkered * 0.5;
+				}
+					
+			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod)+(2 * itemWorkmanship * salvageMod)-(toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
 
 			if (Random::RollDice(0.0, 1.0) <= successChance)
 				success = true;
@@ -1218,11 +1239,27 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 		case 2: //imbues
 		{
 			double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+			double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
 			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
 
-			double successChance = GetSkillChance(skillLevel, ((int)round(((1.0 - ((double)toolWorkmanship / 10.0)) * 400.0) + (amountOfTimesTinkered * 10)))); //made up formula.
+			//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
+			int salvageMod = 20;
+			int multiple = 1;
+			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
+
+			if (toolWorkmanship >= itemWorkmanship)
+			{
+				multiple = 2;
+			}
+
+			if (amountOfTimesTinkered > 2)
+			{
+				difficulty = amountOfTimesTinkered * 0.5;
+			}
+
+			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
 
 			successChance /= 3; //maximum success chance for imbues is 33%
 
@@ -1421,8 +1458,8 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, CWeenie
 #endif
 				break;
 			}
-		}
 	}
+}
 
 	if (!op->_requirements[index]._boolRequirement.empty())
 	{
@@ -1834,6 +1871,7 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, CWeenie
 
 void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem)
 {
+	double currentVar = pTarget->InqFloatQuality(DAMAGE_VARIANCE_FLOAT, 0, TRUE);
 	switch (scriptId)
 	{
 	case 0x3800000f: //flag stamp failure
@@ -1888,7 +1926,7 @@ void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation
 		pTarget->m_Qualities.SetInt(NUM_TIMES_TINKERED_INT, pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0, TRUE) + 1);
 		break;
 	case 0x3800001c: //granite
-		pTarget->m_Qualities.SetFloat(DAMAGE_VARIANCE_FLOAT, max(pTarget->InqFloatQuality(DAMAGE_VARIANCE_FLOAT, 0, TRUE) - 0.20, 0.0));
+		pTarget->m_Qualities.SetFloat(DAMAGE_VARIANCE_FLOAT, max(currentVar - (currentVar / 5), 0.0));
 		pTarget->m_Qualities.SetInt(NUM_TIMES_TINKERED_INT, pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0, TRUE) + 1);
 		break;
 	case 0x3800001d: //oak
@@ -2084,6 +2122,10 @@ void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation
 	case 0x38000043: //leather
 		pTarget->m_Qualities.SetBool(RETAINED_BOOL, 1);
 		break;
+	case 0x38000044: //green garnet
+		pTarget->m_Qualities.SetFloat(ELEMENTAL_DAMAGE_MOD_FLOAT, pTarget->InqFloatQuality(ELEMENTAL_DAMAGE_MOD_FLOAT, 0, TRUE) + 0.01);
+		pTarget->m_Qualities.SetInt(NUM_TIMES_TINKERED_INT, pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0, TRUE) + 1);
+		break;
 	case 0x38000046: //fetish of the dark idol
 		pTarget->AddImbueEffect(ImbuedEffectType::IgnoreSomeMagicProjectileDamage_ImbuedEffectType);
 		break;
@@ -2143,7 +2185,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 					value = 0;
 				break;
 			case 3: //copy value from modificationSource to target
-				if(modificationSource)
+				if (modificationSource)
 					value = modificationSource->InqIntQuality(intMod._stat, 0);
 				break;
 			case 4: //copy value from modificationSource to created item
@@ -2176,8 +2218,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetInt(intMod._stat, value);
 				pTarget->NotifyIntStatUpdated(intMod._stat, false);
 			}
+			}
 		}
-	}
 
 	if (!op->_mods[index]._boolMod.empty())
 	{
@@ -2240,8 +2282,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetBool(boolMod._stat, value);
 				pTarget->NotifyBoolStatUpdated(boolMod._stat, false);
 			}
-		}
-	}
+			}
+			}
 
 	if (!op->_mods[index]._floatMod.empty())
 	{
@@ -2306,8 +2348,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetFloat(floatMod._stat, value);
 				pTarget->NotifyFloatStatUpdated(floatMod._stat, false);
 			}
-		}
-	}
+			}
+			}
 
 	if (!op->_mods[index]._stringMod.empty())
 	{
@@ -2347,7 +2389,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 					case TINKER_NAME_STRING:
 					case IMBUER_NAME_STRING:
 					case CRAFTSMAN_NAME_STRING:
-						value = modificationSource->InqStringQuality(NAME_STRING, "");
+						value = this->InqStringQuality(NAME_STRING, "");
 						break;
 					default:
 						value = modificationSource->InqStringQuality(stringMod._stat, "");
@@ -2364,7 +2406,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 					case TINKER_NAME_STRING:
 					case IMBUER_NAME_STRING:
 					case CRAFTSMAN_NAME_STRING:
-						value = modificationSource->InqStringQuality(NAME_STRING, "");
+						value = this->InqStringQuality(NAME_STRING, "");
 						break;
 					default:
 						value = modificationSource->InqStringQuality(stringMod._stat, "");
@@ -2394,8 +2436,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetString(stringMod._stat, value);
 				pTarget->NotifyStringStatUpdated(stringMod._stat, false);
 			}
-		}
-	}
+			}
+			}
 
 	if (!op->_mods[index]._didMod.empty())
 	{
@@ -2458,8 +2500,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetDataID(didMod._stat, value);
 				pTarget->NotifyDIDStatUpdated(didMod._stat, false);
 			}
-		}
-	}
+			}
+			}
 
 	if (!op->_mods[index]._iidMod.empty())
 	{
@@ -2498,12 +2540,12 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 					{
 					case ALLOWED_WIELDER_IID:
 					case ALLOWED_ACTIVATOR_IID:
-						value = modificationSource->GetID();
+						value = this->GetID();
 						break;
 					default:
 						value = modificationSource->InqIIDQuality(iidMod._stat, 0);
 						break;
-					}					
+					}
 				}
 				break;
 			case 4: //copy value from modificationSource to created item
@@ -2514,7 +2556,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 					{
 					case ALLOWED_WIELDER_IID:
 					case ALLOWED_ACTIVATOR_IID:
-						value = modificationSource->GetID();
+						value = this->GetID();
 						break;
 					default:
 						value = modificationSource->InqIIDQuality(iidMod._stat, 0);
@@ -2544,8 +2586,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetInstanceID(iidMod._stat, value);
 				pTarget->NotifyIIDStatUpdated(iidMod._stat, false);
 			}
-		}
-	}
+			}
+			}
 
 	if (op->_mods[index]._unknown7) //this is a guess
 	{
@@ -2572,7 +2614,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			}
 		}
 	}
-}
+		}
 
 DWORD CPlayerWeenie::MaterialToSalvageBagId(MaterialType material)
 {
@@ -2734,7 +2776,10 @@ struct SalvageInfo
 	int totalValue = 0;
 	int totalWorkmanship = 0;
 
-	int itemsSalvagedCount = 0;
+	//int itemsSalvagedCount = 0;
+	//Discrete/Continous vars into the structure of salvageMap
+	int itemsSalvagedCountCont = 0;
+	int itemsSalvagedCountDiscrete = 0;
 };
 
 void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
@@ -2753,20 +2798,9 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		return;
 	}
 
+	//SALVAGING SKILL DETERMINES SALVAGE AMOUNT
 	DWORD highestSalvagingSkillValue;
-	InqSkill(STypeSkill::ARMOR_APPRAISAL_SKILL, highestSalvagingSkillValue, false);
-
-	DWORD candidateSkill;
-	InqSkill(STypeSkill::WEAPON_APPRAISAL_SKILL, candidateSkill, false);
-	if (candidateSkill > highestSalvagingSkillValue)
-		highestSalvagingSkillValue = candidateSkill;
-	InqSkill(STypeSkill::MAGIC_ITEM_APPRAISAL_SKILL, candidateSkill, false);
-	if (candidateSkill > highestSalvagingSkillValue)
-		highestSalvagingSkillValue = candidateSkill;
-	InqSkill(STypeSkill::ITEM_APPRAISAL_SKILL, candidateSkill, false);
-	if (candidateSkill > highestSalvagingSkillValue)
-		highestSalvagingSkillValue = candidateSkill;
-
+	InqSkill(STypeSkill::SALVAGING_SKILL, highestSalvagingSkillValue, false);
 	std::map<MaterialType, SalvageInfo> salvageMap;
 	std::list<CWeenieObject *> itemsToDestroy;
 
@@ -2799,24 +2833,26 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		}
 
 		itemsToDestroy.push_back(pItem);
-		if(itemType == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
-		{ 
-			salvageMap[material].itemsSalvagedCount += pItem->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
+		/*keep Discrete and Continous .itemsSalvaged
+		Discrete for immediate calculations, Continous for reference sake and foolish number porn*/
+		if (itemType == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
+		{
 			salvageMap[material].amount += pItem->InqIntQuality(STRUCTURE_INT, 1);
 			salvageMap[material].totalValue += itemValue;
-			salvageMap[material].totalWorkmanship += workmanship;
+			salvageMap[material].itemsSalvagedCountCont += pItem->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
+			//salvageMap[material].itemsSalvagedCountDiscrete++;
 		}
 		else
 		{
-			double multiplier = GetSkillChance(highestSalvagingSkillValue, 100); 
-			int salvageAmount = (int)round(max(workmanship * multiplier, 1)); //made up formula.
-			int salvageValue = (int)round(max(itemValue * 0.75 * multiplier, 1)); //made up formula.
-
-			salvageMap[material].itemsSalvagedCount++;
-			salvageMap[material].amount += salvageAmount;
+			double multiplier = GetSkillChance(highestSalvagingSkillValue, 100);
+			int salvageAmount = (int)round(max(workmanship * multiplier, 1));
+			int salvageValue = (int)round(max(itemValue * 0.75 * multiplier, 1));
 			salvageMap[material].totalValue += salvageValue;
-			salvageMap[material].totalWorkmanship += workmanship;
+			salvageMap[material].amount += salvageAmount;
+			salvageMap[material].itemsSalvagedCountCont++;
+			//salvageMap[material].itemsSalvagedCountDiscrete++;
 		}
+		salvageMap[material].totalWorkmanship += workmanship;
 	}
 
 	if (itemsToDestroy.empty())
@@ -2829,16 +2865,14 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	{
 		MaterialType material = salvageEntry.first;
 		SalvageInfo salvageInfo = salvageEntry.second;
-
 		int valuePerUnit = salvageInfo.totalValue / salvageInfo.amount;
 		int fullBags = floor(salvageInfo.amount / 100.0);
 		int partialBagAmount = salvageInfo.amount % 100;
-
 		for (int i = 0; i < fullBags; i++)
-			SpawnSalvageBagInContainer(material, 100, salvageInfo.totalWorkmanship, valuePerUnit * 100, salvageInfo.itemsSalvagedCount);
+			SpawnSalvageBagInContainer(material, 100, salvageInfo.totalWorkmanship, valuePerUnit * 100, salvageInfo.itemsSalvagedCountCont);
 
-		if(partialBagAmount > 0)
-			SpawnSalvageBagInContainer(material, partialBagAmount, salvageInfo.totalWorkmanship, valuePerUnit * partialBagAmount, salvageInfo.itemsSalvagedCount);
+		if (partialBagAmount > 0)
+			SpawnSalvageBagInContainer(material, partialBagAmount, salvageInfo.totalWorkmanship, valuePerUnit * partialBagAmount, salvageInfo.itemsSalvagedCountCont);
 	}
 }
 
@@ -2849,6 +2883,7 @@ bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount
 		return false;
 
 	CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(salvageWcid, NULL, false);
+	weenie->m_Qualities.SetString(NAME_STRING, csprintf("Salvage (%s)", FormatNumberString(amount).c_str())); //modern client prepends the salvage type automatically so we need to adapt to this.
 
 	if (!weenie)
 		return false;
@@ -2857,18 +2892,42 @@ bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount
 	weenie->m_Qualities.SetInt(VALUE_INT, value);
 	weenie->m_Qualities.SetInt(STRUCTURE_INT, amount);
 	weenie->m_Qualities.SetInt(NUM_ITEMS_IN_MATERIAL_INT, numItems);
+	//weenie->m_Qualities.SetFloat(SalvageWorkmanship, )
+
+	//Which one of these is Vtank missing to make it not calculate the real workmanship
+	//none. it has them all. where is SalvageWorkmanship double being calculated
+
+	//NumberItemsSalvagedFrom = 170, // 0x000000AA
+	//SalvageWorkmanship = 167772169, // 0x0A000009
+	//	Divide SalvageWorkmanship by NumberItemsSalvagedFrom
 
 	return SpawnInContainer(weenie);
 }
 
 void CPlayerWeenie::SetLoginPlayerQualities()
 {
+	//Temporary as a way to fix existing characters
+	if (m_Qualities._skillStatsTable)
+	{
+		for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = m_Qualities._skillStatsTable->begin(); entry != m_Qualities._skillStatsTable->end(); entry++)
+		{
+			Skill skill = entry->second;
+			if (skill._sac == SKILL_ADVANCEMENT_CLASS::SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+				m_Qualities.SetSkillLevel(entry->first, 10);
+			else if (skill._sac == SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				m_Qualities.SetSkillLevel(entry->first, 5);
+			else
+				m_Qualities.SetSkillLevel(entry->first, 0);
+		}
+	}
+	//End of temporary code
+
 	g_pAllegianceManager->SetWeenieAllegianceQualities(this);
 	m_Qualities.SetFloat(LOGIN_TIMESTAMP_FLOAT, Timer::cur_time);
 
 	// Position startPos = Position(0xDB75003B, Vector(186.000000f, 65.000000f, 36.088333f), Quaternion(1.000000, 0.000000, 0.000000, 0.000000));
 	// Position startPos = Position(0xA9B4001F, Vector(87.750603f, 147.722321f, 66.005005f), Quaternion(0.011819f, 0.000000, 0.000000, -0.999930f));
-	
+
 	// Your location is: 0xC98C0028 [113.665604 190.259003 22.004999] -0.707107 0.000000 0.000000 -0.707107 Rithwic
 	// Position startPos = Position(0xC98C0028, Vector(113.665604f, 190.259003f, 22.004999f), Quaternion(-0.707107f, 0.000000, 0.000000, -0.707107f));
 	// SetInitialPosition(startPos);
@@ -3086,7 +3145,7 @@ void CWandSpellUseEvent::OnReadyToUse()
 	}
 
 	_spellId = wand->InqDIDQuality(SPELL_DID, 0);
-	if(!_spellId)
+	if (!_spellId)
 	{
 		Cancel();
 		return;
@@ -3096,7 +3155,7 @@ void CWandSpellUseEvent::OnReadyToUse()
 	DWORD skillValue;
 	if (skill != 0 && _weenie->InqSkill(skill, skillValue, false))
 	{
-		if(skillValue < wand->InqIntQuality(ITEM_SKILL_LEVEL_LIMIT_INT, 0))
+		if (skillValue < wand->InqIntQuality(ITEM_SKILL_LEVEL_LIMIT_INT, 0))
 		{
 			SkillTable *pSkillTable = SkillSystem::GetSkillTable();
 			const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skill);
@@ -3140,6 +3199,8 @@ void CWandSpellUseEvent::OnReadyToUse()
 		_newManaValue = itemCurrentMana - manaCost;
 	}
 
+	_weenie->MakeSpellcastingManager()->m_bCasting = true;
+
 	if (motion)
 		ExecuteUseAnimation(motion);
 	else
@@ -3164,6 +3225,21 @@ void CWandSpellUseEvent::OnUseAnimSuccess(DWORD motion)
 	_weenie->DoForcedStopCompletely();
 	Done();
 }
+
+void CWandSpellUseEvent::Cancel(DWORD error)
+{
+	_weenie->MakeSpellcastingManager()->m_bCasting = false;
+
+	CUseEventData::Cancel(error);
+}
+
+void CWandSpellUseEvent::Done(DWORD error)
+{
+	_weenie->MakeSpellcastingManager()->m_bCasting = false;
+
+	CUseEventData::Done(error);
+}
+
 
 void CLifestoneRecallUseEvent::OnReadyToUse()
 {
