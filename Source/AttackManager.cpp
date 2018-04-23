@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "AttackManager.h"
 #include "WeenieObject.h"
@@ -901,6 +900,7 @@ void CMissileAttackEvent::FireMissile()
 	missile->_launcherID = launcher ? launcher->GetID() : 0;
 	missile->_targetID = target ? target->GetID() : 0;
 	missile->_attackPower = _attack_power;
+	missile->_timeToRot = Timer::cur_time + 5.0;
 
 	CWeenieObject *shield = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_SHIELD); //thrown weapons users can have a shield
 
