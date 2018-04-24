@@ -30,6 +30,11 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 	int augSkilledMagic = player->InqIntQuality(AUGMENTATION_SKILLED_MAGIC_INT, 0);
 	int augInnates = player->InqIntQuality(AUGMENTATION_INNATE_FAMILY_INT, 0);
 	int augIncreasedBurden = player->InqIntQuality(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, 0);
+	int augSpecSalvage = player->InqIntQuality(AUGMENTATION_SPECIALIZE_SALVAGING_INT, 0);
+	int augSpecItemTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT, 0);
+	int augSpecArmorTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT, 0);
+	int augSpecMagicTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT, 0);
+	int augSpecWeaponTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT, 0);
 
 	switch (aug)
 	{
@@ -273,6 +278,211 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
 			break;
 		}
+	case 7:
+		if (augSpecSalvage == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augSpecSalvage == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				Skill skill;
+				player->m_Qualities.InqSkill(SALVAGING_SKILL, skill);
+				if (skill._sac <= 1)
+				{
+					player->SendText("You are not trained in this skill!", LTT_DEFAULT);
+					break;
+				}
+
+				else
+				{
+					skill.SetSkillAdvancementClass (SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+					skill._init_level = 10;
+					player->m_Qualities.SetSkill(SALVAGING_SKILL, skill);
+					player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_SALVAGING_INT, augSpecSalvage + 1);
+					player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+					player->NotifySkillStatUpdated(SALVAGING_SKILL);
+
+					player->EmitEffect(159, 1.0f);
+					player->SendText("Congratulations! You have succeeded in acquiring the Ciandra's Essence augmentation.", LTT_DEFAULT);
+					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+
+					DecrementStackOrStructureNum();
+					break;
+				}
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 8:
+		if (augSpecSalvage == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augSpecItemTink == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				Skill skill;
+				player->m_Qualities.InqSkill(ITEM_APPRAISAL_SKILL, skill);
+				if (skill._sac <= 1)
+				{
+					player->SendText("You are not trained in this skill!", LTT_DEFAULT);
+					break;
+				}
+
+				else
+				{
+					skill.SetSkillAdvancementClass(SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+					skill._init_level = 10;
+					player->m_Qualities.SetSkill(ITEM_APPRAISAL_SKILL, skill);
+					player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT, augSpecItemTink + 1);
+					player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+					player->NotifySkillStatUpdated(ITEM_APPRAISAL_SKILL);
+
+					player->EmitEffect(159, 1.0f);
+					player->SendText("Congratulations! You have succeeded in acquiring the Yoshi's Essence augmentation.", LTT_DEFAULT);
+					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+
+					DecrementStackOrStructureNum();
+					break;
+				}
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 9:
+		if (augSpecArmorTink == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augSpecArmorTink == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				Skill skill;
+				player->m_Qualities.InqSkill(ARMOR_APPRAISAL_SKILL, skill);
+				if (skill._sac <= 1)
+				{
+					player->SendText("You are not trained in this skill!", LTT_DEFAULT);
+					break;
+				}
+
+				else
+				{
+					skill.SetSkillAdvancementClass(SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+					skill._init_level = 10;
+					player->m_Qualities.SetSkill(ARMOR_APPRAISAL_SKILL, skill);
+					player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT, augSpecArmorTink + 1);
+					player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+					player->NotifySkillStatUpdated(ARMOR_APPRAISAL_SKILL);
+
+					player->EmitEffect(159, 1.0f);
+					player->SendText("Congratulations! You have succeeded in acquiring the Jibril's Essence augmentation.", LTT_DEFAULT);
+					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+
+					DecrementStackOrStructureNum();
+					break;
+				}
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 10:
+		if (augSpecMagicTink == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augSpecMagicTink == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				Skill skill;
+				player->m_Qualities.InqSkill(MAGIC_ITEM_APPRAISAL_SKILL, skill);
+				if (skill._sac <= 1)
+				{
+					player->SendText("You are not trained in this skill!", LTT_DEFAULT);
+					break;
+				}
+
+				else
+				{
+					skill.SetSkillAdvancementClass(SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+					skill._init_level = 10;
+					player->m_Qualities.SetSkill(MAGIC_ITEM_APPRAISAL_SKILL, skill);
+					player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT, augSpecMagicTink + 1);
+					player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+					player->NotifySkillStatUpdated(MAGIC_ITEM_APPRAISAL_SKILL);
+
+					player->EmitEffect(159, 1.0f);
+					player->SendText("Congratulations! You have succeeded in acquiring the Celdiseth's Essence augmentation.", LTT_DEFAULT);
+					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+
+					DecrementStackOrStructureNum();
+					break;
+				}
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 11:
+		if (augSpecWeaponTink == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augSpecWeaponTink == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				Skill skill;
+				player->m_Qualities.InqSkill(WEAPON_APPRAISAL_SKILL, skill);
+				if (skill._sac <= 1)
+				{
+					player->SendText("You are not trained in this skill!", LTT_DEFAULT);
+					break;
+				}
+
+				else
+				{
+					skill.SetSkillAdvancementClass(SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+					skill._init_level = 10;
+					player->m_Qualities.SetSkill(WEAPON_APPRAISAL_SKILL, skill);
+					player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT, augSpecWeaponTink + 1);
+					player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+					player->NotifySkillStatUpdated(WEAPON_APPRAISAL_SKILL);
+
+					player->EmitEffect(159, 1.0f);
+					player->SendText("Congratulations! You have succeeded in acquiring the Koga's Essence augmentation.", LTT_DEFAULT);
+					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+
+					DecrementStackOrStructureNum();
+					break;
+				}
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
 	case 13:
 		if (augIncreasedBurden == 5)
 		{
@@ -457,4 +667,4 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 	player->NotifyUseDone(WERROR_NONE);
 	return WERROR_NONE;
 
-	}
+}
