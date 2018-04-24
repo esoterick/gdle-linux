@@ -425,6 +425,21 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 			break;
 		}
+
+	case LockFellow_EmoteType:
+	{
+		CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+		if (target)
+		{
+			Fellowship *fellow = target->GetFellowship();
+
+			if (fellow)
+				fellow->_locked = true;
+		}
+
+		break;
+	}
+
 	case TextDirect_EmoteType:
 		{
 			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
