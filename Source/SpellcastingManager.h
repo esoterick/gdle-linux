@@ -81,6 +81,7 @@ public:
 	int LaunchBoltProjectile(DWORD wcid);
 	int LaunchRingProjectiles(DWORD wcid);
 	void PerformCastParticleEffects();
+	void PerformFellowCastParticleEffects(Fellowship *fellow);
 	int LaunchSpellEffect();
 	bool DoTransferSpell(CWeenieObject *other, const TransferSpellEx *meta);
 	bool AdjustVital(CWeenieObject *target);

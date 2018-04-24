@@ -640,6 +640,16 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 
 	if (coinConsumed || itemsLost)
 		SendText(text.c_str(), LTT_DEFAULT);
+
+	if (_pendingCorpse)
+	{
+		//make the player corpse visible.
+		_pendingCorpse->m_Qualities.RemoveBool(VISIBILITY_BOOL);
+		_pendingCorpse->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
+		_pendingCorpse->NotifyObjectCreated(false);
+		_pendingCorpse->Save();
+		_pendingCorpse = NULL;
+	}
 }
 
 void CPlayerWeenie::OnDeath(DWORD killer_id)
@@ -682,6 +692,7 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 
 	// create corpse but make it invisible.
 	_pendingCorpse = CreateCorpse(false);
+	_pendingCorpse->Save();
 
 	if (_pendingCorpse)
 		CalculateAndDropDeathItems(_pendingCorpse);
