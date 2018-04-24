@@ -146,8 +146,11 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 
 		imbueEffects = dmgEvent->weapon->GetImbueEffects();
 
-		dmgEvent->critChance += (dmgEvent->critChance * dmgEvent->weapon->GetBitingStrikeFrequency());
-		dmgEvent->critMultiplier += dmgEvent->weapon->GetCrushingBlowMultiplier();
+		if (dmgEvent->weapon->GetBitingStrikeFrequency())
+			dmgEvent->critChance = dmgEvent->weapon->GetBitingStrikeFrequency();
+
+		if (dmgEvent->weapon->GetCrushingBlowMultiplier())
+			dmgEvent->critMultiplier += dmgEvent->weapon->GetCrushingBlowMultiplier();
 
 		if (imbueEffects & CriticalStrike_ImbuedEffectType)
 			dmgEvent->critChance += GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 0.5);
@@ -167,8 +170,11 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 
 		imbueEffects = dmgEvent->weapon->GetImbueEffects();
 
-		dmgEvent->critChance += (dmgEvent->critChance * dmgEvent->weapon->GetBitingStrikeFrequency());
-		dmgEvent->critMultiplier += dmgEvent->weapon->GetCrushingBlowMultiplier();
+		if (dmgEvent->weapon->GetBitingStrikeFrequency())
+			dmgEvent->critChance = dmgEvent->weapon->GetBitingStrikeFrequency();
+
+		if (dmgEvent->weapon->GetCrushingBlowMultiplier())
+			dmgEvent->critMultiplier += dmgEvent->weapon->GetCrushingBlowMultiplier();
 
 		if (imbueEffects & CriticalStrike_ImbuedEffectType)
 			dmgEvent->critChance += GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 0.5);
@@ -189,6 +195,12 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 			return;
 
 		imbueEffects = dmgEvent->weapon->GetImbueEffects();
+
+		if(dmgEvent->weapon->GetBitingStrikeFrequency())
+		dmgEvent->critChance = dmgEvent->weapon->GetBitingStrikeFrequency();
+
+		if(dmgEvent->weapon->GetCrushingBlowMultiplier())
+		dmgEvent->critMultiplier += dmgEvent->weapon->GetCrushingBlowMultiplier();
 
 		if (dmgEvent->attackSkill == WAR_MAGIC_SKILL)
 		{
