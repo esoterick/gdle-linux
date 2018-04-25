@@ -38,7 +38,7 @@ void testRandomValueGenerator()
 
 	for each(auto entry in valueDistribution)
 	{
-		LOG(Data, Error, "value: %d amount: %d percent: %f\n", entry.first, entry.second, entry.second * 100.0 / testRolls);
+		WINLOG(Data, Error, "value: %d amount: %d percent: %f\n", entry.first, entry.second, entry.second * 100.0 / testRolls);
 	}
 }
 

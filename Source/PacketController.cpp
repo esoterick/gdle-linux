@@ -338,7 +338,7 @@ void CPacketController::EvilClient(const char* szSource, DWORD dwLine, BOOL bKil
 {
 #ifdef _DEBUG
 	if (szSource)
-		LOG(Temp, Normal, "Evil client @ %u of %s!!!\n", dwLine, szSource);
+		WINLOG(Temp, Normal, "Evil client @ %u of %s!!!\n", dwLine, szSource);
 #endif
 
 	if (bKill && IsAlive())
@@ -755,7 +755,7 @@ void CPacketController::IncomingBlob(BlobPacket_s *blob, double recvTime)
 
 				if ((float)actualIntervals > (float)(expectedIntervals * 2.0))
 				{
-					LOG(Temp, Normal, "Possible speed hack on user: %s ([rate: %f]) Disconnecting.", m_pClient->GetDescription(), (double)actualIntervals / (double)expectedIntervals);
+					WINLOG(Temp, Normal, "Possible speed hack on user: %s ([rate: %f]) Disconnecting.", m_pClient->GetDescription(), (double)actualIntervals / (double)expectedIntervals);
 
 					Kill(__FILE__, __LINE__);
 

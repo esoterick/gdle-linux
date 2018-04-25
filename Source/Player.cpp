@@ -21,6 +21,7 @@
 #include "SpellcastingManager.h"
 #include "Corpse.h"
 #include "House.h"
+#include "easylogging++.h"
 
 #define PLAYER_SAVE_INTERVAL 180.0
 
@@ -637,6 +638,8 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 		text.append(itemsLostText);
 	}
 	text.append("!");
+
+	DEATH_LOG << InqStringQuality(NAME_STRING, "") << "-" << text;
 
 	if (coinConsumed || itemsLost)
 		SendText(text.c_str(), LTT_DEFAULT);

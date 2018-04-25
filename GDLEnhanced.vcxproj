@@ -456,6 +456,7 @@
   <ItemGroup>
     <ClCompile Include="Source\AugmentationDevice.cpp" />
     <ClCompile Include="Source\BindStone.cpp" />
+    <ClCompile Include="Source\easylogging++.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\CombatFormulas.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\Random.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\RandomRange.cpp" />
@@ -643,6 +644,7 @@
   <ItemGroup>
     <ClInclude Include="Source\AugmentationDevice.h" />
     <ClInclude Include="Source\BindStone.h" />
+    <ClInclude Include="Source\easylogging++.h" />
     <ClInclude Include="Source\PhatSDK\Support\CombatFormulas.h" />
     <ClInclude Include="Source\PhatSDK\Support\Random.h" />
     <ClInclude Include="Source\PhatSDK\Support\RandomRange.h" />
@@ -851,7 +853,12 @@
     <ResourceCompile Include="Resource\PhatAC.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="LoggerReademe.md" />
     <None Include="README.md" />
+    <Text Include="Source\GDLELogging.conf">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug - Quickstart|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </Text>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -591,6 +591,9 @@
     <ClCompile Include="Source\AugmentationDevice.cpp">
       <Filter>Source Files\Objects\Weenie Types</Filter>
     </ClCompile>
+    <ClCompile Include="Source\easylogging++.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\crcwheel.h">
@@ -1199,6 +1202,9 @@
     <ClInclude Include="Source\AugmentationDevice.h">
       <Filter>Source Files\Objects\Weenie Types</Filter>
     </ClInclude>
+    <ClInclude Include="Source\easylogging++.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\client.ico">
@@ -1212,5 +1218,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
+    <None Include="LoggerReademe.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Source\GDLELogging.conf" />
   </ItemGroup>
 </Project>

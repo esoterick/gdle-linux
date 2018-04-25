@@ -4,7 +4,7 @@
 
 CDatabase::CDatabase()
 {
-	LOG(Temp, Normal, "Initializing Database..\n");
+	WINLOG(Temp, Normal, "Initializing Database..\n");
 
 	m_hSearchHandle = INVALID_HANDLE_VALUE;
 

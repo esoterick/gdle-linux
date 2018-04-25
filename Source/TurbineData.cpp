@@ -34,7 +34,7 @@ void TurbineData::FileFoundCallbackInternal(DWORD dwFileID, BTEntry *pEntry)
 
 void TurbineData::LoadFile(const char* szFile)
 {
-	LOG(Temp, Normal, "Loading %s.. ", szFile);
+	WINLOG(Temp, Normal, "Loading %s.. ", szFile);
 
 	m_strFile = szFile;
 
@@ -43,7 +43,7 @@ void TurbineData::LoadFile(const char* szFile)
 
 	if (!m_pDATDisk->Open())
 	{
-		LOG(Temp, Normal, "Error loading file %s!\n", fullpath.c_str());
+		WINLOG(Temp, Normal, "Error loading file %s!\n", fullpath.c_str());
 		SafeDelete(m_pDATDisk);
 	}
 	else
@@ -53,11 +53,11 @@ void TurbineData::LoadFile(const char* szFile)
 		m_pDATDisk->FindFileIDsWithinRange(0, (DWORD)-1, FileFoundCallback, NULL, this);
 #endif
 
-		LOG(Temp, Normal, "done!\n");
+		WINLOG(Temp, Normal, "done!\n");
 
 #ifdef PRE_TOD_DATA_FILES
 #else
-		LOG(Temp, Normal, "%s: version %u, %u entries.\n", szFile, m_pDATDisk->GetHeader()->VersionMinor, m_mFileInfo.size());
+		WINLOG(Temp, Normal, "%s: version %u, %u entries.\n", szFile, m_pDATDisk->GetHeader()->VersionMinor, m_mFileInfo.size());
 #endif
 	}
 }

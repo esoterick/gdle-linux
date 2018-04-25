@@ -73,7 +73,7 @@ void ObjCaches::OutputCacheInfo()
 		if (!*cache)
 			continue;
 
-		LOG(Data, Normal, "Total %s: %u\n", (*cache)->GetName(), (*cache)->GetCachedCount());
+		WINLOG(Data, Normal, "Total %s: %u\n", (*cache)->GetName(), (*cache)->GetCachedCount());
 	}
 }
 
@@ -230,7 +230,7 @@ void ObjCaches::DestroyCaches()
 		ObjCache *pcache = *ppcache;
 		if (pcache->GetCachedCount() > 0)
 		{
-			LOG(Data, Warning, "ObjCache \"%s\" still has %u objects cached! Missing release somewhere?\n", pcache->GetName(), pcache->GetCachedCount());
+			WINLOG(Data, Warning, "ObjCache \"%s\" still has %u objects cached! Missing release somewhere?\n", pcache->GetName(), pcache->GetCachedCount());
 		}
 	}
 

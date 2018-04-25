@@ -581,7 +581,7 @@ void CWeenieFactory::LoadLocalStorageIndexed()
 				{
 					if (bDuplicate)
 					{
-						LOG(Data, Warning, "Duplicate WCID %d, ignoring due to \"%s\"\n", pDefaults->m_WCID, m_WeenieDefaults[pDefaults->m_WCID]->m_sourceFile.c_str());
+						WINLOG(Data, Warning, "Duplicate WCID %d, ignoring due to \"%s\"\n", pDefaults->m_WCID, m_WeenieDefaults[pDefaults->m_WCID]->m_sourceFile.c_str());
 					}
 
 					delete pDefaults;
@@ -589,7 +589,7 @@ void CWeenieFactory::LoadLocalStorageIndexed()
 			}
 			else
 			{
-				LOG(Data, Warning, "Error parsing weenie defaults file\n");
+				WINLOG(Data, Warning, "Error parsing weenie defaults file\n");
 				delete pDefaults;
 			}
 		}
@@ -1020,7 +1020,7 @@ void CWeenieFactory::AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject
 		weenie->SetInitialPosition(pos);
 		if (!g_pWorld->CreateEntity(weenie))
 		{
-			LOG(Temp, Normal, TEXT("Failed creating generated spawn %s.\n"), GetWCIDName(profile->type));
+			WINLOG(Temp, Normal, TEXT("Failed creating generated spawn %s.\n"), GetWCIDName(profile->type));
 			return;
 		}
 		break;
@@ -1052,7 +1052,7 @@ void CWeenieFactory::AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject
 		weenie->SetInitialPosition(pos);
 		if (!g_pWorld->CreateEntity(weenie))
 		{
-			LOG(Temp, Normal, TEXT("Failed creating generated spawn %s.\n"), GetWCIDName(profile->type));
+			WINLOG(Temp, Normal, TEXT("Failed creating generated spawn %s.\n"), GetWCIDName(profile->type));
 			return;
 		}
 		break;
@@ -1070,7 +1070,7 @@ void CWeenieFactory::AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject
 		weenie->SetInitialPosition(pos);
 		if (!g_pWorld->CreateEntity(weenie))
 		{
-			LOG(Temp, Normal, TEXT("Failed creating generated spawn %s.\n"), GetWCIDName(profile->type));
+			WINLOG(Temp, Normal, TEXT("Failed creating generated spawn %s.\n"), GetWCIDName(profile->type));
 			return;
 		}
 		break;

@@ -266,7 +266,7 @@ unsigned int CDatabaseIO::GetHighestWeenieID(unsigned int min_range, unsigned in
 		}
 	}
 
-	LOG(Database, Error, "Could not get highest weenie ID for range 0x%08X - 0x%08X, returning 0x%08X.\n", min_range, max_range, min_range);
+	WINLOG(Database, Error, "Could not get highest weenie ID for range 0x%08X - 0x%08X, returning 0x%08X.\n", min_range, max_range, min_range);
 	return result;
 }
 
@@ -391,14 +391,14 @@ bool CDatabaseIO::GetWeenie(unsigned int weenie_id, unsigned int *top_level_obje
 
 	if (mysql_stmt_execute(statement) || mysql_stmt_store_result(statement))
 	{
-		LOG(Database, Error, "Error on GetWeenie: %s\n", mysql_error(sql));
+		WINLOG(Database, Error, "Error on GetWeenie: %s\n", mysql_error(sql));
 		mysql_stmt_close(statement);
 		return false;
 	}
 
 	if (mysql_stmt_fetch(statement))
 	{
-		LOG(Database, Warning, "GetWeenie failed because weenie 0x%08X doesn't exist!\n%s\n", weenie_id, query_string);
+		WINLOG(Database, Warning, "GetWeenie failed because weenie 0x%08X doesn't exist!\n%s\n", weenie_id, query_string);
 
 		mysql_stmt_free_result(statement);
 		mysql_stmt_close(statement);
@@ -454,7 +454,7 @@ bool CDatabaseIO::CreateOrUpdateGlobalData(DBIOGlobalDataID id, void *data, unsi
 	bool bErrored = false;
 	if (mysql_stmt_execute(statement))
 	{
-		LOG(Database, Error, "Error on CreateOrUpdateGlobalData for 0x%08X: %s\n", id, mysql_error(sql));
+		WINLOG(Database, Error, "Error on CreateOrUpdateGlobalData for 0x%08X: %s\n", id, mysql_error(sql));
 		bErrored = true;
 	}
 
@@ -485,14 +485,14 @@ bool CDatabaseIO::GetGlobalData(DBIOGlobalDataID id, void **data, unsigned long 
 
 	if (mysql_stmt_execute(statement) || mysql_stmt_store_result(statement))
 	{
-		LOG(Database, Error, "Error on GetGlobalData: %s\n", mysql_error(sql));
+		WINLOG(Database, Error, "Error on GetGlobalData: %s\n", mysql_error(sql));
 		mysql_stmt_close(statement);
 		return false;
 	}
 
 	if (mysql_stmt_fetch(statement))
 	{
-		LOG(Database, Verbose, "GetGlobalData failed because id 0x%08X doesn't exist!\n%s\n", id, query_string);
+		WINLOG(Database, Verbose, "GetGlobalData failed because id 0x%08X doesn't exist!\n%s\n", id, query_string);
 
 		mysql_stmt_free_result(statement);
 		mysql_stmt_close(statement);
@@ -540,7 +540,7 @@ bool CDatabaseIO::GetHouseData(unsigned int house_id, void **data, unsigned long
 
 	if (mysql_stmt_execute(statement) || mysql_stmt_store_result(statement))
 	{
-		LOG(Database, Error, "Error on GetHouseData: %s\n", mysql_error(sql));
+		WINLOG(Database, Error, "Error on GetHouseData: %s\n", mysql_error(sql));
 		mysql_stmt_close(statement);
 		return false;
 	}

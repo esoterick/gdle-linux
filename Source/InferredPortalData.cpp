@@ -19,7 +19,7 @@ CInferredPortalData::~CInferredPortalData()
 void CInferredPortalData::Init()
 {
 #ifndef PUBLIC_BUILD
-	LOG(Data, Normal, "Loading inferred portal data...\n");
+	WINLOG(Data, Normal, "Loading inferred portal data...\n");
 #endif
 
 	{
@@ -429,7 +429,7 @@ void CInferredPortalData::Init()
 	}
 
 #ifndef PUBLIC_BUILD
-	LOG(Data, Normal, "Finished loading inferred cell data.\n");
+	WINLOG(Data, Normal, "Finished loading inferred cell data.\n");
 #endif
 }
 

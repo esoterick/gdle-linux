@@ -486,7 +486,7 @@ void CNetwork::KickClient(CClient *pClient)
 	if (!pClient)
 		return;
 
-	LOG(Temp, Normal, "Client #%u (%s) is being kicked.\n", pClient->GetSlot(), pClient->GetAccount());
+	WINLOG(Temp, Normal, "Client #%u (%s) is being kicked.\n", pClient->GetSlot(), pClient->GetAccount());
 	BinaryWriter KC;
 	KC.Write<long>(0xF7DC);
 	KC.Write<long>(0);
@@ -518,7 +518,7 @@ void CNetwork::KillClient(WORD slot)
 {
 	if (CClient *pClient = GetClient(slot))
 	{		
-		LOG(Temp, Normal, "Client(%s, %s) disconnected. (%s)\n", pClient->GetAccount(), inet_ntoa(pClient->GetHostAddress()->sin_addr), timestamp());
+		WINLOG(Temp, Normal, "Client(%s, %s) disconnected. (%s)\n", pClient->GetAccount(), inet_ntoa(pClient->GetHostAddress()->sin_addr), timestamp());
 
 		DWORD arrayPos = pClient->GetArrayPos();
 
@@ -565,7 +565,7 @@ void CNetwork::SendConnectLoginFailure(sockaddr_in *addr, int error, const char 
 
 	if (strcmp(accountname, "acservertracker"))
 	{
-		LOG(Temp, Normal, "Invalid login from %s, used account name '%s'\n", inet_ntoa(addr->sin_addr), accountname);
+		WINLOG(Temp, Normal, "Invalid login from %s, used account name '%s'\n", inet_ntoa(addr->sin_addr), accountname);
 	}
 }
 
@@ -669,7 +669,7 @@ void CNetwork::ConnectionRequest(sockaddr_in *addr, BlobPacket_s *p)
 		return;
 	}
 
-	LOG(Temp, Normal, "Client(%s, %s) connected on slot #%u (%s)\n", login_credentials, inet_ntoa(addr->sin_addr), slot, timestamp());
+	WINLOG(Temp, Normal, "Client(%s, %s) connected on slot #%u (%s)\n", login_credentials, inet_ntoa(addr->sin_addr), slot, timestamp());
 
 	client = m_ClientSlots[slot] = new CClient(addr, slot, accountInfo);
 	client->SetLoginData(client_unix_timestamp, portal_stamp, cell_stamp);
@@ -709,7 +709,7 @@ void CNetwork::ConnectionRequest(sockaddr_in *addr, BlobPacket_s *p)
 	}
 	else
 	{
-		LOG(Temp, Normal, "AcceptConnect.GetSize() > 0x1D0");
+		WINLOG(Temp, Normal, "AcceptConnect.GetSize() > 0x1D0");
 	}
 }
 

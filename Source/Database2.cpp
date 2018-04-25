@@ -94,7 +94,7 @@ CMYSQLConnection *CMYSQLConnection::Create(const char *host, unsigned int port, 
 
 		if (sqlconnection && connectTiming.GetElapsed() >= 1.0)
 		{
-			LOG(Database, Warning, "mysql_real_connect() took %.1f s!\n", connectTiming.GetElapsed());
+			WINLOG(Database, Warning, "mysql_real_connect() took %.1f s!\n", connectTiming.GetElapsed());
 		}
 	}
 
@@ -122,19 +122,19 @@ CMYSQLConnection *CMYSQLConnection::Create(const char *host, unsigned int port, 
 
 			if (sqlconnection && connectTiming.GetElapsed() >= 1.0)
 			{
-				LOG(Database, Warning, "mysql_real_connect() re-attempt took %.1f s!\n", connectTiming.GetElapsed());
+				WINLOG(Database, Warning, "mysql_real_connect() re-attempt took %.1f s!\n", connectTiming.GetElapsed());
 			}
 
 			if (sqlconnection == NULL)
 			{
-				LOG(Database, Warning, "Failed to create mysql connection after two tries:\n%s\n", mysql_error(sqlobject));
+				WINLOG(Database, Warning, "Failed to create mysql connection after two tries:\n%s\n", mysql_error(sqlobject));
 
 				mysql_close(sqlobject);
 				return NULL;
 			}
 			else
 			{
-				LOG(Database, Normal, "Received EINTR while attempting to connect to mysql, but re-attempt succeeded.\n");
+				WINLOG(Database, Normal, "Received EINTR while attempting to connect to mysql, but re-attempt succeeded.\n");
 			}
 		}
 		else
@@ -142,7 +142,7 @@ CMYSQLConnection *CMYSQLConnection::Create(const char *host, unsigned int port, 
 			if (CSQLConnection::s_NumConnectAttempts > 1)
 			{
 				// Only show warning if not the first connection attempt
-				LOG(Database, Warning, "mysql_real_connect() failed:\n%s\n", mysql_error(sqlobject));
+				WINLOG(Database, Warning, "mysql_real_connect() failed:\n%s\n", mysql_error(sqlobject));
 			}
 
 			mysql_close(sqlobject);
@@ -186,13 +186,13 @@ bool CMYSQLConnection::Query(const char *query)
 
 		if (queryTiming.GetElapsed() >= 1.0)
 		{
-			LOG(Database, Warning, "MYSQL query \"%s\" took %f seconds.\n", query, queryTiming.GetElapsed());
+			WINLOG(Database, Warning, "MYSQL query \"%s\" took %f seconds.\n", query, queryTiming.GetElapsed());
 		}
 	}
 
 	if (errorCode != 0)
 	{
-		LOG(Database, Error, "MYSQL query errored %d for \"%s\"\n", errorCode, query);
+		WINLOG(Database, Error, "MYSQL query errored %d for \"%s\"\n", errorCode, query);
 		return false;
 	}
 
@@ -434,7 +434,7 @@ bool CMYSQLSaveWeenieQuery::PerformQuery(MYSQL *c)
 {
 	if (!c)
 	{
-		LOG(Database, Error, "Cannot perform save query; no connection.\n");
+		WINLOG(Database, Error, "Cannot perform save query; no connection.\n");
 		return false;
 	}
 
@@ -442,7 +442,7 @@ bool CMYSQLSaveWeenieQuery::PerformQuery(MYSQL *c)
 
 	if (!statement)
 	{
-		LOG(Database, Error, "mysql_stmt_init() error on CreateOrUpdateWeenie for 0x%08X (%u bytes): %s\n", _weenie_id, _data_length, mysql_error(c));
+		WINLOG(Database, Error, "mysql_stmt_init() error on CreateOrUpdateWeenie for 0x%08X (%u bytes): %s\n", _weenie_id, _data_length, mysql_error(c));
 		return false;
 	}
 
@@ -453,7 +453,7 @@ bool CMYSQLSaveWeenieQuery::PerformQuery(MYSQL *c)
 	{
 		mysql_stmt_close(statement);
 
-		LOG(Database, Error, "mysql_stmt_prepare() error on CreateOrUpdateWeenie for 0x%08X (%u bytes): %s\n", _weenie_id, _data_length, mysql_error(c));
+		WINLOG(Database, Error, "mysql_stmt_prepare() error on CreateOrUpdateWeenie for 0x%08X (%u bytes): %s\n", _weenie_id, _data_length, mysql_error(c));
 		return false;
 	}
 
@@ -466,13 +466,13 @@ bool CMYSQLSaveWeenieQuery::PerformQuery(MYSQL *c)
 	{
 		mysql_stmt_close(statement);
 
-		LOG(Database, Error, "mysql_stmt_bind_param() error on CreateOrUpdateWeenie for 0x%08X (%u bytes): %s\n", _weenie_id, _data_length, mysql_error(c));
+		WINLOG(Database, Error, "mysql_stmt_bind_param() error on CreateOrUpdateWeenie for 0x%08X (%u bytes): %s\n", _weenie_id, _data_length, mysql_error(c));
 		return false;
 	}
 
 	if (mysql_stmt_execute(statement))
 	{
-		LOG(Database, Error, "mysql_stmt_execute() error on CreateOrUpdateWeenie for 0x%08X (%u bytes): %s\n", _weenie_id, _data_length, mysql_error(c));
+		WINLOG(Database, Error, "mysql_stmt_execute() error on CreateOrUpdateWeenie for 0x%08X (%u bytes): %s\n", _weenie_id, _data_length, mysql_error(c));
 		mysql_stmt_close(statement);
 
 		return false;
@@ -510,7 +510,7 @@ bool CMYSQLSaveHouseQuery::PerformQuery(MYSQL *c)
 {
 	if (!c)
 	{
-		LOG(Database, Error, "Cannot perform save query; no connection.\n");
+		WINLOG(Database, Error, "Cannot perform save query; no connection.\n");
 		return false;
 	}
 
@@ -518,7 +518,7 @@ bool CMYSQLSaveHouseQuery::PerformQuery(MYSQL *c)
 
 	if (!statement)
 	{
-		LOG(Database, Error, "mysql_stmt_init() error on CreateOrUpdateHouseData for 0x%08X (%u bytes): %s\n", _house_id, _data_length, mysql_error(c));
+		WINLOG(Database, Error, "mysql_stmt_init() error on CreateOrUpdateHouseData for 0x%08X (%u bytes): %s\n", _house_id, _data_length, mysql_error(c));
 		return false;
 	}
 
@@ -529,7 +529,7 @@ bool CMYSQLSaveHouseQuery::PerformQuery(MYSQL *c)
 	{
 		mysql_stmt_close(statement);
 
-		LOG(Database, Error, "mysql_stmt_prepare() error on CreateOrUpdateHouseData for 0x%08X (%u bytes): %s\n", _house_id, _data_length, mysql_error(c));
+		WINLOG(Database, Error, "mysql_stmt_prepare() error on CreateOrUpdateHouseData for 0x%08X (%u bytes): %s\n", _house_id, _data_length, mysql_error(c));
 		return false;
 	}
 
@@ -542,13 +542,13 @@ bool CMYSQLSaveHouseQuery::PerformQuery(MYSQL *c)
 	{
 		mysql_stmt_close(statement);
 
-		LOG(Database, Error, "mysql_stmt_bind_param() error on CreateOrUpdateHouseData for 0x%08X (%u bytes): %s\n", _house_id, _data_length, mysql_error(c));
+		WINLOG(Database, Error, "mysql_stmt_bind_param() error on CreateOrUpdateHouseData for 0x%08X (%u bytes): %s\n", _house_id, _data_length, mysql_error(c));
 		return false;
 	}
 
 	if (mysql_stmt_execute(statement))
 	{
-		LOG(Database, Error, "mysql_stmt_execute() error on CreateOrUpdateHouseData for 0x%08X (%u bytes): %s\n", _house_id, _data_length, mysql_error(c));
+		WINLOG(Database, Error, "mysql_stmt_execute() error on CreateOrUpdateHouseData for 0x%08X (%u bytes): %s\n", _house_id, _data_length, mysql_error(c));
 		mysql_stmt_close(statement);
 
 		return false;
@@ -575,7 +575,7 @@ CMYSQLDatabase::CMYSQLDatabase(const char *host, unsigned int port, const char *
 	if (!m_pConnection || !m_pAsyncConnection)
 	{
 		// If we can't connect the first time, just disable this feature.
-		LOG(Database, Warning, "MySQL database functionality disabled.\n");
+		WINLOG(Database, Warning, "MySQL database functionality disabled.\n");
 		m_bDisabled = true;
 	}
 }
@@ -1043,11 +1043,11 @@ void CGameDatabase::LoadStaticsData()
 
 	if (!spawned)
 	{
-		LOG(Temp, Warning, "Spawn data not included. Spawning functionality may be limited.\n");
+		WINLOG(Temp, Warning, "Spawn data not included. Spawning functionality may be limited.\n");
 	}
 	else
 	{
-		LOG(Temp, Normal, "Spawned %d persistent dynamic objects!\n", spawned);
+		WINLOG(Temp, Normal, "Spawned %d persistent dynamic objects!\n", spawned);
 	}
 }
 
@@ -1838,7 +1838,7 @@ void CGameDatabase::LoadTeleTownList()
 			}
 
 #ifndef PUBLIC_BUILD
-			LOG(World, Normal, "Added %d teleport locations.\n", Result->ResultRows());
+			WINLOG(World, Normal, "Added %d teleport locations.\n", Result->ResultRows());
 #endif
 			delete Result;
 		}

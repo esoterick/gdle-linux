@@ -12,7 +12,7 @@
 
 #include "PhatSDKSettings.h"
 
-#ifndef LOG
+#ifndef WINLOG
 #define LOG(category, level, format, ...) 
 #endif
 

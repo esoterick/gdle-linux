@@ -6,7 +6,7 @@
 void CInferredCellData::Init()
 {
 #ifndef PUBLIC_BUILD
-	LOG(Data, Normal, "Loading inferred cell data...\n");
+	WINLOG(Data, Normal, "Loading inferred cell data...\n");
 #endif
 
 	_data.Destroy();
@@ -45,7 +45,7 @@ void CInferredCellData::Init()
 	}
 
 #ifndef PUBLIC_BUILD
-	LOG(Data, Normal, "Finished loading inferred cell data (%u and %u entries)...\n", (DWORD) _data.landblocks.size(), (DWORD) _jsonData.landblocks.size());
+	WINLOG(Data, Normal, "Finished loading inferred cell data (%u and %u entries)...\n", (DWORD) _data.landblocks.size(), (DWORD) _jsonData.landblocks.size());
 #endif
 }
 
