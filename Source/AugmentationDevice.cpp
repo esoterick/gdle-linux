@@ -35,6 +35,8 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 	int augSpecArmorTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT, 0);
 	int augSpecMagicTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT, 0);
 	int augSpecWeaponTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT, 0);
+	int augExtraPack = player->InqIntQuality(AUGMENTATION_EXTRA_PACK_SLOT_INT, 0);
+	int augDropLess = player->InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0);
 
 	switch (aug)
 	{
@@ -483,6 +485,31 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
 			break;
 		}
+	case 12:
+		if (augExtraPack == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augExtraPack == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_EXTRA_PACK_SLOT_INT, augExtraPack + 1);
+				DecrementStackOrStructureNum();
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->m_Qualities.SetInt(CONTAINERS_CAPACITY_INT, 8);
+				player->NotifyIntStatUpdated(CONTAINERS_CAPACITY_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Shadow of The Seventh Mule augmentation.", LTT_DEFAULT);
+				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
 	case 13:
 		if (augIncreasedBurden == 5)
 		{
@@ -501,18 +528,30 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Might of The Seventh Mule augmentation.", LTT_DEFAULT);
 				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
-				//Need to cycle through the skills and notify the updated values here. Previous code was no good
-
-				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
-				//{
-				//DWORD val = 5;
-				//DWORD &valptr = val;
-				//STypeSkill skill = entry->first;
-				//player->InqSkill(skill, valptr, false);
-				//player->NotifySkillStatUpdated(skill);
-
-				//}
-
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 14:
+		if (augDropLess == 3)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augDropLess < 3)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, augDropLess + 1);
+				DecrementStackOrStructureNum();
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Clutch of the Miser augmentation.", LTT_DEFAULT);
+				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
 				break;
 			}
 			else
