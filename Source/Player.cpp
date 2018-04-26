@@ -1389,26 +1389,29 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 
 			successChance /= 3; //maximum success chance for imbues is 33%
 
-			if (Random::RollDice(0.0, 1.0) <= successChance)
+			float successRoll = Random::RollDice(0.0, 1.0);
+			if (successRoll <= successChance)
 			{
 				success = true;
-
 				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
 				if (!text.empty())
 				{
 					g_pWorld->BroadcastLocal(GetLandcell(), text);
 				}
 			}
-			else {
-
+			else
+			{
 				success = false;
-
 				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
 				if (!text.empty())
 				{
 					g_pWorld->BroadcastLocal(GetLandcell(), text);
 				}
 			}
+
+			IMBUE_LOG << "Player:" << InqStringQuality(NAME_STRING, "") << " Skill level:" << skillLevel << " Target:" << pTarget->InqStringQuality(NAME_STRING, "") << " Workmanship: " << itemWorkmanship <<
+				  " Material:" << pTool->InqStringQuality(NAME_STRING, "") << " Workmanship:" << toolWorkmanship << " Roll:" << successRoll << " Success:" << (success ? "TRUE" : "FALSE");
+
 			break;
 		}
 		default:
