@@ -5,6 +5,7 @@ Source: https://github.com/muflihun/easyloggingpp
 Config File: GDLELogging.conf
 - As defined will create new log file for Server info, Server error, Deaths, and Debug data
 - Paths and file name can be modified as needed
+- Needs to be in same folder as server exe file
 
 For logging
  - Server info (default file: server.log)
