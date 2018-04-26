@@ -1266,16 +1266,13 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 
 			successChance /= 3; //maximum success chance for imbues is 33%
 			float successRoll = Random::RollDice(0.0, 1.0);
-			std:string msg = "";
 			if (successRoll <= successChance)
 			{
 				success = true;
-				msg = "True";
 			}
 			else
 			{
 				success = false;
-				msg = "False";
 			}
 
 			IMBUE_LOG << "Player:" << InqStringQuality(NAME_STRING, "") << " Skill level:" << skillLevel << " Target:" << pTarget->InqStringQuality(NAME_STRING, "") << " Workmanship: " << itemWorkmanship <<
