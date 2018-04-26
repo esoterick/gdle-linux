@@ -1653,15 +1653,7 @@ void CMonsterWeenie::OnDeathAnimComplete()
 		if (pCorpse)
 			GenerateDeathLoot(pCorpse);
 	}
-	else if(player->_pendingCorpse)
-	{
-		//make the player corpse visible.
-		player->_pendingCorpse->m_Qualities.RemoveBool(VISIBILITY_BOOL);
-		player->_pendingCorpse->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
-		player->_pendingCorpse->NotifyObjectCreated(false);
-		player->_pendingCorpse->Save();
-		player->_pendingCorpse = NULL;
-	}
+
 }
 
 void CMonsterWeenie::OnDeath(DWORD killer_id)

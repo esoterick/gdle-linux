@@ -710,6 +710,31 @@ void CSpellcastingManager::PerformCastParticleEffects()
 	}
 }
 
+void CSpellcastingManager::PerformFellowCastParticleEffects(Fellowship *fellow)
+{
+	if (!m_bCasting)
+		return;
+
+	// self effect
+	if (m_SpellCastData.spell->_caster_effect)
+	{
+		GetCastSource()->EmitEffect(m_SpellCastData.spell->_caster_effect, max(0.0, min(1.0, (m_SpellCastData.power_level_of_power_component - 1.0) / 7.0)));
+	}
+
+	// target effect
+	if (m_SpellCastData.spell->_target_effect)
+	{
+		for (auto &entry : fellow->_fellowship_table)
+		{
+			if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+			{
+					if (member)
+					member->EmitEffect(m_SpellCastData.spell->_target_effect, max(0.0, min(1.0, (m_SpellCastData.power_level_of_power_component - 1.0) / 7.0)));
+			}
+		}
+	}
+}
+
 void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 {
 	if (CPlayerWeenie *player = m_pWeenie->AsPlayer())
@@ -837,6 +862,35 @@ int CSpellcastingManager::LaunchSpellEffect()
 				bSpellPerformed = AdjustVital(GetCastTarget());
 				break;
 			}
+		case SpellType::FellowBoost_SpellType:
+		{
+			FellowshipBoostSpellEx *meta = (FellowshipBoostSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
+
+			CWeenieObject *target = GetCastTarget();
+
+			if (!target->HasFellowship())
+				break;
+
+			else
+			{
+				Fellowship *fellow = target->GetFellowship();
+				CWorldLandBlock *block = target->GetBlock();
+				for (auto &entry : fellow->_fellowship_table)
+				{
+					if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+					{
+						if (member->GetBlock() == block)
+						{
+
+							bSpellPerformed = AdjustVital(member);
+						}
+					}
+				}
+				PerformFellowCastParticleEffects(fellow);
+			}
+
+			break;
+		}
 		case SpellType::Dispel_SpellType:
 			{
 				DispelSpellEx *meta = (DispelSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
@@ -1042,6 +1096,232 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 				break;
 			}
+
+			case SpellType::FellowDispel_SpellType:
+			{
+				FellowshipDispelSpellEx *meta = (FellowshipDispelSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
+
+				int minNum = (int) ((meta->_number * meta->_number_variance) + F_EPSILON);
+				int maxNum = (int) ((meta->_number * (1.0 / meta->_number_variance)) + F_EPSILON);
+
+				int numToDispel = Random::GenInt(minNum, maxNum);
+
+				CWeenieObject *target = GetCastTarget();
+
+				if (!target->HasFellowship())
+					break;
+
+				else
+				{
+					Fellowship *fellow = target->GetFellowship();
+					CWorldLandBlock *block = target->GetBlock();
+					for (auto &entry : fellow->_fellowship_table)
+					{
+						if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+						{
+							if (member->GetBlock() == block)
+							{
+
+				if (member)
+				{
+					if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
+					{
+						if (member->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
+						{
+							break;
+						}
+					}
+
+					PackableListWithJson<DWORD> possibleToDispel;
+
+					if (member->m_Qualities._enchantment_reg)
+					{
+						if (member->m_Qualities._enchantment_reg->_add_list)
+						{
+							for (auto &entry : *member->m_Qualities._enchantment_reg->_add_list)
+							{
+								if (entry._power_level > meta->_max_power)
+									continue;
+								if (entry._power_level < meta->_min_power)
+									continue;
+								if (entry._duration <= 0.0)
+									continue;
+								if ((entry._id & 0xFFFF) == 666) // vitae
+									continue;
+								
+								if (CSpellTableEx *pSpellTableEx = g_pPortalDataEx->GetSpellTableEx())
+								{
+									if (const CSpellBaseEx *spellBaseEx = pSpellTableEx->GetSpellBase(entry._id & 0xFFFF))
+									{
+										if (meta->_school && meta->_school != spellBaseEx->_school)
+											continue;
+
+										switch (meta->_align)
+										{
+										case 0: // neutral
+											{
+												break;
+											}
+										case 1: // good only
+											{
+												if (!(spellBaseEx->_bitfield & Beneficial_SpellIndex))
+													continue;
+
+												break;
+											}
+										case 2: // bad only
+											{
+												if (spellBaseEx->_bitfield & Beneficial_SpellIndex)
+													continue;
+
+												break;
+											}
+										}
+
+										possibleToDispel.push_back(entry._id);
+									}
+								}
+							}
+						}
+
+						if (member->m_Qualities._enchantment_reg->_mult_list)
+						{
+							for (auto &entry : *member->m_Qualities._enchantment_reg->_mult_list)
+							{
+								if (entry._power_level > meta->_max_power)
+									continue;
+								if (entry._power_level < meta->_min_power)
+									continue;
+								if (entry._duration <= 0.0)
+									continue;
+								if ((entry._id & 0xFFFF) == 666) // vitae
+									continue;
+
+								if (CSpellTableEx *pSpellTableEx = g_pPortalDataEx->GetSpellTableEx())
+								{
+									if (const CSpellBaseEx *spellBaseEx = pSpellTableEx->GetSpellBase(entry._id & 0xFFFF))
+									{
+										if (meta->_school && meta->_school != spellBaseEx->_school)
+											continue;
+
+										switch (meta->_align)
+										{
+										case 0: // neutral
+											{
+												break;
+											}
+										case 1: // good only
+											{
+												if (!(spellBaseEx->_bitfield & Beneficial_SpellIndex))
+													continue;
+
+												break;
+											}
+										case 2: // bad only
+											{
+												if (spellBaseEx->_bitfield & Beneficial_SpellIndex)
+													continue;
+
+												break;
+											}
+										}
+
+										possibleToDispel.push_back(entry._id);
+									}
+								}
+							}
+						}
+					}
+					
+					PackableListWithJson<DWORD> listToDispel;
+
+					if (meta->_number < 0)
+					{
+						// dispel all
+						listToDispel = possibleToDispel;
+					}
+					else
+					{
+						while (numToDispel > 0 && !possibleToDispel.empty())
+						{
+							std::list<DWORD>::iterator randomEntry = possibleToDispel.begin();
+							std::advance(randomEntry, Random::GenUInt(0, (DWORD)(possibleToDispel.size() - 1)));
+
+							listToDispel.push_back(*randomEntry);
+							possibleToDispel.erase(randomEntry);
+
+							numToDispel--;
+						}
+					}
+
+					std::string spellNames;
+					for (auto entry : listToDispel)
+					{
+						if (CSpellTableEx *pSpellTableEx = g_pPortalDataEx->GetSpellTableEx())
+						{
+							if (const CSpellBaseEx *spellBaseEx = pSpellTableEx->GetSpellBase(entry & 0xFFFF))
+							{
+								if (spellNames.empty())
+								{
+									spellNames = spellBaseEx->_name;
+								}
+								else
+								{
+									spellNames += ", ";
+									spellNames += spellBaseEx->_name;
+								}
+							}
+						}
+					}
+
+					// "You cast Incantation of Nullify All Magic Self on yourself and dispel: ..."
+					// "Tusker's Friend casts Nullify All Magic Other on you, but the dispel fails."
+
+					if (listToDispel.size() > 0)
+					{
+						if (member == m_pWeenie)
+						{
+							m_pWeenie->SendText(csprintf("You cast %s on yourself and dispel: %s", m_SpellCastData.spell->_name.c_str(), spellNames.c_str()), LTT_MAGIC);
+						}
+						else
+						{
+							m_pWeenie->SendText(csprintf("You cast %s on %s and dispel: %s", m_SpellCastData.spell->_name.c_str(), member->GetName().c_str(), spellNames.c_str()), LTT_MAGIC);
+							member->SendText(csprintf("%s casts %s on you and dispels: %s", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), spellNames.c_str()), LTT_MAGIC);
+						}
+
+						if (member->m_Qualities._enchantment_reg)
+						{
+							member->m_Qualities._enchantment_reg->RemoveEnchantments(&listToDispel);
+
+							BinaryWriter expireMessage;
+							expireMessage.Write<DWORD>(0x2C8);
+							listToDispel.Pack(&expireMessage);
+							member->SendNetMessage(&expireMessage, PRIVATE_MSG, TRUE, FALSE);
+						}
+					}
+					else
+					{
+						if (member == m_pWeenie)
+						{
+							m_pWeenie->SendText(csprintf("You cast %s on yourself, but the dispel fails.", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+						}
+						else
+						{
+							m_pWeenie->SendText(csprintf("You cast %s on %s, but the dispel fails.", m_SpellCastData.spell->_name.c_str(), member->GetName().c_str()), LTT_MAGIC);
+							member->SendText(csprintf("%s casts %s on you, but the dispel fails.", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+						}
+					}
+
+					bSpellPerformed = true;
+				}
+				}
+					}
+				}
+				PerformFellowCastParticleEffects(fellow);
+			}
+				break;
+			}
+
 		case SpellType::PortalLink_SpellType:
 			{
 				if (m_pWeenie->HasOwner())
@@ -1486,6 +1766,209 @@ int CSpellcastingManager::LaunchSpellEffect()
 				break;
 			}
 
+			case SpellType::FellowEnchantment_SpellType:
+			{
+				FellowshipEnchantmentSpellEx *meta = (FellowshipEnchantmentSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
+
+				Enchantment enchant;
+				enchant._id = meta->_spell_id | ((DWORD)m_SpellCastData.serial << (DWORD)16);
+				enchant.m_SpellSetID = 0; // ???
+				enchant._spell_category = m_SpellCastData.spell->_category; // meta->_spellCategory;
+				enchant._power_level = m_SpellCastData.spell->_power;
+				enchant._start_time = Timer::cur_time;
+				enchant._duration = m_SpellCastData.equipped ? -1.0 : meta->_duration;
+				enchant._caster = m_pWeenie->GetID();
+				enchant._degrade_modifier = meta->_degrade_modifier;
+				enchant._degrade_limit = meta->_degrade_limit;
+				enchant._last_time_degraded = -1.0;
+				enchant._smod = meta->_smod;
+
+				CWeenieObject *target = GetCastTarget();
+
+				if (!target->HasFellowship())
+					break;
+
+				else
+				{
+					Fellowship *fellow = target->GetFellowship();
+					CWorldLandBlock *block = target->GetBlock();
+					for (auto &entry : fellow->_fellowship_table)
+					{
+						if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+						{
+							if (member->GetBlock() == block)
+							{
+							
+				if (enchant._smod.type & Skill_EnchantmentType)
+				{
+					enchant._smod.key = (DWORD)SkillTable::OldToNewSkill((STypeSkill)enchant._smod.key);
+				}
+
+
+				std::list<CWeenieObject *> targets;
+
+				if (member)
+				{
+					if (m_SpellCastData.spell->InqTargetType() != ITEM_TYPE::TYPE_ITEM_ENCHANTABLE_TARGET)
+					{
+						targets.push_back(member);
+					}
+					else
+					{
+						CContainerWeenie *container = member->AsContainer();
+						if (container && !container->HasOwner())
+						{
+							for (auto wielded : container->m_Wielded)
+							{
+								if (wielded->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
+								{
+									if (member == m_pWeenie || wielded->parent) // for other targets, only physically wielded allowed
+									{
+										targets.push_back(wielded);
+									}
+								}
+							}
+						}
+						else
+						{
+							if (member->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
+							{
+								if (member == m_pWeenie || member->parent || !member->HasOwner() || member->GetWorldTopLevelOwner() == m_pWeenie) // for other targets, only physically wielded allowed
+								{
+									targets.push_back(member);
+								}
+							}
+						}
+					}
+
+					for (auto target : targets)
+					{
+						// You cast Harlune's Blessing on yourself, refreshing Harlune's Blessing
+						// You cast Impenetrability III on Pathwarden Robe, surpassing Impenetrability II
+
+						CWeenieObject *topLevelOwner = target->GetWorldTopLevelOwner();
+
+						if (target->InqIntQuality(MAX_STACK_SIZE_INT, 1) > 1) //do not allow enchanting stackable items(ammunition)
+						{
+							m_pWeenie->SendText(csprintf("The %s can't be enchanted.", target->GetName().c_str()), LTT_MAGIC);
+							continue;
+						}
+
+						bool bAlreadyExisted = false;
+						if (target->m_Qualities._enchantment_reg && target->m_Qualities._enchantment_reg->IsEnchanted(enchant._id))
+							bAlreadyExisted = true;
+
+						if (m_pWeenie != target)
+						{
+							if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
+							{
+								if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
+								{
+									continue;
+								}
+							}
+
+							if (m_SpellCastData.spell->_bitfield & Resistable_SpellIndex)
+							{
+								if (topLevelOwner->TryMagicResist(m_SpellCastData.current_skill))
+								{
+									topLevelOwner->EmitSound(Sound_ResistSpell, 1.0f, false);
+									topLevelOwner->SendText(csprintf("You resist the spell cast by %s", m_pWeenie->GetName().c_str()), LTT_MAGIC);
+									m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+									topLevelOwner->OnResistSpell(m_pWeenie);
+									continue;
+								}
+							}
+
+							if (int resistMagic = target->InqIntQuality(RESIST_MAGIC_INT, 0, FALSE))
+							{
+								if (resistMagic >= 9999 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD)resistMagic))
+								{
+									target->EmitSound(Sound_ResistSpell, 1.0f, false);
+
+									if (m_pWeenie != topLevelOwner)
+									{
+										topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+									}
+
+									m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+									target->OnResistSpell(m_pWeenie);
+									continue;
+								}
+							}
+							if (int resistLifeMagic = target->InqIntQuality(LIFE_RESIST_RATING_INT, 0, FALSE))
+							{
+								if (resistLifeMagic >= 9999 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD)resistLifeMagic))
+								{
+									target->EmitSound(Sound_ResistSpell, 1.0f, false);
+
+									if (m_pWeenie != topLevelOwner)
+									{
+										topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+									}
+
+									m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+									target->OnResistSpell(m_pWeenie);
+									continue;
+								}
+							}
+							if (bool resistProjectileMagic = target->InqBoolQuality(NON_PROJECTILE_MAGIC_IMMUNE_BOOL, 0))
+							{
+								if (resistProjectileMagic == 1 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD)resistProjectileMagic))
+								{
+									target->EmitSound(Sound_ResistSpell, 1.0f, false);
+
+									if (m_pWeenie != topLevelOwner)
+									{
+										topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+									}
+
+									m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+									target->OnResistSpell(m_pWeenie);
+									continue;
+								}
+							}
+						}
+
+						topLevelOwner->HandleAggro(m_pWeenie);
+
+						target->m_Qualities.UpdateEnchantment(&enchant);
+						target->NotifyEnchantmentUpdated(&enchant);
+
+						target->CheckVitalRanges();
+
+						if (m_pWeenie == target)
+						{
+							m_pWeenie->SendText(csprintf("You cast %s on yourself", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+						}
+						else
+						{
+							m_pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+
+							if (m_pWeenie != topLevelOwner)
+							{
+								if (target == topLevelOwner)
+									target->SendText(csprintf("%s cast %s on you", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+								else
+									topLevelOwner->SendText(csprintf("%s cast %s on %s", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+							}
+						}
+
+						bSpellPerformed = true;
+						
+					}
+				}
+
+				}
+						}
+					}
+					PerformFellowCastParticleEffects(fellow);
+				}
+
+				break;
+			}
+
+
 		case SpellType::PortalSummon_SpellType:
 			{
 				PortalSummonSpellEx *meta = (PortalSummonSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
@@ -1627,6 +2110,37 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 				break;
 			}
+
+		case SpellType::FellowPortalSending_SpellType:
+		{
+			FellowshipPortalSendingSpellEx *meta = (FellowshipPortalSendingSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
+
+			CWeenieObject *target = GetCastTarget();
+
+			if (!target->HasFellowship())
+				break;
+
+			else
+			{
+				Fellowship *fellow = target->GetFellowship();
+				CWorldLandBlock *block = target->GetBlock();
+				for (auto &entry : fellow->_fellowship_table)
+				{
+					if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+					{
+						if (member->GetBlock() == block)
+						{
+							 
+							member->Movement_Teleport(meta->_pos, false);
+							member->SendText("You have been teleported.", LTT_MAGIC);
+						}
+					}
+				}
+				PerformFellowCastParticleEffects(fellow);
+			}
+
+			break;
+		}
 
 		case SpellType::LifeProjectile_SpellType:
 		case SpellType::Projectile_SpellType:
