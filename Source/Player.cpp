@@ -998,6 +998,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 	{
 	case TYPE_MANASTONE:
 	{
+		// TODO: move this logic to ManaStone.cpp
 		int targetType = pTarget->InqIntQuality(ITEM_TYPE_INT, 0);
 		if (!(targetType & TYPE_ITEM) && !(targetType & TYPE_CREATURE)) {
 			SendText(csprintf("That's not a valid target for the %s", pTool->GetName().c_str()), LTT_DEFAULT); //todo: made up message, confirm if it's correct
