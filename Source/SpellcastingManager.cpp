@@ -2921,13 +2921,13 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 	CContainerWeenie *caster = m_pWeenie->AsContainer();
 	if (caster != NULL && caster->InqBoolQuality(SPELL_COMPONENTS_REQUIRED_BOOL, FALSE) == TRUE)
 	{
-		CWeenieObject *foci = NULL;
+		bool foci;
 
 		if (g_pConfig->IsSpellFociEnabled())
 		{
 			switch (m_SpellCastData.spell->InqSkillForSpell())
 			{
-			case CREATURE_ENCHANTMENT_SKILL: foci = FindFociInContainer(caster, W_PACKCREATUREESSENCE_CLASS); break;
+			case CREATURE_ENCHANTMENT_SKILL: foci = FindFociInContainer(caster, W_PACKCREATUREESSENCE_CLASS) || caster->InqIntQuality(AUGMENTATION_INFUSED_CREATURE_MAGIC_INT, 0);; break;
 			case ITEM_ENCHANTMENT_SKILL: foci = FindFociInContainer(caster, W_PACKITEMESSENCE_CLASS); break;
 			case LIFE_MAGIC_SKILL: foci = FindFociInContainer(caster, W_PACKLIFEESSENCE_CLASS); break;
 			case WAR_MAGIC_SKILL: foci = FindFociInContainer(caster, W_PACKWARESSENCE_CLASS); break;
@@ -2947,7 +2947,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 			if (componentId == 0)
 				continue;
 
-			if (foci != NULL)
+			if (foci != FALSE)
 			{
 				SpellComponentTable *pSpellComponents = MagicSystem::GetSpellComponentTable();
 				const SpellComponentBase *componentBase = pSpellComponents->InqSpellComponentBase(componentId);
@@ -2965,7 +2965,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 
 			componentAmounts[componentId]++;
 		}
-		if (foci != NULL)
+		if (foci != FALSE)
 			componentAmounts[188]++; //if using foci, add one more prismatic taper.
 
 		m_UsedComponents.clear(); // clear the list of left overs from previous interrupted spell attempts.

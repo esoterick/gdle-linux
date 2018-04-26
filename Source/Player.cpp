@@ -470,7 +470,7 @@ void CPlayerWeenie::OnGivenXP(long long amount, bool allegianceXP)
 	}
 }
 
-void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
+void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD killer_id)
 {
 	if (!pCorpse)
 		return;
@@ -479,10 +479,14 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse)
 		return;
 
 	int level = InqIntQuality(LEVEL_INT, 1);
+	CWeenieObject *pKiller = g_pWorld->FindObject(killer_id);
 	int maxItemsToDrop = 12; // Limit the amount of items that can be dropped + random adjustment
-	int amountOfItemsToDrop = min(max(level / 20, 1), maxItemsToDrop);
-	if (level > 10)
-		amountOfItemsToDrop += Random::GenUInt(0, 2);
+	int amountOfItemsToDrop = 0;
+	int augDropLess = InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0); // Take Death Item Augs into Consideration
+	if (!pKiller->_IsPlayer())
+		amountOfItemsToDrop = min(max(level / 20, 1), floor(maxItemsToDrop - (maxItemsToDrop * (augDropLess * .33))));
+	else
+		amountOfItemsToDrop = min(max(level / 20, 1), maxItemsToDrop);
 	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
 	pCorpse->_shouldSave = true;
 	pCorpse->m_bDontClear = true;
@@ -698,7 +702,7 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 	_pendingCorpse->Save();
 
 	if (_pendingCorpse)
-		CalculateAndDropDeathItems(_pendingCorpse);
+		CalculateAndDropDeathItems(_pendingCorpse, killer_id);
 
 	if (g_pConfig->HardcoreMode())
 	{
@@ -1328,17 +1332,17 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			int multiple = 1;
 			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
 
-				if (toolWorkmanship >= itemWorkmanship)
-				{
-					multiple = 2;
-				}
-	
-				if (amountOfTimesTinkered > 2)
-				{
-					difficulty = amountOfTimesTinkered * 0.5;
-				}
-					
-			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod)+(2 * itemWorkmanship * salvageMod)-(toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
+			if (toolWorkmanship >= itemWorkmanship)
+			{
+				multiple = 2;
+			}
+
+			if (amountOfTimesTinkered > 2)
+			{
+				difficulty = amountOfTimesTinkered * 0.5;
+			}
+
+			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
 
 			if (Random::RollDice(0.0, 1.0) <= successChance)
 			{
@@ -1603,8 +1607,8 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, CWeenie
 #endif
 				break;
 			}
+		}
 	}
-}
 
 	if (!op->_requirements[index]._boolRequirement.empty())
 	{
@@ -2363,8 +2367,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetInt(intMod._stat, value);
 				pTarget->NotifyIntStatUpdated(intMod._stat, false);
 			}
-			}
 		}
+	}
 
 	if (!op->_mods[index]._boolMod.empty())
 	{
@@ -2427,8 +2431,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetBool(boolMod._stat, value);
 				pTarget->NotifyBoolStatUpdated(boolMod._stat, false);
 			}
-			}
-			}
+		}
+	}
 
 	if (!op->_mods[index]._floatMod.empty())
 	{
@@ -2493,8 +2497,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetFloat(floatMod._stat, value);
 				pTarget->NotifyFloatStatUpdated(floatMod._stat, false);
 			}
-			}
-			}
+		}
+	}
 
 	if (!op->_mods[index]._stringMod.empty())
 	{
@@ -2581,8 +2585,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetString(stringMod._stat, value);
 				pTarget->NotifyStringStatUpdated(stringMod._stat, false);
 			}
-			}
-			}
+		}
+	}
 
 	if (!op->_mods[index]._didMod.empty())
 	{
@@ -2645,8 +2649,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetDataID(didMod._stat, value);
 				pTarget->NotifyDIDStatUpdated(didMod._stat, false);
 			}
-			}
-			}
+		}
+	}
 
 	if (!op->_mods[index]._iidMod.empty())
 	{
@@ -2731,8 +2735,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pTarget->m_Qualities.SetInstanceID(iidMod._stat, value);
 				pTarget->NotifyIIDStatUpdated(iidMod._stat, false);
 			}
-			}
-			}
+		}
+	}
 
 	if (op->_mods[index]._unknown7) //this is a guess
 	{
@@ -2759,7 +2763,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			}
 		}
 	}
-		}
+}
 
 DWORD CPlayerWeenie::MaterialToSalvageBagId(MaterialType material)
 {
