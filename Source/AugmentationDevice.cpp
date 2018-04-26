@@ -4,6 +4,8 @@
 #include "UseManager.h"
 #include "Player.h"
 #include "Qualities.h"
+#include "ChatMsgs.h"
+#include "World.h"
 
 CAugmentationDeviceWeenie::CAugmentationDeviceWeenie()
 {
@@ -74,7 +76,12 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Reinforcement of the Lugians augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
 
 					DecrementStackOrStructureNum();
 					break;
@@ -114,7 +121,12 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Bleeargh's Fortitude augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
 
 					DecrementStackOrStructureNum();
 					break;
@@ -154,7 +166,12 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Oswald's Enhancement augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
 
 					DecrementStackOrStructureNum();
 					break;
@@ -194,7 +211,12 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Siraluun's Blessing augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
 
 					DecrementStackOrStructureNum();
 					break;
@@ -234,7 +256,12 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Enduring Calm augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
 
 					DecrementStackOrStructureNum();
 					break;
@@ -274,7 +301,12 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Steadfast Will augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
 
 					DecrementStackOrStructureNum();
 					break;
@@ -315,9 +347,14 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Ciandra's Essence augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
 
 					DecrementStackOrStructureNum();
+
 					break;
 				}
 			}
@@ -356,9 +393,14 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Yoshi's Essence augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
 
 					DecrementStackOrStructureNum();
+
 					break;
 				}
 			}
@@ -397,7 +439,11 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Jibril's Essence augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
 
 					DecrementStackOrStructureNum();
 					break;
@@ -438,8 +484,11 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Celdiseth's Essence augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
-
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
 					DecrementStackOrStructureNum();
 					break;
 				}
@@ -479,8 +528,11 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Koga's Essence augmentation.", LTT_DEFAULT);
-					player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
-
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
 					DecrementStackOrStructureNum();
 					break;
 				}
@@ -500,14 +552,20 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_EXTRA_PACK_SLOT_INT, augExtraPack + 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->m_Qualities.SetInt(CONTAINERS_CAPACITY_INT, 8);
 				player->NotifyIntStatUpdated(CONTAINERS_CAPACITY_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Shadow of The Seventh Mule augmentation.", LTT_DEFAULT);
-				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+
 				break;
 			}
 			else
@@ -531,7 +589,14 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->NotifyIntStatUpdated(ENCUMB_CAPACITY_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Might of The Seventh Mule augmentation.", LTT_DEFAULT);
-				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+
 				break;
 			}
 			else
@@ -549,13 +614,19 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, augDropLess + 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Clutch of the Miser augmentation.", LTT_DEFAULT);
-				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+
 				break;
 			}
 			else
@@ -573,13 +644,19 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_INFUSED_CREATURE_MAGIC_INT, augCreatureFoci + 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_CREATURE_MAGIC_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Infused Creature Magic augmentation.", LTT_DEFAULT);
-				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+
 				break;
 			}
 			else
@@ -597,13 +674,19 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_INFUSED_ITEM_MAGIC_INT, augItemFoci + 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_ITEM_MAGIC_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Infused Item Magic augmentation.", LTT_DEFAULT);
-				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+
 				break;
 			}
 			else
@@ -621,13 +704,19 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_INFUSED_LIFE_MAGIC_INT, augLifeFoci + 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_LIFE_MAGIC_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Infused Life Magic augmentation.", LTT_DEFAULT);
-				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+
 				break;
 			}
 			else
@@ -645,13 +734,19 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_INFUSED_WAR_MAGIC_INT, augWarFoci + 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_WAR_MAGIC_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Infused War Magic augmentation.", LTT_DEFAULT);
-				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+
 				break;
 			}
 			else
@@ -669,23 +764,18 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MELEE_INT, 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of The Steel Circle augmentation.", LTT_DEFAULT);
-				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
-				//Need to cycle through the skills and notify the updated values here. Previous code was no good
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
 
-				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
-				//{
-				//DWORD val = 5;
-				//DWORD &valptr = val;
-				//STypeSkill skill = entry->first;
-				//player->InqSkill(skill, valptr, false);
-				//player->NotifySkillStatUpdated(skill);
+				DecrementStackOrStructureNum();
 
-				//}
 
 				break;
 			}
@@ -704,23 +794,18 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MISSILE_INT, 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of the Focused Eye augmentation.", LTT_DEFAULT);
-				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
-				//Need to cycle through the skills and notify the updated values here. Previous code was no good
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
 
-				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
-				//{
-				//DWORD val = 5;
-				//DWORD &valptr = val;
-				//STypeSkill skill = entry->first;
-				//player->InqSkill(skill, valptr, false);
-				//player->NotifySkillStatUpdated(skill);
+				DecrementStackOrStructureNum();
 
-				//}
 
 				break;
 			}
@@ -739,23 +824,18 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MAGIC_INT, 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of The Five Fold Path augmentation.", LTT_DEFAULT);
-				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
-				//Need to cycle through the skills and notify the updated values here. Previous code was no good
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
 
-				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
-				//{
-				//DWORD val = 5;
-				//DWORD &valptr = val;
-				//STypeSkill skill = entry->first;
-				//player->InqSkill(skill, valptr, false);
-				//player->NotifySkillStatUpdated(skill);
+				DecrementStackOrStructureNum();
 
-				//}
 
 				break;
 			}
@@ -774,23 +854,19 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_JACK_OF_ALL_TRADES_INT, 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Jack of All Trades augmentation.", LTT_DEFAULT);
 				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
-				//Need to cycle through the skills and notify the updated values here. Previous code was no good
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
 
-				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
-				//{
-					//DWORD val = 5;
-					//DWORD &valptr = val;
-					//STypeSkill skill = entry->first;
-					//player->InqSkill(skill, valptr, false);
-					//player->NotifySkillStatUpdated(skill);
+				DecrementStackOrStructureNum();
 
-				//}
 
 				break;
 			}

@@ -835,6 +835,13 @@ void CWorld::BroadcastGlobal(void *_data, DWORD _len, WORD _group, DWORD ignore_
 	}
 }
 
+void CWorld::BroadcastLocal(DWORD cellid, std::string text)
+{
+	BinaryWriter *textMsg = ServerText(text.c_str(), LTT_DEFAULT);
+	g_pWorld->BroadcastPVS(cellid, textMsg->GetData(), textMsg->GetSize(), PRIVATE_MSG, 0, false);
+	delete textMsg;
+}
+
 void CWorld::Test()
 {
 	LOG(Temp, Normal, "<CWorld::Test()>\n");
