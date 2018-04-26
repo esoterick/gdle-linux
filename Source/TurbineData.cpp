@@ -49,7 +49,7 @@ void TurbineData::LoadFile(const char* szFile)
 	else
 	{
 #ifndef _DEBUG
-		LOG(Temp, Normal, "mapping.. ");
+		WINLOG(Temp, Normal, "mapping.. ");
 		m_pDATDisk->FindFileIDsWithinRange(0, (DWORD)-1, FileFoundCallback, NULL, this);
 #endif
 
