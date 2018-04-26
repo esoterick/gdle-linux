@@ -594,6 +594,9 @@
     <ClCompile Include="Source\easylogging++.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ManaStone.cpp">
+      <Filter>Source Files\Objects\Weenie Types</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\crcwheel.h">
@@ -1204,6 +1207,9 @@
     </ClInclude>
     <ClInclude Include="Source\easylogging++.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ManaStone.h">
+      <Filter>Source Files\Objects\Weenie Types</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
