@@ -1341,9 +1341,25 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod)+(2 * itemWorkmanship * salvageMod)-(toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
 
 			if (Random::RollDice(0.0, 1.0) <= successChance)
+			{
 				success = true;
-			else
+
+				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
+			}
+			else {
+
 				success = false;
+
+				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
+			}
 			break;
 		}
 		case 2: //imbues
@@ -1372,14 +1388,25 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
 
 			successChance /= 3; //maximum success chance for imbues is 33%
+
 			float successRoll = Random::RollDice(0.0, 1.0);
 			if (successRoll <= successChance)
 			{
 				success = true;
+				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
 			}
 			else
 			{
 				success = false;
+				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
 			}
 
 			IMBUE_LOG << "Player:" << InqStringQuality(NAME_STRING, "") << " Skill level:" << skillLevel << " Target:" << pTarget->InqStringQuality(NAME_STRING, "") << " Workmanship: " << itemWorkmanship <<
