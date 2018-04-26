@@ -4569,3 +4569,5 @@ el::base::debug::CrashHandler elCrashHandler(ELPP_USE_DEF_CRASH_HANDLER);\
 #define DEBUG_DATA CLOG(DEBUG, _DLOGGER)
 #define _DLOG "death", "info"
 #define DEATH_LOG CLOG(INFO, _DLOG)
+#define _IMBLOG "imbue", "info"
+#define IMBUE_LOG CLOG(INFO, _IMBLOG)

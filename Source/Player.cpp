@@ -1372,11 +1372,19 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
 
 			successChance /= 3; //maximum success chance for imbues is 33%
-
-			if (Random::RollDice(0.0, 1.0) <= successChance)
+			float successRoll = Random::RollDice(0.0, 1.0);
+			if (successRoll <= successChance)
+			{
 				success = true;
+			}
 			else
+			{
 				success = false;
+			}
+
+			IMBUE_LOG << "Player:" << InqStringQuality(NAME_STRING, "") << " Skill level:" << skillLevel << " Target:" << pTarget->InqStringQuality(NAME_STRING, "") << " Workmanship: " << itemWorkmanship <<
+				  " Material:" << pTool->InqStringQuality(NAME_STRING, "") << " Workmanship:" << toolWorkmanship << " Roll:" << successRoll << " Success:" << (success ? "TRUE" : "FALSE");
+
 			break;
 		}
 		default:
