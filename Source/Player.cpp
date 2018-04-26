@@ -1341,9 +1341,25 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod)+(2 * itemWorkmanship * salvageMod)-(toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
 
 			if (Random::RollDice(0.0, 1.0) <= successChance)
+			{
 				success = true;
-			else
+
+				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
+			}
+			else {
+
 				success = false;
+
+				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
+			}
 			break;
 		}
 		case 2: //imbues
@@ -1374,9 +1390,25 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			successChance /= 3; //maximum success chance for imbues is 33%
 
 			if (Random::RollDice(0.0, 1.0) <= successChance)
+			{
 				success = true;
-			else
+
+				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
+			}
+			else {
+
 				success = false;
+
+				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
+			}
 			break;
 		}
 		default:
