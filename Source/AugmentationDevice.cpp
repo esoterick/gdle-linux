@@ -43,6 +43,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 	int augItemFoci = player->InqIntQuality(AUGMENTATION_INFUSED_ITEM_MAGIC_INT, 0);
 	int augLifeFoci = player->InqIntQuality(AUGMENTATION_INFUSED_LIFE_MAGIC_INT, 0);
 	int augWarFoci = player->InqIntQuality(AUGMENTATION_INFUSED_WAR_MAGIC_INT, 0);
+	int augBuffDuration = player->InqIntQuality(AUGMENTATION_INCREASED_SPELL_DURATION_INT, 0);
 
 	switch (aug)
 	{
@@ -619,6 +620,37 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->NotifyIntStatUpdated(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Clutch of the Miser augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 21:
+		if (augBuffDuration == 4)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augBuffDuration < 4)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_INCREASED_SPELL_DURATION_INT, augBuffDuration + 1);
+				DecrementStackOrStructureNum();
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_INCREASED_SPELL_DURATION_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Archmage's Endurance augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
 				{
