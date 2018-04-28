@@ -635,12 +635,12 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			break;
 		}
 	case 21:
-		if (augBuffDuration == 4)
+		if (augBuffDuration == 5)
 		{
 			player->SendText("This augmentation is already active.", LTT_DEFAULT);
 			break;
 		}
-		if (augBuffDuration < 4)
+		if (augBuffDuration < 5)
 		{
 			if (unassignedXP >= augCost)
 			{

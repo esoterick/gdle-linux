@@ -1603,7 +1603,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 			enchant._spell_category = m_SpellCastData.spell->_category; // meta->_spellCategory;
 			enchant._power_level = m_SpellCastData.spell->_power;
 			enchant._start_time = Timer::cur_time;
-			enchant._duration = m_SpellCastData.equipped ? -1.0 : meta->_duration * (buffDuration*0.25 + 1);
+			enchant._duration = m_SpellCastData.equipped ? -1.0 : meta->_duration * (buffDuration*0.2 + 1);
 			enchant._caster = m_pWeenie->GetID();
 			enchant._degrade_modifier = meta->_degrade_modifier;
 			enchant._degrade_limit = meta->_degrade_limit;
