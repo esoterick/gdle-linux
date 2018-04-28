@@ -95,7 +95,7 @@ void CWeenieObject::InitPhysicsObj()
 
 	if (!InitObjectBegin(GetID(), TRUE))
 	{
-		WINLOG(Temp, Warning, "Failed creating physics object!\n");
+		SERVER_ERROR << "Failed creating physics object!";
 	}
 
 
@@ -144,7 +144,7 @@ void CWeenieObject::InitPhysicsObj()
 
 	if (!InitPartArrayObject(setupID, bCreateParts))
 	{
-		WINLOG(Temp, Warning, "Failed creating parts array for physics object with setup 0x%08X!\n", setupID);
+		SERVER_ERROR << "Failed creating parts array for physics object with setup" << setupID;
 	}
 
 	InitObjectEnd(); //  SetPlacementFrameInternal(0x65);
@@ -4866,7 +4866,7 @@ DWORD CWeenieObject::GetTopLevelID()
 		}
 		else
 		{
-			WINLOG(Temp, Error, "Could not find parent container weenie 0x%08X for 0x%08X in GetTopLevelID()\n", container_id, GetID());
+			SERVER_ERROR << "Could not find parent container weenie" << container_id << "for" << GetID() << "in GetTopLevelID()";
 		}
 	}
 
@@ -4879,7 +4879,7 @@ DWORD CWeenieObject::GetTopLevelID()
 		}
 		else
 		{
-			WINLOG(Temp, Error, "Could not find parent wielder weenie 0x%08X for 0x%08X in GetTopLevelID()\n", wielder_id, GetID());
+			SERVER_ERROR << "Could not find parent wielder weenie" << wielder_id << "for" << GetID() << "in GetTopLevelID()"; ;
 		}
 	}
 
