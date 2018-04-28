@@ -4699,11 +4699,13 @@ bool CWeenieObject::Save()
 	BinaryWriter writer;
 	save.Pack(&writer);
 	bool result = g_pDBIO->CreateOrUpdateWeenie(GetID(), GetTopLevelID(), m_Position.objcell_id >> 16, writer.GetData(), writer.GetSize()); 
+	if (!result)
+		SERVER_ERROR << "Failed to save Weenie:" << GetID() << " Owner:" << GetTopLevelID() << " At:" << (m_Position.objcell_id >> 16);
 
 	double elapsed = watch.GetElapsed();
 	if (elapsed >= 0.1)
 	{
-		LOG_PRIVATE(Temp, Warning, "Took %f seconds to save %s\n", elapsed, GetName().c_str());
+		SERVER_WARN << csprintf("Took %f seconds to save %s\n", elapsed, GetName().c_str());
 	}
 
 	return result;

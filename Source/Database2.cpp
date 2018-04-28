@@ -668,8 +668,8 @@ void CMYSQLDatabase::ProcessAsyncQueries()
 		if (!queuedQuery)
 		{
 			break;
-		}
-		
+    	}
+
 		if (queuedQuery->PerformQuery((MYSQL *)GetInternalAsyncConnection()))
 		{
 			delete queuedQuery;
@@ -679,6 +679,8 @@ void CMYSQLDatabase::ProcessAsyncQueries()
 			_asyncQueueLock.Lock();
 			_asyncQueries.push_front(queuedQuery);
 			_asyncQueueLock.Unlock();
+
+			SERVER_ERROR << "Errro while performing query:" << queuedQuery;
 
 			// there was an error, stop for now
 			break;
