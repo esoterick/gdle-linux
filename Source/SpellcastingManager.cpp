@@ -2628,7 +2628,7 @@ int CSpellcastingManager::CreatureBeginCast(DWORD target_id, DWORD spell_id)
 
 	if (!ResolveSpellBeingCasted())
 	{
-		WINLOG(Temp, Normal, "Player trying to cast unknown spell?\n");
+		SERVER_INFO << "Player trying to cast unknown spell?";
 		return WERROR_MAGIC_GENERAL_FAILURE;
 	}
 
@@ -2902,7 +2902,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 
 	if (!ResolveSpellBeingCasted())
 	{
-		WINLOG(Temp, Normal, "Player trying to cast unknown spell?\n"); 
+		SERVER_INFO << "Player trying to cast unknown spell?";
 		return WERROR_MAGIC_GENERAL_FAILURE;
 	}
 

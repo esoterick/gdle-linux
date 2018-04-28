@@ -18,7 +18,7 @@
 CWorld::CWorld()
 {
 	WINLOG(Temp, Normal, "Initializing World..\n");
-
+	SERVER_INFO << "Initializing World..";
 	ZeroMemory(m_pBlocks, sizeof(m_pBlocks));
 
 	LoadDungeonsFile();
@@ -309,7 +309,7 @@ CWorldLandBlock *CWorld::ActivateBlock(WORD wHeader)
 	pBlock = *ppBlock;
 	if (pBlock != NULL)
 	{
-		WINLOG(Temp, Normal, "Landblock already active!\n");
+		SERVER_INFO << "Landblock already active!";
 		return pBlock;
 	}
 #endif
@@ -428,7 +428,7 @@ bool CWorld::CreateEntity(CWeenieObject *pEntity, bool bMakeAware)
 	}
 
 #ifdef _DEBUG
-	WINLOG(World, Verbose, "Spawned ID 0x%08X \"%s\" memory object @ 0x%I64X\n", pEntity->GetID(), pEntity->GetName().c_str(), (DWORD64)pEntity);
+	DEBUG_DATA << "Spawned ID" << pEntity->GetID() << "- " << pEntity->GetName().c_str() << "memory object @" << (DWORD64)pEntity;
 #endif
 
 	return true;

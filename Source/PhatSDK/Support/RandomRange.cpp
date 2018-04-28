@@ -3,6 +3,7 @@
 #include "RandomRange.h"
 #include "Random.h"
 #include <random>
+#include "easylogging++.h"
 
 std::random_device randomDevice;
 CSharpRandom rng = CSharpRandom(randomDevice());
@@ -38,7 +39,7 @@ void testRandomValueGenerator()
 
 	for each(auto entry in valueDistribution)
 	{
-		WINLOG(Data, Error, "value: %d amount: %d percent: %f\n", entry.first, entry.second, entry.second * 100.0 / testRolls);
+		SERVER_ERROR << "RNG Distribution - Value:" << entry.first << " Amount:" << entry.second << " Percent:" << (entry.second * 100.0 / testRolls);
 	}
 }
 

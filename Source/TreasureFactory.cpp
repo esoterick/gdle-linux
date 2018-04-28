@@ -873,6 +873,7 @@ CreatureType CTreasureFactory::TranslateCreatureStringToEnumValue(std::string st
 void CTreasureFactory::Initialize()
 {
 	WINLOG(Data, Normal, "Loading treasure generation profile...\n");
+	SERVER_INFO << "Loading treasure generation profile...";
 
 	std::ifstream fileStream("data\\json\\treasureProfile.json");
 
@@ -901,12 +902,14 @@ void CTreasureFactory::Initialize()
 		catch (...)
 		{
 			WINLOG(Data, Error, "----------------------\nError loading treasure generation profile!\n----------------------\n");
+			SERVER_ERROR << "Error parsing treasure generation profile";
 			SafeDelete(_TreasureProfile);
 			return;
 		}
 	}
 
 	WINLOG(Data, Normal, "Finished loading treasure generation profile.\n");
+	SERVER_INFO << "Finished loading treasure generation profile";
 }
 
 CWeenieObject *CreateFromEntry(PackableList<TreasureEntry>::iterator entry, unsigned int ptid, float shade)

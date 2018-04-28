@@ -39,6 +39,7 @@
 #include "RandomRange.h"
 #include "House.h"
 #include "GameEventManager.h"
+#include "easylogging++.h"
 
 // Most of these commands are just for experimenting and never meant to be used in a real game
 // TODO: Add flags to these commands so they are only accessible under certain modes such as a sandbox mode
@@ -1360,11 +1361,11 @@ SERVER_COMMAND(kick, "<player name>", "Kicks the specified player.", SENTINEL_AC
 
 	if (pPlayer)
 	{
-		WINLOG(Command, Normal, "\"%s\" is using the kick command.\n", pPlayer->GetName().c_str());
+		SERVER_INFO << pPlayer->GetName().c_str() << "is using the kick command.";
 	}
 	else
 	{
-		WINLOG(Command, Normal, "Server is using the kick command.\n");
+		SERVER_INFO << "Server is using the kick command.";
 	}
 
 	CPlayerWeenie *pTarget = g_pWorld->FindPlayer(argv[0]);
@@ -4404,7 +4405,7 @@ bool CommandBase::Execute(char *command, CClient *client)
 			{
 				if (!pCommand->source || player_weenie)
 				{
-					WINLOG(Temp, Normal, "EXECUTING CLIENT COMMAND %s FROM %s\n", command, client->GetDescription());
+					SERVER_INFO << "EXECUTING CLIENT COMMAND" << command << "FROM" << client->GetDescription();
 
 					// run the command callback
 					if ((*pCommand->func)(client, player_weenie, player_physobj, argv + 1, argc - 1))
