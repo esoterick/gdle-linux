@@ -83,7 +83,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 					}
 
-
 					DecrementStackOrStructureNum();
 					break;
 				}
@@ -127,7 +126,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 					{
 						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 					}
-
 
 					DecrementStackOrStructureNum();
 					break;
@@ -173,7 +171,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 					}
 
-
 					DecrementStackOrStructureNum();
 					break;
 				}
@@ -217,7 +214,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 					{
 						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 					}
-
 
 					DecrementStackOrStructureNum();
 					break;
@@ -263,7 +259,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 					}
 
-
 					DecrementStackOrStructureNum();
 					break;
 				}
@@ -308,7 +303,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 					}
 
-
 					DecrementStackOrStructureNum();
 					break;
 				}
@@ -337,7 +331,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 				else
 				{
-					skill.SetSkillAdvancementClass (SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill.SetSkillAdvancementClass(SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
 					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
 					skill._init_level = 10;
 					player->m_Qualities.SetSkill(SALVAGING_SKILL, skill);
@@ -355,7 +349,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 					}
 
 					DecrementStackOrStructureNum();
-
 					break;
 				}
 			}
@@ -401,7 +394,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 					}
 
 					DecrementStackOrStructureNum();
-
 					break;
 				}
 			}
@@ -490,6 +482,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 					{
 						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 					}
+
 					DecrementStackOrStructureNum();
 					break;
 				}
@@ -534,6 +527,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 					{
 						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 					}
+
 					DecrementStackOrStructureNum();
 					break;
 				}
@@ -566,7 +560,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
 				break;
 			}
 			else
@@ -584,7 +577,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, augIncreasedBurden + 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(ENCUMB_CAPACITY_INT);
@@ -597,7 +589,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
 				break;
 			}
 			else
@@ -627,7 +618,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
 				break;
 			}
 			else
@@ -645,7 +635,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 			if (unassignedXP >= augCost)
 			{
 				player->m_Qualities.SetInt(AUGMENTATION_INCREASED_SPELL_DURATION_INT, augBuffDuration + 1);
-				DecrementStackOrStructureNum();
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INCREASED_SPELL_DURATION_INT);
@@ -658,7 +647,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
 				break;
 			}
 			else
@@ -688,7 +676,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
 				break;
 			}
 			else
@@ -718,7 +705,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
 				break;
 			}
 			else
@@ -748,7 +734,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
 				break;
 			}
 			else
@@ -778,7 +763,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
 				break;
 			}
 			else
@@ -807,8 +791,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
-
 				break;
 			}
 			else
@@ -837,8 +819,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
-
 				break;
 			}
 			else
@@ -867,8 +847,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
-
 				break;
 			}
 			else
@@ -898,8 +876,6 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				}
 
 				DecrementStackOrStructureNum();
-
-
 				break;
 			}
 			else
