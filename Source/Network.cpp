@@ -518,7 +518,7 @@ void CNetwork::KillClient(WORD slot)
 {
 	if (CClient *pClient = GetClient(slot))
 	{		
-		SERVER_INFO << "Client" << pClient->GetSlot() << "(" << pClient->GetAccount() << ") disconnected";
+		SERVER_INFO << "Client" << pClient->GetAccount() << "(" << inet_ntoa(pClient->GetHostAddress()->sin_addr) << ") disconnected";
 
 		DWORD arrayPos = pClient->GetArrayPos();
 
@@ -669,7 +669,7 @@ void CNetwork::ConnectionRequest(sockaddr_in *addr, BlobPacket_s *p)
 		return;
 	}
 
-	SERVER_INFO << "Client" << client->GetSlot() << "(" << client->GetAccount() << ") connected on slot" << slot;
+	SERVER_INFO << "Client" << login_credentials << "(" << inet_ntoa(addr->sin_addr) << ") connected on slot" << slot;
 
 	client = m_ClientSlots[slot] = new CClient(addr, slot, accountInfo);
 	client->SetLoginData(client_unix_timestamp, portal_stamp, cell_stamp);
