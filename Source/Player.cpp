@@ -483,7 +483,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	int maxItemsToDrop = 12; // Limit the amount of items that can be dropped + random adjustment
 	int amountOfItemsToDrop = 0;
 	int augDropLess = InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0); // Take Death Item Augs into Consideration
-	if (!pKiller->_IsPlayer())
+	if (pKiller && !pKiller->_IsPlayer())
 		amountOfItemsToDrop = min(max(level / 20, 1), floor(maxItemsToDrop - (maxItemsToDrop * (augDropLess * .33))));
 	else
 		amountOfItemsToDrop = min(max(level / 20, 1), maxItemsToDrop);
@@ -1368,7 +1368,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 		case 2: //imbues
 		{
 			double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
-			double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+			double item_workmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
 			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
@@ -1378,7 +1378,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			int multiple = 1;
 			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
 
-			if (toolWorkmanship >= itemWorkmanship)
+			if (toolWorkmanship >= item_workmanship)
 			{
 				multiple = 2;
 			}
@@ -1388,7 +1388,9 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				difficulty = amountOfTimesTinkered * 0.5;
 			}
 
-			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
+			double successChance = GetSkillChance(skillLevel, int(floor(
+				                                      ((5 * salvageMod) + (2 * item_workmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) *
+				                                      difficulty))); //Formulas from Endy's Tinkering Calculator
 
 			successChance = min(successChance, 1.0/3.0); //maximum success chance for imbues is 33%
 
@@ -1411,9 +1413,9 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 					g_pWorld->BroadcastLocal(GetLandcell(), text);
 				}
 			}
-
-			IMBUE_LOG << "Player:" << InqStringQuality(NAME_STRING, "") << " Skill level:" << skillLevel << " Target:" << pTarget->InqStringQuality(NAME_STRING, "") << " Workmanship: " << itemWorkmanship <<
-				  " Material:" << pTool->InqStringQuality(NAME_STRING, "") << " Workmanship:" << toolWorkmanship << " Roll:" << successRoll << " Success:" << (success ? "TRUE" : "FALSE");
+			// TODO: Update export of info as augments and such
+			IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << item_workmanship << " TT:" << amountOfTimesTinkered <<
+				  " M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (success ? "TRUE" : "FALSE");
 
 			break;
 		}
