@@ -863,8 +863,13 @@ void CSlumLordWeenie::CheckRentPeriod()
 			}
 			else
 			{
-				houseData->AbandonHouse();
+				//houseData->AbandonHouse(); temporarily disable abandon house on rent not paid
 			}
+
+			if (house->ShouldSave()) //Added an extra save after rent period switches over.
+				house->Save();
+			houseData->Save();
+
 		}
 	}
 }
