@@ -1392,7 +1392,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				                                      ((5 * salvageMod) + (2 * item_workmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) *
 				                                      difficulty))); //Formulas from Endy's Tinkering Calculator
 
-			successChance = min(successChance, 1.0/3.0); //maximum success chance for imbues is 33%
+			successChance /= 3; //maximum success chance for imbues is 33%
 
 			float successRoll = Random::RollDice(0.0, 1.0);
 			if (successRoll <= successChance)
