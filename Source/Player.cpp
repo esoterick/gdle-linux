@@ -483,7 +483,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	int maxItemsToDrop = 12; // Limit the amount of items that can be dropped + random adjustment
 	int amountOfItemsToDrop = 0;
 	int augDropLess = InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0); // Take Death Item Augs into Consideration
-	if (!pKiller->_IsPlayer())
+	if (pKiller && !pKiller->_IsPlayer())
 		amountOfItemsToDrop = min(max(level / 20, 1), floor(maxItemsToDrop - (maxItemsToDrop * (augDropLess * .33))));
 	else
 		amountOfItemsToDrop = min(max(level / 20, 1), maxItemsToDrop);
