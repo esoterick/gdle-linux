@@ -699,7 +699,6 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 
 	// create corpse but make it invisible.
 	_pendingCorpse = CreateCorpse(false);
-	_pendingCorpse->Save();
 
 	if (_pendingCorpse)
 		CalculateAndDropDeathItems(_pendingCorpse, killer_id);

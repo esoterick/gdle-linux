@@ -3066,7 +3066,9 @@ void CWeenieObject::PostSpawn()
 		SetLocked(FALSE);
 	}
 
-	InitCreateGenerator();
+	if (!m_Qualities._generator_registry)// Prevents generators that have a generator_registry from reinitializing
+		InitCreateGenerator();
+
 
 	double heartbeatInterval;
 	if (m_Qualities.InqFloat(HEARTBEAT_INTERVAL_FLOAT, heartbeatInterval, TRUE))
