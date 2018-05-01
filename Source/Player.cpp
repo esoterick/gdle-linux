@@ -3479,10 +3479,10 @@ void CPlayerWeenie::OnTeleported()
 
 DWORD CPlayerWeenie::GetAccountHouseId()
 {
-	DWORD currentCharacterId = GetID();
+
 	for (auto &character : GetClient()->GetCharacters())
 	{
-		if (character.weenie_id == currentCharacterId)
+		if (character.weenie_id == id)
 		{
 			if (DWORD houseID = InqDIDQuality(HOUSEID_DID, 0))
 				return houseID;

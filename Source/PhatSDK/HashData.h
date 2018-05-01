@@ -27,7 +27,7 @@ public:
 		id = 0;
 	}
 
-	const _Kty GetID()
+	 _Kty GetID()
 	{
 		return id;
 	}
