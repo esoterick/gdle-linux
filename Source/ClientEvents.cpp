@@ -101,6 +101,14 @@ void CClientEvents::BeginLogout()
 	}
 }
 
+void CClientEvents::ForceLogout()
+{
+	if (m_pPlayer && !m_pPlayer->IsLoggingOut())
+	{
+		m_pPlayer->BeginLogout();
+	}
+}
+
 void CClientEvents::OnLogoutCompleted()
 {
 	ExitWorld();
