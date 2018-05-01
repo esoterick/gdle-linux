@@ -24,10 +24,10 @@ public:
 
 	virtual void PreSpawnCreate() override;
 
-	void CalculateAndDropDeathItems(CCorpseWeenie *pCorpse);
+	void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD killerID);
 
 	virtual void OnDeathAnimComplete() override;
-	virtual void OnDeath(DWORD killer_id) override;
+	virtual void OnDeath(DWORD killerID) override;
 	virtual void OnMotionDone(DWORD motion, BOOL success) override;
 	
 	virtual void NotifyAttackerEvent(const char *name, unsigned int dmgType, float healthPercent, unsigned int heath, unsigned int crit, unsigned int attackConditions);

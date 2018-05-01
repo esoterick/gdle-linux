@@ -129,7 +129,7 @@ BinaryWriter *GetWeenieObjData(CWeenieObject *pEntity)
 		OptionalWeenieObjData.Write<WORD>(burden);
 	}
 
-	WORD spell_id = (WORD) pEntity->GetSpellID();
+	WORD spell_id = (WORD)pEntity->GetSpellID();
 	if (spell_id)
 	{
 		dwSections |= PublicWeenieDescPackHeader::PWD_Packed_SpellID;
@@ -140,7 +140,7 @@ BinaryWriter *GetWeenieObjData(CWeenieObject *pEntity)
 	WeenieObjData->Write<DWORD>(dwSections);
 	WeenieObjData->WriteString(pEntity->GetName().c_str());
 	WeenieObjData->WritePackedDWORD(pEntity->m_Qualities.id);
-	WeenieObjData->Pack_AsDataIDOfKnownType(0x06000000, 0x06000000|pEntity->GetIcon());
+	WeenieObjData->Pack_AsDataIDOfKnownType(0x06000000, 0x06000000 | pEntity->GetIcon());
 	WeenieObjData->Write<DWORD>(pEntity->GetItemType());
 	WeenieObjData->Write<DWORD>(pEntity->m_WeenieBitfield);
 	WeenieObjData->Align();
@@ -392,7 +392,7 @@ BinaryWriter *IdentifyObjectFail(CWeenieObject *pEntity, bool bShowLevel)
 
 			i = profile._intStatsTable->erase(i);
 		}
-		
+
 		if (pEntity->m_Qualities._enchantment_reg)
 		{
 			for (auto &entry : *profile._intStatsTable)
@@ -407,7 +407,7 @@ BinaryWriter *IdentifyObjectFail(CWeenieObject *pEntity, bool bShowLevel)
 			profile._intStatsTable = NULL;
 		}
 	}
-	
+
 	if (pEntity->m_Qualities.m_BoolStats)
 	{
 		profile._boolStatsTable = new PackableHashTableWithJson<STypeBool, BOOL>();
@@ -462,7 +462,7 @@ BinaryWriter *IdentifyObjectFail(CWeenieObject *pEntity, bool bShowLevel)
 	{
 		profile._didStatsTable = new PackableHashTableWithJson<STypeDID, DWORD>();
 		*profile._didStatsTable = *pEntity->m_Qualities.m_DIDStats;
-		
+
 		for (PackableHashTableWithJson<STypeDID, DWORD>::iterator i = profile._didStatsTable->begin(); i != profile._didStatsTable->end(); )
 		{
 			switch (i->first)
@@ -490,7 +490,7 @@ BinaryWriter *IdentifyObjectFail(CWeenieObject *pEntity, bool bShowLevel)
 	if (pEntity->IsCreature())
 	{
 		profile.creature_profile = new CreatureAppraisalProfile();
-		
+
 		auto setCreatureProfileAttribute2nd = [&](STypeAttribute2nd attrib2nd, DWORD &value, DWORD &bitfield)
 		{
 			DWORD raw = 0;
@@ -528,11 +528,11 @@ BinaryWriter *IdentifyObjectFail(CWeenieObject *pEntity, bool bShowLevel)
 }
 
 BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWORD overrideId)
-{	
+{
 	BinaryWriter *pWriter = new BinaryWriter;
 
 	pWriter->Write<DWORD>(0xC9); // message ID
-	if(overrideId)
+	if (overrideId)
 		pWriter->Write<DWORD>(overrideId);
 	else
 		pWriter->Write<DWORD>(pEntity->GetID());
@@ -563,7 +563,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 	{
 		profile._intStatsTable = new PackableHashTableWithJson<STypeInt, int>();
 		*profile._intStatsTable = *pEntity->m_Qualities.m_IntStats;
-		
+
 		profile._intStatsTable->remove(PHYSICS_STATE_INT);
 		profile._intStatsTable->remove(XP_OVERRIDE_INT);
 		profile._intStatsTable->remove(MAX_GENERATED_OBJECTS_INT);
@@ -594,10 +594,30 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			}
 		}
 
-		if (int skillActivationType = (int) pEntity->m_Qualities.GetDID(ITEM_SKILL_LIMIT_DID, 0))
+		if (int skillActivationType = (int)pEntity->m_Qualities.GetDID(ITEM_SKILL_LIMIT_DID, 0))
 		{
 			profile._intStatsTable->add(APPRAISAL_ITEM_SKILL_INT, &skillActivationType);
 		}
+
+		int* shieldLoc = profile._intStatsTable->lookup(LOCATIONS_INT);
+
+		if (shieldLoc && *shieldLoc == static_cast<int>(INVENTORY_LOC::SHIELD_LOC))
+		{
+			SKILL_ADVANCEMENT_CLASS sac = SKILL_ADVANCEMENT_CLASS::UNTRAINED_SKILL_ADVANCEMENT_CLASS;
+			pSource->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac);
+
+			if (sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+			{
+				profile._intStatsTable->add(SHIELD_VALUE_INT, profile._intStatsTable->lookup(ARMOR_LEVEL_INT));
+			}
+			else
+			{
+				auto halfShieldValue = profile._intStatsTable->lookup(ARMOR_LEVEL_INT);
+				*halfShieldValue /= 2;
+				profile._intStatsTable->add(SHIELD_VALUE_INT, halfShieldValue);
+			}
+		}
+
 	}
 
 	if (pEntity->m_Qualities.m_Int64Stats)
@@ -610,7 +630,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 	{
 		profile._boolStatsTable = new PackableHashTableWithJson<STypeBool, int>();
 		*profile._boolStatsTable = *pEntity->m_Qualities.m_BoolStats;
-		
+
 		profile._boolStatsTable->remove(REPORT_COLLISIONS_AS_ENVIRONMENT_BOOL);
 		profile._boolStatsTable->remove(ATTACKABLE_BOOL);
 		profile._boolStatsTable->remove(IS_HOT_BOOL);
@@ -690,12 +710,12 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		{
 			/*
 			profile._strStatsTable->add(LONG_DESC_STRING, csprintf(
-				"For debug purposes: 0x%08X %u\nWT: %d\n%d",
-				pEntity->GetID(),
-				pEntity->m_Qualities.GetID(),
-				pEntity->m_Qualities.m_WeenieType,
-				pEntity->m_Qualities.GetInt(ITEM_TYPE_INT, 0)));
-				*/
+			"For debug purposes: 0x%08X %u\nWT: %d\n%d",
+			pEntity->GetID(),
+			pEntity->m_Qualities.GetID(),
+			pEntity->m_Qualities.m_WeenieType,
+			pEntity->m_Qualities.GetInt(ITEM_TYPE_INT, 0)));
+			*/
 		}
 	}
 
@@ -703,7 +723,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 	{
 		profile._didStatsTable = new PackableHashTableWithJson<STypeDID, DWORD>();
 		*profile._didStatsTable = *pEntity->m_Qualities.m_DIDStats;
-		
+
 		/*
 		profile._didStatsTable->remove(SETUP_DID);
 		profile._didStatsTable->remove(MOTION_TABLE_DID);
@@ -763,12 +783,12 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			{
 				switch (attrib)
 				{
-					case STRENGTH_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_STRENGTH; break;
-					case ENDURANCE_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_ENDURANCE; break;
-					case QUICKNESS_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_QUICKNESS; break;
-					case COORDINATION_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_COORDINATION; break;
-					case FOCUS_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_FOCUS; break;
-					case SELF_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_SELF; break;
+				case STRENGTH_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_STRENGTH; break;
+				case ENDURANCE_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_ENDURANCE; break;
+				case QUICKNESS_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_QUICKNESS; break;
+				case COORDINATION_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_COORDINATION; break;
+				case FOCUS_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_FOCUS; break;
+				case SELF_ATTRIBUTE: bitfield |= CreatureAppraisalProfile::BF_SELF; break;
 				}
 
 				if (value > raw)
@@ -858,7 +878,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			}
 		};
 
-		profile.weapon_profile->damage_type = (DAMAGE_TYPE) pEntity->InqIntQuality(DAMAGE_TYPE_INT, 0);
+		profile.weapon_profile->damage_type = (DAMAGE_TYPE)pEntity->InqIntQuality(DAMAGE_TYPE_INT, 0);
 
 		int baseWeaponTime = max(0, min(200, pEntity->InqIntQuality(WEAPON_TIME_INT, 0, TRUE)));
 		profile.weapon_profile->weapon_time = max(0, min(200, pEntity->GetAttackTime()));
@@ -910,21 +930,21 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 
 	if (pEntity->InqType() & TYPE_VESTEMENTS)
 	{
-		auto setArmorProfileMod = [&](STypeFloat floatStat, float &value, DWORD &bitfield)
+		auto setArmorProfileMod = [&](STypeFloat floatStat, float &value, DWORD &bitfield, float &mod)
 		{
 			double raw = 0.0;
 			double dbl_value = 0.0;
 			pEntity->m_Qualities.InqFloat(floatStat, raw, TRUE);
 			pEntity->m_Qualities.InqFloat(floatStat, dbl_value, FALSE);
-			value = (float) dbl_value;
-			
+			value = (float)dbl_value * mod;
+
 			if (abs(raw - dbl_value) > F_EPSILON)
 			{
 				switch (floatStat)
 				{
 				case ARMOR_MOD_VS_SLASH_FLOAT: bitfield |= BF_ARMOR_MOD_VS_SLASH; break;
 				case ARMOR_MOD_VS_PIERCE_FLOAT: bitfield |= BF_ARMOR_MOD_VS_PIERCE; break;
-				case ARMOR_MOD_VS_BLUDGEON_FLOAT: bitfield |= BF_ARMOR_MOD_VS_BLUDGEON; break;				
+				case ARMOR_MOD_VS_BLUDGEON_FLOAT: bitfield |= BF_ARMOR_MOD_VS_BLUDGEON; break;
 				case ARMOR_MOD_VS_COLD_FLOAT: bitfield |= BF_ARMOR_MOD_VS_COLD; break;
 				case ARMOR_MOD_VS_FIRE_FLOAT: bitfield |= BF_ARMOR_MOD_VS_FIRE; break;
 				case ARMOR_MOD_VS_ACID_FLOAT: bitfield |= BF_ARMOR_MOD_VS_ACID; break;
@@ -948,16 +968,27 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 				}
 			}
 		};
-		
-		profile.armor_profile = new ArmorProfile();		
-		setArmorProfileMod(ARMOR_MOD_VS_SLASH_FLOAT, profile.armor_profile->mod_vs_slash, profile.armor_ench_bitfield);
-		setArmorProfileMod(ARMOR_MOD_VS_PIERCE_FLOAT, profile.armor_profile->mod_vs_pierce, profile.armor_ench_bitfield);
-		setArmorProfileMod(ARMOR_MOD_VS_BLUDGEON_FLOAT, profile.armor_profile->mod_vs_bludgeon, profile.armor_ench_bitfield);
-		setArmorProfileMod(ARMOR_MOD_VS_COLD_FLOAT, profile.armor_profile->mod_vs_cold, profile.armor_ench_bitfield);
-		setArmorProfileMod(ARMOR_MOD_VS_FIRE_FLOAT, profile.armor_profile->mod_vs_fire, profile.armor_ench_bitfield);
-		setArmorProfileMod(ARMOR_MOD_VS_ACID_FLOAT, profile.armor_profile->mod_vs_acid, profile.armor_ench_bitfield);
-		setArmorProfileMod(ARMOR_MOD_VS_ELECTRIC_FLOAT, profile.armor_profile->mod_vs_electric, profile.armor_ench_bitfield);
-		setArmorProfileMod(ARMOR_MOD_VS_NETHER_FLOAT, profile.armor_profile->mod_vs_nether, profile.armor_ench_bitfield);
+
+		int* shieldLoc = profile._intStatsTable->lookup(LOCATIONS_INT);
+		float shieldMod = 1;
+		if (shieldLoc && *shieldLoc == static_cast<int>(INVENTORY_LOC::SHIELD_LOC))
+		{
+			SKILL_ADVANCEMENT_CLASS sac = SKILL_ADVANCEMENT_CLASS::UNTRAINED_SKILL_ADVANCEMENT_CLASS;
+			pSource->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac);
+
+			if (sac != SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+				shieldMod = .5;
+		}
+
+		profile.armor_profile = new ArmorProfile();
+		setArmorProfileMod(ARMOR_MOD_VS_SLASH_FLOAT, profile.armor_profile->mod_vs_slash, profile.armor_ench_bitfield, shieldMod);
+		setArmorProfileMod(ARMOR_MOD_VS_PIERCE_FLOAT, profile.armor_profile->mod_vs_pierce, profile.armor_ench_bitfield, shieldMod);
+		setArmorProfileMod(ARMOR_MOD_VS_BLUDGEON_FLOAT, profile.armor_profile->mod_vs_bludgeon, profile.armor_ench_bitfield, shieldMod);
+		setArmorProfileMod(ARMOR_MOD_VS_COLD_FLOAT, profile.armor_profile->mod_vs_cold, profile.armor_ench_bitfield, shieldMod);
+		setArmorProfileMod(ARMOR_MOD_VS_FIRE_FLOAT, profile.armor_profile->mod_vs_fire, profile.armor_ench_bitfield, shieldMod);
+		setArmorProfileMod(ARMOR_MOD_VS_ACID_FLOAT, profile.armor_profile->mod_vs_acid, profile.armor_ench_bitfield, shieldMod);
+		setArmorProfileMod(ARMOR_MOD_VS_ELECTRIC_FLOAT, profile.armor_profile->mod_vs_electric, profile.armor_ench_bitfield, shieldMod);
+		setArmorProfileMod(ARMOR_MOD_VS_NETHER_FLOAT, profile.armor_profile->mod_vs_nether, profile.armor_ench_bitfield, shieldMod);
 
 		int *enchanted_armor_level = NULL;
 		if (profile._intStatsTable && (enchanted_armor_level = profile._intStatsTable->lookup(ARMOR_LEVEL_INT)))

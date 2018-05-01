@@ -1600,7 +1600,11 @@ CCorpseWeenie *CMonsterWeenie::CreateCorpse(bool visible)
 		pCorpse->m_Qualities.SetBool(VISIBILITY_BOOL, false);
 
 	if (!g_pWorld->CreateEntity(pCorpse))
+	{
+		SERVER_ERROR << "Unable to create corpse of" << GetName().c_str() << "at Landblock:" << csprintf("0x%08X", m_Position.objcell_id) <<
+			"(X, Y, Z):" << m_Position.frame.m_origin.x << "," << m_Position.frame.m_origin.y << m_Position.frame.m_origin.z;
 		pCorpse = NULL;
+	}
 
 	m_DeathKillerIDForCorpse = 0;
 	m_DeathKillerNameForCorpse.clear();

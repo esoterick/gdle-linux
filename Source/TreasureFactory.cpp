@@ -489,21 +489,28 @@ DEFINE_PACK_JSON(CTreasureProfile)
 
 void CTreasureProfile::ComputeUniqueSpellIds(std::vector<CPossibleSpells> spellList)
 {
-	for (int i = 0; i < spellList.size(); i++)
+	try
 	{
-		CPossibleSpells spell = spellList[i];
-		int id;
-		if (spellNameToIdMap.find(spell.spellName) != spellNameToIdMap.end())
+		for (int i = 0; i < spellList.size(); i++)
 		{
-			id = nextSpellId++;
+			CPossibleSpells spell = spellList[i];
+			int id;
+			if (spellNameToIdMap.find(spell.spellName) != spellNameToIdMap.end())
+			{
+				id = nextSpellId++;
+				spell.id = id;
+				spellNameToIdMap.emplace(spell.spellName, id);
+				spells.emplace(id, spell);
+			}
+			else
+				id = spellNameToIdMap[spell.spellName];
 			spell.id = id;
-			spellNameToIdMap.emplace(spell.spellName, id);
-			spells.emplace(id, spell);
+			spellList[i] = spell;
 		}
-		else
-			id = spellNameToIdMap[spell.spellName];
-		spell.id = id;
-		spellList[i] = spell;
+	}
+	catch(...)
+	{
+		SERVER_ERROR << "ERror in CTreasureProfile::ComputeUniqueSpellIds";
 	}
 }
 
@@ -873,6 +880,7 @@ CreatureType CTreasureFactory::TranslateCreatureStringToEnumValue(std::string st
 void CTreasureFactory::Initialize()
 {
 	WINLOG(Data, Normal, "Loading treasure generation profile...\n");
+	SERVER_INFO << "Loading treasure generation profile...";
 
 	std::ifstream fileStream("data\\json\\treasureProfile.json");
 
@@ -901,12 +909,14 @@ void CTreasureFactory::Initialize()
 		catch (...)
 		{
 			WINLOG(Data, Error, "----------------------\nError loading treasure generation profile!\n----------------------\n");
+			SERVER_ERROR << "Error parsing treasure generation profile";
 			SafeDelete(_TreasureProfile);
 			return;
 		}
 	}
 
 	WINLOG(Data, Normal, "Finished loading treasure generation profile.\n");
+	SERVER_INFO << "Finished loading treasure generation profile";
 }
 
 CWeenieObject *CreateFromEntry(PackableList<TreasureEntry>::iterator entry, unsigned int ptid, float shade)

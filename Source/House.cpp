@@ -863,8 +863,13 @@ void CSlumLordWeenie::CheckRentPeriod()
 			}
 			else
 			{
-				houseData->AbandonHouse();
+				//houseData->AbandonHouse(); temporarily disable abandon house on rent not paid
 			}
+
+			if (house->ShouldSave()) //Added an extra save after rent period switches over.
+				house->Save();
+			houseData->Save();
+
 		}
 	}
 }
@@ -1037,6 +1042,11 @@ void CSlumLordWeenie::RentHouse(CPlayerWeenie *player, const PackableList<DWORD>
 		}
 		DoUseResponse(player);
 		player->RecalculateCoinAmount();
+		player->Save();
+		if (house->ShouldSave())
+			house->Save();
+		houseData->Save();
+
 
 		if (CWeenieObject *owner = g_pWorld->FindObject(houseData->_ownerId))
 			g_pHouseManager->SendHouseData(owner->AsPlayer(), house->GetHouseDID()); //update house's owner panel if the owner is online.

@@ -367,12 +367,14 @@ void CPhatServer::InitializeSocket(unsigned short port, in_addr address)
 			break;
 		}
 		WINLOG(Temp, Normal, "Failed bind on port %u!\n", port);
+		SERVER_ERROR << "Failed bind on port:" << port;
 		port++;
 	}
 
 	if (port == failport)
 	{
 		WINLOG(Temp, Normal, "Failure to bind socket!\n");
+		SERVER_ERROR << "Failed bind on socket";
 	}
 	else
 	{
@@ -387,6 +389,7 @@ void CPhatServer::InitializeSocket(unsigned short port, in_addr address)
 			if (bind(m_sockets[i], (struct sockaddr *)&localhost, sizeof(SOCKADDR_IN)))
 			{
 				WINLOG(Temp, Normal, "Failure to bind socket port %d!\n", basePort + i);
+				SERVER_ERROR << "Failed bind on socket port:" << (basePort + i);
 			}
 		}
 	}
@@ -410,6 +413,7 @@ void CPhatServer::SystemBroadcast(char *text)
 		return;
 
 	WINLOG(Temp, Normal, "Broadcast, \"%s\"\n", text);
+	SERVER_INFO << "Broadcast:" << text;
 	g_pWorld->BroadcastGlobal(ServerBroadcast("System", text, LTT_DEFAULT), PRIVATE_MSG);
 }
 

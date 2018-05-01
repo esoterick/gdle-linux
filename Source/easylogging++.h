@@ -4563,6 +4563,10 @@ el::base::debug::CrashHandler elCrashHandler(ELPP_USE_DEF_CRASH_HANDLER);\
 #define ELPP_NO_DEFAULT_LOG_FILE
 #define _ELOGGER "default", "error"
 #define SERVER_ERROR CLOG(ERROR, _ELOGGER)
+#define _SVLOGGER "default", "verbose"
+#define SERVER_VERBOSE CLOG(VERBOSE, _SVLOGGER)
+#define _WLOGGER "default", "warning"
+#define SERVER_WARN CLOG(WARNING, _WLOGGER)
 #define _SLOGGER "default", "info"
 #define SERVER_INFO CLOG(INFO, _SLOGGER)
 #define _DLOGGER "default", "debug"
@@ -4571,3 +4575,11 @@ el::base::debug::CrashHandler elCrashHandler(ELPP_USE_DEF_CRASH_HANDLER);\
 #define DEATH_LOG CLOG(INFO, _DLOG)
 #define _IMBLOG "imbue", "info"
 #define IMBUE_LOG CLOG(INFO, _IMBLOG)
+#define _NLOG "network", "info"
+#define NETWORK_LOG CLOG(INFO, _NLOG)
+#define _NDLOG "network", "debug"
+#define NETWORK_DEBUG CLOG(DEBUG, _NDLOG)
+#define _NELOG "network", "error"
+#define NETWORK_ERROR CLOG(ERROR, _NELOG)
+#define _CTLOG "chat", "info"
+#define CHAT_LOG CLOG(INFO, _CTLOG)

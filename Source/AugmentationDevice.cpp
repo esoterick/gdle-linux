@@ -32,6 +32,29 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 	int augSkilledMagic = player->InqIntQuality(AUGMENTATION_SKILLED_MAGIC_INT, 0);
 	int augInnates = player->InqIntQuality(AUGMENTATION_INNATE_FAMILY_INT, 0);
 	int augIncreasedBurden = player->InqIntQuality(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, 0);
+	int augSpecSalvage = player->InqIntQuality(AUGMENTATION_SPECIALIZE_SALVAGING_INT, 0);
+	int augSpecItemTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT, 0);
+	int augSpecArmorTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT, 0);
+	int augSpecMagicTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT, 0);
+	int augSpecWeaponTink = player->InqIntQuality(AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT, 0);
+	int augExtraPack = player->InqIntQuality(AUGMENTATION_EXTRA_PACK_SLOT_INT, 0);
+	int augDropLess = player->InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0);
+	int augCreatureFoci = player->InqIntQuality(AUGMENTATION_INFUSED_CREATURE_MAGIC_INT, 0);
+	int augItemFoci = player->InqIntQuality(AUGMENTATION_INFUSED_ITEM_MAGIC_INT, 0);
+	int augLifeFoci = player->InqIntQuality(AUGMENTATION_INFUSED_LIFE_MAGIC_INT, 0);
+	int augWarFoci = player->InqIntQuality(AUGMENTATION_INFUSED_WAR_MAGIC_INT, 0);
+	int augBuffDuration = player->InqIntQuality(AUGMENTATION_INCREASED_SPELL_DURATION_INT, 0);
+	int augStickyBuffs = player->InqIntQuality(AUGMENTATION_SPELLS_REMAIN_PAST_DEATH_INT, 0);
+	int augCritDefense = player->InqIntQuality(AUGMENTATION_CRITICAL_DEFENSE_INT, 0);
+	int augBonusXp = player->InqIntQuality(AUGMENTATION_BONUS_XP_INT, 0);
+	int augBonusSalvage = player->InqIntQuality(AUGMENTATION_BONUS_SALVAGE_INT, 0);
+	int augBonusImbue = player->InqIntQuality(AUGMENTATION_BONUS_IMBUE_CHANCE_INT, 0);
+	int augCritExpertise = player->InqIntQuality(AUGMENTATION_CRITICAL_EXPERTISE_INT, 0);
+	int augCritPower = player->InqIntQuality(AUGMENTATION_CRITICAL_POWER_INT, 0);
+	int augDamageBonus = player->InqIntQuality(AUGMENTATION_DAMAGE_BONUS_INT, 0);
+	int augDamageReduction = player->InqIntQuality(AUGMENTATION_DAMAGE_REDUCTION_INT, 0);
+	int augVoidFoci = player->InqIntQuality(AUGMENTATION_INFUSED_VOID_MAGIC_INT, 0);
+	int augFasterRegen = player->InqIntQuality(AUGMENTATION_FASTER_REGEN_INT, 0);
 
 	switch (aug)
 	{
@@ -65,13 +88,11 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 
 					player->EmitEffect(159, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Reinforcement of the Lugians augmentation.", LTT_DEFAULT);
-
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
 					{
 						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 					}
-
 
 					DecrementStackOrStructureNum();
 					break;
@@ -301,6 +322,261 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
 			break;
 		}
+	case 7:
+		if (augSpecSalvage == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augSpecSalvage == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				Skill skill;
+				player->m_Qualities.InqSkill(SALVAGING_SKILL, skill);
+				if (skill._sac <= 1)
+				{
+					player->SendText("You are not trained in this skill!", LTT_DEFAULT);
+					break;
+				}
+
+				else
+				{
+					skill.SetSkillAdvancementClass(SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+					skill._init_level = 10;
+					player->m_Qualities.SetSkill(SALVAGING_SKILL, skill);
+					player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_SALVAGING_INT, augSpecSalvage + 1);
+					player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+					player->NotifySkillStatUpdated(SALVAGING_SKILL);
+
+					player->EmitEffect(159, 1.0f);
+					player->SendText("Congratulations! You have succeeded in acquiring the Ciandra's Essence augmentation.", LTT_DEFAULT);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
+					DecrementStackOrStructureNum();
+					break;
+				}
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 8:
+		if (augSpecItemTink == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augSpecItemTink == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				Skill skill;
+				player->m_Qualities.InqSkill(ITEM_APPRAISAL_SKILL, skill);
+				if (skill._sac <= 1)
+				{
+					player->SendText("You are not trained in this skill!", LTT_DEFAULT);
+					break;
+				}
+
+				else
+				{
+					skill.SetSkillAdvancementClass(SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+					skill._init_level = 10;
+					player->m_Qualities.SetSkill(ITEM_APPRAISAL_SKILL, skill);
+					player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT, augSpecItemTink + 1);
+					player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+					player->NotifySkillStatUpdated(ITEM_APPRAISAL_SKILL);
+
+					player->EmitEffect(159, 1.0f);
+					player->SendText("Congratulations! You have succeeded in acquiring the Yoshi's Essence augmentation.", LTT_DEFAULT);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
+					DecrementStackOrStructureNum();
+					break;
+				}
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 9:
+		if (augSpecArmorTink == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augSpecArmorTink == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				Skill skill;
+				player->m_Qualities.InqSkill(ARMOR_APPRAISAL_SKILL, skill);
+				if (skill._sac <= 1)
+				{
+					player->SendText("You are not trained in this skill!", LTT_DEFAULT);
+					break;
+				}
+
+				else
+				{
+					skill.SetSkillAdvancementClass(SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+					skill._init_level = 10;
+					player->m_Qualities.SetSkill(ARMOR_APPRAISAL_SKILL, skill);
+					player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT, augSpecArmorTink + 1);
+					player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+					player->NotifySkillStatUpdated(ARMOR_APPRAISAL_SKILL);
+
+					player->EmitEffect(159, 1.0f);
+					player->SendText("Congratulations! You have succeeded in acquiring the Jibril's Essence augmentation.", LTT_DEFAULT);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
+					DecrementStackOrStructureNum();
+					break;
+				}
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 10:
+		if (augSpecMagicTink == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augSpecMagicTink == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				Skill skill;
+				player->m_Qualities.InqSkill(MAGIC_ITEM_APPRAISAL_SKILL, skill);
+				if (skill._sac <= 1)
+				{
+					player->SendText("You are not trained in this skill!", LTT_DEFAULT);
+					break;
+				}
+
+				else
+				{
+					skill.SetSkillAdvancementClass(SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+					skill._init_level = 10;
+					player->m_Qualities.SetSkill(MAGIC_ITEM_APPRAISAL_SKILL, skill);
+					player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT, augSpecMagicTink + 1);
+					player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+					player->NotifySkillStatUpdated(MAGIC_ITEM_APPRAISAL_SKILL);
+
+					player->EmitEffect(159, 1.0f);
+					player->SendText("Congratulations! You have succeeded in acquiring the Celdiseth's Essence augmentation.", LTT_DEFAULT);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
+					DecrementStackOrStructureNum();
+					break;
+				}
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 11:
+		if (augSpecWeaponTink == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augSpecWeaponTink == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				Skill skill;
+				player->m_Qualities.InqSkill(WEAPON_APPRAISAL_SKILL, skill);
+				if (skill._sac <= 1)
+				{
+					player->SendText("You are not trained in this skill!", LTT_DEFAULT);
+					break;
+				}
+
+				else
+				{
+					skill.SetSkillAdvancementClass(SPECIALIZED_SKILL_ADVANCEMENT_CLASS);
+					skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+					skill._init_level = 10;
+					player->m_Qualities.SetSkill(WEAPON_APPRAISAL_SKILL, skill);
+					player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT, augSpecWeaponTink + 1);
+					player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+					player->NotifySkillStatUpdated(WEAPON_APPRAISAL_SKILL);
+
+					player->EmitEffect(159, 1.0f);
+					player->SendText("Congratulations! You have succeeded in acquiring the Koga's Essence augmentation.", LTT_DEFAULT);
+					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+					if (!text.empty())
+					{
+						g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+					}
+
+					DecrementStackOrStructureNum();
+					break;
+				}
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 12:
+		if (augExtraPack == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augExtraPack == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_EXTRA_PACK_SLOT_INT, augExtraPack + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->m_Qualities.SetInt(CONTAINERS_CAPACITY_INT, 8);
+				player->NotifyIntStatUpdated(CONTAINERS_CAPACITY_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Shadow of The Seventh Mule augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
 	case 13:
 		if (augIncreasedBurden == 5)
 		{
@@ -330,6 +606,412 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
 			break;
 		}
+	case 14:
+		if (augDropLess == 3)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augDropLess < 3)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, augDropLess + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Clutch of the Miser augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 15:
+		if (augStickyBuffs == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augStickyBuffs == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_SPELLS_REMAIN_PAST_DEATH_INT, augStickyBuffs + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_SPELLS_REMAIN_PAST_DEATH_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Enduring Enchantment augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 16:
+		if (augCritDefense == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augCritDefense == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_CRITICAL_DEFENSE_INT, augCritDefense + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_CRITICAL_DEFENSE_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Eye of the Remorseless augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 17:
+		if (augBonusXp == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augBonusXp == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_BONUS_XP_INT, augBonusXp + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_BONUS_XP_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Quick Learner augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 18:
+		if (augBonusSalvage == 4)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augBonusSalvage < 4)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_BONUS_SALVAGE_INT, augBonusSalvage + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_BONUS_SALVAGE_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Ciandra's Fortune augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 19:
+		if (augBonusImbue == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augBonusImbue == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_BONUS_IMBUE_CHANCE_INT, augBonusImbue + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_BONUS_IMBUE_CHANCE_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Charmed Smith augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 20:
+		if (augFasterRegen == 2)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augFasterRegen < 2)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_FASTER_REGEN_INT, augFasterRegen + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_FASTER_REGEN_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Innate Renewal augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 21:
+		if (augBuffDuration == 5)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augBuffDuration < 5)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_INCREASED_SPELL_DURATION_INT, augBuffDuration + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_INCREASED_SPELL_DURATION_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Archmage's Endurance augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 29:
+		if (augCreatureFoci == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augCreatureFoci == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_INFUSED_CREATURE_MAGIC_INT, augCreatureFoci + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_CREATURE_MAGIC_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Infused Creature Magic augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 30:
+		if (augItemFoci == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augItemFoci == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_INFUSED_ITEM_MAGIC_INT, augItemFoci + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_ITEM_MAGIC_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Infused Item Magic augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 31:
+		if (augLifeFoci == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augLifeFoci == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_INFUSED_LIFE_MAGIC_INT, augLifeFoci + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_LIFE_MAGIC_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Infused Life Magic augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 32:
+		if (augWarFoci == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augWarFoci == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_INFUSED_WAR_MAGIC_INT, augWarFoci + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_WAR_MAGIC_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Infused War Magic augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 33:
+		if (augCritExpertise == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augCritExpertise == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_CRITICAL_EXPERTISE_INT, augCritExpertise + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_CRITICAL_EXPERTISE_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Eye of the Remorseless augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 34:
+		if (augCritPower == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augCritPower == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_CRITICAL_POWER_INT, augCritPower + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_CRITICAL_POWER_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Hand of the Remorseless augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
 	case 35:
 		if (augSkilledMelee == 1)
 		{
@@ -340,7 +1022,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 		{
 			if (unassignedXP >= augCost)
 			{
-				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MELEE_INT, 1);
+				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MELEE_INT, augSkilledMelee + 1);
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
@@ -368,7 +1050,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 		{
 			if (unassignedXP >= augCost)
 			{
-				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MISSILE_INT, 1);
+				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MISSILE_INT, augSkilledMissile + 1);
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
@@ -396,7 +1078,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 		{
 			if (unassignedXP >= augCost)
 			{
-				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MAGIC_INT, 1);
+				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MAGIC_INT, augSkilledMagic + 1);
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
@@ -406,7 +1088,64 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				{
 					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 				}
-				
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 38:
+		if (augDamageBonus == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augDamageBonus == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_DAMAGE_BONUS_INT, augDamageBonus + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_DAMAGE_BONUS_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Frenzy of the Slayer augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
+
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 39:
+		if (augDamageReduction == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augDamageReduction == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_DAMAGE_REDUCTION_INT, augDamageReduction + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_DAMAGE_REDUCTION_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Iron Skin of the Invincible augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
 
 				DecrementStackOrStructureNum();
 				break;
@@ -425,27 +1164,46 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 		{
 			if (unassignedXP >= augCost)
 			{
-				player->m_Qualities.SetInt(AUGMENTATION_JACK_OF_ALL_TRADES_INT, 1);
+				player->m_Qualities.SetInt(AUGMENTATION_JACK_OF_ALL_TRADES_INT, augJackOfTrades + 1);
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Jack of All Trades augmentation.", LTT_DEFAULT);
+				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
 				{
 					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
 				}
-				//Need to cycle through the skills and notify the updated values here. Previous code was no good
 
-				//for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = player->m_Qualities._skillStatsTable->begin(); entry != player->m_Qualities._skillStatsTable->end(); entry++)
-				//{
-					//DWORD val = 5;
-					//DWORD &valptr = val;
-					//STypeSkill skill = entry->first;
-					//player->InqSkill(skill, valptr, false);
-					//player->NotifySkillStatUpdated(skill);
-
-				//}
+				DecrementStackOrStructureNum();
+				break;
+			}
+			else
+				player->SendText("You do not have enough experience to use this augmentation gem.", LTT_DEFAULT);
+			break;
+		}
+	case 42:
+		if (augVoidFoci == 1)
+		{
+			player->SendText("This augmentation is already active.", LTT_DEFAULT);
+			break;
+		}
+		if (augVoidFoci == 0)
+		{
+			if (unassignedXP >= augCost)
+			{
+				player->m_Qualities.SetInt(AUGMENTATION_INFUSED_VOID_MAGIC_INT, augVoidFoci + 1);
+				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
+				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_VOID_MAGIC_INT);
+				player->EmitEffect(159, 1.0f);
+				player->SendText("Congratulations! You have succeeded in acquiring the Infused Void Magic augmentation.", LTT_DEFAULT);
+				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(player->GetLandcell(), text);
+				}
 
 				DecrementStackOrStructureNum();
 				break;
@@ -459,7 +1217,8 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 		break;
 	}
 
+
 	player->NotifyUseDone(WERROR_NONE);
 	return WERROR_NONE;
 
-	}
+}

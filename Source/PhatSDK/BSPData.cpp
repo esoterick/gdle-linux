@@ -372,7 +372,7 @@ TransitionState CSphere::slide_sphere(OBJECTINFO *object, SPHEREPATH *path, COLL
 	if (collision_normal.normalize_check_small())
 		return TransitionState::COLLIDED_TS;
 
-	return slide_sphere(path, collisions, &collision_normal, &path->global_curr_center[sphere_number]);
+	return check_pos->slide_sphere(path, collisions, &collision_normal, &path->global_curr_center[sphere_number]);
 }
 
 TransitionState CSphere::slide_sphere(SPHEREPATH *path, COLLISIONINFO *collisions, Vector *collision_normal, Vector *curr_pos)

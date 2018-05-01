@@ -101,6 +101,14 @@ void CClientEvents::BeginLogout()
 	}
 }
 
+void CClientEvents::ForceLogout()
+{
+	if (m_pPlayer && !m_pPlayer->IsLoggingOut())
+	{
+		m_pPlayer->BeginLogout();
+	}
+}
+
 void CClientEvents::OnLogoutCompleted()
 {
 	ExitWorld();
@@ -121,7 +129,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	if (!m_pClient->HasCharacter(char_weenie_id))
 	{
 		LoginError(13); // update error codes
-		WINLOG(Client, Warning, "Logging in with a character that doesn't belong to this account!\n");
+		SERVER_WARN << szAccount << "attempting to log in with a character that doesn't belong to this account";
 		return;
 	}
 
@@ -129,7 +137,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	{
 		// LOG(Temp, Normal, "Character already logged in!\n");
 		LoginError(13); // update error codes
-		WINLOG(Client, Warning, "Login request, but character already logged in!\n");
+		SERVER_WARN << szAccount << "Login request, but character already logged in!";
 		return;
 	}
 
@@ -147,7 +155,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	if (!m_pPlayer->Load())
 	{
 		LoginError(13); // update error codes
-		WINLOG(Client, Warning, "Login request, but character failed to load!\n");
+		SERVER_WARN << szAccount << "Login request, but character failed to load!";
 
 		delete m_pPlayer;
 
@@ -336,13 +344,13 @@ void CClientEvents::Attack(DWORD target, DWORD height, float power)
 {
 	if (height <= 0 || height >= ATTACK_HEIGHT::NUM_ATTACK_HEIGHTS)
 	{
-		WINLOG(Temp, Warning, "Bad melee attack height %u sent by player 0x%08X\n", height, m_pPlayer->GetID());
+		SERVER_WARN << "Bad melee attack height" << height << "sent by player"<< m_pPlayer->GetID();
 		return;
 	}
 
 	if (power < 0.0f || power > 1.0f)
 	{
-		WINLOG(Temp, Warning, "Bad melee attack power %f sent by player 0x%08X\n", power, m_pPlayer->GetID());
+		SERVER_WARN << "Bad melee attack power" << power << "sent by player" << m_pPlayer->GetID();
 		return;
 	}
 
@@ -353,13 +361,13 @@ void CClientEvents::MissileAttack(DWORD target, DWORD height, float power)
 {
 	if (height <= 0 || height >= ATTACK_HEIGHT::NUM_ATTACK_HEIGHTS)
 	{
-		WINLOG(Temp, Warning, "Bad missile attack height %u sent by player 0x%08X\n", height, m_pPlayer->GetID());
+		SERVER_WARN << "Bad missile attack height" << height << "sent by player" << m_pPlayer->GetID();
 		return;
 	}
 
 	if (power < 0.0f || power > 1.0f)
 	{
-		WINLOG(Temp, Warning, "Bad missile attack power %f sent by player 0x%08X\n", power, m_pPlayer->GetID());
+		SERVER_WARN << "Bad missile attack power" << power << "sent by player" << m_pPlayer->GetID();
 		return;
 	}
 
@@ -506,28 +514,28 @@ void CClientEvents::ChannelText(DWORD channel_id, const char *text)
 				return;
 
 			g_pFellowshipManager->Chat(fellowName, m_pPlayer->GetID(), text);
-			WINLOG(Client, Normal, "[%s] %s says (fellowship), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
+			CHAT_LOG << m_pPlayer->GetName().c_str() << "says (fellowship)," << text;
 			break;
 		}
 
 	case Patron_ChannelID:
 		g_pAllegianceManager->ChatPatron(m_pPlayer->GetID(), text);
-		WINLOG(Client, Normal, "[%s] %s says (patron), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
+		CHAT_LOG << m_pPlayer->GetName().c_str() << "says (patron)," << text;
 		break;
 
 	case Vassals_ChannelID:
 		g_pAllegianceManager->ChatVassals(m_pPlayer->GetID(), text);
-		WINLOG(Client, Normal, "[%s] %s says (vassals), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
+		CHAT_LOG << m_pPlayer->GetName().c_str() << "says (vassals)," << text;
 		break;
 
 	case Covassals_ChannelID:
 		g_pAllegianceManager->ChatCovassals(m_pPlayer->GetID(), text);
-		WINLOG(Client, Normal, "[%s] %s says (covassals), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
+		CHAT_LOG << m_pPlayer->GetName().c_str() << "says (covassals)," << text;
 		break;
 
 	case Monarch_ChannelID:
 		g_pAllegianceManager->ChatMonarch(m_pPlayer->GetID(), text);
-		WINLOG(Client, Normal, "[%s] %s says (monarch), \"%s\"\n", timestamp(), m_pPlayer->GetName().c_str(), text);
+		CHAT_LOG << m_pPlayer->GetName().c_str() << "says (monarch)," << text;
 		break;
 	}
 }
@@ -742,7 +750,7 @@ void CClientEvents::SpendSkillCredits(STypeSkill key, DWORD credits)
 
 	if (m_pPlayer->GetCostToRaiseSkill(key) != credits)
 	{
-		WINLOG(Temp, Warning, "Credit cost to raise skill does not match what player is trying to spend.\n");
+		SERVER_WARN << m_pPlayer->GetName() << "- Credit cost to raise skill does not match what player is trying to spend.";
 		return;
 	}
 
@@ -1862,7 +1870,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 	if (pReader->GetLastError()) return;
 
 #ifdef _DEBUG
-	WINLOG(Client, Verbose, "Processing event: 0x%X\n", dwEvent);
+	DEBUG_DATA << "Processing event:" << dwEvent;
 #endif
 
 	switch (dwEvent)
@@ -2754,8 +2762,8 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			if (pReader->GetLastError())
 			{
-				LOG_PRIVATE(Animation, Warning, "Bad animation message!\n");
-				LOG_PRIVATE_BYTES(Animation, Verbose, pReader->GetDataStart(), pReader->GetDataLen());
+				SERVER_WARN << "Bad animation message!";
+				SERVER_WARN << pReader->GetDataStart() << pReader->GetDataLen();
 				break;
 			}
 
@@ -2767,18 +2775,18 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			if (is_newer_event_stamp(moveToState.teleport_timestamp, m_pPlayer->_teleport_timestamp))
 			{
-				LOG_PRIVATE(Temp, Normal, "Old teleport timestamp on 0xF61C. Ignoring.\n");
+				SERVER_WARN << "Old teleport timestamp on 0xF61C. Ignoring.";
 				break;
 			}
 			if (is_newer_event_stamp(moveToState.force_position_ts, m_pPlayer->_force_position_timestamp))
 			{
-				LOG_PRIVATE(Temp, Normal, "Old force position timestamp on 0xF61C. Ignoring.\n");
+				SERVER_WARN << "Old force position timestamp on 0xF61C. Ignoring.";
 				break;
 			}
 
 			if (m_pPlayer->IsDead())
 			{
-				LOG_PRIVATE(Temp, Normal, "Dead players can't move. Ignoring.\n");
+				SERVER_WARN << "Dead players can't move. Ignoring.";
 				break;
 			}
 
@@ -2852,25 +2860,25 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			if (!(moveToState.raw_motion_state.current_style & CM_Style) && moveToState.raw_motion_state.current_style)
 			{
-				LOG_PRIVATE(Client, Warning, "Bad style received %08X\n", moveToState.raw_motion_state.current_style);
+				SERVER_WARN << "Bad style received" << moveToState.raw_motion_state.current_style;
 				break;
 			}
 
 			if (moveToState.raw_motion_state.forward_command & CM_Action)
 			{
-				LOG_PRIVATE(Client, Warning, "Bad forward command received %08X\n", moveToState.raw_motion_state.forward_command);
+				SERVER_WARN << "Bad forward command received" << moveToState.raw_motion_state.forward_command;
 				break;
 			}
 
 			if (moveToState.raw_motion_state.sidestep_command & CM_Action)
 			{
-				LOG_PRIVATE(Client, Warning, "Bad sidestep command received %08X\n", moveToState.raw_motion_state.sidestep_command);
+				SERVER_WARN << "Bad sidestep command received" << moveToState.raw_motion_state.sidestep_command;
 				break;
 			}
 
 			if (moveToState.raw_motion_state.turn_command & CM_Action)
 			{
-				LOG_PRIVATE(Client, Warning, "Bad turn command received %08X\n", moveToState.raw_motion_state.turn_command);
+				SERVER_WARN << "Bad turn command received" << moveToState.raw_motion_state.turn_command;
 				break;
 			}
 
@@ -2891,7 +2899,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 					if (!(commandID & CM_Action) || !(commandID & CM_ChatEmote))
 					{
-						LOG_PRIVATE(Client, Warning, "Bad action received %08X\n", commandID);
+						SERVER_WARN << "Bad action received" << commandID;
 						continue;
 					}
 
@@ -2929,7 +2937,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			if (instance != m_pPlayer->_instance_timestamp)
 			{
-				LOG_PRIVATE(Temp, Normal, "Bad instance.\n");
+				SERVER_WARN << "Bad instance.";
 				break;
 			}
 
@@ -2947,7 +2955,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				break;
 			if (is_newer_event_stamp(teleport_timestamp, m_pPlayer->_teleport_timestamp))
 			{
-				LOG_PRIVATE(Temp, Normal, "Old teleport timestamp. Ignoring.\n");
+				SERVER_WARN << "Old teleport timestamp. Ignoring.";
 				break;
 			}
 
@@ -2956,7 +2964,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				break;
 			if (is_newer_event_stamp(force_position_ts, m_pPlayer->_force_position_timestamp))
 			{
-				LOG_PRIVATE(Temp, Normal, "Old force position timestamp. Ignoring.\n");
+				SERVER_WARN << "Old force position timestamp. Ignoring.";
 				break;
 			}
 
@@ -3020,7 +3028,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		{
 			//Unknown Event
 #ifdef _DEBUG
-			WINLOG(Temp, Normal, "Unhandled client event 0x%X:\n", dwEvent);
+			SERVER_WARN << "Unhandled client event" << dwEvent;
 #endif
 			// LOG_BYTES(Temp, Verbose, in->GetDataPtr(), in->GetDataEnd() - in->GetDataPtr() );
 		}
