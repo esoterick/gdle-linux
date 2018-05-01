@@ -76,22 +76,29 @@ void CObjCell::add_object(CPhysicsObj *pObject)
 
 				while (!it.EndReached())
 				{
-					DWORD voyeur_id = it.GetCurrent()->id;
-
-					if (voyeur_id != pObject->id && voyeur_id && !pObject->parent)
+					try
 					{
-						CPhysicsObj *pVoyeur = CPhysicsObj::GetObjectA(voyeur_id);
+						DWORD voyeur_id = it.GetCurrent()->id;
 
-						if (pVoyeur)
+						if (voyeur_id != pObject->id && voyeur_id && !pObject->parent)
 						{
-							DetectionInfo info;
-							info.object_id = pObject->id;
-							info.object_status = EnteredDetection;
-							pVoyeur->receive_detection_update(&info);
-						}
-					}
+							CPhysicsObj *pVoyeur = CPhysicsObj::GetObjectA(voyeur_id);
 
-					it.Next();
+							if (pVoyeur)
+							{
+								DetectionInfo info;
+								info.object_id = pObject->id;
+								info.object_status = EnteredDetection;
+								pVoyeur->receive_detection_update(&info);
+							}
+						}
+
+						it.Next();
+					}
+					catch (...)
+					{
+						SERVER_ERROR << "Error in Add Object";
+					}
 				}
 			}
 		}

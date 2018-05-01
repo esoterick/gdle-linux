@@ -699,7 +699,6 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 
 	// create corpse but make it invisible.
 	_pendingCorpse = CreateCorpse(false);
-	_pendingCorpse->Save();
 
 	if (_pendingCorpse)
 		CalculateAndDropDeathItems(_pendingCorpse, killer_id);
@@ -1090,12 +1089,19 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 					int manaToApplyToEach = 0;
 					int overflowManaToApply = 0; // when available mana / items_needing_mana is uneven, we give the remainder to whatever is closest to full.
 
-					if (deficit * itemsNeedingMana.size() >= manaToDistribute) {
-						manaToApplyToEach = manaToDistribute / itemsNeedingMana.size();
-						overflowManaToApply = manaToDistribute % itemsNeedingMana.size();
+					try
+					{
+						if (deficit * itemsNeedingMana.size() >= manaToDistribute) {
+							manaToApplyToEach = manaToDistribute / itemsNeedingMana.size();
+							overflowManaToApply = manaToDistribute % itemsNeedingMana.size();
+						}
+						else {
+							manaToApplyToEach = deficit;
+						}
 					}
-					else {
-						manaToApplyToEach = deficit;
+					catch(...)
+					{
+						SERVER_ERROR << "Error in UseEx for mana stones";
 					}
 
 					while (!itemsNeedingMana.empty()) {

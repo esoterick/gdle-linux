@@ -183,27 +183,36 @@ int GetRandomNumberFromRange(std::vector<IntRange> ranges)
 		return rng.Next(ranges[0].Min, ranges[0].Max);
 
 	float total = 0.f;
-	for (int i = 0; i < ranges.size(); i++)
-		total += ranges[i].Weight;
-
-	float r = rng.NextDouble();
-	float s = 0.f;
-
-	int cnt = (int)ranges.size() - 1;
-	for (int i = 0; i < cnt; i++)
+	try
 	{
-		s += ranges[i].Weight / total;
-		if (s >= r)
+		for (int i = 0; i < ranges.size(); i++)
+			total += ranges[i].Weight;
+
+		float r = rng.NextDouble();
+		float s = 0.f;
+
+		int cnt = (int)ranges.size() - 1;
+		for (int i = 0; i < cnt; i++)
 		{
-			if (ranges[i].Min == ranges[i].Max)
-				return ranges[i].Min;
-			else
-				return rng.Next(ranges[i].Min, ranges[i].Max);
+			s += ranges[i].Weight / total;
+			if (s >= r)
+			{
+				if (ranges[i].Min == ranges[i].Max)
+					return ranges[i].Min;
+				else
+					return rng.Next(ranges[i].Min, ranges[i].Max);
+			}
 		}
+		if (ranges[cnt].Min == ranges[cnt].Max)
+			return ranges[cnt].Min;
+		else
+			return rng.Next(ranges[cnt].Min, ranges[cnt].Max);
+
+	}
+	catch (...)
+	{
+		SERVER_ERROR << "Error in GetRandomNumberFromRange";
 	}
 
-	if (ranges[cnt].Min == ranges[cnt].Max)
-		return ranges[cnt].Min;
-	else
-		return rng.Next(ranges[cnt].Min, ranges[cnt].Max);
+	return rng.Next(ranges[0].Min, ranges[0].Max);
 }

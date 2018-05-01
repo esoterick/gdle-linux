@@ -1077,21 +1077,28 @@ void CPhysicsObj::report_collision_end(const int force_end)
 
 		while (!iter.EndReached() && iter.GetCurrent())
 		{
-			auto current = iter.GetCurrent();
-
-			DWORD currentID = current->id;
-			CPhysicsObj::CollisionRecord entry = current->m_Data;
-
-			if (((PhysicsTimer::curr_time - entry.touched_time) > 1.0)
-				|| (entry.ethereal && (PhysicsTimer::curr_time - entry.touched_time) > 0.0)
-				|| (force_end))
+			try
 			{
-				iter.DeleteCurrent();
-				end_array.add(&currentID);
+				auto current = iter.GetCurrent();
+
+				DWORD currentID = current->id;
+				CPhysicsObj::CollisionRecord entry = current->m_Data;
+
+				if (((PhysicsTimer::curr_time - entry.touched_time) > 1.0)
+					|| (entry.ethereal && (PhysicsTimer::curr_time - entry.touched_time) > 0.0)
+					|| (force_end))
+				{
+					iter.DeleteCurrent();
+					end_array.add(&currentID);
+				}
+				else
+				{
+					iter.Next();
+				}
 			}
-			else
+			catch (...)
 			{
-				iter.Next();
+				SERVER_ERROR << "Error in Report Collision End";
 			}
 		}
 

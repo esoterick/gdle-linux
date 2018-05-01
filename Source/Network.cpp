@@ -426,7 +426,7 @@ void CNetwork::LogoutAll()
 		{
 			if (client->IsAlive() && client->GetEvents())
 			{
-				client->GetEvents()->BeginLogout();
+				client->GetEvents()->ForceLogout();
 			}
 		}
 	}

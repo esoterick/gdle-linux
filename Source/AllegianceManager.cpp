@@ -45,7 +45,7 @@ AllegianceTreeNode *AllegianceTreeNode::FindCharByNameRecursivelySlow(const std:
 		return this;
 	}
 
-	AllegianceTreeNode *node = NULL;
+	AllegianceTreeNode *node = nullptr;
 	for (auto &entry : _vassals)
 	{
 		if (node = entry.second->FindCharByNameRecursivelySlow(charName))
@@ -75,13 +75,13 @@ void AllegianceTreeNode::UpdateWithWeenie(CWeenieObject *weenie)
 {
 	_charID = weenie->GetID();
 	_charName = weenie->GetName();	
-	_hg = (HeritageGroup) weenie->InqIntQuality(HERITAGE_GROUP_INT, Invalid_HeritageGroup);
-	_gender = (Gender)weenie->InqIntQuality(GENDER_INT, Invalid_Gender);
+	_hg = static_cast<HeritageGroup>(weenie->InqIntQuality(HERITAGE_GROUP_INT, Invalid_HeritageGroup));
+	_gender = static_cast<Gender>(weenie->InqIntQuality(GENDER_INT, Invalid_Gender));
 	_level = weenie->InqIntQuality(LEVEL_INT, 1);
 	_leadership = 0;
-	weenie->m_Qualities.InqSkill(LEADERSHIP_SKILL, *(DWORD *)&_leadership, FALSE);
+	weenie->m_Qualities.InqSkill(LEADERSHIP_SKILL, *reinterpret_cast<DWORD *>(&_leadership), FALSE);
 	_loyalty = 0;
-	weenie->m_Qualities.InqSkill(LOYALTY_SKILL, *(DWORD *)&_loyalty, FALSE);
+	weenie->m_Qualities.InqSkill(LOYALTY_SKILL, *reinterpret_cast<DWORD *>(&_loyalty), FALSE);
 }
 
 DEFINE_PACK(AllegianceTreeNode)
@@ -833,8 +833,15 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 		avgRealDaysVassalsSworn += vassalDaysSworn;
 		avgIngameHoursVassalsSworn += vassalIngameHours;
 	}
-	avgRealDaysVassalsSworn /= patron->_vassals.size();
-	avgIngameHoursVassalsSworn /= patron->_vassals.size();
+	try
+	{
+		avgRealDaysVassalsSworn /= patron->_vassals.size();
+		avgIngameHoursVassalsSworn /= patron->_vassals.size();
+	}
+	catch(...)
+	{
+		SERVER_ERROR << "Vassal size was 0";
+	}
 
 	double vassalFactor = min(1.0, max(0.0, 0.25 * patron->_vassals.size()));
 	double realDaysSwornFactor = min(realDaysSworn, 730.0) / 730.0;
