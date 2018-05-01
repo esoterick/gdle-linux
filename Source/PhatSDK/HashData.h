@@ -1,5 +1,6 @@
 
 #pragma once
+#include "easylogging++.h"
 
 template<typename _Kty> class HashBase;
 template<typename _Kty> class HashBaseData;
@@ -788,10 +789,17 @@ public:
 		{
 			_Mty *pNodeData = it.GetCurrentData();
 
-			it.Next();
+			try
+			{
+				it.Next();
 
-			if (pNodeData)
-				delete pNodeData;
+				if (pNodeData)
+					delete pNodeData;
+			}
+			catch (...)
+			{
+				SERVER_ERROR << "Error in HashData DeleteAll";
+			}
 		}
 
 		flush();

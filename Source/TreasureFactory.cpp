@@ -489,21 +489,28 @@ DEFINE_PACK_JSON(CTreasureProfile)
 
 void CTreasureProfile::ComputeUniqueSpellIds(std::vector<CPossibleSpells> spellList)
 {
-	for (int i = 0; i < spellList.size(); i++)
+	try
 	{
-		CPossibleSpells spell = spellList[i];
-		int id;
-		if (spellNameToIdMap.find(spell.spellName) != spellNameToIdMap.end())
+		for (int i = 0; i < spellList.size(); i++)
 		{
-			id = nextSpellId++;
+			CPossibleSpells spell = spellList[i];
+			int id;
+			if (spellNameToIdMap.find(spell.spellName) != spellNameToIdMap.end())
+			{
+				id = nextSpellId++;
+				spell.id = id;
+				spellNameToIdMap.emplace(spell.spellName, id);
+				spells.emplace(id, spell);
+			}
+			else
+				id = spellNameToIdMap[spell.spellName];
 			spell.id = id;
-			spellNameToIdMap.emplace(spell.spellName, id);
-			spells.emplace(id, spell);
+			spellList[i] = spell;
 		}
-		else
-			id = spellNameToIdMap[spell.spellName];
-		spell.id = id;
-		spellList[i] = spell;
+	}
+	catch(...)
+	{
+		SERVER_ERROR << "ERror in CTreasureProfile::ComputeUniqueSpellIds";
 	}
 }
 

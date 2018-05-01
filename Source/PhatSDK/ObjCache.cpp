@@ -412,8 +412,15 @@ DWORD ObjCache::GetCachedCount()
 
 	DWORD Count = 0;
 	while (!Iter.EndReached()) {
-		Count++;
-		Iter.Next();
+		try
+		{
+			Count++;
+			Iter.Next();
+		}
+		catch (...)
+		{
+			SERVER_ERROR << "Error in Cached Count";
+		}
 	}
 
 	return Count;

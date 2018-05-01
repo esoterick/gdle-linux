@@ -524,25 +524,32 @@ void CMotionTable::Destroy()
 
 	while (!iter.EndReached() && iter.GetCurrent())
 	{
-		auto current = iter.GetCurrent();
-
-		/*
-		HashBaseIter<MotionData> iter2(current->m_Data);
-		while (!iter2.EndReached() && iter2.GetCurrent())
+		try
 		{
-			auto current2 = iter2.GetCurrent();
-			delete current2;
+			auto current = iter.GetCurrent();
 
-			iter2.Next();
+			/*
+			HashBaseIter<MotionData> iter2(current->m_Data);
+			while (!iter2.EndReached() && iter2.GetCurrent())
+			{
+				auto current2 = iter2.GetCurrent();
+				delete current2;
+
+				iter2.Next();
+			}
+			*/
+
+			current->m_Data->destroy_contents();
+
+			delete current->m_Data;
+			current->m_Data = NULL;
+
+			iter.Next();
 		}
-		*/
-
-		current->m_Data->destroy_contents();
-
-		delete current->m_Data;
-		current->m_Data = NULL;
-
-		iter.Next();
+		catch (...)
+		{
+			SERVER_ERROR << "Error in CMotionTable Destroy";
+		}
 	}
 
 	links.destroy_contents();
