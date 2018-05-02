@@ -405,10 +405,25 @@ public:
 
 	void destroy_contents()
 	{
-		_MybaseIter it(this);
+		try
+		{
+			_MybaseIter it(this);
+			try
+			{
+				while (!it.EndReached())
+					it.DeleteCurrent();
+			}
+			catch (...)
+			{
+				SERVER_ERROR << "Error progressing over iteration";
+			}
 
-		while (!it.EndReached())
-			it.DeleteCurrent();
+		}
+		catch (...)
+		{
+			SERVER_ERROR << "Failed to create iterator";
+		}
+
 	}
 };
 
