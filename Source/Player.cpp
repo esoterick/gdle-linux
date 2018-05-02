@@ -484,9 +484,13 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	int amountOfItemsToDrop = 0;
 	int augDropLess = InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0); // Take Death Item Augs into Consideration
 	if (pKiller && !pKiller->_IsPlayer())
-		amountOfItemsToDrop = min(max(level / 20, 1), floor(maxItemsToDrop - (maxItemsToDrop * (augDropLess * .33))));
+		amountOfItemsToDrop = min(max(level / 20, 1), (maxItemsToDrop - (augDropLess * 5)));
 	else
 		amountOfItemsToDrop = min(max(level / 20, 1), maxItemsToDrop);
+	if (level > 10)
+		amountOfItemsToDrop += Random::GenUInt(0, 2);
+	if (amountOfItemsToDrop < 0)
+		amountOfItemsToDrop = 0;
 	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
 	pCorpse->_shouldSave = true;
 	pCorpse->m_bDontClear = true;
