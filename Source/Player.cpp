@@ -1038,7 +1038,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				SendText("Despite your best efforts, you fail to destroy yourself.", LTT_DEFAULT); // TODO: better text
 				break;
 			}
-			if (targetMaxMana <= 0) {
+			if (targetCurrentMana <= 0) {
 				SendText(csprintf("The %s has no mana to drain.", pTarget->GetName().c_str()), LTT_DEFAULT); //todo: made up message, confirm if it's correct
 				break;
 			}
@@ -1072,9 +1072,9 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				priority_queue<CWeenieObject*, vector<CWeenieObject*>, CompareManaNeeds > itemsNeedingMana, itemsStillNeedingMana; // MIN heaps sorted by mana deficit
 				for (auto wielded : m_Wielded)
 				{
-					unsigned int curMana = wielded->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
-					unsigned int maxMana = wielded->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
-					unsigned int deficit = maxMana - curMana;
+					int curMana = wielded->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
+					int maxMana = wielded->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
+					int deficit = maxMana - curMana;
 					if (deficit > 0) {
 						itemsNeedingMana.push(wielded);
 					}
@@ -1090,14 +1090,13 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				while (manaToDistribute > 0 && !(itemsNeedingMana.empty())) {
 					CWeenieObject* itemNeedingLeastMana = itemsNeedingMana.top();
 					int deficit = itemNeedingLeastMana->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE) - itemNeedingLeastMana->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
-					int manaToApplyToEach = 0;
-					int overflowManaToApply = 0; // when available mana / items_needing_mana is uneven, we give the remainder to whatever is closest to full.
+					unsigned int manaToApplyToEach = 0;
 
 					try
 					{
 						if (deficit * itemsNeedingMana.size() >= manaToDistribute) {
+							// applying smallest deficit to all items would require more mana than available for distribution
 							manaToApplyToEach = manaToDistribute / itemsNeedingMana.size();
-							overflowManaToApply = manaToDistribute % itemsNeedingMana.size();
 						}
 						else {
 							manaToApplyToEach = deficit;
@@ -1108,22 +1107,21 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 						SERVER_ERROR << "Error in UseEx for mana stones";
 					}
 
+					manaToApplyToEach = max(1, manaToApplyToEach); // for when manaToDistribute / itemsNeedingMana rounds down to 0, apply 1 mana until we're out
+
 					while (!itemsNeedingMana.empty()) {
 						CWeenieObject* item = itemsNeedingMana.top();
 						int itemMaxMana = item->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
 						itemsNeedingMana.pop();
+						if (manaToDistribute <= 0) {
+							// from when we rounded up manaToApplyToEach from 0 to 1, once we're out of mana we want to finish this while loop without applying any more mana to items
+							itemsStillNeedingMana.push(item);
+							continue;
+						}
 
-						int newManaAmount = item->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE) + manaToApplyToEach;
+						unsigned int newManaAmount = item->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE) + manaToApplyToEach;
 						manaToDistribute -= manaToApplyToEach;
 						manaDistributed += manaToApplyToEach;
-
-						if (overflowManaToApply > 0) {
-							newManaAmount += overflowManaToApply;
-							manaToDistribute -= overflowManaToApply;
-							manaDistributed += overflowManaToApply;
-							overflowManaToApply = 0;
-							objectsReceivingMana.insert(item);
-						}
 
 						if (newManaAmount < itemMaxMana) {
 							itemsStillNeedingMana.push(item);
@@ -1133,7 +1131,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 							objectsReceivingMana.insert(item);
 						}
 						
-						item->m_Qualities.SetInt(ITEM_CUR_MANA_INT, newManaAmount);
+						item->m_Qualities.SetInt(ITEM_CUR_MANA_INT, min(newManaAmount, itemMaxMana));
 						item->NotifyIntStatUpdated(ITEM_CUR_MANA_INT, false); // todo: is second positional arg correct?
 					}
 
