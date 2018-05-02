@@ -1171,6 +1171,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->m_Qualities.SetInt(AUGMENTATION_JACK_OF_ALL_TRADES_INT, augJackOfTrades + 1);
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_JACK_OF_ALL_TRADES_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Jack of All Trades augmentation.", LTT_DEFAULT);
 				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
