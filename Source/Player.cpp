@@ -470,6 +470,8 @@ void CPlayerWeenie::OnGivenXP(long long amount, bool allegianceXP)
 	}
 }
 
+
+//TODO Add nonwielded handling for level > 11 && level < 35
 void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD killer_id)
 {
 	if (!pCorpse)
@@ -480,23 +482,34 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 
 	int level = InqIntQuality(LEVEL_INT, 1);
 	CWeenieObject *pKiller = g_pWorld->FindObject(killer_id);
-	int maxItemsToDrop = 12; // Limit the amount of items that can be dropped + random adjustment
 	int amountOfItemsToDrop = 0;
 	int augDropLess = InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0); // Take Death Item Augs into Consideration
-	if (pKiller && !pKiller->_IsPlayer())
-		amountOfItemsToDrop = min(max(level / 20, 1), (maxItemsToDrop - (augDropLess * 5)));
+	if(level > 10 && level <= 20)
+	{
+		amountOfItemsToDrop = 1;
+	}
+	else if(level < 35)
+	{
+		amountOfItemsToDrop = floor(level / 20) + Random::GenInt(0, 2);
+	}
 	else
-		amountOfItemsToDrop = min(max(level / 20, 1), maxItemsToDrop);
-	if (level > 10)
-		amountOfItemsToDrop += Random::GenUInt(0, 2);
-	if (amountOfItemsToDrop < 0)
-		amountOfItemsToDrop = 0;
+	{
+		amountOfItemsToDrop = floor(level / 20) + Random::GenInt(0, 2);
+	}
+
+	if (pKiller && !pKiller->_IsPlayer())
+		amountOfItemsToDrop = min(0, (amountOfItemsToDrop - (augDropLess * 5)));
+	
 	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
 	pCorpse->_shouldSave = true;
 	pCorpse->m_bDontClear = true;
 
-	DWORD coinConsumed = ConsumeCoin(RecalculateCoinAmount() / 2);
-	pCorpse->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed);
+	DWORD coinConsumed = 0;
+	if (level > 5)
+	{
+		coinConsumed = ConsumeCoin(RecalculateCoinAmount() / 2);
+		pCorpse->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed);
+	}
 
 	std::vector<CWeenieObject *> alwaysDropList;
 	std::vector<CWeenieObject *> removeList;
@@ -1336,7 +1349,8 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
 			//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
-			int salvageMod = 12;
+			int salvageMod = GetMaterialMod(*pTool);
+
 			int multiple = 1;
 			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
 
@@ -1351,8 +1365,8 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			}
 
 			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
-
-			if (Random::RollDice(0.0, 1.0) <= successChance)
+			double successRoll = Random::RollDice(0.0, 1.0);
+			if (successRoll <= successChance)
 			{
 				success = true;
 
@@ -1372,6 +1386,10 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 					g_pWorld->BroadcastLocal(GetLandcell(), text);
 				}
 			}
+
+			IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << itemWorkmanship << " TT:" << amountOfTimesTinkered <<
+				" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (success ? "TRUE" : "FALSE");
+
 			break;
 		}
 		case 2: //imbues
@@ -1516,6 +1534,35 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 	}
 	}
 	return WERROR_NONE;
+}
+
+int CPlayerWeenie::GetMaterialMod(CWeenieObject &tool)
+{
+	string toolName = tool.InqStringQuality(NAME_STRING, "");
+	if (ToLowerCase(toolName) == "SALVAGED GOLD" || ToLowerCase(toolName) == "SALVAGED OAK")
+		return 10;
+	else if (ToLowerCase(toolName) == "SALVAGED EBONY" || ToLowerCase(toolName) == "SALVAGED TEAK" || ToLowerCase(toolName) == "SALVAGED STEEL" ||
+		ToLowerCase(toolName) == "SALVAGED SATIN" || ToLowerCase(toolName) == "SALVAGED PORCELAIN" || ToLowerCase(toolName) == "SALVAGED MAHOGANY" ||
+		ToLowerCase(toolName) == "SALVAGED IRON" || ToLowerCase(toolName) == "SALVAGED GREENGARNET")
+		return 12;
+	else if (ToLowerCase(toolName) == "SALVAGED ALABASTER" || ToLowerCase(toolName) == "BRASS" || ToLowerCase(toolName) == "SALVAGED ARMOREDILLOHIDE" ||
+		ToLowerCase(toolName) == "SALVAGED WOOL" || ToLowerCase(toolName) == "SALVAGED VELVET" || ToLowerCase(toolName) == "SALVAGED REEDSHARKHIDE" ||
+		ToLowerCase(toolName) == "SALVAGED PINE" || ToLowerCase(toolName) == "SALVAGED OPAL" || ToLowerCase(toolName) == "SALVAGED MARBLE" ||
+		ToLowerCase(toolName) == "SALVAGED LINEN" || ToLowerCase(toolName) == "SALVAGED GRANITE" || ToLowerCase(toolName) == "SALVAGED CERAMIC" ||
+		ToLowerCase(toolName) == "SALVAGED BRONZE" || ToLowerCase(toolName) == "SALVAGED MOONSTONE")
+		return 11;
+	else if (ToLowerCase(toolName) == "SALVAGED BLOODSTONE" || ToLowerCase(toolName) == "SALVAGED ROSEQUARTZ" || ToLowerCase(toolName) == "SALVAGED REDJADE" ||
+		ToLowerCase(toolName) == "SALVAGED MALACHITE" || ToLowerCase(toolName) == "SALVAGED LAVENDARJADE" || ToLowerCase(toolName) == "SALVAGED HEMATITE" ||
+		ToLowerCase(toolName) == "SALVAGED CITRINE" || ToLowerCase(toolName) == "SALVAGED CARNELIAN")
+		return 25;
+	else
+		return 20;
+}
+
+std::string CPlayerWeenie::ToLowerCase(string tName)
+{
+	transform(tName.begin(), tName.end(), tName.begin(), ::toupper);
+	return tName;
 }
 
 bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget)

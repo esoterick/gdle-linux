@@ -1,0 +1,982 @@
+{
+  "attributes": {
+    "coordination": {
+      "cp_spent": 0,
+      "init_level": 70,
+      "level_from_cp": 0
+    },
+    "endurance": {
+      "cp_spent": 0,
+      "init_level": 90,
+      "level_from_cp": 0
+    },
+    "focus": {
+      "cp_spent": 0,
+      "init_level": 50,
+      "level_from_cp": 0
+    },
+    "health": {
+      "cp_spent": 0,
+      "current": 125,
+      "init_level": 80,
+      "level_from_cp": 0
+    },
+    "mana": {
+      "cp_spent": 0,
+      "current": 100,
+      "init_level": 40,
+      "level_from_cp": 0
+    },
+    "quickness": {
+      "cp_spent": 0,
+      "init_level": 70,
+      "level_from_cp": 0
+    },
+    "self": {
+      "cp_spent": 0,
+      "init_level": 60,
+      "level_from_cp": 0
+    },
+    "stamina": {
+      "cp_spent": 0,
+      "current": 200,
+      "init_level": 110,
+      "level_from_cp": 0
+    },
+    "strength": {
+      "cp_spent": 0,
+      "init_level": 80,
+      "level_from_cp": 0
+    }
+  },
+  "body": {
+    "body_part_table": [
+      {
+        "key": 8,
+        "value": {
+          "acache": {
+            "armor_vs_acid": 0,
+            "armor_vs_bludgeon": 0,
+            "armor_vs_cold": 0,
+            "armor_vs_electric": 0,
+            "armor_vs_fire": 0,
+            "armor_vs_nether": 0,
+            "armor_vs_pierce": 0,
+            "armor_vs_slash": 0,
+            "base_armor": 0
+          },
+          "bh": 3,
+          "bpsd": {
+            "HLB": 0.0,
+            "HLF": 0.0,
+            "HRB": 0.0,
+            "HRF": 0.0,
+            "LLB": 0.219999998807907,
+            "LLF": 0.219999998807907,
+            "LRB": 0.219999998807907,
+            "LRF": 0.219999998807907,
+            "MLB": 0.0,
+            "MLF": 0.0,
+            "MRB": 0.0,
+            "MRF": 0.0
+          },
+          "dtype": 4,
+          "dval": 2,
+          "dvar": 0.75
+        }
+      },
+      {
+        "key": 0,
+        "value": {
+          "acache": {
+            "armor_vs_acid": 0,
+            "armor_vs_bludgeon": 0,
+            "armor_vs_cold": 0,
+            "armor_vs_electric": 0,
+            "armor_vs_fire": 0,
+            "armor_vs_nether": 0,
+            "armor_vs_pierce": 0,
+            "armor_vs_slash": 0,
+            "base_armor": 0
+          },
+          "bh": 1,
+          "bpsd": {
+            "HLB": 0.330000013113022,
+            "HLF": 0.330000013113022,
+            "HRB": 0.330000013113022,
+            "HRF": 0.330000013113022,
+            "LLB": 0.0,
+            "LLF": 0.0,
+            "LRB": 0.0,
+            "LRF": 0.0,
+            "MLB": 0.0,
+            "MLF": 0.0,
+            "MRB": 0.0,
+            "MRF": 0.0
+          },
+          "dtype": 4,
+          "dval": 0,
+          "dvar": 0.0
+        }
+      },
+      {
+        "key": 1,
+        "value": {
+          "acache": {
+            "armor_vs_acid": 0,
+            "armor_vs_bludgeon": 0,
+            "armor_vs_cold": 0,
+            "armor_vs_electric": 0,
+            "armor_vs_fire": 0,
+            "armor_vs_nether": 0,
+            "armor_vs_pierce": 0,
+            "armor_vs_slash": 0,
+            "base_armor": 0
+          },
+          "bh": 2,
+          "bpsd": {
+            "HLB": 0.439999997615814,
+            "HLF": 0.439999997615814,
+            "HRB": 0.439999997615814,
+            "HRF": 0.439999997615814,
+            "LLB": 0.0,
+            "LLF": 0.0,
+            "LRB": 0.0,
+            "LRF": 0.0,
+            "MLB": 0.170000001788139,
+            "MLF": 0.170000001788139,
+            "MRB": 0.170000001788139,
+            "MRF": 0.170000001788139
+          },
+          "dtype": 4,
+          "dval": 0,
+          "dvar": 0.0
+        }
+      },
+      {
+        "key": 2,
+        "value": {
+          "acache": {
+            "armor_vs_acid": 0,
+            "armor_vs_bludgeon": 0,
+            "armor_vs_cold": 0,
+            "armor_vs_electric": 0,
+            "armor_vs_fire": 0,
+            "armor_vs_nether": 0,
+            "armor_vs_pierce": 0,
+            "armor_vs_slash": 0,
+            "base_armor": 0
+          },
+          "bh": 3,
+          "bpsd": {
+            "HLB": 0.0,
+            "HLF": 0.0,
+            "HRB": 0.0,
+            "HRF": 0.0,
+            "LLB": 0.0,
+            "LLF": 0.0,
+            "LRB": 0.0,
+            "LRF": 0.0,
+            "MLB": 0.170000001788139,
+            "MLF": 0.170000001788139,
+            "MRB": 0.170000001788139,
+            "MRF": 0.170000001788139
+          },
+          "dtype": 4,
+          "dval": 0,
+          "dvar": 0.0
+        }
+      },
+      {
+        "key": 3,
+        "value": {
+          "acache": {
+            "armor_vs_acid": 0,
+            "armor_vs_bludgeon": 0,
+            "armor_vs_cold": 0,
+            "armor_vs_electric": 0,
+            "armor_vs_fire": 0,
+            "armor_vs_nether": 0,
+            "armor_vs_pierce": 0,
+            "armor_vs_slash": 0,
+            "base_armor": 0
+          },
+          "bh": 1,
+          "bpsd": {
+            "HLB": 0.230000004172325,
+            "HLF": 0.230000004172325,
+            "HRB": 0.230000004172325,
+            "HRF": 0.230000004172325,
+            "LLB": 0.0,
+            "LLF": 0.0,
+            "LRB": 0.0,
+            "LRF": 0.0,
+            "MLB": 0.0299999993294477,
+            "MLF": 0.0299999993294477,
+            "MRB": 0.0299999993294477,
+            "MRF": 0.0299999993294477
+          },
+          "dtype": 4,
+          "dval": 0,
+          "dvar": 0.0
+        }
+      },
+      {
+        "key": 4,
+        "value": {
+          "acache": {
+            "armor_vs_acid": 0,
+            "armor_vs_bludgeon": 0,
+            "armor_vs_cold": 0,
+            "armor_vs_electric": 0,
+            "armor_vs_fire": 0,
+            "armor_vs_nether": 0,
+            "armor_vs_pierce": 0,
+            "armor_vs_slash": 0,
+            "base_armor": 0
+          },
+          "bh": 2,
+          "bpsd": {
+            "HLB": 0.0,
+            "HLF": 0.0,
+            "HRB": 0.0,
+            "HRF": 0.0,
+            "LLB": 0.0,
+            "LLF": 0.0,
+            "LRB": 0.0,
+            "LRF": 0.0,
+            "MLB": 0.300000011920929,
+            "MLF": 0.300000011920929,
+            "MRB": 0.300000011920929,
+            "MRF": 0.300000011920929
+          },
+          "dtype": 4,
+          "dval": 0,
+          "dvar": 0.0
+        }
+      },
+      {
+        "key": 5,
+        "value": {
+          "acache": {
+            "armor_vs_acid": 0,
+            "armor_vs_bludgeon": 0,
+            "armor_vs_cold": 0,
+            "armor_vs_electric": 0,
+            "armor_vs_fire": 0,
+            "armor_vs_nether": 0,
+            "armor_vs_pierce": 0,
+            "armor_vs_slash": 0,
+            "base_armor": 0
+          },
+          "bh": 2,
+          "bpsd": {
+            "HLB": 0.0,
+            "HLF": 0.0,
+            "HRB": 0.0,
+            "HRF": 0.0,
+            "LLB": 0.0,
+            "LLF": 0.0,
+            "LRB": 0.0,
+            "LRF": 0.0,
+            "MLB": 0.200000002980232,
+            "MLF": 0.200000002980232,
+            "MRB": 0.200000002980232,
+            "MRF": 0.200000002980232
+          },
+          "dtype": 4,
+          "dval": 2,
+          "dvar": 0.75
+        }
+      },
+      {
+        "key": 6,
+        "value": {
+          "acache": {
+            "armor_vs_acid": 0,
+            "armor_vs_bludgeon": 0,
+            "armor_vs_cold": 0,
+            "armor_vs_electric": 0,
+            "armor_vs_fire": 0,
+            "armor_vs_nether": 0,
+            "armor_vs_pierce": 0,
+            "armor_vs_slash": 0,
+            "base_armor": 0
+          },
+          "bh": 3,
+          "bpsd": {
+            "HLB": 0.0,
+            "HLF": 0.0,
+            "HRB": 0.0,
+            "HRF": 0.0,
+            "LLB": 0.180000007152557,
+            "LLF": 0.180000007152557,
+            "LRB": 0.180000007152557,
+            "LRF": 0.180000007152557,
+            "MLB": 0.129999995231628,
+            "MLF": 0.129999995231628,
+            "MRB": 0.129999995231628,
+            "MRF": 0.129999995231628
+          },
+          "dtype": 4,
+          "dval": 0,
+          "dvar": 0.0
+        }
+      },
+      {
+        "key": 7,
+        "value": {
+          "acache": {
+            "armor_vs_acid": 0,
+            "armor_vs_bludgeon": 0,
+            "armor_vs_cold": 0,
+            "armor_vs_electric": 0,
+            "armor_vs_fire": 0,
+            "armor_vs_nether": 0,
+            "armor_vs_pierce": 0,
+            "armor_vs_slash": 0,
+            "base_armor": 0
+          },
+          "bh": 3,
+          "bpsd": {
+            "HLB": 0.0,
+            "HLF": 0.0,
+            "HRB": 0.0,
+            "HRF": 0.0,
+            "LLB": 0.600000023841858,
+            "LLF": 0.600000023841858,
+            "LRB": 0.600000023841858,
+            "LRF": 0.600000023841858,
+            "MLB": 0.0,
+            "MLF": 0.0,
+            "MRB": 0.0,
+            "MRF": 0.0
+          },
+          "dtype": 4,
+          "dval": 0,
+          "dvar": 0.0
+        }
+      }
+    ]
+  },
+  "boolStats": [
+    {
+      "key": 41,
+      "value": 1
+    },
+    {
+      "key": 1,
+      "value": 1
+    },
+    {
+      "key": 8,
+      "value": 1
+    },
+    {
+      "key": 42,
+      "value": 1
+    },
+    {
+      "key": 52,
+      "value": 1
+    },
+    {
+      "key": 12,
+      "value": 1
+    },
+    {
+      "key": 13,
+      "value": 0
+    },
+    {
+      "key": 19,
+      "value": 0
+    }
+  ],
+  "createList": [
+    {
+      "destination": 2,
+      "palette": 9,
+      "shade": 1.0,
+      "stack_size": 0,
+      "try_to_bond": 0,
+      "wcid": 2596
+    },
+    {
+      "destination": 2,
+      "palette": 9,
+      "shade": 1.0,
+      "stack_size": 0,
+      "try_to_bond": 0,
+      "wcid": 2604
+    },
+    {
+      "destination": 2,
+      "palette": 4,
+      "shade": 0.800000011920929,
+      "stack_size": 0,
+      "try_to_bond": 0,
+      "wcid": 132
+    }
+  ],
+  "didStats": [
+    {
+      "key": 1,
+      "value": 33554433
+    },
+    {
+      "key": 2,
+      "value": 150994945
+    },
+    {
+      "key": 3,
+      "value": 536870913
+    },
+    {
+      "key": 4,
+      "value": 805306368
+    },
+    {
+      "key": 8,
+      "value": 100667446
+    }
+  ],
+  "emoteTable": [
+    {
+      "key": 13,
+      "value": [
+        {
+          "category": 13,
+          "emotes": [
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "type": 12
+            },
+            {
+              "delay": 1.0,
+              "extent": 1.0,
+              "msg": "But you just gave me her letter!  Maybe if you come back tomorrow, I will believe that she has written me again.",
+              "type": 10
+            },
+            {
+              "cprof": {
+                "destination": 0,
+                "palette": 0,
+                "shade": 0.0,
+                "stack_size": 1,
+                "try_to_bond": 0,
+                "wcid": 5173
+              },
+              "delay": 0.0,
+              "extent": 1.0,
+              "type": 3
+            }
+          ],
+          "probability": 1.0,
+          "quest": "YARAQNASUNLETTER"
+        }
+      ]
+    },
+    {
+      "key": 5,
+      "value": [
+        {
+          "category": 5,
+          "emotes": [
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "motion": 318767237,
+              "type": 5
+            }
+          ],
+          "probability": 0.0799999982118607,
+          "style": 2147483709,
+          "substyle": 1090519043
+        },
+        {
+          "category": 5,
+          "emotes": [
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "motion": 318767238,
+              "type": 5
+            }
+          ],
+          "probability": 0.159999996423721,
+          "style": 2147483709,
+          "substyle": 1090519043
+        },
+        {
+          "category": 5,
+          "emotes": [
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "motion": 318767244,
+              "type": 5
+            }
+          ],
+          "probability": 0.239999994635582,
+          "style": 2147483709,
+          "substyle": 1090519043
+        },
+        {
+          "category": 5,
+          "emotes": [
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "frame": {
+                "angles": {
+                  "w": 1.0,
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": -0.0
+                },
+                "origin": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                }
+              },
+              "type": 4
+            }
+          ],
+          "probability": 0.340000003576279,
+          "style": 2147483709,
+          "substyle": 1090519043
+        }
+      ]
+    },
+    {
+      "key": 6,
+      "value": [
+        {
+          "category": 6,
+          "classID": 1077,
+          "emotes": [
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "type": 12
+            },
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "msg": "Many thanks, friend traveler.",
+              "type": 10
+            },
+            {
+              "cprof": {
+                "destination": 0,
+                "palette": 0,
+                "shade": 0.0,
+                "stack_size": 1,
+                "try_to_bond": 0,
+                "wcid": 5170
+              },
+              "delay": 1.0,
+              "extent": 1.0,
+              "type": 3
+            },
+            {
+              "delay": 2.0,
+              "extent": 1.0,
+              "msg": "Would you have the time to bring this to Ahyara in the East Yaraq Outpost? She is also a friend of Mara's, and would wish to sign this small note as well.",
+              "type": 10
+            }
+          ],
+          "probability": 1.0
+        },
+        {
+          "category": 6,
+          "classID": 5168,
+          "emotes": [
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "type": 12
+            },
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "motion": 318767237,
+              "type": 5
+            },
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "msg": "As ever, Ahyara is swifter to act than I.  Ah well.",
+              "type": 10
+            },
+            {
+              "cprof": {
+                "destination": 0,
+                "palette": 0,
+                "shade": 0.0,
+                "stack_size": 1,
+                "try_to_bond": 0,
+                "wcid": 5169
+              },
+              "delay": 1.0,
+              "extent": 1.0,
+              "type": 3
+            },
+            {
+              "delay": 2.0,
+              "extent": 1.0,
+              "msg": "My friend, could I trouble you to bring this to Mara at her father's villa outside Yaraq? I am sure she will be pleased to receive it.",
+              "type": 10
+            }
+          ],
+          "probability": 1.0
+        },
+        {
+          "category": 6,
+          "classID": 5173,
+          "emotes": [
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "msg": "YaraqNasunLetter",
+              "type": 20
+            }
+          ],
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "key": 7,
+      "value": [
+        {
+          "category": 7,
+          "emotes": [
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "motion": 1090519043,
+              "type": 5
+            },
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "type": 12
+            },
+            {
+              "delay": 2.0,
+              "extent": 1.0,
+              "msg": "My friend Mara al-Luq, the flower of Yaraq, has just received some happy news, and I want to congratulate her.",
+              "type": 10
+            },
+            {
+              "cprof": {
+                "destination": 0,
+                "palette": 0,
+                "shade": 0.0,
+                "stack_size": 1,
+                "try_to_bond": 0,
+                "wcid": 5170
+              },
+              "delay": 1.0,
+              "extent": 1.0,
+              "type": 3
+            },
+            {
+              "delay": 2.0,
+              "extent": 1.0,
+              "msg": "Would you have the time to bring this to Ahyara in the East Yaraq Outpost? She is also a friend of Mara's, and would wish to sign this small note as well.",
+              "type": 10
+            }
+          ],
+          "probability": 1.0,
+          "quest": "YARAQNASUNLETTER"
+        }
+      ]
+    },
+    {
+      "key": 12,
+      "value": [
+        {
+          "category": 12,
+          "emotes": [
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "type": 12
+            },
+            {
+              "delay": 0.0,
+              "extent": 1.0,
+              "msg": "Ah, Mara's spirit is as lovely as her face!  You have my thanks, friend traveler,  for performing this little errand. I pray it was not too onerous.",
+              "type": 10
+            },
+            {
+              "cprof": {
+                "destination": 0,
+                "palette": 0,
+                "shade": 0.0,
+                "stack_size": 200,
+                "try_to_bond": 0,
+                "wcid": 273
+              },
+              "delay": 2.0,
+              "extent": 1.0,
+              "type": 3
+            },
+            {
+              "delay": 2.0,
+              "extent": 1.0,
+              "msg": "Please accept this small token of my appreciation.",
+              "type": 10
+            },
+            {
+              "amount64": 2000,
+              "delay": 0.0,
+              "extent": 1.0,
+              "heroxp64": 0,
+              "type": 2
+            },
+            {
+              "cprof": {
+                "destination": 0,
+                "palette": 0,
+                "shade": 0.0,
+                "stack_size": 2,
+                "try_to_bond": 0,
+                "wcid": 377
+              },
+              "delay": 1.0,
+              "extent": 1.0,
+              "type": 3
+            }
+          ],
+          "probability": 1.0,
+          "quest": "YARAQNASUNLETTER"
+        }
+      ]
+    }
+  ],
+  "floatStats": [
+    {
+      "key": 64,
+      "value": 1.0
+    },
+    {
+      "key": 65,
+      "value": 1.0
+    },
+    {
+      "key": 1,
+      "value": 5.0
+    },
+    {
+      "key": 66,
+      "value": 1.0
+    },
+    {
+      "key": 2,
+      "value": 0.0
+    },
+    {
+      "key": 67,
+      "value": 1.0
+    },
+    {
+      "key": 3,
+      "value": 0.16
+    },
+    {
+      "key": 68,
+      "value": 1.0
+    },
+    {
+      "key": 4,
+      "value": 5.0
+    },
+    {
+      "key": 5,
+      "value": 1.0
+    },
+    {
+      "key": 69,
+      "value": 1.0
+    },
+    {
+      "key": 70,
+      "value": 1.0
+    },
+    {
+      "key": 71,
+      "value": 1.0
+    },
+    {
+      "key": 104,
+      "value": 10.0
+    },
+    {
+      "key": 72,
+      "value": 1.0
+    },
+    {
+      "key": 73,
+      "value": 1.0
+    },
+    {
+      "key": 74,
+      "value": 1.0
+    },
+    {
+      "key": 75,
+      "value": 1.0
+    },
+    {
+      "key": 13,
+      "value": 0.9
+    },
+    {
+      "key": 14,
+      "value": 1.0
+    },
+    {
+      "key": 15,
+      "value": 1.1
+    },
+    {
+      "key": 16,
+      "value": 0.4
+    },
+    {
+      "key": 17,
+      "value": 0.4
+    },
+    {
+      "key": 18,
+      "value": 1.0
+    },
+    {
+      "key": 19,
+      "value": 0.6
+    },
+    {
+      "key": 54,
+      "value": 3.0
+    },
+    {
+      "key": 125,
+      "value": 1.0
+    }
+  ],
+  "intStats": [
+    {
+      "key": 1,
+      "value": 16
+    },
+    {
+      "key": 146,
+      "value": 221
+    },
+    {
+      "key": 2,
+      "value": 31
+    },
+    {
+      "key": 133,
+      "value": 4
+    },
+    {
+      "key": 6,
+      "value": -1
+    },
+    {
+      "key": 134,
+      "value": 16
+    },
+    {
+      "key": 7,
+      "value": -1
+    },
+    {
+      "key": 16,
+      "value": 32
+    },
+    {
+      "key": 8,
+      "value": 120
+    },
+    {
+      "key": 25,
+      "value": 4
+    },
+    {
+      "key": 27,
+      "value": 0
+    },
+    {
+      "key": 93,
+      "value": 6292504
+    },
+    {
+      "key": 95,
+      "value": 8
+    }
+  ],
+  "skills": [
+    {
+      "key": 6,
+      "value": {
+        "init_level": 1,
+        "last_used_time": 415.301412432278,
+        "level_from_pp": 0,
+        "pp": 0,
+        "resistance_of_last_check": 0,
+        "sac": 2
+      }
+    },
+    {
+      "key": 7,
+      "value": {
+        "init_level": 1,
+        "last_used_time": 415.301412432278,
+        "level_from_pp": 0,
+        "pp": 0,
+        "resistance_of_last_check": 0,
+        "sac": 2
+      }
+    },
+    {
+      "key": 13,
+      "value": {
+        "init_level": 1,
+        "last_used_time": 415.301412432278,
+        "level_from_pp": 0,
+        "pp": 0,
+        "resistance_of_last_check": 0,
+        "sac": 2
+      }
+    }
+  ],
+  "stringStats": [
+    {
+      "key": 1,
+      "value": "Nasun ibn Tifar"
+    },
+    {
+      "key": 3,
+      "value": "Male"
+    },
+    {
+      "key": 4,
+      "value": "Gharu'ndim"
+    },
+    {
+      "key": 5,
+      "value": "Citizen of Yaraq"
+    }
+  ],
+  "wcid": 5180,
+  "weenieType": 10
+}
