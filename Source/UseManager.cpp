@@ -88,7 +88,7 @@ void CUseEventData::MoveToUse()
 	_move_to = true;
 
 	MovementParameters params;
-	params.min_distance = _max_use_distance;
+	params.min_distance = _max_use_distance; //a little leeway on item move to range
 	params.action_stamp = ++_weenie->m_wAnimSequence;
 	_weenie->last_move_was_autonomous = false;
 	_weenie->MoveToObject(_target_id, &params);
@@ -153,7 +153,7 @@ bool CUseEventData::InUseRange()
 	if (target && (_weenie->IsContainedWithinViewable(target->GetID())))
 		return true;
 
-	if ((_max_use_distance + F_EPSILON) < DistanceToTarget())
+	if ((_max_use_distance + F_EPSILON) < (DistanceToTarget() - 0.25f)) //a little leeway on item use range
 		return false;
 
 	return true;
@@ -344,7 +344,27 @@ void CInventoryUseEvent::SetupUse()
 
 void CPickupInventoryUseEvent::OnReadyToUse()
 {
-	ExecuteUseAnimation(Motion_Pickup);
+	CWeenieObject *target = GetTarget();
+
+	if (target->HasOwner()) {
+		
+		if (this->_target_container_id == _weenie->GetID())
+			target = target->GetWorldTopLevelOwner();
+		else
+			target = g_pWorld->FindObject(this->_target_container_id);
+	}
+
+	float z1 = target->m_Position.frame.m_origin.z;
+	float z2 = _weenie->m_Position.frame.m_origin.z;
+
+	if (z1 - z2 >= 1.9)
+		ExecuteUseAnimation(Motion_Pickup20);
+	else if (z1 - z2 >= 1.4)
+		ExecuteUseAnimation(Motion_Pickup15);
+	else if (z1 - z2 >= 0.9)
+		ExecuteUseAnimation(Motion_Pickup10);
+	else
+		ExecuteUseAnimation(Motion_Pickup);
 }
 
 void CPickupInventoryUseEvent::OnUseAnimSuccess(DWORD motion)

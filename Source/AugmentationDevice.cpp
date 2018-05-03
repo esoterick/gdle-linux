@@ -592,6 +592,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT);
 				player->NotifyIntStatUpdated(ENCUMB_CAPACITY_INT);
+				player->CPlayerWeenie::RecalculateEncumbrance();
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Might of The Seventh Mule augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
