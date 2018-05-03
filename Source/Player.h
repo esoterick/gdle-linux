@@ -41,7 +41,7 @@ public:
 	virtual void NotifyWeenieError(int error) override;
 	virtual void NotifyWeenieErrorWithString(int error, const char *text) override;
 	virtual void NotifyInventoryFailedEvent(DWORD object_id, int error) override;
-	std::string ToLowerCase(std::string tName);
+	std::string ToUpperCase(std::string tName);
 	virtual int UseEx(CWeenieObject *pTool, CWeenieObject *pTarget);
 	virtual bool CheckUseRequirements(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget);
 	virtual void PerformUseModifications(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem);

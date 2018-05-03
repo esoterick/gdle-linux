@@ -22,6 +22,7 @@
 #include "Corpse.h"
 #include "House.h"
 #include "easylogging++.h"
+#include "Util.h"
 
 #define PLAYER_SAVE_INTERVAL 180.0
 
@@ -1539,27 +1540,27 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 int CPlayerWeenie::GetMaterialMod(CWeenieObject &tool)
 {
 	string toolName = tool.InqStringQuality(NAME_STRING, "");
-	if (ToLowerCase(toolName) == "SALVAGED GOLD" || ToLowerCase(toolName) == "SALVAGED OAK")
+	if (ToUpperCase(toolName) == "SALVAGED GOLD" || ToUpperCase(toolName) == "SALVAGED OAK")
 		return 10;
-	else if (ToLowerCase(toolName) == "SALVAGED EBONY" || ToLowerCase(toolName) == "SALVAGED TEAK" || ToLowerCase(toolName) == "SALVAGED STEEL" ||
-		ToLowerCase(toolName) == "SALVAGED SATIN" || ToLowerCase(toolName) == "SALVAGED PORCELAIN" || ToLowerCase(toolName) == "SALVAGED MAHOGANY" ||
-		ToLowerCase(toolName) == "SALVAGED IRON" || ToLowerCase(toolName) == "SALVAGED GREENGARNET")
+	else if (ToUpperCase(toolName) == "SALVAGED EBONY" || ToUpperCase(toolName) == "SALVAGED TEAK" || ToUpperCase(toolName) == "SALVAGED STEEL" ||
+		ToUpperCase(toolName) == "SALVAGED SATIN" || ToUpperCase(toolName) == "SALVAGED PORCELAIN" || ToUpperCase(toolName) == "SALVAGED MAHOGANY" ||
+		ToUpperCase(toolName) == "SALVAGED IRON" || ToUpperCase(toolName) == "SALVAGED GREENGARNET")
 		return 12;
-	else if (ToLowerCase(toolName) == "SALVAGED ALABASTER" || ToLowerCase(toolName) == "BRASS" || ToLowerCase(toolName) == "SALVAGED ARMOREDILLOHIDE" ||
-		ToLowerCase(toolName) == "SALVAGED WOOL" || ToLowerCase(toolName) == "SALVAGED VELVET" || ToLowerCase(toolName) == "SALVAGED REEDSHARKHIDE" ||
-		ToLowerCase(toolName) == "SALVAGED PINE" || ToLowerCase(toolName) == "SALVAGED OPAL" || ToLowerCase(toolName) == "SALVAGED MARBLE" ||
-		ToLowerCase(toolName) == "SALVAGED LINEN" || ToLowerCase(toolName) == "SALVAGED GRANITE" || ToLowerCase(toolName) == "SALVAGED CERAMIC" ||
-		ToLowerCase(toolName) == "SALVAGED BRONZE" || ToLowerCase(toolName) == "SALVAGED MOONSTONE")
+	else if (ToUpperCase(toolName) == "SALVAGED ALABASTER" || ToUpperCase(toolName) == "SALVAGED BRASS" || ToUpperCase(toolName) == "SALVAGED ARMOREDILLOHIDE" ||
+		ToUpperCase(toolName) == "SALVAGED WOOL" || ToUpperCase(toolName) == "SALVAGED VELVET" || ToUpperCase(toolName) == "SALVAGED REEDSHARKHIDE" ||
+		ToUpperCase(toolName) == "SALVAGED PINE" || ToUpperCase(toolName) == "SALVAGED OPAL" || ToUpperCase(toolName) == "SALVAGED MARBLE" ||
+		ToUpperCase(toolName) == "SALVAGED LINEN" || ToUpperCase(toolName) == "SALVAGED GRANITE" || ToUpperCase(toolName) == "SALVAGED CERAMIC" ||
+		ToUpperCase(toolName) == "SALVAGED BRONZE" || ToUpperCase(toolName) == "SALVAGED MOONSTONE")
 		return 11;
-	else if (ToLowerCase(toolName) == "SALVAGED BLOODSTONE" || ToLowerCase(toolName) == "SALVAGED ROSEQUARTZ" || ToLowerCase(toolName) == "SALVAGED REDJADE" ||
-		ToLowerCase(toolName) == "SALVAGED MALACHITE" || ToLowerCase(toolName) == "SALVAGED LAVENDARJADE" || ToLowerCase(toolName) == "SALVAGED HEMATITE" ||
-		ToLowerCase(toolName) == "SALVAGED CITRINE" || ToLowerCase(toolName) == "SALVAGED CARNELIAN")
+	else if (ToUpperCase(toolName) == "SALVAGED BLOODSTONE" || ToUpperCase(toolName) == "SALVAGED ROSEQUARTZ" || ToUpperCase(toolName) == "SALVAGED REDJADE" ||
+		ToUpperCase(toolName) == "SALVAGED MALACHITE" || ToUpperCase(toolName) == "SALVAGED LAVENDARJADE" || ToUpperCase(toolName) == "SALVAGED HEMATITE" ||
+		ToUpperCase(toolName) == "SALVAGED CITRINE" || ToUpperCase(toolName) == "SALVAGED CARNELIAN")
 		return 25;
 	else
 		return 20;
 }
 
-std::string CPlayerWeenie::ToLowerCase(string tName)
+std::string CPlayerWeenie::ToUpperCase(string tName)
 {
 	transform(tName.begin(), tName.end(), tName.begin(), ::toupper);
 	return tName;
