@@ -105,24 +105,36 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 					const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skillToAlter);
 					if (pSkillBase != NULL)
 					{
-						numSkillCredits += pSkillBase->_specialized_cost;
-						player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
-						player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
+						bool isTinker = (skillToAlter == SALVAGING_SKILL ||
+							skillToAlter == WEAPON_APPRAISAL_SKILL ||
+							skillToAlter == ARMOR_APPRAISAL_SKILL ||
+							skillToAlter == MAGIC_ITEM_APPRAISAL_SKILL ||
+							skillToAlter == ITEM_APPRAISAL_SKILL);
 
-						DWORD64 xpToAward = 0;
-
-						if (pSkillBase->_trained_cost > 0)
+						if (isTinker)
 						{
-							skill._sac = UNTRAINED_SKILL_ADVANCEMENT_CLASS;
-							xpToAward = skill._pp;
-							skill._pp = 0;
-							skill._init_level = 0;
+							switch (skillToAlter)
+							{
+							case WEAPON_APPRAISAL_SKILL: player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT, 0); break;
+							case ARMOR_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT, 0); break;
+							case ITEM_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT, 0); break;
+							case MAGIC_ITEM_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT, 0); break;
+							case SALVAGING_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_SALVAGING_INT, 0); break;
+							}
 						}
 						else
 						{
-							skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
-							skill._init_level = 5;
+							numSkillCredits += (pSkillBase->_specialized_cost - pSkillBase->_trained_cost);
+							player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
+							player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
 						}
+
+						DWORD64 xpToAward = 0;
+
+						xpToAward = skill._pp;
+						skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
+						skill._pp = 0;
+						skill._init_level = 5;
 
 						skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
 						player->m_Qualities.SetSkill(skillToAlter, skill);
