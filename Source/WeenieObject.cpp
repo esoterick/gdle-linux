@@ -4072,7 +4072,8 @@ float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bI
 {
 	float armorLevel = 0.0f;
 
-	bool isShield = InqIntQuality(COMBAT_USE_INT, 0, TRUE) == COMBAT_USE::COMBAT_USE_SHIELD;
+	bool isShield = InqIntQuality(COMBAT_USE_INT, 0, TRUE) == COMBAT_USE::COMBAT_USE_SHIELD &&
+		InqIntQuality(SHIELD_VALUE_INT, 0, false) > 0;
 	bool isShieldSpeced = false;
 	SKILL_ADVANCEMENT_CLASS sac = SKILL_ADVANCEMENT_CLASS::UNTRAINED_SKILL_ADVANCEMENT_CLASS;
 	if (damageData.target->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac))
@@ -4084,12 +4085,6 @@ float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bI
 	EnchantedQualityDetails buffDetails;
 	GetIntEnchantmentDetails(ARMOR_LEVEL_INT, 0, &buffDetails);
 
-	if (isShield && !isShieldSpeced)
-	{
-		buffDetails.rawValue *= .5;
-		buffDetails.enchantedValue *= .5;
-	}
-
 	if (bIgnoreMagicArmor)
 		armorLevel = buffDetails.rawValue; //take the Raw armor value for Hollows. Debuffs should not count
 	else
@@ -4097,11 +4092,13 @@ float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bI
 
 	if (isShield)
 	{
+		GetIntEnchantmentDetails(SHIELD_VALUE_INT, 0, &buffDetails);
 		unsigned long shieldSkill;
 		damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
 
 		if (!isShieldSpeced)
 		{
+			armorLevel *= .5;
 			armorLevel = min(shieldSkill, armorLevel * .5);
 		}
 		else
