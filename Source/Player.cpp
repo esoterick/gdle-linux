@@ -22,6 +22,7 @@
 #include "Corpse.h"
 #include "House.h"
 #include "easylogging++.h"
+#include "Util.h"
 
 #define PLAYER_SAVE_INTERVAL 180.0
 
@@ -470,6 +471,8 @@ void CPlayerWeenie::OnGivenXP(long long amount, bool allegianceXP)
 	}
 }
 
+
+//TODO Add nonwielded handling for level > 11 && level < 35
 void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD killer_id)
 {
 	if (!pCorpse)
@@ -480,19 +483,34 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 
 	int level = InqIntQuality(LEVEL_INT, 1);
 	CWeenieObject *pKiller = g_pWorld->FindObject(killer_id);
-	int maxItemsToDrop = 12; // Limit the amount of items that can be dropped + random adjustment
 	int amountOfItemsToDrop = 0;
 	int augDropLess = InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0); // Take Death Item Augs into Consideration
-	if (pKiller && !pKiller->_IsPlayer())
-		amountOfItemsToDrop = min(max(level / 20, 1), floor(maxItemsToDrop - (maxItemsToDrop * (augDropLess * .33))));
+	if(level > 10 && level <= 20)
+	{
+		amountOfItemsToDrop = 1;
+	}
+	else if(level < 35)
+	{
+		amountOfItemsToDrop = floor(level / 20) + Random::GenInt(0, 2);
+	}
 	else
-		amountOfItemsToDrop = min(max(level / 20, 1), maxItemsToDrop);
+	{
+		amountOfItemsToDrop = floor(level / 20) + Random::GenInt(0, 2);
+	}
+
+	if (pKiller && !pKiller->_IsPlayer())
+		amountOfItemsToDrop = min(0, (amountOfItemsToDrop - (augDropLess * 5)));
+	
 	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
 	pCorpse->_shouldSave = true;
 	pCorpse->m_bDontClear = true;
 
-	DWORD coinConsumed = ConsumeCoin(RecalculateCoinAmount() / 2);
-	pCorpse->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed);
+	DWORD coinConsumed = 0;
+	if (level > 5)
+	{
+		coinConsumed = ConsumeCoin(RecalculateCoinAmount() / 2);
+		pCorpse->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed);
+	}
 
 	std::vector<CWeenieObject *> alwaysDropList;
 	std::vector<CWeenieObject *> removeList;
@@ -1034,7 +1052,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				SendText("Despite your best efforts, you fail to destroy yourself.", LTT_DEFAULT); // TODO: better text
 				break;
 			}
-			if (targetMaxMana <= 0) {
+			if (targetCurrentMana <= 0) {
 				SendText(csprintf("The %s has no mana to drain.", pTarget->GetName().c_str()), LTT_DEFAULT); //todo: made up message, confirm if it's correct
 				break;
 			}
@@ -1068,9 +1086,9 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				priority_queue<CWeenieObject*, vector<CWeenieObject*>, CompareManaNeeds > itemsNeedingMana, itemsStillNeedingMana; // MIN heaps sorted by mana deficit
 				for (auto wielded : m_Wielded)
 				{
-					unsigned int curMana = wielded->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
-					unsigned int maxMana = wielded->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
-					unsigned int deficit = maxMana - curMana;
+					int curMana = wielded->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
+					int maxMana = wielded->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
+					int deficit = maxMana - curMana;
 					if (deficit > 0) {
 						itemsNeedingMana.push(wielded);
 					}
@@ -1086,14 +1104,13 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				while (manaToDistribute > 0 && !(itemsNeedingMana.empty())) {
 					CWeenieObject* itemNeedingLeastMana = itemsNeedingMana.top();
 					int deficit = itemNeedingLeastMana->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE) - itemNeedingLeastMana->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
-					int manaToApplyToEach = 0;
-					int overflowManaToApply = 0; // when available mana / items_needing_mana is uneven, we give the remainder to whatever is closest to full.
+					unsigned int manaToApplyToEach = 0;
 
 					try
 					{
 						if (deficit * itemsNeedingMana.size() >= manaToDistribute) {
+							// applying smallest deficit to all items would require more mana than available for distribution
 							manaToApplyToEach = manaToDistribute / itemsNeedingMana.size();
-							overflowManaToApply = manaToDistribute % itemsNeedingMana.size();
 						}
 						else {
 							manaToApplyToEach = deficit;
@@ -1104,22 +1121,21 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 						SERVER_ERROR << "Error in UseEx for mana stones";
 					}
 
+					manaToApplyToEach = max(1, manaToApplyToEach); // for when manaToDistribute / itemsNeedingMana rounds down to 0, apply 1 mana until we're out
+
 					while (!itemsNeedingMana.empty()) {
 						CWeenieObject* item = itemsNeedingMana.top();
 						int itemMaxMana = item->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
 						itemsNeedingMana.pop();
+						if (manaToDistribute <= 0) {
+							// from when we rounded up manaToApplyToEach from 0 to 1, once we're out of mana we want to finish this while loop without applying any more mana to items
+							itemsStillNeedingMana.push(item);
+							continue;
+						}
 
-						int newManaAmount = item->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE) + manaToApplyToEach;
+						unsigned int newManaAmount = item->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE) + manaToApplyToEach;
 						manaToDistribute -= manaToApplyToEach;
 						manaDistributed += manaToApplyToEach;
-
-						if (overflowManaToApply > 0) {
-							newManaAmount += overflowManaToApply;
-							manaToDistribute -= overflowManaToApply;
-							manaDistributed += overflowManaToApply;
-							overflowManaToApply = 0;
-							objectsReceivingMana.insert(item);
-						}
 
 						if (newManaAmount < itemMaxMana) {
 							itemsStillNeedingMana.push(item);
@@ -1129,7 +1145,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 							objectsReceivingMana.insert(item);
 						}
 						
-						item->m_Qualities.SetInt(ITEM_CUR_MANA_INT, newManaAmount);
+						item->m_Qualities.SetInt(ITEM_CUR_MANA_INT, min(newManaAmount, itemMaxMana));
 						item->NotifyIntStatUpdated(ITEM_CUR_MANA_INT, false); // todo: is second positional arg correct?
 					}
 
@@ -1334,7 +1350,8 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
 			//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
-			int salvageMod = 12;
+			int salvageMod = GetMaterialMod(*pTool);
+
 			int multiple = 1;
 			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
 
@@ -1349,8 +1366,8 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			}
 
 			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
-
-			if (Random::RollDice(0.0, 1.0) <= successChance)
+			double successRoll = Random::RollDice(0.0, 1.0);
+			if (successRoll <= successChance)
 			{
 				success = true;
 
@@ -1370,6 +1387,10 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 					g_pWorld->BroadcastLocal(GetLandcell(), text);
 				}
 			}
+
+			IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << itemWorkmanship << " TT:" << amountOfTimesTinkered <<
+				" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (success ? "TRUE" : "FALSE");
+
 			break;
 		}
 		case 2: //imbues
@@ -1514,6 +1535,35 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 	}
 	}
 	return WERROR_NONE;
+}
+
+int CPlayerWeenie::GetMaterialMod(CWeenieObject &tool)
+{
+	string toolName = tool.InqStringQuality(NAME_STRING, "");
+	if (ToUpperCase(toolName) == "SALVAGED GOLD" || ToUpperCase(toolName) == "SALVAGED OAK")
+		return 10;
+	else if (ToUpperCase(toolName) == "SALVAGED EBONY" || ToUpperCase(toolName) == "SALVAGED TEAK" || ToUpperCase(toolName) == "SALVAGED STEEL" ||
+		ToUpperCase(toolName) == "SALVAGED SATIN" || ToUpperCase(toolName) == "SALVAGED PORCELAIN" || ToUpperCase(toolName) == "SALVAGED MAHOGANY" ||
+		ToUpperCase(toolName) == "SALVAGED IRON" || ToUpperCase(toolName) == "SALVAGED GREENGARNET")
+		return 12;
+	else if (ToUpperCase(toolName) == "SALVAGED ALABASTER" || ToUpperCase(toolName) == "SALVAGED BRASS" || ToUpperCase(toolName) == "SALVAGED ARMOREDILLOHIDE" ||
+		ToUpperCase(toolName) == "SALVAGED WOOL" || ToUpperCase(toolName) == "SALVAGED VELVET" || ToUpperCase(toolName) == "SALVAGED REEDSHARKHIDE" ||
+		ToUpperCase(toolName) == "SALVAGED PINE" || ToUpperCase(toolName) == "SALVAGED OPAL" || ToUpperCase(toolName) == "SALVAGED MARBLE" ||
+		ToUpperCase(toolName) == "SALVAGED LINEN" || ToUpperCase(toolName) == "SALVAGED GRANITE" || ToUpperCase(toolName) == "SALVAGED CERAMIC" ||
+		ToUpperCase(toolName) == "SALVAGED BRONZE" || ToUpperCase(toolName) == "SALVAGED MOONSTONE")
+		return 11;
+	else if (ToUpperCase(toolName) == "SALVAGED BLOODSTONE" || ToUpperCase(toolName) == "SALVAGED ROSEQUARTZ" || ToUpperCase(toolName) == "SALVAGED REDJADE" ||
+		ToUpperCase(toolName) == "SALVAGED MALACHITE" || ToUpperCase(toolName) == "SALVAGED LAVENDARJADE" || ToUpperCase(toolName) == "SALVAGED HEMATITE" ||
+		ToUpperCase(toolName) == "SALVAGED CITRINE" || ToUpperCase(toolName) == "SALVAGED CARNELIAN")
+		return 25;
+	else
+		return 20;
+}
+
+std::string CPlayerWeenie::ToUpperCase(string tName)
+{
+	transform(tName.begin(), tName.end(), tName.begin(), ::toupper);
+	return tName;
 }
 
 bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget)

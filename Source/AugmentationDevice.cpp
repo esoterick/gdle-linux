@@ -590,7 +590,9 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->m_Qualities.SetInt(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, augIncreasedBurden + 1);
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT);
 				player->NotifyIntStatUpdated(ENCUMB_CAPACITY_INT);
+				player->CPlayerWeenie::RecalculateEncumbrance();
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Might of The Seventh Mule augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
@@ -1025,6 +1027,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MELEE_INT, augSkilledMelee + 1);
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_SKILLED_MELEE_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of The Steel Circle augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
@@ -1053,6 +1056,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MISSILE_INT, augSkilledMissile + 1);
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_SKILLED_MISSILE_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of the Focused Eye augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
@@ -1081,6 +1085,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->m_Qualities.SetInt(AUGMENTATION_SKILLED_MAGIC_INT, augSkilledMagic + 1);
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_SKILLED_MAGIC_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of The Five Fold Path augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
@@ -1167,6 +1172,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->m_Qualities.SetInt(AUGMENTATION_JACK_OF_ALL_TRADES_INT, augJackOfTrades + 1);
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				player->NotifyIntStatUpdated(AUGMENTATION_JACK_OF_ALL_TRADES_INT);
 				player->EmitEffect(159, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Jack of All Trades augmentation.", LTT_DEFAULT);
 				player->SendText(csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str()), LTT_WORLD_BROADCAST);
