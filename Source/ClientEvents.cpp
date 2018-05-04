@@ -215,34 +215,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
-	// Updates shields to have SHIELD_VALUE_INT
-	for (auto wielded : m_pPlayer->m_Wielded)
-	{
-		if(wielded->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && wielded->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
-		{
-			wielded->m_Qualities.SetInt(SHIELD_VALUE_INT, wielded->InqIntQuality(ARMOR_LEVEL_INT, 0));
-		}
-	}
-
-	for (auto item : m_pPlayer->m_Items)
-	{
-		if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
-		{
-			item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
-		}
-	}
-
-	for (auto pack : m_pPlayer->m_Packs)
-	{
-		for (auto item : pack->AsContainer()->m_Items)
-		{
-			if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
-			{
-				item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
-			}
-		}
-	}
-
+	
 	/*
 	if (*g_pConfig->WelcomePopup() != 0)
 	{
