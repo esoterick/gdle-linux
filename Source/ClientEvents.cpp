@@ -215,6 +215,10 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
+	// If shield equipped, update
+	// Loop through inventory, update shields
+	// Loop through packs, update shields
+
 	
 	/*
 	if (*g_pConfig->WelcomePopup() != 0)
