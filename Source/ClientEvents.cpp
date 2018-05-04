@@ -215,9 +215,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
-	// If shield equipped, update
-
-	// foreach item in wielded
+	// Updates shields to have SHIELD_VALUE_INT
 	for (auto wielded : m_pPlayer->m_Wielded)
 	{
 		if(wielded->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && wielded->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
@@ -245,10 +243,6 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
-	// Loop through inventory, update shields
-	// Loop through packs, update shields
-
-	
 	/*
 	if (*g_pConfig->WelcomePopup() != 0)
 	{
