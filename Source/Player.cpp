@@ -499,7 +499,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	}
 
 	if (pKiller && !pKiller->_IsPlayer())
-		amountOfItemsToDrop = min(0, (amountOfItemsToDrop - (augDropLess * 5)));
+		amountOfItemsToDrop = max(0, (amountOfItemsToDrop - (augDropLess * 5)));
 	
 	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
 	pCorpse->_shouldSave = true;
