@@ -612,9 +612,10 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			}
 			else
 			{
-				auto halfShieldValue = profile._intStatsTable->lookup(ARMOR_LEVEL_INT);
-				*halfShieldValue /= 2;
-				profile._intStatsTable->add(SHIELD_VALUE_INT, halfShieldValue);
+				int *halfShieldValue = profile._intStatsTable->lookup(ARMOR_LEVEL_INT);
+				int halfTrueValue = *halfShieldValue;
+				halfTrueValue /= 2;
+				profile._intStatsTable->add(SHIELD_VALUE_INT, &halfTrueValue);
 			}
 		}
 

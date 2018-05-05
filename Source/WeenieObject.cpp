@@ -4083,7 +4083,10 @@ float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bI
 		return 0.0f; //shield only works if the attack was from the front.
 
 	EnchantedQualityDetails buffDetails;
-	GetIntEnchantmentDetails(ARMOR_LEVEL_INT, 0, &buffDetails);
+	if (!isShield)
+		GetIntEnchantmentDetails(ARMOR_LEVEL_INT, 0, &buffDetails);
+	else 
+		GetIntEnchantmentDetails(SHIELD_VALUE_INT, 0, &buffDetails);
 
 	if (bIgnoreMagicArmor)
 		armorLevel = buffDetails.rawValue; //take the Raw armor value for Hollows. Debuffs should not count
@@ -4092,14 +4095,15 @@ float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bI
 
 	if (isShield)
 	{
-		GetIntEnchantmentDetails(SHIELD_VALUE_INT, 0, &buffDetails);
 		unsigned long shieldSkill;
 		damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
 
 		if (!isShieldSpeced)
 		{
-			armorLevel *= .5;
-			armorLevel = min(shieldSkill, armorLevel * .5);
+			if (armorLevel >= shieldSkill / 2)
+			{
+				armorLevel = shieldSkill / 2;
+			}
 		}
 		else
 		{
