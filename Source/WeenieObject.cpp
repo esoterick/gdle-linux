@@ -2067,7 +2067,7 @@ DWORD CWeenieObject::GiveAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 	if (raised)
 	{
 		DWORD newLevel;
-		if (m_Qualities.InqAttribute2nd(key, newLevel, FALSE))
+		if (m_Qualities.InqAttribute2nd(key, newLevel, TRUE))
 		{
 			if (_phys_obj)
 				_phys_obj->EmitSound(Sound_RaiseTrait, 1.0, true);
