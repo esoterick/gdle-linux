@@ -26,6 +26,20 @@
 
 #define PLAYER_SAVE_INTERVAL 180.0
 
+DEFINE_PACK(SalvageResult)
+{
+	pWriter->Write<DWORD>(material);
+	pWriter->Write<double>(workmanship);
+	pWriter->Write<int>(units);
+}
+
+DEFINE_UNPACK(SalvageResult)
+{
+	UNFINISHED();
+
+	return false;
+}
+
 CPlayerWeenie::CPlayerWeenie(CClient *pClient, DWORD dwGUID, WORD instance_ts)
 {
 	m_bDontClear = true;
@@ -3011,6 +3025,10 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	std::map<MaterialType, SalvageInfo> salvageMap;
 	std::list<CWeenieObject *> itemsToDestroy;
 
+	//Lists for the success message
+	PackableList<SalvageResult> salvageResults;
+	PackableList<DWORD> notSalvagable;
+
 	for (auto itemId : items)
 	{
 		CWeenieObject *pItem = g_pWorld->FindObject(itemId);
@@ -3024,6 +3042,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		if (pItem->GetWorldTopLevelOwner() != this)
 		{
 			NotifyWeenieError(WERROR_SALVAGE_DONT_OWN_LOOT);
+			notSalvagable.push_back(pItem->GetID());
 			continue;
 		}
 
@@ -3036,6 +3055,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		if (workmanship < 1 || material == MaterialType::Undef_MaterialType || isRetained)
 		{
 			NotifyWeenieError(WERROR_SALVAGE_NOT_SUITABLE);
+			notSalvagable.push_back(pItem->GetID());
 			continue;
 		}
 
@@ -3076,11 +3096,38 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		int fullBags = floor(salvageInfo.amount / 100.0);
 		int partialBagAmount = salvageInfo.amount % 100;
 		for (int i = 0; i < fullBags; i++)
+		{
 			SpawnSalvageBagInContainer(material, 100, salvageInfo.totalWorkmanship, valuePerUnit * 100, salvageInfo.itemsSalvagedCountCont);
+			
+			SalvageResult salvageResult;
+			salvageResult.material = material;
+			salvageResult.units = 100;
+			salvageResult.workmanship = salvageInfo.totalWorkmanship / (double)salvageInfo.itemsSalvagedCountCont;
+			salvageResults.push_back(salvageResult);
+		}
 
 		if (partialBagAmount > 0)
+		{
 			SpawnSalvageBagInContainer(material, partialBagAmount, salvageInfo.totalWorkmanship, valuePerUnit * partialBagAmount, salvageInfo.itemsSalvagedCountCont);
+
+			SalvageResult salvageResult;
+			salvageResult.material = material;
+			salvageResult.units = partialBagAmount;
+			salvageResult.workmanship = salvageInfo.totalWorkmanship / (double)salvageInfo.itemsSalvagedCountCont;
+			salvageResults.push_back(salvageResult);
+		}
+
+
 	}
+
+	BinaryWriter salvageMsg;
+	salvageMsg.Write<DWORD>(0x02B4);
+	salvageMsg.Write<DWORD>(0x28);		// SkillID: Salvaging
+	notSalvagable.Pack(&salvageMsg);	// PackableList<ObjectID>
+	salvageResults.Pack(&salvageMsg);	// PackableList<SalvageResult>
+	salvageMsg.Write<int>(0);			// int: Aug bonus - not implemented?
+
+	SendNetMessage(&salvageMsg, PRIVATE_MSG, TRUE, FALSE);
 }
 
 bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount, int workmanship, int value, int numItems)
