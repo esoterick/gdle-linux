@@ -3066,7 +3066,7 @@ void CWeenieObject::PostSpawn()
 		SetLocked(FALSE);
 	}
 
-	if (!m_Qualities._generator_registry)// Prevents generators that have a generator_registry from reinitializing
+	if (!m_Qualities._generator_queue)// Prevents generators that have a generator_registry from reinitializing
 		InitCreateGenerator();
 
 

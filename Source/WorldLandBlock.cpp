@@ -805,6 +805,12 @@ void CWorldLandBlock::Destroy(CWeenieObject *pEntity, bool bDoRelease)
 		Release(pEntity);
 	}
 
+	//if generator_queue or registry, wipe generator_queue and registry
+	if (pEntity->m_Qualities._generator_registry && !pEntity->m_Qualities._generator_registry->_registry.empty())
+		pEntity->m_Qualities._generator_registry->_registry.clear();
+	if (pEntity->m_Qualities._generator_queue && !pEntity->m_Qualities._generator_queue->_queue.empty())
+		pEntity->m_Qualities._generator_queue->_queue.clear();
+
 	g_pWorld->EnsureRemoved(pEntity);
 
 #if FALSE
