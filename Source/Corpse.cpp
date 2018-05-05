@@ -66,6 +66,8 @@ int CCorpseWeenie::CheckOpenContainer(CWeenieObject *other)
 	else
 		return WERROR_NONE;
 
+	other->SendText("You do not have permission to loot that corpse!", LTT_ERROR);
+
 	return WERROR_CHEST_WRONG_KEY;
 }
 
