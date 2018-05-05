@@ -1349,8 +1349,7 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
-			//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
-			int salvageMod = GetMaterialMod(*pTool);
+			int salvageMod = GetMaterialMod(pTool->InqIntQuality(MATERIAL_TYPE_INT, 0));
 
 			int multiple = 1;
 			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
@@ -1537,27 +1536,57 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 	return WERROR_NONE;
 }
 
-int CPlayerWeenie::GetMaterialMod(CWeenieObject &tool)
+int CPlayerWeenie::GetMaterialMod(int materialInt)
 {
-	string toolName = tool.InqStringQuality(NAME_STRING, "");
-	if (ToUpperCase(toolName) == "SALVAGED GOLD" || ToUpperCase(toolName) == "SALVAGED OAK")
+	switch (materialInt)
+	{
+	case Gold_MaterialType:
+	case Oak_MaterialType:
+	{
 		return 10;
-	else if (ToUpperCase(toolName) == "SALVAGED EBONY" || ToUpperCase(toolName) == "SALVAGED TEAK" || ToUpperCase(toolName) == "SALVAGED STEEL" ||
-		ToUpperCase(toolName) == "SALVAGED SATIN" || ToUpperCase(toolName) == "SALVAGED PORCELAIN" || ToUpperCase(toolName) == "SALVAGED MAHOGANY" ||
-		ToUpperCase(toolName) == "SALVAGED IRON" || ToUpperCase(toolName) == "SALVAGED GREENGARNET")
+	}
+	case Ebony_MaterialType:
+	case Teak_MaterialType:
+	case Steel_MaterialType :
+	case Satin_MaterialType:
+	case Porcelain_MaterialType:
+	case Mahogany_MaterialType:
+	case Iron_MaterialType:
+	case Green_Garnet_MaterialType:
+	{
 		return 12;
-	else if (ToUpperCase(toolName) == "SALVAGED ALABASTER" || ToUpperCase(toolName) == "SALVAGED BRASS" || ToUpperCase(toolName) == "SALVAGED ARMOREDILLOHIDE" ||
-		ToUpperCase(toolName) == "SALVAGED WOOL" || ToUpperCase(toolName) == "SALVAGED VELVET" || ToUpperCase(toolName) == "SALVAGED REEDSHARKHIDE" ||
-		ToUpperCase(toolName) == "SALVAGED PINE" || ToUpperCase(toolName) == "SALVAGED OPAL" || ToUpperCase(toolName) == "SALVAGED MARBLE" ||
-		ToUpperCase(toolName) == "SALVAGED LINEN" || ToUpperCase(toolName) == "SALVAGED GRANITE" || ToUpperCase(toolName) == "SALVAGED CERAMIC" ||
-		ToUpperCase(toolName) == "SALVAGED BRONZE" || ToUpperCase(toolName) == "SALVAGED MOONSTONE")
+	}
+	case Alabaster_MaterialType:
+	case Brass_MaterialType:
+	case Armoredillo_Hide_MaterialType:
+	case Wool_MaterialType:
+	case Velvet_MaterialType:
+	case Reed_Shark_Hide_MaterialType:
+	case Pine_MaterialType:
+	case Opal_MaterialType:
+	case Marble_MaterialType:
+	case Linen_MaterialType:
+	case Granite_MaterialType:
+	case Ceramic_MaterialType:
+	case Bronze_MaterialType:
+	case Moonstone_MaterialType:
+	{
 		return 11;
-	else if (ToUpperCase(toolName) == "SALVAGED BLOODSTONE" || ToUpperCase(toolName) == "SALVAGED ROSEQUARTZ" || ToUpperCase(toolName) == "SALVAGED REDJADE" ||
-		ToUpperCase(toolName) == "SALVAGED MALACHITE" || ToUpperCase(toolName) == "SALVAGED LAVENDARJADE" || ToUpperCase(toolName) == "SALVAGED HEMATITE" ||
-		ToUpperCase(toolName) == "SALVAGED CITRINE" || ToUpperCase(toolName) == "SALVAGED CARNELIAN")
+	}
+	case Bloodstone_MaterialType:
+	case Rose_Quartz_MaterialType:
+	case Red_Jade_MaterialType:
+	case Malachite_MaterialType:
+	case Lavender_Jade_MaterialType:
+	case Hematite_MaterialType:
+	case Citrine_MaterialType:
+	case Carnelian_MaterialType:
+	{
 		return 25;
-	else
-		return 20;
+	}
+	default:
+		return 20; // Imbue material
+	}
 }
 
 std::string CPlayerWeenie::ToUpperCase(string tName)
