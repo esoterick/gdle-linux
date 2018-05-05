@@ -3,9 +3,20 @@
 
 #include "UseManager.h"
 #include "Monster.h"
+#include "Packable.h"
 
 class CClient;
 class BinaryWriter;
+
+class SalvageResult : public PackObj
+{
+public:
+	DECLARE_PACKABLE()
+
+	DWORD material = 0;
+	double workmanship = 0.0;
+	int units = 0;
+};
 
 class CPlayerWeenie : public CMonsterWeenie
 {
