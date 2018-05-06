@@ -2976,6 +2976,14 @@ void CWeenieObject::CheckRegeneration(double rate, STypeAttribute2nd currentAttr
 				rate *= 0.5; //in combat regen
 		}
 	}
+	else if (AsMonster())
+	{
+		// boosted out of combat regen
+		if (get_minterp()->interpreted_state.current_style == Motion_NonCombat)
+		{
+			rate *= 50; 
+		}
+	}
 
 	switch (currentAttrib)
 	{
