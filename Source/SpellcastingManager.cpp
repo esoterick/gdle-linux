@@ -2620,6 +2620,15 @@ void CSpellcastingManager::SendAdjustVitalText(CWeenieObject *target, int amount
 
 		target->SendText(csprintf("%s casts %s and %s %d points of your %s.",
 			m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), bRestore ? "restores" : "drains", amount, vitalName), LTT_MAGIC);
+
+		if (vitalName == "health")
+		{
+			if (m_pWeenie->AsPlayer())
+			{
+				// update the target's health on the casting player asap
+				((CPlayerWeenie*)m_pWeenie)->RefreshTargetHealth();
+			}
+		}
 	}
 	else
 	{
