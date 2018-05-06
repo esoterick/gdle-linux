@@ -1463,6 +1463,8 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				// TODO: is this to do with pack space? should check before the roll if so
 				return WERROR_NONE;
 			}
+
+			SendText(op->_successMessage.c_str(), LTT_CRAFT);
 			
 			// Broadcast messages for tinkering
 			switch (op->_SkillCheckFormulaType)
@@ -1489,8 +1491,6 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				break;
 			}
 			}
-
-			SendText(op->_successMessage.c_str(), LTT_CRAFT);
 
 			PerformUseModifications(0, op, pTool, pTarget, newItem);
 			PerformUseModifications(1, op, pTool, pTarget, newItem);
@@ -1530,6 +1530,9 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				return WERROR_NONE;
 			}
 
+			SendText(op->_failMessage.c_str(), LTT_CRAFT);
+
+			// Broadcast messages for tinkering
 			switch (op->_SkillCheckFormulaType)
 			{
 			case 1: //tinkers
@@ -1555,8 +1558,6 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			}
 			}
 
-			SendText(op->_failMessage.c_str(), LTT_CRAFT);
-
 			PerformUseModifications(4, op, pTool, pTarget, newItem);
 			PerformUseModifications(5, op, pTool, pTarget, newItem);
 			PerformUseModifications(6, op, pTool, pTarget, newItem);
@@ -1578,6 +1579,10 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 					SendText(op->_failureConsumeToolMessage.c_str(), LTT_CRAFT);
 			}
 		}
+
+		// We don't need these anymore
+		m_pCraftingTool = NULL;
+		m_pCraftingTarget = NULL;
 
 		RecalculateEncumbrance();
 		break;
