@@ -4,6 +4,7 @@
 #include "World.h"
 #include "Monster.h"
 #include "CombatFormulas.h"
+#include "Player.h"
 
 const float MAX_SPELL_PROJECTILE_LIFETIME = 60.0f;
 
@@ -199,6 +200,12 @@ BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 				CalculateDamage(&dmgEvent, &m_CachedSpellCastData);
 
 				pHit->TryToDealDamage(dmgEvent);
+
+				if (pSource->AsPlayer())
+				{
+					// update the target's health on the casting player asap
+					((CPlayerWeenie*)pSource)->RefreshTargetHealth();
+				}
 			}
 		}
 	}

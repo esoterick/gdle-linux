@@ -2477,6 +2477,17 @@ bool CSpellcastingManager::DoTransferSpell(CWeenieObject *other, const TransferS
 				destGiveAmount, GetAttribute2ndName(meta->_dest).c_str(), m_SpellCastData.spell->_name.c_str(), source->GetName().c_str()), LTT_MAGIC);
 			source->SendText(csprintf("You lose %d points of %s due to %s casting %s on you",
 				sourceTakeAmount, GetAttribute2ndName(meta->_src).c_str(), m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+
+			if (dest->AsPlayer())
+			{
+				// update the target's health on the casting player asap
+				((CPlayerWeenie*)source)->RefreshTargetHealth();
+			}
+			if (source->AsPlayer())
+			{
+				// update the target's health on the casting player asap
+				((CPlayerWeenie*)dest)->RefreshTargetHealth();
+			}
 		}
 		else
 		{
