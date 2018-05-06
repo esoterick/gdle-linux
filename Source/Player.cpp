@@ -1535,6 +1535,9 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				if (!op->_failureConsumeToolMessage.empty())
 					SendText(op->_failureConsumeToolMessage.c_str(), LTT_CRAFT);
 			}
+
+			// Your craft attempt fails.
+			NotifyWeenieError(0x432);
 		}
 
 		RecalculateEncumbrance();

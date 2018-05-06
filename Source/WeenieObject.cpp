@@ -2067,7 +2067,7 @@ DWORD CWeenieObject::GiveAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 	if (raised)
 	{
 		DWORD newLevel;
-		if (m_Qualities.InqAttribute2nd(key, newLevel, FALSE))
+		if (m_Qualities.InqAttribute2nd(key, newLevel, TRUE))
 		{
 			if (_phys_obj)
 				_phys_obj->EmitSound(Sound_RaiseTrait, 1.0, true);
@@ -2974,6 +2974,14 @@ void CWeenieObject::CheckRegeneration(double rate, STypeAttribute2nd currentAttr
 			}
 			else
 				rate *= 0.5; //in combat regen
+		}
+	}
+	else if (AsMonster())
+	{
+		// boosted out of combat regen
+		if (get_minterp()->interpreted_state.current_style == Motion_NonCombat)
+		{
+			rate *= 50; 
 		}
 	}
 
