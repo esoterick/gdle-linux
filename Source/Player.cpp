@@ -1041,6 +1041,24 @@ struct CompareManaNeeds : public std::binary_function<CWeenieObject*, CWeenieObj
 
 int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 {
+	// Save these for later as we may have to send a confirmation
+	m_pCraftingTool = pTool;
+	m_pCraftingTarget = pTarget;
+
+	return UseEx(false);
+}
+int CPlayerWeenie::UseEx(bool bConfirmed)
+{
+	// Load the saved crafting targets
+	CWeenieObject *pTool = m_pCraftingTool;
+	CWeenieObject *pTarget = m_pCraftingTarget;
+
+	if (pTool == NULL || pTarget == NULL)
+	{
+		// no queued crafting op
+		return WERROR_NONE;
+	}
+
 	int toolType = pTool->InqIntQuality(ITEM_TYPE_INT, 0);
 
 	switch (toolType)
@@ -1347,23 +1365,40 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			InqSkill(op->_skill, skillLevel, FALSE);
 		}
 
-		bool success = false;
+		double successChance;
 		switch (op->_SkillCheckFormulaType)
 		{
 		case 0:
 			if (skillLevel == 0)
-				success = true;
+			{
+				// success = true
+				successChance = 1.0;
+			}
 			else
-				success = GenericSkillCheck(skillLevel, op->_difficulty);
+			{
+				successChance = GetSkillChance(skillLevel, op->_difficulty);
+			}
 			break;
 		case 1: //tinkers
+		case 2: //imbues
 		{
 			double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
 			double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
 			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
-			int salvageMod = GetMaterialMod(pTool->InqIntQuality(MATERIAL_TYPE_INT, 0));
+
+			int salvageMod;
+			
+			if (op->_SkillCheckFormulaType == 1)
+			{
+				salvageMod = GetMaterialMod(pTool->InqIntQuality(MATERIAL_TYPE_INT, 0));
+			}
+			else
+			{
+				//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
+				salvageMod = 20;
+			}
 
 			int multiple = 1;
 			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
@@ -1378,86 +1413,12 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				difficulty = amountOfTimesTinkered * 0.5;
 			}
 
-			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
-			double successRoll = Random::RollDice(0.0, 1.0);
-			if (successRoll <= successChance)
+			successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
+
+			if (op->_SkillCheckFormulaType == 2) // imbue
 			{
-				success = true;
-
-				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
-				if (!text.empty())
-				{
-					g_pWorld->BroadcastLocal(GetLandcell(), text);
-				}
+				successChance /= 3;
 			}
-			else {
-
-				success = false;
-
-				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
-				if (!text.empty())
-				{
-					g_pWorld->BroadcastLocal(GetLandcell(), text);
-				}
-			}
-
-			IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << itemWorkmanship << " TT:" << amountOfTimesTinkered <<
-				" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (success ? "TRUE" : "FALSE");
-
-			break;
-		}
-		case 2: //imbues
-		{
-			double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
-			double item_workmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
-			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
-				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
-			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
-
-			//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
-			int salvageMod = 20;
-			int multiple = 1;
-			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
-
-			if (toolWorkmanship >= item_workmanship)
-			{
-				multiple = 2;
-			}
-
-			if (amountOfTimesTinkered > 2)
-			{
-				difficulty = amountOfTimesTinkered * 0.5;
-			}
-
-			double successChance = GetSkillChance(skillLevel, int(floor(
-				                                      ((5 * salvageMod) + (2 * item_workmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) *
-				                                      difficulty))); //Formulas from Endy's Tinkering Calculator
-
-			successChance /= 3; //maximum success chance for imbues is 33%
-
-			float successRoll = Random::RollDice(0.0, 1.0);
-			if (successRoll <= successChance)
-			{
-				success = true;
-				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
-				if (!text.empty())
-				{
-					g_pWorld->BroadcastLocal(GetLandcell(), text);
-				}
-			}
-			else
-			{
-				success = false;
-				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
-				if (!text.empty())
-				{
-					g_pWorld->BroadcastLocal(GetLandcell(), text);
-				}
-			}
-			// TODO: Update export of info as augments and such
-			IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << item_workmanship << " TT:" << amountOfTimesTinkered <<
-				  " M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (success ? "TRUE" : "FALSE");
-
 			break;
 		}
 		default:
@@ -1465,33 +1426,72 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			return WERROR_CRAFT_DONT_CONTAIN_EVERYTHING;
 		}
 
-		DWORD wcidToCreate;
-		int amount;
-		string message;
-		if (success)
-		{
-			wcidToCreate = op->_successWcid;
-			amount = op->_successAmount;
-			message = op->_successMessage;
-		}
-		else
-		{
-			wcidToCreate = op->_failWcid;
-			amount = op->_failAmount;
-			message = op->_failMessage;
-		}
 
-		CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(wcidToCreate, NULL, false);
-		if (amount > 1)
-			newItem->SetStackSize(amount);
+		if ( /* player craft confirm? && */ !bConfirmed )
+		{
+			std::ostringstream sstrMessage;
+			sstrMessage.precision(3);
+			sstrMessage << "You have a " << successChance*100 << "% chance of using " << pTool->GetName() << " on " << pTarget->GetName() << ".";
 
-		if (wcidToCreate != 0 && !SpawnInContainer(newItem, amount))
+
+			BinaryWriter confirmCrafting;
+			confirmCrafting.Write<DWORD>(0x274);	// Message Type
+			confirmCrafting.Write<DWORD>(0x05);		// Confirm type (craft)
+			confirmCrafting.Write<int>(0);			// Sequence number??
+			confirmCrafting.WriteString(sstrMessage.str());
+
+			SendNetMessage(&confirmCrafting, PRIVATE_MSG, TRUE, FALSE);
+
 			return WERROR_NONE;
+		}
 
-		SendText(message.c_str(), LTT_CRAFT);
+		double successRoll = Random::RollDice(0.0, 1.0);
 
-		if (success)
+		if (successRoll <= successChance)
 		{
+			// Results!
+			// Create item(s)
+			CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(op->_successWcid, NULL, false);
+			if (op->_successAmount > 1)
+				newItem->SetStackSize(op->_successAmount);
+
+			// if we can't put the item in inventory
+			if (op->_successWcid != 0 && !SpawnInContainer(newItem, op->_successAmount))
+			{
+				SendText("Unable to create result!", LTT_ERROR);
+				// Return before we delete the tool/target
+				// TODO: is this to do with pack space? should check before the roll if so
+				return WERROR_NONE;
+			}
+			
+			// Broadcast messages for tinkering
+			switch (op->_SkillCheckFormulaType)
+			{
+			case 1: //tinkers
+			case 2: //imbues
+			{
+				double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+				double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+				if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
+					toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
+				int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
+
+
+				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
+
+				IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << itemWorkmanship << " TT:" << amountOfTimesTinkered <<
+					" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (successChance ? "TRUE" : "FALSE");
+
+				break;
+			}
+			}
+
+			SendText(op->_successMessage.c_str(), LTT_CRAFT);
+
 			PerformUseModifications(0, op, pTool, pTarget, newItem);
 			PerformUseModifications(1, op, pTool, pTarget, newItem);
 			PerformUseModifications(2, op, pTool, pTarget, newItem);
@@ -1513,8 +1513,50 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 					SendText(op->_successConsumeToolMessage.c_str(), LTT_CRAFT);
 			}
 		}
-		else
+		else // Not successful
 		{
+			// Results!
+			// Create item(s)
+			CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(op->_failWcid, NULL, false);
+			if (op->_failAmount > 1)
+				newItem->SetStackSize(op->_failAmount);
+
+			// if we can't put the item in inventory
+			if (op->_failWcid != 0 && !SpawnInContainer(newItem, op->_failAmount))
+			{
+				SendText("Unable to create result!", LTT_ERROR);
+				// Return before we delete the tool/target
+				// TODO: is this to do with pack space? should check before the roll if so
+				return WERROR_NONE;
+			}
+
+			switch (op->_SkillCheckFormulaType)
+			{
+			case 1: //tinkers
+			case 2: //imbues
+			{
+				double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+				double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+				if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
+					toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
+				int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
+
+
+				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
+
+				IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << itemWorkmanship << " TT:" << amountOfTimesTinkered <<
+					" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (successChance ? "TRUE" : "FALSE");
+
+				break;
+			}
+			}
+
+			SendText(op->_failMessage.c_str(), LTT_CRAFT);
+
 			PerformUseModifications(4, op, pTool, pTarget, newItem);
 			PerformUseModifications(5, op, pTool, pTarget, newItem);
 			PerformUseModifications(6, op, pTool, pTarget, newItem);

@@ -1996,6 +1996,24 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				SetRequestAllegianceUpdate(on);
 				break;
 			}
+		case 0x0275: // confirmation response
+		{
+			DWORD confirmType = pReader->ReadDWORD();
+			int context = pReader->ReadInt32();
+			bool accepted = pReader->ReadInt32();
+
+			switch (confirmType)
+			{
+			case 0x05: // crafting
+				if (accepted)
+				{
+					m_pPlayer->UseEx(true);
+				}
+				break;
+			}
+
+			break;
+		}
 		case 0x027D: // ust salvage request
 		{
 			DWORD toolId = pReader->ReadDWORD();
