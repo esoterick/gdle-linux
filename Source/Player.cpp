@@ -1426,8 +1426,8 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			return WERROR_CRAFT_DONT_CONTAIN_EVERYTHING;
 		}
 
-
-		if ( /* player craft confirm? && */ !bConfirmed )
+		// 0x80000000 : Use Crafting Chance of Success Dialog
+		if (_playerModule.options_ & 0x80000000 && !bConfirmed )
 		{
 			std::ostringstream sstrMessage;
 			sstrMessage.precision(3);
