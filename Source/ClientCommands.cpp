@@ -40,6 +40,7 @@
 #include "House.h"
 #include "GameEventManager.h"
 #include "easylogging++.h"
+#include "ObjectMsgs.h"
 
 // Most of these commands are just for experimenting and never meant to be used in a real game
 // TODO: Add flags to these commands so they are only accessible under certain modes such as a sandbox mode
@@ -1661,6 +1662,18 @@ CLIENT_COMMAND(fixbusy, "", "Makes you unbusy if you are stuck.", BASIC_ACCESS)
 	pPlayer->NotifyWeenieError(0);
 
 	pPlayer->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+
+	return false;
+}
+
+CLIENT_COMMAND(fixconfig, "", "Fixes the configuration saving functionality", BASIC_ACCESS)
+{
+	pPlayer->SendText("Fixing configuration...", LTT_SYSTEM_EVENT);
+
+	BinaryWriter *LC = ::LoginCharacter(pPlayer);
+	pPlayer->SendNetMessage(LC->GetData(), LC->GetSize(), PRIVATE_MSG, TRUE);
+	delete LC;
+
 
 	return false;
 }
