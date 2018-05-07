@@ -2389,6 +2389,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (!module.UnPack(pReader) || pReader->GetLastError())
 					break;
 
+				SendText("Updating character configuration.", LTT_SYSTEM_EVENT);
 				m_pPlayer->UpdateModuleFromClient(module);
 				break;
 			}
