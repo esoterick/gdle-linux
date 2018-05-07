@@ -4282,13 +4282,21 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		{
 			SKILL_ADVANCEMENT_CLASS sac = SKILL_ADVANCEMENT_CLASS::UNTRAINED_SKILL_ADVANCEMENT_CLASS;
 			damageData.target->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac);
-
+			float cap = shield->InqFloatQuality(ABSORB_MAGIC_DAMAGE_FLOAT, 0.0);
 			float st = sac != SPECIALIZED_SKILL_ADVANCEMENT_CLASS ? .8 : 1;
 
 			unsigned long shieldSkill;
 			damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
 
-			float reduction = 1 * (float(min(shieldSkill, 433) / 433.0f) * st * shieldSkill * 0.0030) - (float(min(shieldSkill, 433) / 433.0f) * st * .3);
+			float capPercent = (shieldSkill / 433) * cap * st;
+			float reduction = 0;
+			
+			if (cap > 0.0 && shieldSkill >= 100)
+			{
+				// Needed?  boils down to the same formula as capPercent above
+				//reduction = 1 * (float(capPercent * st * shieldSkill * 0.0030) - (capPercent * st * .3));
+				reduction = capPercent;
+			}
 
 			damageData.damageAfterMitigation *= 1.0 - reduction;
 		}
