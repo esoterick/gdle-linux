@@ -60,6 +60,8 @@ public:
 	virtual int CPlayerWeenie::GetMaterialMod(int material);
 
 	void PerformSalvaging(DWORD toolId, PackableList<DWORD> items);
+	int CPlayerWeenie::CalculateSalvageAmount(int salvagingSkill, int dWorkmanship, int numAugs);
+
 	DWORD MaterialToSalvageBagId(MaterialType material);
 	bool SpawnSalvageBagInContainer(MaterialType material, int amount, int workmanship, int value, int numItems);
 
