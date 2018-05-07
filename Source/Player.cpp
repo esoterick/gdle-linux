@@ -3046,8 +3046,18 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	}
 
 	//SALVAGING SKILL DETERMINES SALVAGE AMOUNT
-	DWORD highestSalvagingSkillValue;
-	InqSkill(STypeSkill::SALVAGING_SKILL, highestSalvagingSkillValue, false);
+	DWORD salvagingSkillValue;
+	InqSkill(STypeSkill::SALVAGING_SKILL, salvagingSkillValue, false);
+
+	DWORD highestTinkeringSkillValue;
+	DWORD tinkeringSkills[4];
+	InqSkill(STypeSkill::ARMOR_APPRAISAL_SKILL, tinkeringSkills[0], false);
+	InqSkill(STypeSkill::WEAPON_APPRAISAL_SKILL, tinkeringSkills[1], false);
+	InqSkill(STypeSkill::MAGIC_ITEM_APPRAISAL_SKILL, tinkeringSkills[2], false);
+	InqSkill(STypeSkill::ITEM_APPRAISAL_SKILL, tinkeringSkills[3], false);
+
+	highestTinkeringSkillValue = max(max(max(tinkeringSkills[0], tinkeringSkills[1]), tinkeringSkills[2]), tinkeringSkills[3]);
+
 	std::map<MaterialType, SalvageInfo> salvageMap;
 	std::list<CWeenieObject *> itemsToDestroy;
 
@@ -3097,19 +3107,41 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		}
 		else
 		{
-			double multiplier = GetSkillChance(highestSalvagingSkillValue, 100);
-			int salvageAmount = (int)round(max(workmanship * multiplier, 1));
-			int salvageValue = (int)round(max(itemValue * 0.75 * multiplier, 1));
+			// See http://web.archive.org/web/20170130213649/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage_old.htm
+			// and http://web.archive.org/web/20170130194012/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage.htm
+			int salvagingAmount = CalculateSalvageAmount(salvagingSkillValue, workmanship, 0); // set numAugs to 0 for now
+
+			// tinkering can at best return the workmanship as the amount
+			int tinkeringAmount = min(CalculateSalvageAmount(highestTinkeringSkillValue, workmanship, 0), workmanship);
+
+			// We choose the one that gives best results
+			int salvageAmount = max(salvagingAmount, tinkeringAmount);
+
+			// formula taken from http://asheron.wikia.com/wiki/Salvaging/Value_Pre2013
+			int salvageValue = itemValue * salvagingSkillValue / 387;// *(1 + noAugs);
 			salvageMap[material].totalValue += salvageValue;
 			salvageMap[material].amount += salvageAmount;
 			salvageMap[material].itemsSalvagedCountCont++;
-			//salvageMap[material].itemsSalvagedCountDiscrete++;
 		}
 		salvageMap[material].totalWorkmanship += workmanship;
 	}
 
 	if (itemsToDestroy.empty())
 		return;
+
+	// Check if we have enough pack space first!
+	int numBags = 0;
+	for (auto salvageEntry : salvageMap)
+	{
+		SalvageInfo salvageInfo = salvageEntry.second;
+		numBags += ceil(salvageInfo.amount / 100.0);
+	}
+	if (numBags > Container_GetNumFreeMainPackSlots())
+	{
+		SendText("Not enough pack space!", LTT_ERROR);
+		return;
+	}
+
 
 	for (auto item : itemsToDestroy)
 		item->Remove();
@@ -3121,25 +3153,34 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		int valuePerUnit = salvageInfo.totalValue / salvageInfo.amount;
 		int fullBags = floor(salvageInfo.amount / 100.0);
 		int partialBagAmount = salvageInfo.amount % 100;
+
+		int fullBagTotalWorkmanship = round(salvageInfo.totalWorkmanship / (fullBags + partialBagAmount/100.0) );
+		int fullBagItemCount = round(salvageInfo.itemsSalvagedCountCont / (fullBags + partialBagAmount / 100.0) );
+
+
 		for (int i = 0; i < fullBags; i++)
 		{
-			SpawnSalvageBagInContainer(material, 100, salvageInfo.totalWorkmanship, valuePerUnit * 100, salvageInfo.itemsSalvagedCountCont);
+			SpawnSalvageBagInContainer(material, 100, fullBagTotalWorkmanship, min(valuePerUnit * 100, 75000), fullBagItemCount);
 			
 			SalvageResult salvageResult;
 			salvageResult.material = material;
 			salvageResult.units = 100;
-			salvageResult.workmanship = salvageInfo.totalWorkmanship / (double)salvageInfo.itemsSalvagedCountCont;
+			salvageResult.workmanship = fullBagTotalWorkmanship / (double) fullBagItemCount;
 			salvageResults.push_back(salvageResult);
 		}
 
-		if (partialBagAmount > 0)
+		int partialTotalWorkmanship = salvageInfo.totalWorkmanship - fullBags * fullBagTotalWorkmanship;
+		int partialTotalItems = salvageInfo.itemsSalvagedCountCont - fullBags * fullBagItemCount;
+
+		// We may lose a bit of salvage in favour of producing better full bags
+		if (partialBagAmount > 0 && partialTotalItems > 0 && partialTotalWorkmanship > 0)
 		{
-			SpawnSalvageBagInContainer(material, partialBagAmount, salvageInfo.totalWorkmanship, valuePerUnit * partialBagAmount, salvageInfo.itemsSalvagedCountCont);
+			SpawnSalvageBagInContainer(material, partialBagAmount, partialTotalWorkmanship, min(valuePerUnit * partialBagAmount, 75000), partialTotalItems);
 
 			SalvageResult salvageResult;
 			salvageResult.material = material;
 			salvageResult.units = partialBagAmount;
-			salvageResult.workmanship = salvageInfo.totalWorkmanship / (double)salvageInfo.itemsSalvagedCountCont;
+			salvageResult.workmanship = partialTotalWorkmanship / (double) partialTotalItems;
 			salvageResults.push_back(salvageResult);
 		}
 
@@ -3154,6 +3195,16 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	salvageMsg.Write<int>(0);			// int: Aug bonus - not implemented?
 
 	SendNetMessage(&salvageMsg, PRIVATE_MSG, TRUE, FALSE);
+}
+
+int CPlayerWeenie::CalculateSalvageAmount(int salvagingSkill, int workmanship, int numAugs)
+{
+	// do we need to do this? check in case of errors
+	numAugs = max(0, min(4, numAugs));
+
+	double dMagicNumber[] = { 195, 155.75, 130, 111.25, 97.5 };
+
+	return floor(1 + (1 + salvagingSkill)*workmanship/dMagicNumber[numAugs]);
 }
 
 bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount, int workmanship, int value, int numItems)
