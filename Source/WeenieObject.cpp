@@ -1850,7 +1850,7 @@ const char* CWeenieObject::GetTitleString()
 	return "[title]";
 }
 
-DWORD GetXPForKillLevel(int level)
+DWORD CWeenieObject::GetXPForKillLevel(int level)
 {
 	double xp = 380.5804 + 63.92362*level + 3.543397*pow(level, 2) - 0.05233995*pow(level, 3) + 0.0007008949*pow(level, 4);
 
@@ -3022,12 +3022,7 @@ void CWeenieObject::CheckRegeneration(double rate, STypeAttribute2nd currentAttr
 					currentVital = maxVital;
 				}
 
-				m_Qualities.SetAttribute2nd(currentAttrib, currentVital);
-
-				if (AsPlayer())
-				{
-					NotifyAttribute2ndStatUpdated(currentAttrib);
-				}
+				OnRegen(currentAttrib, currentVital);
 			}
 		}
 	}
@@ -4690,6 +4685,12 @@ void CWeenieObject::OnDealtDamage(DamageEventData &data)
 		{
 		}
 	}
+}
+
+void CWeenieObject::OnRegen(STypeAttribute2nd currentAttrib, int newAmount)
+{
+
+	m_Qualities.SetAttribute2nd(currentAttrib, newAmount);
 }
 
 bool CWeenieObject::IsContainedWithinViewable(DWORD object_id)

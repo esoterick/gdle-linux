@@ -1350,12 +1350,47 @@ void CMonsterWeenie::OnTookDamage(DamageEventData &damageData)
 {
 	CWeenieObject::OnTookDamage(damageData);
 
+	DWORD source = damageData.source->GetID();
+
+	int damage = max(0, damageData.outputDamageFinal);
+
+	if ( m_aDamageSources.find(source) == m_aDamageSources.end() )
+	{
+		m_aDamageSources[source] = 0;
+	}
+
+	m_aDamageSources[source] += damage;
+
 	//if (IsDead())
 	//	return;
 
 	if (m_MonsterAI)
 		m_MonsterAI->OnTookDamage(damageData);
 }
+
+
+void CMonsterWeenie::OnRegen(STypeAttribute2nd currentAttrib, int newAmount)
+{
+	CWeenieObject::OnRegen(currentAttrib, newAmount);
+
+	if (currentAttrib == HEALTH_ATTRIBUTE_2ND)
+	{
+		DWORD maxHealth = 0;
+		m_Qualities.InqAttribute2nd(MAX_HEALTH_ATTRIBUTE_2ND, maxHealth, FALSE);
+
+		if (maxHealth == newAmount)
+		{
+			// reset damage sources
+			m_aDamageSources.clear();
+		}
+	}
+}
+
+void CMonsterWeenie::GivePerksForKill(CWeenieObject *pKilled)
+{
+	// Prevent CWeenieObject::GivePerksForKill from running
+}
+
 
 void CMonsterWeenie::OnIdentifyAttempted(CWeenieObject *other)
 {
@@ -1669,8 +1704,48 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 {
 	CWeenieObject::OnDeath(killer_id);
 	
-	m_DeathKillerIDForCorpse = killer_id;
-	if (!g_pWorld->FindObjectName(killer_id, m_DeathKillerNameForCorpse))
+	DWORD mostDamageSource = killer_id;
+	int mostDamage = 0;
+	int totalDamage = 0;
+	for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
+	{
+		totalDamage += it->second;
+
+		if (it->second > mostDamage)
+		{
+			mostDamage = it->second;
+			mostDamageSource = it->first;
+		}
+	}
+
+	int level = InqIntQuality(LEVEL_INT, 0);
+
+	int xpForKill = 0;
+
+	if (level <= 0)
+		xpForKill = 0;
+	else if (!m_Qualities.InqInt(XP_OVERRIDE_INT, xpForKill, 0, FALSE))
+		xpForKill = (int)GetXPForKillLevel(level);
+
+	xpForKill = (int)(xpForKill * g_pConfig->KillXPMultiplier(level));
+
+	if (xpForKill > 0)
+	{
+		// hand out xp proportionally
+		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
+		{
+			CWeenieObject *pSource = g_pWorld->FindObject(it->first);
+			double dPercentage = (double)it->second / totalDamage;
+
+			if (pSource)
+			{
+				pSource->GiveSharedXP(dPercentage * xpForKill, false);
+			}
+		}
+	}
+
+	m_DeathKillerIDForCorpse = mostDamageSource;
+	if (!g_pWorld->FindObjectName(mostDamageSource, m_DeathKillerNameForCorpse))
 		m_DeathKillerNameForCorpse.clear();
 
 	MakeMovementManager(TRUE);
@@ -1680,7 +1755,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 	if (g_pConfig->HardcoreMode() && _IsPlayer())
 	{
-		if (CWeenieObject *pKiller = g_pWorld->FindObject(killer_id))
+		if (CWeenieObject *pKiller = g_pWorld->FindObject(mostDamageSource))
 		{
 			if (!g_pConfig->HardcoreModePlayersOnly() || pKiller->_IsPlayer())
 			{
