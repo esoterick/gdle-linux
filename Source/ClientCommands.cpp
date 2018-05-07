@@ -1666,14 +1666,11 @@ CLIENT_COMMAND(fixbusy, "", "Makes you unbusy if you are stuck.", BASIC_ACCESS)
 	return false;
 }
 
-CLIENT_COMMAND(fixconfig, "", "Fixes the configuration saving functionality", BASIC_ACCESS)
+CLIENT_COMMAND(fixclient, "", "Resets the client back to login state.", BASIC_ACCESS)
 {
-	pPlayer->SendText("Fixing configuration...", LTT_SYSTEM_EVENT);
-
 	BinaryWriter *LC = ::LoginCharacter(pPlayer);
 	pPlayer->SendNetMessage(LC->GetData(), LC->GetSize(), PRIVATE_MSG, TRUE);
 	delete LC;
-
 
 	return false;
 }
