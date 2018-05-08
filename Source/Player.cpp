@@ -3105,6 +3105,8 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 
 	highestTinkeringSkillValue = max(max(max(tinkeringSkills[0], tinkeringSkills[1]), tinkeringSkills[2]), tinkeringSkills[3]);
 
+	int numAugs = max(0, min(4, InqIntQuality(AUGMENTATION_BONUS_SALVAGE_INT, 0)));
+
 	std::map<MaterialType, SalvageInfo> salvageMap;
 	std::list<CWeenieObject *> itemsToDestroy;
 
@@ -3154,9 +3156,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		}
 		else
 		{
-			// See http://web.archive.org/web/20170130213649/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage_old.htm
-			// and http://web.archive.org/web/20170130194012/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage.htm
-			int salvagingAmount = CalculateSalvageAmount(salvagingSkillValue, workmanship, 0); // set numAugs to 0 for now
+			int salvagingAmount = CalculateSalvageAmount(salvagingSkillValue, workmanship, numAugs);
 
 			// tinkering can at best return the workmanship as the amount
 			int tinkeringAmount = min(CalculateSalvageAmount(highestTinkeringSkillValue, workmanship, 0), workmanship);
@@ -3165,7 +3165,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 			int salvageAmount = max(salvagingAmount, tinkeringAmount);
 
 			// formula taken from http://asheron.wikia.com/wiki/Salvaging/Value_Pre2013
-			int salvageValue = itemValue * salvagingSkillValue / 387;// *(1 + noAugs);
+			int salvageValue = itemValue * ( salvagingSkillValue / 387 ) *(1 + numAugs * 0.25);
 			salvageMap[material].totalValue += salvageValue;
 			salvageMap[material].amount += salvageAmount;
 			salvageMap[material].itemsSalvagedCountCont++;
@@ -3244,14 +3244,12 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	SendNetMessage(&salvageMsg, PRIVATE_MSG, TRUE, FALSE);
 }
 
+
+// See http://web.archive.org/web/20170130213649/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage_old.htm
+// and http://web.archive.org/web/20170130194012/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage.htm
 int CPlayerWeenie::CalculateSalvageAmount(int salvagingSkill, int workmanship, int numAugs)
 {
-	// do we need to do this? check in case of errors
-	numAugs = max(0, min(4, numAugs));
-
-	double dMagicNumber[] = { 195, 155.75, 130, 111.25, 97.5 };
-
-	return floor(1 + (1 + salvagingSkill)*workmanship/dMagicNumber[numAugs]);
+	return 1 + floor( salvagingSkill/195 * workmanship * (1 + 0.25*numAugs) );
 }
 
 bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount, int workmanship, int value, int numItems)
