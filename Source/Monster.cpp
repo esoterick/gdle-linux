@@ -1350,16 +1350,19 @@ void CMonsterWeenie::OnTookDamage(DamageEventData &damageData)
 {
 	CWeenieObject::OnTookDamage(damageData);
 
-	DWORD source = damageData.source->GetID();
-
-	int damage = max(0, damageData.outputDamageFinal);
-
-	if ( m_aDamageSources.find(source) == m_aDamageSources.end() )
+	if (damageData.source)
 	{
-		m_aDamageSources[source] = 0;
-	}
+		DWORD source = damageData.source->GetID();
 
-	m_aDamageSources[source] += damage;
+		int damage = max(0, damageData.outputDamageFinal);
+
+		if (m_aDamageSources.find(source) == m_aDamageSources.end())
+		{
+			m_aDamageSources[source] = 0;
+		}
+
+		m_aDamageSources[source] += damage;
+	}
 
 	//if (IsDead())
 	//	return;
