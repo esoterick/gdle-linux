@@ -2149,12 +2149,12 @@ double CMonsterWeenie::GetMagicDefenseModUsingWielded()
 
 	defenseMod *= CWeenieObject::GetMagicDefenseMod();
 
-	Container_GetWieldedByMask(wielded, ARMOR_LOC);
-	for (auto item : m_Wielded) //check all armor for appropriate imbue effects
+/*	Container_GetWieldedByMask(wielded, ARMOR_LOC);
+	for (auto item : m_Wielded) //check all armor for appropriate imbue effects - commented out as this is checked in TryMagicResist and should be adding 1 to skill, not 1% 
 	{
 		if (item->GetImbueEffects() & MagicDefense_ImbuedEffectType)
 			defenseMod += 0.01;
-	}
+	}*/
 
 	return defenseMod;
 }
