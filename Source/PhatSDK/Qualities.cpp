@@ -3847,6 +3847,15 @@ void CSpellBook::ClearSpells()
 
 CBaseQualities::CBaseQualities()
 {
+	// Initialise - might prevent some crashes?
+	m_IntStats = new PackableHashTableWithJson<STypeInt, int>();
+	m_Int64Stats = new PackableHashTableWithJson<STypeInt64, __int64>();
+	m_BoolStats = new PackableHashTableWithJson<STypeBool, BOOL>();
+	m_FloatStats = new PackableHashTableWithJson<STypeFloat, double>();
+	m_StringStats = new PackableHashTableWithJson<STypeString, std::string>();
+	m_DIDStats = new PackableHashTableWithJson<STypeDID, DWORD>();
+	m_IIDStats = new PackableHashTableWithJson<STypeIID, DWORD>();
+	m_PositionStats = new PackableHashTableWithJson<STypePosition, Position>();
 }
 
 CBaseQualities::~CBaseQualities()
