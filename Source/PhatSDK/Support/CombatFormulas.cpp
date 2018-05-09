@@ -115,13 +115,13 @@ void CalculateSkillDamageBonus(DamageEventData *dmgEvent, SpellCastData *spellDa
 			{
 				float minDamage = (float)meta->_baseIntensity;
 
-				float spellPower = spellData->spell->_power;
-				if (spellPower == 400)
+				float difficulty = spellData->spell->_power - 100; // add fudge factor
+				if (spellData->spell->_power == 400)
 				{
-					spellPower -= 50; // Adjust for level 8s
+					difficulty -= 75; // Adjust for level 8s
 				}
 
-				float skillDamageMod = ((int)spellData->current_skill - spellPower) / 1000.0; //better made up formula.
+				float skillDamageMod = ((int)spellData->current_skill - difficulty) / 1000.0; //better made up formula.
 				if (skillDamageMod > 0)
 					dmgEvent->skillDamageBonus = minDamage * skillDamageMod;
 			}
