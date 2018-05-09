@@ -5709,7 +5709,7 @@ bool CWeenieObject::TryMagicResist(DWORD magicSkill)
 		for (auto item : AsContainer()->m_Wielded)
 		{
 			if (item->GetImbueEffects() & MagicDefense_ImbuedEffectType)
-				defenseMod += 0.01;
+				defenseSkill += 1;
 		}
 	}
 	defenseSkill = (int)round((double)defenseSkill * defenseMod);
