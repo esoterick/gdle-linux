@@ -233,6 +233,7 @@ void CPlayerWeenie::Tick()
 		}
 
 	}
+}
 
 bool CPlayerWeenie::IsBusy()
 {
