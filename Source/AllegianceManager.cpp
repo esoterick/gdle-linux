@@ -833,15 +833,9 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 		avgRealDaysVassalsSworn += vassalDaysSworn;
 		avgIngameHoursVassalsSworn += vassalIngameHours;
 	}
-	try
-	{
-		avgRealDaysVassalsSworn /= patron->_vassals.size();
-		avgIngameHoursVassalsSworn /= patron->_vassals.size();
-	}
-	catch(...)
-	{
-		SERVER_ERROR << "Vassal size was 0";
-	}
+
+	avgRealDaysVassalsSworn /= max(1, patron->_vassals.size());
+	avgIngameHoursVassalsSworn /= max(1, patron->_vassals.size());
 
 	double vassalFactor = min(1.0, max(0.0, 0.25 * patron->_vassals.size()));
 	double realDaysSwornFactor = min(realDaysSworn, 730.0) / 730.0;
@@ -859,14 +853,14 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 	
 	double passup = generatedPercent * receivedPercent;
 
-	DWORD generatedAmount = (DWORD)(amount * generatedPercent);
-	DWORD passupAmount = (DWORD)(amount * passup);
+	long long generatedAmount = amount * generatedPercent;
+	long long passupAmount = amount * passup;
 
 	if (passup > 0)
 	{
 		node->_cp_tithed += generatedAmount;
 		patron->_cp_cached += passupAmount;
-		patron->_cp_pool_to_unload += passupAmount;
+		patron->_cp_pool_to_unload = min(4294967295ull, patron->_cp_pool_to_unload + passupAmount);
 
 		CWeenieObject *patron_weenie = g_pWorld->FindPlayer(patron->_charID);
 		if (patron_weenie)
