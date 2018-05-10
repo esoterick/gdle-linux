@@ -107,6 +107,10 @@ public:
 
 	virtual DWORD OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot) override;
 
+	void SetLastHealthRequest(DWORD guid);
+	void RemoveLastHealthRequest();
+	void RefreshTargetHealth();
+
 	//cmoski -- remove last assessed item
 	void SetLastAssessed(DWORD guid);
 	std::string RemoveLastAssessed();
@@ -190,10 +194,14 @@ public:
 protected:
 	CClient *m_pClient;
 
+	DWORD m_LastHealthRequest;
+
 	double m_fNextMakeAwareCacheFlush = 0.0;
 	bool m_bAttackable = true;
 
 	double m_NextSave = 0.0;
+
+	double m_NextHealthUpdate = 0.0;
 
 	double _logoutTime = -1.0;
 	double _recallTime = -1.0;

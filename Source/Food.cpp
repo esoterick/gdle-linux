@@ -77,6 +77,15 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 			}
 
 			other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), max(0, statChange), vitalName), LTT_DEFAULT);
+
+			if (boost_stat == HEALTH_ATTRIBUTE_2ND)
+			{
+				if (other->AsPlayer())
+				{
+					// update the target's health on the healing player asap
+					((CPlayerWeenie*)other)->RefreshTargetHealth();
+				}
+			}
 			break;
 		}
 	}

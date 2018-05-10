@@ -25,6 +25,7 @@
 #include "Util.h"
 
 #define PLAYER_SAVE_INTERVAL 180.0
+#define PLAYER_HEALTH_POLL_INTERVAL 5.0
 
 DEFINE_PACK(SalvageResult)
 {
@@ -210,6 +211,22 @@ void CPlayerWeenie::Tick()
 		_recallTime = -1.0;
 		Movement_Teleport(_recallPos, false);
 	}
+
+	if (m_NextHealthUpdate <= Timer::cur_time)
+	{
+		CWeenieObject *pTarget = g_pWorld->FindWithinPVS(this, m_LastHealthRequest);
+		if (pTarget)
+		{
+			SendNetMessage(HealthUpdate((CMonsterWeenie *)pTarget), PRIVATE_MSG, TRUE, TRUE);
+
+			m_NextHealthUpdate = Timer::cur_time + PLAYER_HEALTH_POLL_INTERVAL;
+		}
+		else
+		{
+			RemoveLastHealthRequest();
+		}
+
+	}
 }
 
 bool CPlayerWeenie::IsBusy()
@@ -334,6 +351,26 @@ void CPlayerWeenie::ExitPortal()
 
 	if (_phys_obj)
 		_phys_obj->ExitPortal();
+}
+
+void CPlayerWeenie::SetLastHealthRequest(DWORD guid)
+{
+	m_LastHealthRequest = guid;
+
+	m_NextHealthUpdate = Timer::cur_time + PLAYER_HEALTH_POLL_INTERVAL;
+}
+
+void CPlayerWeenie::RemoveLastHealthRequest()
+{
+	m_LastHealthRequest = 0;
+
+	// nothing targeted so we don't want to send messages
+	m_NextHealthUpdate = Timer::cur_time + 86400.0;
+}
+
+void CPlayerWeenie::RefreshTargetHealth()
+{
+	m_NextHealthUpdate = 0;
 }
 
 void CPlayerWeenie::SetLastAssessed(DWORD guid)
@@ -788,6 +825,9 @@ void CPlayerWeenie::NotifyAttackerEvent(const char *name, unsigned int dmgType, 
 	msg.Write<DWORD>(crit);
 	msg.Write<DWORD64>(attackConditions);
 	SendNetMessage(&msg, PRIVATE_MSG, TRUE, FALSE);
+
+	// Update health of monster ASAP
+	RefreshTargetHealth();
 }
 
 void CPlayerWeenie::NotifyDefenderEvent(const char *name, unsigned int dmgType, float healthPercent, unsigned int health, BODY_PART_ENUM hitPart, unsigned int crit, unsigned int attackConditions)

@@ -158,6 +158,15 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 
 					target->SendText(csprintf("%s heals you for %d %s points.", _weenie->GetName().c_str(), amountHealed, vitalName), LTT_DEFAULT);
 				}
+
+				if (boost_stat == HEALTH_ATTRIBUTE_2ND)
+				{
+					if (_weenie->AsPlayer())
+					{
+						// update the target's health on the healing player asap
+						((CPlayerWeenie*)_weenie)->RefreshTargetHealth();
+					}
+				}
 			}
 			else
 			{

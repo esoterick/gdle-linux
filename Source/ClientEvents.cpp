@@ -579,6 +579,8 @@ void CClientEvents::RequestHealthUpdate(DWORD dwGUID)
 	{
 		if (pEntity->IsCreature())
 		{
+			m_pPlayer->SetLastHealthRequest(pEntity->GetID());
+
 			m_pClient->SendNetMessage(HealthUpdate((CMonsterWeenie *)pEntity), PRIVATE_MSG, TRUE, TRUE);
 		}
 	}
