@@ -6,7 +6,7 @@
 #include "CombatFormulas.h"
 #include "Player.h"
 
-const float MAX_SPELL_PROJECTILE_LIFETIME = 60.0f;
+const float MAX_SPELL_PROJECTILE_LIFETIME = 30.0f;
 
 CSpellProjectile::CSpellProjectile(const SpellCastData &scd, DWORD target_id)//, unsigned int damage)
 {
@@ -41,10 +41,17 @@ CSpellProjectile::~CSpellProjectile()
 
 void CSpellProjectile::Tick()
 {
-	if (!InValidCell() || (m_fSpawnTime + MAX_SPELL_PROJECTILE_LIFETIME) <= Timer::cur_time || (m_fDestroyTime <= Timer::cur_time))
+	if (!InValidCell() || (m_fDestroyTime <= Timer::cur_time))
 	{
 		MarkForDestroy();
 	}
+	// not destroyed yet and distance/time exceeded
+	else if (m_fDestroyTime > Timer::cur_time + 10 && (m_Position.distance(m_startPosition) > m_CachedSpellCastData.max_range || (m_fSpawnTime + MAX_SPELL_PROJECTILE_LIFETIME-1) <= Timer::cur_time))
+	{
+		HandleExplode();
+		m_fDestroyTime = Timer::cur_time + 1;
+	}
+	
 }
 
 void CSpellProjectile::PostSpawn()
@@ -53,6 +60,8 @@ void CSpellProjectile::PostSpawn()
 
 	EmitEffect(PS_Launch, m_fEffectMod);
 	m_fSpawnTime = Timer::cur_time;
+
+	m_startPosition = m_Position;
 
 	if (m_CachedSpellCastData.spellEx->_meta_spell._spell->AsLifeProjectileSpell())
 	{
