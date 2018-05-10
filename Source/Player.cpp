@@ -485,6 +485,20 @@ void CPlayerWeenie::OnGivenXP(long long amount, bool allegianceXP)
 	}
 }
 
+void addItemsToDropLists(PhysObjVector items, std::vector<CWeenieObject *> &removeList, std::vector<CWeenieObject *> &alwaysDropList, std::vector<CWeenieObject *> &allValidItems)
+{
+	for (auto item : items)
+	{
+		if (item->m_Qualities.id == W_COINSTACK_CLASS)
+			continue;
+		else if (item->IsDestroyedOnDeath())
+			removeList.push_back(item);
+		else if (item->IsDroppedOnDeath())
+			alwaysDropList.push_back(item);
+		else if (!item->IsBonded())
+			allValidItems.push_back(item);
+	}
+}
 
 //TODO Add nonwielded handling for level > 11 && level < 35
 void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD killer_id)
@@ -499,22 +513,23 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	CWeenieObject *pKiller = g_pWorld->FindObject(killer_id);
 	int amountOfItemsToDrop = 0;
 	int augDropLess = InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0); // Take Death Item Augs into Consideration
-	if(level > 10 && level <= 20)
+	if (level <= 10)
+	{
+		amountOfItemsToDrop = 0;
+	}
+	else if (level <= 20)
 	{
 		amountOfItemsToDrop = 1;
-	}
-	else if(level < 35)
-	{
-		amountOfItemsToDrop = floor(level / 20) + Random::GenInt(0, 2);
 	}
 	else
 	{
 		amountOfItemsToDrop = floor(level / 20) + Random::GenInt(0, 2);
 	}
 
-	if (pKiller && !pKiller->_IsPlayer())
+	// either we can't find a killer (killed self?) or the killer is not a player
+	if (!pKiller || !pKiller->_IsPlayer())
 		amountOfItemsToDrop = max(0, (amountOfItemsToDrop - (augDropLess * 5)));
-	
+
 	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
 	pCorpse->_shouldSave = true;
 	pCorpse->m_bDontClear = true;
@@ -526,50 +541,19 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 		pCorpse->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed);
 	}
 
-	std::vector<CWeenieObject *> alwaysDropList;
 	std::vector<CWeenieObject *> removeList;
-
+	std::vector<CWeenieObject *> alwaysDropList;
 	std::vector<CWeenieObject *> allValidItems;
-	for (auto wielded : m_Wielded)
-	{
-		if (wielded->m_Qualities.id == W_COINSTACK_CLASS)
-			continue;
-		else if (wielded->IsDestroyedOnDeath())
-			removeList.push_back(wielded);
-		else if (wielded->IsDroppedOnDeath())
-			alwaysDropList.push_back(wielded);
-		else if (!wielded->IsBonded())
-			allValidItems.push_back(wielded);
-	}
 
-	for (auto item : m_Items)
-	{
-		if (item->m_Qualities.id == W_COINSTACK_CLASS)
-			continue;
-		else if (item->IsDestroyedOnDeath())
-			removeList.push_back(item);
-		else if (item->IsDroppedOnDeath())
-			alwaysDropList.push_back(item);
-		else if (!item->IsBonded())
-			allValidItems.push_back(item);
-	}
+	addItemsToDropLists(m_Wielded, removeList, alwaysDropList, allValidItems);
+	addItemsToDropLists(m_Items, removeList, alwaysDropList, allValidItems);
 
 	for (auto packAsWeenie : m_Packs)
 	{
 		CContainerWeenie *pack = packAsWeenie->AsContainer();
 		if (pack)
 		{
-			for (auto item : pack->m_Items)
-			{
-				if (item->m_Qualities.id == W_COINSTACK_CLASS)
-					continue;
-				else if (item->IsDestroyedOnDeath())
-					removeList.push_back(item);
-				else if (item->IsDroppedOnDeath())
-					alwaysDropList.push_back(item);
-				else if (!item->IsBonded())
-					allValidItems.push_back(item);
-			}
+			addItemsToDropLists(pack->m_Items, removeList, alwaysDropList, allValidItems);
 		}
 	}
 
@@ -579,106 +563,112 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	for (auto item : alwaysDropList)
 		FinishMoveItemToContainer(item, pCorpse, 0, true, true);
 
-	//CREATE value MULTIMAP
+
+	// This section calculates the effective value for each item (halved for each previous dupe)
 	std::multimap <int, CWeenieObject *> itemValueList;
+	std::map<std::string, int> itemNameList;
+	std::string objName;
 	for (auto item : allValidItems)
 	{
-		int value = NULL;
-		int stack_sz = NULL;
-		try
+		// if this item is stackable
+		if (item->m_Qualities.GetInt(MAX_STACK_SIZE_INT, 0))
 		{
-			stack_sz = item->InqIntQuality(STACK_SIZE_INT, 0);
-			value = item->InqIntQuality(STACK_UNIT_VALUE_INT, 0);
+			int stack_sz = item->InqIntQuality(STACK_SIZE_INT, 0);
+			int value = item->InqIntQuality(STACK_UNIT_VALUE_INT, 0);
+
+			objName = item->InqStringQuality(NAME_STRING, objName);
+
+			// initialise to 0 (this will silently fail if it already exists)
+			itemNameList.insert(std::pair<std::string, int>(objName, 0));
+
+			// reduce value by half for all previous items with same name
+			value /= 1 << min(15, itemNameList[objName]); // 15 to prevent overflow
+
+			itemNameList[objName] += stack_sz;
+
 			for (int i = 0; i < stack_sz; i++)
 			{
 				itemValueList.insert(std::pair<int, CWeenieObject *>(value, item));
+
+				// reduce value by half again
+				value /= 2;
 			}
 		}
-		catch (...)
+		else // not a stack
 		{
-		}
-		if (!value)
-		{
-			value = item->GetValue();
+			int value = item->GetValue();
+
+			// from item->getName - if it has a material type then it's a randomly generated item and we don't want to add it to the dupe list
+			if (item->InqIntQuality(MATERIAL_TYPE_INT, 0))
+			{
+				objName = item->InqStringQuality(NAME_STRING, objName);
+
+				// initialise to 0 (this will silently fail if it already exists)
+				itemNameList.insert(std::pair<std::string, int>(objName, 0));
+
+				// reduce value by half for all previous items with same name
+				value /= 1 << itemNameList[objName];
+
+				itemNameList[objName]++;
+			}
+
 			itemValueList.insert(std::pair<int, CWeenieObject *>(value, item));
 		}
 	}
 
-	// 50% value of second+ instance of itemValueList
-	// used 2 multimaps so i could count. hackjob.
-	std::multimap<int, CWeenieObject *> tmpVLint;
-	std::multimap<std::string, int> tmpVLstr;
-	std::string objName;
-	for (auto iter = itemValueList.begin(); iter != itemValueList.end(); ++iter)
-	{
-		tmpVLint.insert(std::pair<int, CWeenieObject *>(iter->first, iter->second));
-		tmpVLstr.insert(std::pair<std::string, int>(iter->second->InqStringQuality(NAME_STRING, objName), iter->first));
-	}
+	// cap the amount of items to drop to the number of items we can drop so the message properly ends with " and "
+	amountOfItemsToDrop = min(amountOfItemsToDrop, itemValueList.size());
+	int itemsLost = 0;
 
-	std::multimap<int, CWeenieObject *> finaliVL;
-	int amtOfEleN = 0;
-	int amtOfEleV = 0;
-	int inFinal = 0;
-	int curval = 0;
-	int nVal = 0;
-	for (auto iterI = tmpVLint.begin(); iterI != tmpVLint.end(); ++iterI)
+	std::string itemsLostText;
+	if (coinConsumed)
 	{
-		amtOfEleN = tmpVLstr.count(iterI->second->InqStringQuality(NAME_STRING, objName));
-		amtOfEleV = tmpVLint.count(iterI->first);
-		inFinal = finaliVL.count(iterI->first);
-		curval = iterI->first;
-		nVal = iterI->first / 2;
-		if (amtOfEleV > 1 && amtOfEleN > 1 && inFinal > 0)
-			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iterI->second));
-		else
-			finaliVL.insert(std::pair<int, CWeenieObject *>(curval, iterI->second));
+		itemsLostText = csprintf("You've lost %s Pyreal%s", FormatNumberString(coinConsumed).c_str(), coinConsumed > 1 ? "s" : "");
+
+		// increment itemsLost so the next item starts with " and your " or ", your"
+		itemsLost++;
+		amountOfItemsToDrop++;
+	}
+	else
+	{
+		itemsLostText = "You've lost ";
 	}
 
 	// START item dropping BY VALUE
-	std::string itemsLostText;
-	int itemsLost = 0;
-	for (auto iter = finaliVL.rbegin(); iter != finaliVL.rend(); ++iter)
+	for (auto iter = itemValueList.rbegin(); iter != itemValueList.rend(); ++iter)
 	{
-		if (itemsLost >= amountOfItemsToDrop) { break; }
+		if (itemsLost >= amountOfItemsToDrop)
+		{
+			break;
+		}
+
 		if (iter->second->InqIntQuality(STACK_SIZE_INT, 1) > 1)
 		{
 			iter->second->DecrementStackNum();
 			pCorpse->SpawnCloneInContainer(iter->second, 1);
 		}
 		else
+		{
 			FinishMoveItemToContainer(iter->second, pCorpse, 0, true, true);
+		}
+
 		itemsLost++;
+
 		if (amountOfItemsToDrop > 1 && itemsLost == amountOfItemsToDrop)
 			itemsLostText.append(" and your ");
-		else if (!itemsLostText.empty())
+		else if (itemsLost > 1)
 			itemsLostText.append(", your ");
 		else
 			itemsLostText.append("your ");
-		int stackSize = iter->second->InqIntQuality(STACK_SIZE_INT, 1);
+
 		itemsLostText.append(iter->second->GetName());
 	}
-	// END item dropping BY VALUE
-	// WRITE it out to the player
-	std::string text;
-	if (coinConsumed)
-		text = csprintf("You've lost %s Pyreal%s", FormatNumberString(coinConsumed).c_str(), coinConsumed > 1 ? "s" : "");
-	else
-		text = "You've lost ";
 
-	if (!itemsLostText.empty())
-	{
-		if (coinConsumed && itemsLost > 1)
-			text.append(", ");
-		else if (coinConsumed)
-			text.append(" and ");
-		text.append(itemsLostText);
-	}
-	text.append("!");
+	itemsLostText.append("!");
 
-	DEATH_LOG << InqStringQuality(NAME_STRING, "") << "-" << text;
-
+	DEATH_LOG << InqStringQuality(NAME_STRING, "") << "-" << itemsLostText;
 	if (coinConsumed || itemsLost)
-		SendText(text.c_str(), LTT_DEFAULT);
+		SendText(itemsLostText.c_str(), LTT_DEFAULT);
 
 	if (_pendingCorpse)
 	{
