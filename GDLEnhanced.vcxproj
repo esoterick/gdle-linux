@@ -641,6 +641,7 @@
     <ClCompile Include="Source\WeenieObject.cpp" />
     <ClCompile Include="Source\World.cpp" />
     <ClCompile Include="Source\WorldLandBlock.cpp" />
+    <ClCompile Include="Source\TradeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\AugmentationDevice.h" />
@@ -847,6 +848,7 @@
     <ClInclude Include="Source\WorldLandBlock.h" />
     <ClInclude Include="Lib\zlib\zconf.h" />
     <ClInclude Include="Lib\zlib\zlib.h" />
+    <ClInclude Include="Source\TradeManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\client.ico" />

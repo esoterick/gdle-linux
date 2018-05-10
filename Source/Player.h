@@ -4,9 +4,12 @@
 #include "UseManager.h"
 #include "Monster.h"
 #include "Packable.h"
+#include "TradeManager.h"
 
 class CClient;
 class BinaryWriter;
+
+class TradeManager;
 
 class SalvageResult : public PackObj
 {
@@ -191,6 +194,13 @@ public:
 	CCorpseWeenie *_pendingCorpse = NULL;
 	DWORD GetAccountHouseId();
 	
+	TradeManager *GetTradeManager();
+	void SetTradeManager(TradeManager *tradeManager);
+
+	virtual void CPlayerWeenie::ReleaseContainedItemRecursive(CWeenieObject *item) override;
+
+	virtual void ChangeCombatMode(COMBAT_MODE mode, bool playerRequested) override;
+
 protected:
 	CClient *m_pClient;
 
@@ -207,6 +217,9 @@ protected:
 	double _recallTime = -1.0;
 	Position _recallPos;
 	bool _isFirstPortalInSession = true;
+
+	TradeManager *m_pTradeManager = NULL;
+	double m_fNextTradeCheck = 0;
 };
 
 class CWandSpellUseEvent : public CUseEventData

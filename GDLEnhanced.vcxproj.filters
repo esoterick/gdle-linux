@@ -597,6 +597,9 @@
     <ClCompile Include="Source\ManaStone.cpp">
       <Filter>Source Files\Objects\Weenie Types</Filter>
     </ClCompile>
+    <ClCompile Include="Source\TradeManager.cpp">
+      <Filter>Source Files\Object Capabilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\crcwheel.h">
@@ -1210,6 +1213,9 @@
     </ClInclude>
     <ClInclude Include="Source\ManaStone.h">
       <Filter>Source Files\Objects\Weenie Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\TradeManager.h">
+      <Filter>Source Files\Object Capabilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

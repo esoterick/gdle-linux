@@ -212,6 +212,12 @@ void CPlayerWeenie::Tick()
 		Movement_Teleport(_recallPos, false);
 	}
 
+	if (m_pTradeManager && m_fNextTradeCheck <= Timer::cur_time)
+	{
+		m_pTradeManager->CheckDistance();
+		m_fNextTradeCheck = Timer::cur_time + 2;
+	}
+
 	if (m_NextHealthUpdate <= Timer::cur_time)
 	{
 		CWeenieObject *pTarget = g_pWorld->FindWithinPVS(this, m_LastHealthRequest);
@@ -227,7 +233,6 @@ void CPlayerWeenie::Tick()
 		}
 
 	}
-}
 
 bool CPlayerWeenie::IsBusy()
 {
@@ -3762,4 +3767,34 @@ DWORD CPlayerWeenie::GetAccountHouseId()
 	}
 
 	return 0;
+}
+
+TradeManager* CPlayerWeenie::GetTradeManager()
+{
+	return m_pTradeManager;
+}
+
+void CPlayerWeenie::SetTradeManager(TradeManager * tradeManager)
+{
+	m_pTradeManager = tradeManager;
+}
+
+void CPlayerWeenie::ReleaseContainedItemRecursive(CWeenieObject *item)
+{
+	CContainerWeenie::ReleaseContainedItemRecursive(item);
+
+	BinaryWriter removeItem;
+	removeItem.Write<DWORD>(0x24);
+	removeItem.Write<DWORD>(item->GetID());
+	SendNetMessage(&removeItem, PRIVATE_MSG, TRUE, FALSE);
+}
+
+void CPlayerWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
+{
+	CMonsterWeenie::ChangeCombatMode(mode, playerRequested);
+
+	if (m_pTradeManager && mode != NONCOMBAT_COMBAT_MODE)
+	{
+		m_pTradeManager->CloseTrade(this, 2); // EnteredCombat
+	}
 }
