@@ -769,6 +769,13 @@ void CPlayerWeenie::OnMotionDone(DWORD motion, BOOL success)
 	//}
 }
 
+void CPlayerWeenie::OnRegen(STypeAttribute2nd currentAttrib, int newAmount)
+{
+	CMonsterWeenie::OnRegen(currentAttrib, newAmount);
+
+	NotifyAttribute2ndStatUpdated(currentAttrib);
+}
+
 void CPlayerWeenie::NotifyAttackerEvent(const char *name, unsigned int dmgType, float healthPercent, unsigned int health, unsigned int crit, unsigned int attackConditions)
 {
 	// when the player deals damage

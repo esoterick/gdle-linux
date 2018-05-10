@@ -40,6 +40,7 @@ public:
 	virtual void OnDeathAnimComplete() override;
 	virtual void OnDeath(DWORD killerID) override;
 	virtual void OnMotionDone(DWORD motion, BOOL success) override;
+	virtual void OnRegen(STypeAttribute2nd currentAttrib, int newAmount) override;
 	
 	virtual void NotifyAttackerEvent(const char *name, unsigned int dmgType, float healthPercent, unsigned int heath, unsigned int crit, unsigned int attackConditions);
 	virtual void NotifyDefenderEvent(const char *name, unsigned int dmgType, float healthPercent, unsigned int health, BODY_PART_ENUM hitPart, unsigned int crit, unsigned int attackConditions);
