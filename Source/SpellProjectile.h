@@ -37,6 +37,8 @@ private:
 	bool isLifeProjectile = false;
 	int selfDrainedAmount = 0;
 	float selfDrainedDamageRatio = 0.0;
+
+	Position m_startPosition;
 };
 
 
