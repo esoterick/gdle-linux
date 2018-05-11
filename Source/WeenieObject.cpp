@@ -2855,8 +2855,8 @@ void CWeenieObject::Tick()
 			{
 				_nextHeartBeatEmote = Timer::cur_time + Random::GenUInt(2, 15); //add a little variation to avoid synchronization.
 
-																				//_last_update_pos is the time of the last attack/movement/action, basically we don't want to do heartBeat emotes if we're active.
-				if (Timer::cur_time > _last_update_pos + 10.0 && m_Qualities._emote_table)
+				//_last_update_pos is the time of the last attack/movement/action, basically we don't want to do heartBeat emotes if we're active.
+				if (Timer::cur_time > _last_update_pos + 30.0 && m_Qualities._emote_table)
 				{
 					PackableList<EmoteSet> *emoteSetList = m_Qualities._emote_table->_emote_table.lookup(HeartBeat_EmoteCategory);
 
