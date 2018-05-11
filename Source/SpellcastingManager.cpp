@@ -752,11 +752,12 @@ void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 
 int CSpellcastingManager::LaunchSpellEffect()
 {
-	if (int targetError = CheckTargetValidity() && m_SpellCastData.range_check)
+	int targetError = CheckTargetValidity();
+	if (targetError && m_SpellCastData.range_check)
 	{
 		switch (targetError)
 		{
-		case WERROR_MAGIC_TARGET_OUT_OF_RANGE:
+		case WERROR_MISSILE_OUT_OF_RANGE:
 		{
 			CWeenieObject *pTarget = GetCastTarget();
 			if (pTarget)
