@@ -59,8 +59,8 @@ void AllegianceTreeNode::FillAllegianceNode(AllegianceNode *node)
 {
 	node->_data._rank = _rank;
 	node->_data._level = _level;
-	node->_data._cp_cached = _cp_cached;
-	node->_data._cp_tithed = _cp_tithed;
+	node->_data._cp_cached = min(4294967295, _cp_cached);
+	node->_data._cp_tithed = min(4294967295, _cp_tithed);
 	node->_data._gender = _gender;
 	node->_data._hg = _hg;
 	node->_data._leadership = _leadership;
