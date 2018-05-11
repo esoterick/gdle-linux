@@ -62,46 +62,6 @@ void CSpellProjectile::PostSpawn()
 	m_fSpawnTime = Timer::cur_time;
 
 	m_startPosition = m_Position;
-
-	if (m_CachedSpellCastData.spellEx->_meta_spell._spell->AsLifeProjectileSpell())
-	{
-		isLifeProjectile = true;
-		ProjectileLifeSpellEx *lifeProjectile = m_CachedSpellCastData.spellEx->_meta_spell._spell->AsLifeProjectileSpell();
-
-		DAMAGE_TYPE damageType = InqDamageType();
-		selfDrainedDamageRatio = lifeProjectile->_damage_ratio;
-		float drainPercentage = lifeProjectile->_drain_percentage;
-
-		CWeenieObject *caster = NULL;
-		if (m_SourceID)
-			caster = g_pWorld->FindObject(m_SourceID);
-
-		if (!caster)
-			return;
-
-		switch (damageType)
-		{
-		case HEALTH_DAMAGE_TYPE:
-		{
-			int amount = round((float)caster->GetHealth() * drainPercentage);
-			selfDrainedAmount = abs(caster->AdjustHealth(-amount));
-			break;
-		}
-		case STAMINA_DAMAGE_TYPE:
-		{
-			int amount = round((float)caster->GetStamina() * drainPercentage);
-			selfDrainedAmount = abs(caster->AdjustStamina(-amount));
-			break;
-		}
-		case MANA_DAMAGE_TYPE:
-		{
-			int amount = round((float)caster->GetMana() * drainPercentage);
-			selfDrainedAmount = abs(caster->AdjustMana(-amount));
-			break;
-		}
-		}
-		caster->CheckDeath(caster, damageType);
-	}
 }
 
 void CSpellProjectile::HandleExplode()
@@ -235,6 +195,13 @@ BOOL CSpellProjectile::DoCollision(const class ObjCollisionProfile &prof)
 void CSpellProjectile::DoCollisionEnd(DWORD object_id)
 {
 	CWeenieObject::DoCollisionEnd(object_id);
+}
+
+void CSpellProjectile::makeLifeProjectile(int iSelfDrainedAmount, float fSelfDrainedDamageRatio)
+{
+	isLifeProjectile = true;
+	selfDrainedAmount = iSelfDrainedAmount;
+	selfDrainedDamageRatio = fSelfDrainedDamageRatio;
 }
 
 

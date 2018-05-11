@@ -566,6 +566,42 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 
 	CWeenieObject *pSource = GetCastSource();
 
+	bool isLifeProjectile = false;
+	double selfDrainedAmount = 0;
+	float selfDrainedDamageRatio = 0;
+	if (meta->AsLifeProjectileSpell())
+	{
+		isLifeProjectile = true;
+		ProjectileLifeSpellEx *lifeProjectile = meta->AsLifeProjectileSpell();
+
+		DAMAGE_TYPE damageType = static_cast<DAMAGE_TYPE>(lifeProjectile->_etype);
+		selfDrainedDamageRatio = lifeProjectile->_damage_ratio;
+		float drainPercentage = lifeProjectile->_drain_percentage;
+
+		switch (damageType)
+		{
+		case HEALTH_DAMAGE_TYPE:
+		{
+			int amount = round((float)pSource->GetHealth() * drainPercentage);
+			selfDrainedAmount = abs(pSource->AdjustHealth(-amount));
+			break;
+		}
+		case STAMINA_DAMAGE_TYPE:
+		{
+			int amount = round((float)pSource->GetStamina() * drainPercentage);
+			selfDrainedAmount = abs(pSource->AdjustStamina(-amount));
+			break;
+		}
+		case MANA_DAMAGE_TYPE:
+		{
+			int amount = round((float)pSource->GetMana() * drainPercentage);
+			selfDrainedAmount = abs(pSource->AdjustMana(-amount));
+			break;
+		}
+		}
+		pSource->CheckDeath(pSource, damageType);
+	}
+
 	for (int x = 0; x < numX; x++)
 	{
 		for (int y = 0; y < numY; y++)
@@ -668,6 +704,11 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 				}
 
 				pProjectile->set_velocity(spawnVelocity, 0);
+
+				if (isLifeProjectile)
+				{
+					pProjectile->makeLifeProjectile(selfDrainedAmount, selfDrainedDamageRatio);
+				}
 
 				// insert the object into the world
 				if (g_pWorld->CreateEntity(pProjectile))
@@ -2154,7 +2195,6 @@ int CSpellcastingManager::LaunchSpellEffect()
 		{
 			ProjectileSpellEx *meta = (ProjectileSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 			bSpellPerformed = LaunchProjectileSpell(meta);
-			//bSpellPerformed = LaunchRingProjectiles(meta->_wcid);
 
 			break;
 		}
