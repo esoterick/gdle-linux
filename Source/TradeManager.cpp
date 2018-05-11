@@ -34,9 +34,6 @@ TradeManager::TradeManager(CPlayerWeenie *initiator, CPlayerWeenie *partner)
 
 void TradeManager::CloseTrade(CPlayerWeenie *playerFrom, DWORD reason)
 {
-	if (!CheckTrade(playerFrom))
-		return;
-
 	OnCloseTrade(_initiator, reason);
 	OnCloseTrade(_partner, reason);
 
@@ -45,15 +42,18 @@ void TradeManager::CloseTrade(CPlayerWeenie *playerFrom, DWORD reason)
 
 void TradeManager::OnCloseTrade(CPlayerWeenie *player, DWORD reason)
 {
-	BinaryWriter closeTrade;
-	closeTrade.Write<DWORD>(0x1FF);
-	closeTrade.Write<DWORD>(reason);
-	player->SendNetMessage(&closeTrade, PRIVATE_MSG, TRUE, FALSE);
+	if (player)
+	{
+		BinaryWriter closeTrade;
+		closeTrade.Write<DWORD>(0x1FF);
+		closeTrade.Write<DWORD>(reason);
+		player->SendNetMessage(&closeTrade, PRIVATE_MSG, TRUE, FALSE);
+	}
 }
 
 void TradeManager::AddToTrade(CPlayerWeenie *playerFrom, DWORD item)
 {
-	if (!CheckTrade(playerFrom))
+	if (!CheckTrade())
 		return;
 
 	CWeenieObject *pItem = g_pWorld->FindWithinPVS(playerFrom, item);
@@ -106,7 +106,7 @@ void TradeManager::AddToTrade(CPlayerWeenie *playerFrom, DWORD item)
 
 void TradeManager::AcceptTrade(CPlayerWeenie *playerFrom)
 {
-	if (!CheckTrade(playerFrom))
+	if (!CheckTrade())
 		return;
 
 	if (playerFrom == _initiator)
@@ -222,7 +222,7 @@ bool TradeManager::OnTradeAccepted()
 
 void TradeManager::DeclineTrade(CPlayerWeenie *playerFrom)
 {
-	if (!CheckTrade(playerFrom))
+	if (!CheckTrade())
 		return;
 
 	if (playerFrom == _initiator)
@@ -239,7 +239,7 @@ void TradeManager::DeclineTrade(CPlayerWeenie *playerFrom)
 
 void TradeManager::ResetTrade(CPlayerWeenie *playerFrom)
 {
-	if (!CheckTrade(playerFrom))
+	if (!CheckTrade())
 		return;
 
 	// remove all items
@@ -264,12 +264,13 @@ CPlayerWeenie* TradeManager::GetOtherPlayer(CPlayerWeenie *player)
 };
 
 // Checks whether trade is still legit. True is so.
-bool TradeManager::CheckTrade(CPlayerWeenie *player)
+bool TradeManager::CheckTrade()
 {
 	// not currently trading
-	if (GetOtherPlayer(player) == NULL)
+	if (!_initiator || !_partner)
 	{
-		OnCloseTrade(player);
+		OnCloseTrade(_initiator);
+		OnCloseTrade(_partner);
 		Delete();
 		return false;
 	}
@@ -296,11 +297,10 @@ void TradeManager::Delete()
 
 void TradeManager::CheckDistance()
 {
-	if (!_initiator || !_partner)
-	{
-		CloseTrade(_initiator);
-	}
-	else if (_initiator->DistanceTo(_partner, true) >= 1)
+	if (!CheckTrade())
+		return;
+
+	if ( _initiator->DistanceTo(_partner, true) >= 1 )
 	{
 		_initiator->SendText((_partner->GetName() + " is too far away to trade!").c_str(), LTT_ERROR);
 		_partner->SendText((_initiator->GetName() + " is too far away to trade!").c_str(), LTT_ERROR);
