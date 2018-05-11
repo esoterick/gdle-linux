@@ -2981,7 +2981,7 @@ void CWeenieObject::CheckRegeneration(double rate, STypeAttribute2nd currentAttr
 		// boosted out of combat regen
 		if (get_minterp()->interpreted_state.current_style == Motion_NonCombat)
 		{
-			rate *= 50; 
+			rate *= 100; 
 		}
 	}
 
