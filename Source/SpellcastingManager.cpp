@@ -2817,7 +2817,7 @@ int CSpellcastingManager::CheckTargetValidity()
 			if (pCastSource && m_SpellCastData.range_check)
 			{
 				if (pCastSource->DistanceTo(pTarget, true) > m_SpellCastData.max_range)
-					return WERROR_MAGIC_TARGET_OUT_OF_RANGE;
+					return WERROR_MISSILE_OUT_OF_RANGE;
 			}
 		}
 	}
