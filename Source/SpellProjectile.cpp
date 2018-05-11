@@ -41,17 +41,19 @@ CSpellProjectile::~CSpellProjectile()
 
 void CSpellProjectile::Tick()
 {
-	if (!InValidCell() || (m_fDestroyTime <= Timer::cur_time))
+	if (!m_bDestroyMe)
 	{
-		MarkForDestroy();
+		if (!InValidCell() || (m_fDestroyTime <= Timer::cur_time))
+		{
+			MarkForDestroy();
+		}
+		// not destroyed yet and distance/time exceeded
+		else if (m_fDestroyTime > Timer::cur_time + 10 && (m_Position.distance(m_CachedSpellCastData.initial_cast_position) > m_CachedSpellCastData.max_range || (m_fSpawnTime + MAX_SPELL_PROJECTILE_LIFETIME - 1) <= Timer::cur_time))
+		{
+			HandleExplode();
+			m_fDestroyTime = Timer::cur_time + 1;
+		}
 	}
-	// not destroyed yet and distance/time exceeded
-	else if (m_fDestroyTime > Timer::cur_time + 10 && (m_Position.distance(m_startPosition) > m_CachedSpellCastData.max_range || (m_fSpawnTime + MAX_SPELL_PROJECTILE_LIFETIME-1) <= Timer::cur_time))
-	{
-		HandleExplode();
-		m_fDestroyTime = Timer::cur_time + 1;
-	}
-	
 }
 
 void CSpellProjectile::PostSpawn()
@@ -60,8 +62,6 @@ void CSpellProjectile::PostSpawn()
 
 	EmitEffect(PS_Launch, m_fEffectMod);
 	m_fSpawnTime = Timer::cur_time;
-
-	m_startPosition = m_Position;
 
 	if (m_CachedSpellCastData.spellEx->_meta_spell._spell->AsLifeProjectileSpell())
 	{
