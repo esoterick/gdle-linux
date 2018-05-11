@@ -39,5 +39,5 @@ private:
 	std::list<DWORD> m_lPartnerItems;
 
 	// double check the trade is still legit
-	bool CheckTrade(CPlayerWeenie *player);
+	bool CheckTrade();
 };

@@ -79,6 +79,12 @@ CPlayerWeenie::CPlayerWeenie(CClient *pClient, DWORD dwGUID, WORD instance_ts)
 CPlayerWeenie::~CPlayerWeenie()
 {
 	LeaveFellowship();
+	
+	if (m_pTradeManager)
+	{
+		m_pTradeManager->CloseTrade(this);
+		m_pTradeManager = NULL;
+	}
 
 	CClientEvents *pEvents;
 	if (m_pClient && (pEvents = m_pClient->GetEvents()))
@@ -145,6 +151,13 @@ void CPlayerWeenie::BeginLogout()
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	LeaveFellowship();
+
+	if (m_pTradeManager)
+	{
+		m_pTradeManager->CloseTrade(this);
+		m_pTradeManager = NULL;
+	}
+
 	StopCompletely(0);
 	DoForcedMotion(Motion_LogOut);
 	Save();
