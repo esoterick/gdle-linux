@@ -59,8 +59,8 @@ void AllegianceTreeNode::FillAllegianceNode(AllegianceNode *node)
 {
 	node->_data._rank = _rank;
 	node->_data._level = _level;
-	node->_data._cp_cached = _cp_cached;
-	node->_data._cp_tithed = _cp_tithed;
+	node->_data._cp_cached = min(4294967295, _cp_cached);
+	node->_data._cp_tithed = min(4294967295, _cp_tithed);
 	node->_data._gender = _gender;
 	node->_data._hg = _hg;
 	node->_data._leadership = _leadership;
@@ -853,12 +853,11 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 	
 	double passup = generatedPercent * receivedPercent;
 
-	long long generatedAmount = amount * generatedPercent;
-	long long passupAmount = amount * passup;
+	unsigned long long passupAmount = amount * passup;
 
 	if (passup > 0)
 	{
-		node->_cp_tithed += generatedAmount;
+		node->_cp_tithed += passupAmount;
 		patron->_cp_cached += passupAmount;
 		patron->_cp_pool_to_unload = min(4294967295ull, patron->_cp_pool_to_unload + passupAmount);
 
