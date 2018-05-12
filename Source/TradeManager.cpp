@@ -58,7 +58,7 @@ void TradeManager::AddToTrade(CPlayerWeenie *playerFrom, DWORD item)
 
 	CWeenieObject *pItem = g_pWorld->FindWithinPVS(playerFrom, item);
 
-	if (!pItem || pItem->GetWorldTopLevelOwner() != playerFrom || pItem->IsAttunedOrContainsAttuned())
+	if (!pItem || pItem->GetWorldTopLevelOwner() != playerFrom || pItem->IsAttunedOrContainsAttuned() || pItem->IsWielded())
 	{
 		playerFrom->SendText("You cannot trade that item!", LTT_ERROR);
 		BinaryWriter cannotTrade;
@@ -196,10 +196,21 @@ bool TradeManager::OnTradeAccepted()
 		for (auto it = lpInitiatorItems.begin(); it != lpInitiatorItems.end(); ++it)
 		{
 			_partner->OnReceiveInventoryItem(_initiator, *it, 0);
+
+
+			BinaryWriter removeItem;
+			removeItem.Write<DWORD>(0x24);
+			removeItem.Write<DWORD>((*it)->GetID());
+			_initiator->SendNetMessage(&removeItem, PRIVATE_MSG, TRUE, FALSE);
 		}
 		for (auto it = lpPartnerItems.begin(); it != lpPartnerItems.end(); ++it)
 		{
 			_initiator->OnReceiveInventoryItem(_partner, *it, 0);
+
+			BinaryWriter removeItem;
+			removeItem.Write<DWORD>(0x24);
+			removeItem.Write<DWORD>((*it)->GetID());
+			_partner->SendNetMessage(&removeItem, PRIVATE_MSG, TRUE, FALSE);
 		}
 
 

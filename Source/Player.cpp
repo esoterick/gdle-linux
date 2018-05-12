@@ -3796,11 +3796,6 @@ void CPlayerWeenie::SetTradeManager(TradeManager * tradeManager)
 void CPlayerWeenie::ReleaseContainedItemRecursive(CWeenieObject *item)
 {
 	CContainerWeenie::ReleaseContainedItemRecursive(item);
-
-	BinaryWriter removeItem;
-	removeItem.Write<DWORD>(0x24);
-	removeItem.Write<DWORD>(item->GetID());
-	SendNetMessage(&removeItem, PRIVATE_MSG, TRUE, FALSE);
 }
 
 void CPlayerWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
