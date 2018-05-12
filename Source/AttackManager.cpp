@@ -9,8 +9,8 @@
 
 // TODO fix memory leak with attack data
 
-const double DISTANCE_REQUIRED_FOR_MELEE_ATTACK = 1.0;
-const double MAX_MELEE_ATTACK_CONE_ANGLE = 15.0;
+const double DISTANCE_REQUIRED_FOR_MELEE_ATTACK = 2.0;
+const double MAX_MELEE_ATTACK_CONE_ANGLE = 90.0;
 const double MAX_MISSILE_ATTACK_CONE_ANGLE = 3.0;
 
 CAttackEventData::CAttackEventData()
@@ -344,7 +344,7 @@ void CMeleeAttackEvent::Setup()
 	int attackTime = (creatureAttackTime + weaponAttackTime) / 2; //our attack time is the average between our speed and the speed of our weapon.
 	attackTime = max(0, min(120, attackTime));
 
-	_attack_speed = 2.25f - (attackTime * (1.0 / 50.0));
+	_attack_speed = 2.25f - (attackTime * (1.0 / 70.0));
 	_attack_speed = max(min(_attack_speed, 2.25), 0.8);
 
 	//old formula:
@@ -1100,7 +1100,7 @@ void AttackManager::OnAttackDone(DWORD error)
 				_weenie->NotifyCommenceAttack();
 			}
 
-			_attackData->_attack_charge_time = Timer::cur_time + (_attackData->_attack_power * 2);
+			_attackData->_attack_charge_time = Timer::cur_time + (_attackData->_attack_power);
 			_attackData->Begin();
 		}
 		else
