@@ -41,6 +41,7 @@
 #include "GameEventManager.h"
 #include "easylogging++.h"
 #include "ObjectMsgs.h"
+#include "EnumUtil.h"
 
 // Most of these commands are just for experimenting and never meant to be used in a real game
 // TODO: Add flags to these commands so they are only accessible under certain modes such as a sandbox mode
@@ -1673,6 +1674,111 @@ CLIENT_COMMAND(fixclient, "", "Resets the client back to login state.", BASIC_AC
 	delete LC;
 
 	return false;
+}
+
+std::map<std::string, int> commandMap;
+
+CLIENT_COMMAND(config, "<setting> <on/off>", "Manually sets a character option on the server.\nUse /config list to see a list of settings.", BASIC_ACCESS)
+{
+	bool bError = false;
+	if (argc < 1)
+	{
+		bError = true;
+	}
+
+	int iSetTo = 0;
+	if (argc > 1)
+	{
+		if (argv[1] == "on")
+		{
+			iSetTo = 1;
+		}
+		else if (argv[1] == "off")
+		{
+			iSetTo = -1;
+		}
+	}
+
+	if (!bError)
+	{
+		if (strcmp(argv[0], "list") == 0)
+		{
+			pPlayer->SendText("Common settings:\nConfirmVolatileRareUse, MainPackPreferred, SalvageMultiple, SideBySideVitals, UseCraftSuccessDialog", LTT_DEFAULT);
+			pPlayer->SendText("Interaction settings:\nAcceptLootPermits, AllowGive, AppearOffline, AutoAcceptFellowRequest, DragItemOnPlayerOpensSecureTrade, FellowshipShareLoot, FellowshipShareXP, IgnoreAllegianceRequests, IgnoreFellowshipRequests, IgnoreTradeRequests, UseDeception", LTT_DEFAULT);
+			pPlayer->SendText("UI settings:\nCoordinatesOnRadar, DisableDistanceFog, DisableHouseRestrictionEffects, DisableMostWeatherEffects, FilterLanguage, LockUI, PersistentAtDay, ShowCloak, ShowHelm, ShowTooltips, SpellDuration, TimeStamp, ToggleRun, UseMouseTurning", LTT_DEFAULT);
+			pPlayer->SendText("Chat settings:\nHearAllegianceChat, HearGeneralChat, HearLFGChat, HearRoleplayChat, HearSocietyChat, HearTradeChat, StayInChatMode", LTT_DEFAULT);
+			pPlayer->SendText("Combat settings:\nAdvancedCombatUI, AutoRepeatAttack, AutoTarget, LeadMissileTargets, UseChargeAttack, UseFastMissiles, ViewCombatTarget, VividTargetingIndicator", LTT_DEFAULT);
+			pPlayer->SendText("Character display settings:\nDisplayAge, DisplayAllegianceLogonNotifications, DisplayChessRank, DisplayDateOfBirth, DisplayFishingSkill, DisplayNumberCharacterTitles, DisplayNumberDeaths", LTT_DEFAULT);
+			return false;
+		}
+
+		int settingMask = 0;
+		bool bOptions1 = FALSE;
+		bool bOptions2 = FALSE;
+
+		std::string strOption = argv[0];
+		CharacterOption option1 = EnumUtil.StringToCharacterOption(strOption);
+		if (option1)
+		{
+			DWORD charOptions = pPlayer->GetCharacterOptions();
+
+			iSetTo = (charOptions & option1) ? -1 : 1;
+
+			if (iSetTo == 1)
+			{
+				charOptions |= option1;
+			}
+			else
+			{
+				charOptions &= ~option1;
+			}
+
+			pPlayer->SetCharacterOptions(charOptions);
+
+			std::string onOff = iSetTo == 1 ? "on" : "off";
+
+			pPlayer->SendText(("Character option " + strOption + " is now " + onOff + ".").c_str(), LTT_SYSTEM_EVENT);
+
+			// Update the client
+			BinaryWriter *LC = ::LoginCharacter(pPlayer);
+			pPlayer->SendNetMessage(LC->GetData(), LC->GetSize(), PRIVATE_MSG, TRUE);
+			delete LC;
+			return false;
+		}
+
+		CharacterOptions2 option2 = EnumUtil.StringToCharacterOptions2(argv[0]);
+		if (option2)
+		{
+			DWORD charOptions2 = pPlayer->GetCharacterOptions2();
+
+			iSetTo = (charOptions2 & option2) ? -1 : 1;
+
+			if (iSetTo == 1)
+			{
+				charOptions2 |= option2;
+			}
+			else
+			{
+				charOptions2 &= ~option2;
+			}
+
+			pPlayer->SetCharacterOptions2(charOptions2);
+
+			std::string onOff = iSetTo == 1 ? "on" : "off";
+
+			pPlayer->SendText(("Character option " + strOption + " is now " + onOff + ".").c_str(), LTT_SYSTEM_EVENT);
+
+			// Update the client
+			BinaryWriter *LC = ::LoginCharacter(pPlayer);
+			pPlayer->SendNetMessage(LC->GetData(), LC->GetSize(), PRIVATE_MSG, TRUE);
+			delete LC;
+			return false;
+		}
+
+		pPlayer->SendText("Unrecognised setting!", LTT_DEFAULT);
+	}
+
+	return true;
 }
 
 CLIENT_COMMAND(testburden, "", "", ADMIN_ACCESS)

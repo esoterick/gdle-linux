@@ -124,6 +124,8 @@ public:
 	
 	DWORD GetCharacterOptions() { return _playerModule.options_; }
 	DWORD GetCharacterOptions2() { return _playerModule.options2_; }
+	void SetCharacterOptions(DWORD options) { _playerModule.options_ = options; }
+	void SetCharacterOptions2(DWORD options) { _playerModule.options2_ = options; }
 
 	// AutoRepeatAttack_CharacterOption
 	// AllowGive_CharacterOption

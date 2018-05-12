@@ -457,6 +457,7 @@
     <ClCompile Include="Source\AugmentationDevice.cpp" />
     <ClCompile Include="Source\BindStone.cpp" />
     <ClCompile Include="Source\easylogging++.cpp" />
+    <ClCompile Include="Source\EnumUtil.cpp" />
     <ClCompile Include="Source\ManaStone.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\CombatFormulas.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\Random.cpp" />
@@ -644,6 +645,7 @@
     <ClCompile Include="Source\TradeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\EnumUtil.h" />
     <ClInclude Include="Source\AugmentationDevice.h" />
     <ClInclude Include="Source\BindStone.h" />
     <ClInclude Include="Source\easylogging++.h" />
