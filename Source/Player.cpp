@@ -1552,6 +1552,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			PerformUseModifications(1, op, pTool, pTarget, newItem);
 			PerformUseModifications(2, op, pTool, pTarget, newItem);
 			PerformUseModifications(3, op, pTool, pTarget, newItem);
+
 			if (requiredStamina == 0)
 				AdjustStamina(-5); //if we don't have any stamina usage specified let's use 5.
 
@@ -1617,6 +1618,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			PerformUseModifications(5, op, pTool, pTarget, newItem);
 			PerformUseModifications(6, op, pTool, pTarget, newItem);
 			PerformUseModifications(7, op, pTool, pTarget, newItem);
+
 			if (requiredStamina == 0)
 				AdjustStamina(-5); //if we don't have any stamina usage specified let's use 5.
 
@@ -3795,10 +3797,10 @@ void CPlayerWeenie::ReleaseContainedItemRecursive(CWeenieObject *item)
 {
 	CContainerWeenie::ReleaseContainedItemRecursive(item);
 
-	/*BinaryWriter removeItem;
+	BinaryWriter removeItem;
 	removeItem.Write<DWORD>(0x24);
 	removeItem.Write<DWORD>(item->GetID());
-	SendNetMessage(&removeItem, PRIVATE_MSG, TRUE, FALSE);*/
+	SendNetMessage(&removeItem, PRIVATE_MSG, TRUE, FALSE);
 }
 
 void CPlayerWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
