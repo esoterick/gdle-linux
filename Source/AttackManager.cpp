@@ -13,6 +13,9 @@ const double DISTANCE_REQUIRED_FOR_MELEE_ATTACK = 2.0;
 const double MAX_MELEE_ATTACK_CONE_ANGLE = 90.0;
 const double MAX_MISSILE_ATTACK_CONE_ANGLE = 3.0;
 
+#define MISSILE_SLOW_SPEED 0.9
+#define MISSILE_FAST_SPEED 1.25
+
 CAttackEventData::CAttackEventData()
 {
 }
@@ -891,7 +894,20 @@ void CMissileAttackEvent::FireMissile()
 
 	CalculateTargetPosition();
 	CalculateSpawnPosition(missile->GetRadius());
-	CalculateMissileVelocity(true, true, weapon->InqFloatQuality(MAXIMUM_VELOCITY_FLOAT, 20.0));
+
+	bool bTrack = true;
+	float fSpeed = weapon->InqFloatQuality(MAXIMUM_VELOCITY_FLOAT, 20.0);
+	if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
+	{
+		bTrack = pPlayer->GetCharacterOptions2() & LeadMissileTargets_CharacterOptions2;
+		fSpeed *= pPlayer->GetCharacterOptions2() & UseFastMissiles_CharacterOptions2 ? MISSILE_FAST_SPEED : MISSILE_SLOW_SPEED;
+	}
+	else
+	{
+		fSpeed *= MISSILE_SLOW_SPEED;
+	}
+
+	CalculateMissileVelocity(bTrack, true, fSpeed);
 
 	missile->m_Position = _missile_spawn_position;
 	missile->set_velocity(_missile_velocity, FALSE);
