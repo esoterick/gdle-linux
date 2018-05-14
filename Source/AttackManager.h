@@ -102,6 +102,7 @@ public:
 
 	void FireMissile();
 
+	void CalculateAttackMotion();
 	bool CalculateTargetPosition();
 	bool CalculateSpawnPosition(float missileRadius);	
 	bool CalculateMissileVelocity(bool track = true, bool gravity = true, float speed = 20.0f);

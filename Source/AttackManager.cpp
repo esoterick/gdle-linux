@@ -281,11 +281,15 @@ void CMeleeAttackEvent::Setup()
 		if (_weenie->_combatTable)
 		{
 			CWeenieObject *weapon = NULL;
-				if (!_weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
+			if (!_weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
+			{
 				weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
-				else {
-					weapon = _weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
-				}
+			}
+			else 
+			{
+				weapon = _weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+			}
+
 			if (weapon)
 			{
 				//_max_attack_distance = weapon->InqFloatQuality(WEAPON_LENGTH_FLOAT, 0.5); //todo: this would be interesting but something makes the character still move next to the target anyway. Is it the client?
@@ -679,12 +683,62 @@ void CMissileAttackEvent::OnReadyToAttack()
 		params.speed = _attack_speed;
 		params.autonomous = 0;
 
+		CalculateAttackMotion();
+
 		ExecuteAnimation(_do_attack_animation, &params);
 	}
 	else
 	{
 		Finish();
 	}
+}
+
+void CMissileAttackEvent::CalculateAttackMotion()
+{
+	CWeenieObject *weapon = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_MISSILE);
+
+	CWeenieObject *equippedAmmo;
+
+	bool isThrownWeapon = (weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) == ThrownWeapon_CombatStyle);
+	bool isAtlatl = (weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) == Atlatl_CombatStyle);
+
+	if (isThrownWeapon)
+		equippedAmmo = weapon;
+	else
+		equippedAmmo = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_AMMO);
+
+	CalculateTargetPosition();
+	CalculateSpawnPosition(equippedAmmo->GetRadius());
+
+	bool bTrack = true;
+	float fSpeed = weapon->InqFloatQuality(MAXIMUM_VELOCITY_FLOAT, 20.0);
+	if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
+	{
+		bTrack = pPlayer->GetCharacterOptions2() & LeadMissileTargets_CharacterOptions2;
+		fSpeed *= pPlayer->GetCharacterOptions2() & UseFastMissiles_CharacterOptions2 ? MISSILE_FAST_SPEED : MISSILE_SLOW_SPEED;
+	}
+	else
+	{
+		fSpeed *= MISSILE_SLOW_SPEED;
+	}
+
+	CalculateMissileVelocity(bTrack, true, fSpeed);
+
+	float fVertAngle = RAD2DEG(asin(_missile_velocity.z / _missile_velocity.magnitude()));
+
+	int motions[] = { Motion_AimLevel, Motion_AimHigh15, Motion_AimHigh30, Motion_AimHigh45, Motion_AimHigh60, Motion_AimHigh75, Motion_AimHigh90, Motion_AimLow15, Motion_AimLow30, Motion_AimLow45, Motion_AimLow60, Motion_AimLow75, Motion_AimLow90 };
+	int iMotionIndex = 0;
+
+	if (fVertAngle > 7.5)
+	{
+		iMotionIndex = min(floor((fVertAngle + 7.55) / 15), 6);
+	}
+	else if (fVertAngle < -7.5)
+	{
+		iMotionIndex = -min(ceil((fVertAngle - 7.55) / 15), 6) + 6;
+	}
+
+	_do_attack_animation = motions[min(max(0, iMotionIndex), 12)];
 }
 
 bool CMissileAttackEvent::CalculateTargetPosition()
