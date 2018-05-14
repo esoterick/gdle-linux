@@ -3221,7 +3221,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 			int salvageAmount = max(salvagingAmount, tinkeringAmount);
 
 			// formula taken from http://asheron.wikia.com/wiki/Salvaging/Value_Pre2013
-			int salvageValue = itemValue * ( salvagingSkillValue / 387 ) *(1 + numAugs * 0.25);
+			int salvageValue = itemValue * ( salvagingSkillValue / 387.0 ) *(1 + numAugs * 0.25);
 			salvageMap[material].totalValue += salvageValue;
 			salvageMap[material].amount += salvageAmount;
 			salvageMap[material].itemsSalvagedCountCont++;
