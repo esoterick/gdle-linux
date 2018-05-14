@@ -170,7 +170,7 @@ BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 
 				pHit->TryToDealDamage(dmgEvent);
 
-				if (pSource->AsPlayer())
+				if (pSource && pSource->AsPlayer())
 				{
 					// update the target's health on the casting player asap
 					((CPlayerWeenie*)pSource)->RefreshTargetHealth();
