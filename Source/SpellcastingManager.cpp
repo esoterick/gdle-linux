@@ -365,7 +365,7 @@ Position CSpellcastingManager::GetSpellProjectileSpawnPosition(CSpellProjectile 
 
 		float z = pSource->GetHeight() * (2.0 / 3.0);
 		if (bRing)
-			z = 1.5;
+			z *= 1.5;
 
 		targetOffset = spawnPosition.get_offset(pTarget->m_Position.add_offset(pTarget->m_Position.localtoglobalvec(Vector(x, y, z))));
 	}
@@ -632,8 +632,6 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 
 				Position projSpawnPos = GetSpellProjectileSpawnPosition(pProjectile, pTarget, &distToTarget, theta, bRing);
 
-				// set velocity based on player position
-				Vector spawnVelocity = GetSpellProjectileSpawnVelocity(&projSpawnPos, pTarget, maxVelocity, bTracking, bGravity, NULL, theta, bRing);
 
 				if (bRing)
 				{
@@ -642,7 +640,7 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 					projSpawnPos = projSpawnPos.add_offset(ringOffset);
 				}
 
-				//Random offset
+				// overall offset
 				Vector createOffset = projSpawnPos.localtoglobalvec(meta->_createOffset);
 				projSpawnPos = projSpawnPos.add_offset(
 					Vector(
@@ -650,9 +648,10 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 						Random::GenFloat(-1.0, 1.0) * meta->_peturbation.y * meta->_padding.y,
 						Random::GenFloat(-1.0, 1.0) * meta->_peturbation.z * meta->_padding.z));
 				projSpawnPos = projSpawnPos.add_offset(createOffset);
-				
 
-				// Offset for wall spells
+				Vector spawnVelocity = GetSpellProjectileSpawnVelocity(&projSpawnPos, pTarget, maxVelocity, bTracking, bGravity, NULL, theta, bRing);
+
+				// individual offset
 				if (!bAngled)
 				{
 					Vector sizePerProjectile = meta->_padding; // * radius;
@@ -675,12 +674,7 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 
 				pProjectile->set_velocity(spawnVelocity, 0);
 
-				if (pProjectile->InqBoolQuality(INELASTIC_BOOL, FALSE))
-					pProjectile->m_PhysicsState |= INELASTIC_PS;
-				if (pProjectile->InqBoolQuality(SCRIPTED_COLLISION_BOOL, FALSE))
-					pProjectile->m_PhysicsState |= SCRIPTED_COLLISION_PS;
-				if (pProjectile->InqBoolQuality(LIGHTS_STATUS_BOOL, FALSE))
-					pProjectile->m_PhysicsState |= LIGHTING_ON_PS;
+				pProjectile->m_PhysicsState |= INELASTIC_PS | SCRIPTED_COLLISION_PS | LIGHTING_ON_PS;
 
 				// pProjectile->m_PhysicsState |= ETHEREAL_PS;
 
