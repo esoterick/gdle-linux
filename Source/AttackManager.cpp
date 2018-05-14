@@ -87,7 +87,7 @@ void CAttackEventData::MoveToAttack()
 	params.can_sidestep = 0;
 	params.can_walk_backwards = 0;
 	params.move_away = 1;
-	params.can_charge = 1;
+	params.can_charge = m_bCanCharge || !_weenie->AsPlayer() ? 1 : 0;
 	params.fail_walk = 1;
 	params.use_final_heading = 1;
 	params.sticky = _use_sticky;
@@ -332,6 +332,8 @@ void CMeleeAttackEvent::Setup()
 			}
 		}
 	
+		// melee attacks can charge!
+		m_bCanCharge = true;
 		_do_attack_animation = attack_motion;
 	}
 

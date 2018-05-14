@@ -55,6 +55,8 @@ public:
 	float _attack_speed = 1.5f;
 	float _fail_distance = 15.0f;
 	double _attack_charge_time = -1.0f;
+
+	bool m_bCanCharge = false;
 };
 
 class CMeleeAttackEvent : public CAttackEventData
