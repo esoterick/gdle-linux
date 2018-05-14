@@ -582,8 +582,15 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 			{
 				//DWORD damage = Random::GenUInt(meta->_baseIntensity, meta->_baseIntensity + meta->_variance);
 
-				CSpellProjectile *pProjectile = new CSpellProjectile( // revise me
-					m_SpellCastData, pTarget == pSource ? 0 : m_SpellCastData.target_id);//, damage);
+				int target = m_SpellCastData.target_id;
+
+				if (numX > 1 || numY > 1 || numZ > 1)
+				{
+					// volleys, blasts, rings aren't limited to one target
+					target = 0;
+				}
+
+				CSpellProjectile *pProjectile = new CSpellProjectile(m_SpellCastData, target);
 
 				// create the initial object
 				float distToTarget;
