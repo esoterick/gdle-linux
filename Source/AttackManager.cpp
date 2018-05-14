@@ -697,6 +697,12 @@ void CMissileAttackEvent::CalculateAttackMotion()
 {
 	CWeenieObject *weapon = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_MISSILE);
 
+	if (!weapon)
+	{
+		_weenie->DoForcedStopCompletely();
+		return;
+	}
+
 	CWeenieObject *equippedAmmo;
 
 	bool isThrownWeapon = (weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) == ThrownWeapon_CombatStyle);
@@ -706,6 +712,13 @@ void CMissileAttackEvent::CalculateAttackMotion()
 		equippedAmmo = weapon;
 	else
 		equippedAmmo = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_AMMO);
+
+	if (!equippedAmmo)
+	{
+		_weenie->DoForcedStopCompletely();
+		_weenie->NotifyWeenieError(WERROR_COMBAT_OUT_OF_AMMO);
+		return;
+	}
 
 	CalculateTargetPosition();
 	CalculateSpawnPosition(equippedAmmo->GetRadius());
