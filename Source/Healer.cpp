@@ -121,8 +121,17 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 						int statChange = newStatValue - statValue;
 						if (statChange)
 						{
-							target->m_Qualities.SetAttribute2nd(statType, newStatValue);
-							target->NotifyAttribute2ndStatUpdated(statType);
+							if (target->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
+							{
+								target->AdjustHealth(statChange);
+								target->NotifyAttribute2ndStatUpdated(statType);
+							}
+							else
+							{
+								target->m_Qualities.SetAttribute2nd(statType, newStatValue);
+								target->NotifyAttribute2ndStatUpdated(statType);
+							}
+
 						}
 					}
 

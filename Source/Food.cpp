@@ -64,8 +64,16 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 			int statChange = newStatValue - statValue;
 			if (statChange)
 			{
-				other->m_Qualities.SetAttribute2nd(statType, newStatValue);
-				other->NotifyAttribute2ndStatUpdated(statType);
+				if (other->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
+				{
+					other->AdjustHealth(statChange);
+					other->NotifyAttribute2ndStatUpdated(statType);
+				}
+				else
+				{
+					other->m_Qualities.SetAttribute2nd(statType, newStatValue);
+					other->NotifyAttribute2ndStatUpdated(statType);
+				}
 			}
 
 			const char *vitalName = "";

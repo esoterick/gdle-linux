@@ -424,6 +424,9 @@ void CPlayerWeenie::OnDeathAnimComplete()
 
 		if (!g_pConfig->HardcoreMode())
 		{
+			//clear damage sources on death
+			m_aDamageSources.clear();
+
 			//if (IsDead())
 			Revive();
 		}

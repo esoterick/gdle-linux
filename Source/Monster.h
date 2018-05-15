@@ -80,6 +80,7 @@ public:
 	virtual void GenerateDeathLoot(CCorpseWeenie *pCorpse);
 
 	virtual BOOL DoCollision(const class ObjCollisionProfile &prof);
+	virtual int AdjustHealth(int amount) override;
 
 	CCorpseWeenie *CreateCorpse(bool visible = true);
 

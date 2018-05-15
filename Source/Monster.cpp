@@ -1566,8 +1566,16 @@ void CMonsterWeenie::OnMotionDone(DWORD motion, BOOL success)
 									int statChange = newStatValue - statValue;
 									if (statChange)
 									{
-										m_Qualities.SetAttribute2nd(statType, newStatValue);
-										NotifyAttribute2ndStatUpdated(statType);
+										if (statType == HEALTH_ATTRIBUTE_2ND)
+										{
+											AdjustHealth(statChange);
+											NotifyAttribute2ndStatUpdated(statType);
+										}
+										else
+										{
+											m_Qualities.SetAttribute2nd(statType, newStatValue);
+											NotifyAttribute2ndStatUpdated(statType);
+										}
 									}
 
 									const char *vitalName = "";
@@ -1710,17 +1718,23 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 	DWORD mostDamageSource = killer_id;
 	int mostDamage = 0;
 	int totalDamage = 0;
-	for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
+	
+	if (m_aDamageSources.size() == 0)
 	{
-		totalDamage += it->second;
-
-		if (it->second > mostDamage)
+		mostDamageSource = killer_id;
+	}
+	else {
+		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
 		{
-			mostDamage = it->second;
-			mostDamageSource = it->first;
+			totalDamage += it->second;
+
+			if (it->second > mostDamage)
+			{
+				mostDamage = it->second;
+				mostDamageSource = it->first;
+			}
 		}
 	}
-
 	int level = InqIntQuality(LEVEL_INT, 0);
 
 	int xpForKill = 0;
@@ -2380,4 +2394,22 @@ BOOL CMonsterWeenie::DoCollision(const class ObjCollisionProfile &prof)
 	}
 
 	return CContainerWeenie::DoCollision(prof);
+}
+
+int CMonsterWeenie::AdjustHealth(int amount)
+{
+	CWeenieObject::AdjustHealth(amount);
+
+	DWORD maxHealth = 0;
+	m_Qualities.InqAttribute2nd(MAX_HEALTH_ATTRIBUTE_2ND, maxHealth, FALSE);
+	DWORD currentHealth = 0;
+	m_Qualities.InqAttribute2nd(HEALTH_ATTRIBUTE_2ND, currentHealth, FALSE);
+
+	if (maxHealth == currentHealth)
+	{
+		// reset damage sources
+		m_aDamageSources.clear();
+	}
+
+	return amount;
 }

@@ -374,7 +374,7 @@ public:
 	void SetMana(unsigned int value, bool bSendUpdate = true);
 	void SetMaxVitals(bool bSendUpdate = true);
 
-	int AdjustHealth(int amount);
+	virtual int AdjustHealth(int amount);
 	int AdjustStamina(int amount);
 	int AdjustMana(int amount);
 

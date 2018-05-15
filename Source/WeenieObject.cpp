@@ -4447,6 +4447,8 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 
 		if (damageData.killingBlow)
 		{
+			// notify the victim they took damage
+			OnTookDamage(damageData);
 			damageData.source->GivePerksForKill(this);
 		}
 	}
