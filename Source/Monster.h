@@ -46,6 +46,7 @@ public:
 
 	std::map<DWORD, int> m_aDamageSources;
 	virtual void OnTookDamage(DamageEventData &damageData) override;
+	void UpdateDamageList(DamageEventData &damageData);
 	virtual void OnRegen(STypeAttribute2nd currentAttrib, int newAmount) override;
 
 	virtual void GivePerksForKill(CWeenieObject *pKilled) override;
