@@ -4335,6 +4335,9 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 	damageData.outputDamageFinal = (int)vitalStartValue - (int)vitalNewValue;
 	damageData.outputDamageFinalPercent = damageData.outputDamageFinal / (double)vitalMaxValue;
 
+	// notify the victim they took damage
+	OnTookDamage(damageData);
+
 	if (vitalNewValue != vitalStartValue)
 	{
 		m_Qualities.SetAttribute2nd(vitalAffected, vitalNewValue);
@@ -4436,9 +4439,6 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		damageData.victim_msg = "You died!";
 		damageData.other_msg = damageData.GetTargetName() + " died!";
 	}
-
-	// notify the victim they took damage
-	OnTookDamage(damageData);
 
 	// notify the atttacker they did damage
 	if (damageData.source)
