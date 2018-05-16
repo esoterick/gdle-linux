@@ -3308,7 +3308,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 // and http://web.archive.org/web/20170130194012/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage.htm
 int CPlayerWeenie::CalculateSalvageAmount(int salvagingSkill, int workmanship, int numAugs)
 {
-	return 1 + floor( salvagingSkill/195 * workmanship * (1 + 0.25*numAugs) );
+	return 1 + floor( salvagingSkill/195.0 * workmanship * (1 + 0.25*numAugs) );
 }
 
 bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount, int workmanship, int value, int numItems)
