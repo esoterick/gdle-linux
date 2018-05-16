@@ -341,7 +341,8 @@ public:
 
 	float GetBurdenPercent();
 
-	void GivePerksForKill(CWeenieObject *pKilled);
+	DWORD GetXPForKillLevel(int level);
+	virtual void GivePerksForKill(CWeenieObject *pKilled);
 	void GiveSharedXP(long long amount, bool showText);
 	void GiveXP(long long amount, bool showText = false, bool allegianceXP = false);
 	virtual void OnGivenXP(long long amount, bool allegianceXP) { }
@@ -373,7 +374,7 @@ public:
 	void SetMana(unsigned int value, bool bSendUpdate = true);
 	void SetMaxVitals(bool bSendUpdate = true);
 
-	int AdjustHealth(int amount);
+	virtual int AdjustHealth(int amount);
 	int AdjustStamina(int amount);
 	int AdjustMana(int amount);
 
@@ -570,6 +571,7 @@ public:
 	virtual void TakeDamage(DamageEventData &damageData);
 	virtual void OnTookDamage(DamageEventData &damageData);
 	virtual void OnDealtDamage(DamageEventData &damageData);
+	virtual void OnRegen(STypeAttribute2nd currentAttrib, int newAmount);
 
 	virtual float GetEffectiveArmorLevel(DamageEventData &damageData, bool bIgnoreMagicArmor);
 

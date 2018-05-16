@@ -25,6 +25,7 @@
 #include "Util.h"
 
 #define PLAYER_SAVE_INTERVAL 180.0
+#define PLAYER_HEALTH_POLL_INTERVAL 5.0
 
 DEFINE_PACK(SalvageResult)
 {
@@ -78,6 +79,12 @@ CPlayerWeenie::CPlayerWeenie(CClient *pClient, DWORD dwGUID, WORD instance_ts)
 CPlayerWeenie::~CPlayerWeenie()
 {
 	LeaveFellowship();
+	
+	if (m_pTradeManager)
+	{
+		m_pTradeManager->CloseTrade(this);
+		m_pTradeManager = NULL;
+	}
 
 	CClientEvents *pEvents;
 	if (m_pClient && (pEvents = m_pClient->GetEvents()))
@@ -144,6 +151,13 @@ void CPlayerWeenie::BeginLogout()
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	LeaveFellowship();
+
+	if (m_pTradeManager)
+	{
+		m_pTradeManager->CloseTrade(this);
+		m_pTradeManager = NULL;
+	}
+
 	StopCompletely(0);
 	DoForcedMotion(Motion_LogOut);
 	Save();
@@ -209,6 +223,28 @@ void CPlayerWeenie::Tick()
 	{
 		_recallTime = -1.0;
 		Movement_Teleport(_recallPos, false);
+	}
+
+	if (m_pTradeManager && m_fNextTradeCheck <= Timer::cur_time)
+	{
+		m_pTradeManager->CheckDistance();
+		m_fNextTradeCheck = Timer::cur_time + 2;
+	}
+
+	if (m_NextHealthUpdate <= Timer::cur_time)
+	{
+		CWeenieObject *pTarget = g_pWorld->FindWithinPVS(this, m_LastHealthRequest);
+		if (pTarget)
+		{
+			SendNetMessage(HealthUpdate((CMonsterWeenie *)pTarget), PRIVATE_MSG, TRUE, TRUE);
+
+			m_NextHealthUpdate = Timer::cur_time + PLAYER_HEALTH_POLL_INTERVAL;
+		}
+		else
+		{
+			RemoveLastHealthRequest();
+		}
+
 	}
 }
 
@@ -336,6 +372,26 @@ void CPlayerWeenie::ExitPortal()
 		_phys_obj->ExitPortal();
 }
 
+void CPlayerWeenie::SetLastHealthRequest(DWORD guid)
+{
+	m_LastHealthRequest = guid;
+
+	m_NextHealthUpdate = Timer::cur_time + PLAYER_HEALTH_POLL_INTERVAL;
+}
+
+void CPlayerWeenie::RemoveLastHealthRequest()
+{
+	m_LastHealthRequest = 0;
+
+	// nothing targeted so we don't want to send messages
+	m_NextHealthUpdate = Timer::cur_time + 86400.0;
+}
+
+void CPlayerWeenie::RefreshTargetHealth()
+{
+	m_NextHealthUpdate = 0;
+}
+
 void CPlayerWeenie::SetLastAssessed(DWORD guid)
 {
 	m_LastAssessed = guid;
@@ -368,6 +424,9 @@ void CPlayerWeenie::OnDeathAnimComplete()
 
 		if (!g_pConfig->HardcoreMode())
 		{
+			//clear damage sources on death
+			m_aDamageSources.clear();
+
 			//if (IsDead())
 			Revive();
 		}
@@ -485,6 +544,20 @@ void CPlayerWeenie::OnGivenXP(long long amount, bool allegianceXP)
 	}
 }
 
+void addItemsToDropLists(PhysObjVector items, std::vector<CWeenieObject *> &removeList, std::vector<CWeenieObject *> &alwaysDropList, std::vector<CWeenieObject *> &allValidItems)
+{
+	for (auto item : items)
+	{
+		if (item->m_Qualities.id == W_COINSTACK_CLASS)
+			continue;
+		else if (item->IsDestroyedOnDeath())
+			removeList.push_back(item);
+		else if (item->IsDroppedOnDeath())
+			alwaysDropList.push_back(item);
+		else if (!item->IsBonded())
+			allValidItems.push_back(item);
+	}
+}
 
 //TODO Add nonwielded handling for level > 11 && level < 35
 void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD killer_id)
@@ -499,22 +572,23 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	CWeenieObject *pKiller = g_pWorld->FindObject(killer_id);
 	int amountOfItemsToDrop = 0;
 	int augDropLess = InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0); // Take Death Item Augs into Consideration
-	if(level > 10 && level <= 20)
+	if (level <= 10)
+	{
+		amountOfItemsToDrop = 0;
+	}
+	else if (level <= 20)
 	{
 		amountOfItemsToDrop = 1;
-	}
-	else if(level < 35)
-	{
-		amountOfItemsToDrop = floor(level / 20) + Random::GenInt(0, 2);
 	}
 	else
 	{
 		amountOfItemsToDrop = floor(level / 20) + Random::GenInt(0, 2);
 	}
 
-	if (pKiller && !pKiller->_IsPlayer())
+	// either we can't find a killer (killed self?) or the killer is not a player
+	if (!pKiller || !pKiller->_IsPlayer())
 		amountOfItemsToDrop = max(0, (amountOfItemsToDrop - (augDropLess * 5)));
-	
+
 	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
 	pCorpse->_shouldSave = true;
 	pCorpse->m_bDontClear = true;
@@ -526,50 +600,19 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 		pCorpse->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed);
 	}
 
-	std::vector<CWeenieObject *> alwaysDropList;
 	std::vector<CWeenieObject *> removeList;
-
+	std::vector<CWeenieObject *> alwaysDropList;
 	std::vector<CWeenieObject *> allValidItems;
-	for (auto wielded : m_Wielded)
-	{
-		if (wielded->m_Qualities.id == W_COINSTACK_CLASS)
-			continue;
-		else if (wielded->IsDestroyedOnDeath())
-			removeList.push_back(wielded);
-		else if (wielded->IsDroppedOnDeath())
-			alwaysDropList.push_back(wielded);
-		else if (!wielded->IsBonded())
-			allValidItems.push_back(wielded);
-	}
 
-	for (auto item : m_Items)
-	{
-		if (item->m_Qualities.id == W_COINSTACK_CLASS)
-			continue;
-		else if (item->IsDestroyedOnDeath())
-			removeList.push_back(item);
-		else if (item->IsDroppedOnDeath())
-			alwaysDropList.push_back(item);
-		else if (!item->IsBonded())
-			allValidItems.push_back(item);
-	}
+	addItemsToDropLists(m_Wielded, removeList, alwaysDropList, allValidItems);
+	addItemsToDropLists(m_Items, removeList, alwaysDropList, allValidItems);
 
 	for (auto packAsWeenie : m_Packs)
 	{
 		CContainerWeenie *pack = packAsWeenie->AsContainer();
 		if (pack)
 		{
-			for (auto item : pack->m_Items)
-			{
-				if (item->m_Qualities.id == W_COINSTACK_CLASS)
-					continue;
-				else if (item->IsDestroyedOnDeath())
-					removeList.push_back(item);
-				else if (item->IsDroppedOnDeath())
-					alwaysDropList.push_back(item);
-				else if (!item->IsBonded())
-					allValidItems.push_back(item);
-			}
+			addItemsToDropLists(pack->m_Items, removeList, alwaysDropList, allValidItems);
 		}
 	}
 
@@ -579,106 +622,112 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	for (auto item : alwaysDropList)
 		FinishMoveItemToContainer(item, pCorpse, 0, true, true);
 
-	//CREATE value MULTIMAP
+
+	// This section calculates the effective value for each item (halved for each previous dupe)
 	std::multimap <int, CWeenieObject *> itemValueList;
+	std::map<std::string, int> itemNameList;
+	std::string objName;
 	for (auto item : allValidItems)
 	{
-		int value = NULL;
-		int stack_sz = NULL;
-		try
+		// if this item is stackable
+		if (item->m_Qualities.GetInt(MAX_STACK_SIZE_INT, 0))
 		{
-			stack_sz = item->InqIntQuality(STACK_SIZE_INT, 0);
-			value = item->InqIntQuality(STACK_UNIT_VALUE_INT, 0);
+			int stack_sz = item->InqIntQuality(STACK_SIZE_INT, 0);
+			int value = item->InqIntQuality(STACK_UNIT_VALUE_INT, 0);
+
+			objName = item->InqStringQuality(NAME_STRING, objName);
+
+			// initialise to 0 (this will silently fail if it already exists)
+			itemNameList.insert(std::pair<std::string, int>(objName, 0));
+
+			// reduce value by half for all previous items with same name
+			value /= 1 << min(15, itemNameList[objName]); // 15 to prevent overflow
+
+			itemNameList[objName] += stack_sz;
+
 			for (int i = 0; i < stack_sz; i++)
 			{
 				itemValueList.insert(std::pair<int, CWeenieObject *>(value, item));
+
+				// reduce value by half again
+				value /= 2;
 			}
 		}
-		catch (...)
+		else // not a stack
 		{
-		}
-		if (!value)
-		{
-			value = item->GetValue();
+			int value = item->GetValue();
+
+			// from item->getName - if it has a material type then it's a randomly generated item and we don't want to add it to the dupe list
+			if (item->InqIntQuality(MATERIAL_TYPE_INT, 0))
+			{
+				objName = item->InqStringQuality(NAME_STRING, objName);
+
+				// initialise to 0 (this will silently fail if it already exists)
+				itemNameList.insert(std::pair<std::string, int>(objName, 0));
+
+				// reduce value by half for all previous items with same name
+				value /= 1 << itemNameList[objName];
+
+				itemNameList[objName]++;
+			}
+
 			itemValueList.insert(std::pair<int, CWeenieObject *>(value, item));
 		}
 	}
 
-	// 50% value of second+ instance of itemValueList
-	// used 2 multimaps so i could count. hackjob.
-	std::multimap<int, CWeenieObject *> tmpVLint;
-	std::multimap<std::string, int> tmpVLstr;
-	std::string objName;
-	for (auto iter = itemValueList.begin(); iter != itemValueList.end(); ++iter)
-	{
-		tmpVLint.insert(std::pair<int, CWeenieObject *>(iter->first, iter->second));
-		tmpVLstr.insert(std::pair<std::string, int>(iter->second->InqStringQuality(NAME_STRING, objName), iter->first));
-	}
+	// cap the amount of items to drop to the number of items we can drop so the message properly ends with " and "
+	amountOfItemsToDrop = min(amountOfItemsToDrop, itemValueList.size());
+	int itemsLost = 0;
 
-	std::multimap<int, CWeenieObject *> finaliVL;
-	int amtOfEleN = 0;
-	int amtOfEleV = 0;
-	int inFinal = 0;
-	int curval = 0;
-	int nVal = 0;
-	for (auto iterI = tmpVLint.begin(); iterI != tmpVLint.end(); ++iterI)
+	std::string itemsLostText;
+	if (coinConsumed)
 	{
-		amtOfEleN = tmpVLstr.count(iterI->second->InqStringQuality(NAME_STRING, objName));
-		amtOfEleV = tmpVLint.count(iterI->first);
-		inFinal = finaliVL.count(iterI->first);
-		curval = iterI->first;
-		nVal = iterI->first / 2;
-		if (amtOfEleV > 1 && amtOfEleN > 1 && inFinal > 0)
-			finaliVL.insert(std::pair<int, CWeenieObject *>(nVal, iterI->second));
-		else
-			finaliVL.insert(std::pair<int, CWeenieObject *>(curval, iterI->second));
+		itemsLostText = csprintf("You've lost %s Pyreal%s", FormatNumberString(coinConsumed).c_str(), coinConsumed > 1 ? "s" : "");
+
+		// increment itemsLost so the next item starts with " and your " or ", your"
+		itemsLost++;
+		amountOfItemsToDrop++;
+	}
+	else
+	{
+		itemsLostText = "You've lost ";
 	}
 
 	// START item dropping BY VALUE
-	std::string itemsLostText;
-	int itemsLost = 0;
-	for (auto iter = finaliVL.rbegin(); iter != finaliVL.rend(); ++iter)
+	for (auto iter = itemValueList.rbegin(); iter != itemValueList.rend(); ++iter)
 	{
-		if (itemsLost >= amountOfItemsToDrop) { break; }
+		if (itemsLost >= amountOfItemsToDrop)
+		{
+			break;
+		}
+
 		if (iter->second->InqIntQuality(STACK_SIZE_INT, 1) > 1)
 		{
 			iter->second->DecrementStackNum();
 			pCorpse->SpawnCloneInContainer(iter->second, 1);
 		}
 		else
+		{
 			FinishMoveItemToContainer(iter->second, pCorpse, 0, true, true);
+		}
+
 		itemsLost++;
+
 		if (amountOfItemsToDrop > 1 && itemsLost == amountOfItemsToDrop)
 			itemsLostText.append(" and your ");
-		else if (!itemsLostText.empty())
+		else if (itemsLost > 1)
 			itemsLostText.append(", your ");
 		else
 			itemsLostText.append("your ");
-		int stackSize = iter->second->InqIntQuality(STACK_SIZE_INT, 1);
+
 		itemsLostText.append(iter->second->GetName());
 	}
-	// END item dropping BY VALUE
-	// WRITE it out to the player
-	std::string text;
-	if (coinConsumed)
-		text = csprintf("You've lost %s Pyreal%s", FormatNumberString(coinConsumed).c_str(), coinConsumed > 1 ? "s" : "");
-	else
-		text = "You've lost ";
 
-	if (!itemsLostText.empty())
-	{
-		if (coinConsumed && itemsLost > 1)
-			text.append(", ");
-		else if (coinConsumed)
-			text.append(" and ");
-		text.append(itemsLostText);
-	}
-	text.append("!");
+	itemsLostText.append("!");
 
-	DEATH_LOG << InqStringQuality(NAME_STRING, "") << "-" << text;
-
+	DEATH_LOG << InqStringQuality(NAME_STRING, "") << "-" << itemsLostText;
 	if (coinConsumed || itemsLost)
-		SendText(text.c_str(), LTT_DEFAULT);
+		SendText(itemsLostText.c_str(), LTT_DEFAULT);
 
 	if (_pendingCorpse)
 	{
@@ -779,6 +828,13 @@ void CPlayerWeenie::OnMotionDone(DWORD motion, BOOL success)
 	//}
 }
 
+void CPlayerWeenie::OnRegen(STypeAttribute2nd currentAttrib, int newAmount)
+{
+	CMonsterWeenie::OnRegen(currentAttrib, newAmount);
+
+	NotifyAttribute2ndStatUpdated(currentAttrib);
+}
+
 void CPlayerWeenie::NotifyAttackerEvent(const char *name, unsigned int dmgType, float healthPercent, unsigned int health, unsigned int crit, unsigned int attackConditions)
 {
 	// when the player deals damage
@@ -791,6 +847,9 @@ void CPlayerWeenie::NotifyAttackerEvent(const char *name, unsigned int dmgType, 
 	msg.Write<DWORD>(crit);
 	msg.Write<DWORD64>(attackConditions);
 	SendNetMessage(&msg, PRIVATE_MSG, TRUE, FALSE);
+
+	// Update health of monster ASAP
+	RefreshTargetHealth();
 }
 
 void CPlayerWeenie::NotifyDefenderEvent(const char *name, unsigned int dmgType, float healthPercent, unsigned int health, BODY_PART_ENUM hitPart, unsigned int crit, unsigned int attackConditions)
@@ -1041,6 +1100,24 @@ struct CompareManaNeeds : public std::binary_function<CWeenieObject*, CWeenieObj
 
 int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 {
+	// Save these for later as we may have to send a confirmation
+	m_pCraftingTool = pTool;
+	m_pCraftingTarget = pTarget;
+
+	return UseEx(false);
+}
+int CPlayerWeenie::UseEx(bool bConfirmed)
+{
+	// Load the saved crafting targets
+	CWeenieObject *pTool = m_pCraftingTool;
+	CWeenieObject *pTarget = m_pCraftingTarget;
+
+	if (pTool == NULL || pTarget == NULL)
+	{
+		// no queued crafting op
+		return WERROR_NONE;
+	}
+
 	int toolType = pTool->InqIntQuality(ITEM_TYPE_INT, 0);
 
 	switch (toolType)
@@ -1347,23 +1424,40 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			InqSkill(op->_skill, skillLevel, FALSE);
 		}
 
-		bool success = false;
+		double successChance;
 		switch (op->_SkillCheckFormulaType)
 		{
 		case 0:
 			if (skillLevel == 0)
-				success = true;
+			{
+				// success = true
+				successChance = 1.0;
+			}
 			else
-				success = GenericSkillCheck(skillLevel, op->_difficulty);
+			{
+				successChance = GetSkillChance(skillLevel, op->_difficulty);
+			}
 			break;
 		case 1: //tinkers
+		case 2: //imbues
 		{
 			double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
 			double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
 			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
-			int salvageMod = GetMaterialMod(pTool->InqIntQuality(MATERIAL_TYPE_INT, 0));
+
+			int salvageMod;
+			
+			if (op->_SkillCheckFormulaType == 1)
+			{
+				salvageMod = GetMaterialMod(pTool->InqIntQuality(MATERIAL_TYPE_INT, 0));
+			}
+			else
+			{
+				//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
+				salvageMod = 20;
+			}
 
 			int multiple = 1;
 			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
@@ -1378,86 +1472,12 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				difficulty = amountOfTimesTinkered * 0.5;
 			}
 
-			double successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
-			double successRoll = Random::RollDice(0.0, 1.0);
-			if (successRoll <= successChance)
+			successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
+
+			if (op->_SkillCheckFormulaType == 2) // imbue
 			{
-				success = true;
-
-				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
-				if (!text.empty())
-				{
-					g_pWorld->BroadcastLocal(GetLandcell(), text);
-				}
+				successChance /= 3;
 			}
-			else {
-
-				success = false;
-
-				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
-				if (!text.empty())
-				{
-					g_pWorld->BroadcastLocal(GetLandcell(), text);
-				}
-			}
-
-			IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << itemWorkmanship << " TT:" << amountOfTimesTinkered <<
-				" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (success ? "TRUE" : "FALSE");
-
-			break;
-		}
-		case 2: //imbues
-		{
-			double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
-			double item_workmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
-			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
-				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
-			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
-
-			//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
-			int salvageMod = 20;
-			int multiple = 1;
-			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
-
-			if (toolWorkmanship >= item_workmanship)
-			{
-				multiple = 2;
-			}
-
-			if (amountOfTimesTinkered > 2)
-			{
-				difficulty = amountOfTimesTinkered * 0.5;
-			}
-
-			double successChance = GetSkillChance(skillLevel, int(floor(
-				                                      ((5 * salvageMod) + (2 * item_workmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) *
-				                                      difficulty))); //Formulas from Endy's Tinkering Calculator
-
-			successChance /= 3; //maximum success chance for imbues is 33%
-
-			float successRoll = Random::RollDice(0.0, 1.0);
-			if (successRoll <= successChance)
-			{
-				success = true;
-				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
-				if (!text.empty())
-				{
-					g_pWorld->BroadcastLocal(GetLandcell(), text);
-				}
-			}
-			else
-			{
-				success = false;
-				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
-				if (!text.empty())
-				{
-					g_pWorld->BroadcastLocal(GetLandcell(), text);
-				}
-			}
-			// TODO: Update export of info as augments and such
-			IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << item_workmanship << " TT:" << amountOfTimesTinkered <<
-				  " M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (success ? "TRUE" : "FALSE");
-
 			break;
 		}
 		default:
@@ -1465,33 +1485,72 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 			return WERROR_CRAFT_DONT_CONTAIN_EVERYTHING;
 		}
 
-		DWORD wcidToCreate;
-		int amount;
-		string message;
-		if (success)
+		// 0x80000000 : Use Crafting Chance of Success Dialog
+		if (_playerModule.options_ & 0x80000000 && !bConfirmed )
 		{
-			wcidToCreate = op->_successWcid;
-			amount = op->_successAmount;
-			message = op->_successMessage;
-		}
-		else
-		{
-			wcidToCreate = op->_failWcid;
-			amount = op->_failAmount;
-			message = op->_failMessage;
-		}
+			std::ostringstream sstrMessage;
+			sstrMessage.precision(3);
+			sstrMessage << "You have a " << successChance*100 << "% chance of using " << pTool->GetName() << " on " << pTarget->GetName() << ".";
 
-		CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(wcidToCreate, NULL, false);
-		if (amount > 1)
-			newItem->SetStackSize(amount);
 
-		if (wcidToCreate != 0 && !SpawnInContainer(newItem, amount))
+			BinaryWriter confirmCrafting;
+			confirmCrafting.Write<DWORD>(0x274);	// Message Type
+			confirmCrafting.Write<DWORD>(0x05);		// Confirm type (craft)
+			confirmCrafting.Write<int>(0);			// Sequence number??
+			confirmCrafting.WriteString(sstrMessage.str());
+
+			SendNetMessage(&confirmCrafting, PRIVATE_MSG, TRUE, FALSE);
+
 			return WERROR_NONE;
+		}
 
-		SendText(message.c_str(), LTT_CRAFT);
+		double successRoll = Random::RollDice(0.0, 1.0);
 
-		if (success)
+		if (successRoll <= successChance)
 		{
+			// Results!
+			// Create item(s)
+			CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(op->_successWcid, NULL, false);
+			if (op->_successAmount > 1)
+				newItem->SetStackSize(op->_successAmount);
+
+			// if we can't put the item in inventory
+			if (op->_successWcid != 0 && !SpawnInContainer(newItem, op->_successAmount))
+			{
+				SendText("Unable to create result!", LTT_ERROR);
+				// Return before we delete the tool/target
+				// TODO: is this to do with pack space? should check before the roll if so
+				return WERROR_NONE;
+			}
+
+			SendText(op->_successMessage.c_str(), LTT_CRAFT);
+			
+			// Broadcast messages for tinkering
+			switch (op->_SkillCheckFormulaType)
+			{
+			case 1: //tinkers
+			case 2: //imbues
+			{
+				double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+				double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+				if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
+					toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
+				int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
+
+
+				std::string text = csprintf("%s successfully applies the %s (workmanship %.2f) to the %s.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
+
+				IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << itemWorkmanship << " TT:" << amountOfTimesTinkered <<
+					" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (successChance ? "TRUE" : "FALSE");
+
+				break;
+			}
+			}
+
 			PerformUseModifications(0, op, pTool, pTarget, newItem);
 			PerformUseModifications(1, op, pTool, pTarget, newItem);
 			PerformUseModifications(2, op, pTool, pTarget, newItem);
@@ -1513,8 +1572,51 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 					SendText(op->_successConsumeToolMessage.c_str(), LTT_CRAFT);
 			}
 		}
-		else
+		else // Not successful
 		{
+			// Results!
+			// Create item(s)
+			CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(op->_failWcid, NULL, false);
+			if (op->_failAmount > 1)
+				newItem->SetStackSize(op->_failAmount);
+
+			// if we can't put the item in inventory
+			if (op->_failWcid != 0 && !SpawnInContainer(newItem, op->_failAmount))
+			{
+				SendText("Unable to create result!", LTT_ERROR);
+				// Return before we delete the tool/target
+				// TODO: is this to do with pack space? should check before the roll if so
+				return WERROR_NONE;
+			}
+
+			SendText(op->_failMessage.c_str(), LTT_CRAFT);
+
+			// Broadcast messages for tinkering
+			switch (op->_SkillCheckFormulaType)
+			{
+			case 1: //tinkers
+			case 2: //imbues
+			{
+				double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+				double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
+				if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
+					toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
+				int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
+
+
+				std::string text = csprintf("%s fails to apply the %s (workmanship %.2f) to the %s. The target is destroyed.", GetName().c_str(), pTool->GetName().c_str(), toolWorkmanship, pTarget->GetName().c_str());
+				if (!text.empty())
+				{
+					g_pWorld->BroadcastLocal(GetLandcell(), text);
+				}
+
+				IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << itemWorkmanship << " TT:" << amountOfTimesTinkered <<
+					" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (successChance ? "TRUE" : "FALSE");
+
+				break;
+			}
+			}
+
 			PerformUseModifications(4, op, pTool, pTarget, newItem);
 			PerformUseModifications(5, op, pTool, pTarget, newItem);
 			PerformUseModifications(6, op, pTool, pTarget, newItem);
@@ -1535,7 +1637,14 @@ int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 				if (!op->_failureConsumeToolMessage.empty())
 					SendText(op->_failureConsumeToolMessage.c_str(), LTT_CRAFT);
 			}
+
+			// Your craft attempt fails.
+			NotifyWeenieError(0x432);
 		}
+
+		// We don't need these anymore
+		m_pCraftingTool = NULL;
+		m_pCraftingTarget = NULL;
 
 		RecalculateEncumbrance();
 		break;
@@ -3043,8 +3152,20 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	}
 
 	//SALVAGING SKILL DETERMINES SALVAGE AMOUNT
-	DWORD highestSalvagingSkillValue;
-	InqSkill(STypeSkill::SALVAGING_SKILL, highestSalvagingSkillValue, false);
+	DWORD salvagingSkillValue;
+	InqSkill(STypeSkill::SALVAGING_SKILL, salvagingSkillValue, false);
+
+	DWORD highestTinkeringSkillValue;
+	DWORD tinkeringSkills[4];
+	InqSkill(STypeSkill::ARMOR_APPRAISAL_SKILL, tinkeringSkills[0], false);
+	InqSkill(STypeSkill::WEAPON_APPRAISAL_SKILL, tinkeringSkills[1], false);
+	InqSkill(STypeSkill::MAGIC_ITEM_APPRAISAL_SKILL, tinkeringSkills[2], false);
+	InqSkill(STypeSkill::ITEM_APPRAISAL_SKILL, tinkeringSkills[3], false);
+
+	highestTinkeringSkillValue = max(max(max(tinkeringSkills[0], tinkeringSkills[1]), tinkeringSkills[2]), tinkeringSkills[3]);
+
+	int numAugs = max(0, min(4, InqIntQuality(AUGMENTATION_BONUS_SALVAGE_INT, 0)));
+
 	std::map<MaterialType, SalvageInfo> salvageMap;
 	std::list<CWeenieObject *> itemsToDestroy;
 
@@ -3094,19 +3215,39 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		}
 		else
 		{
-			double multiplier = GetSkillChance(highestSalvagingSkillValue, 100);
-			int salvageAmount = (int)round(max(workmanship * multiplier, 1));
-			int salvageValue = (int)round(max(itemValue * 0.75 * multiplier, 1));
+			int salvagingAmount = CalculateSalvageAmount(salvagingSkillValue, workmanship, numAugs);
+
+			// tinkering can at best return the workmanship as the amount
+			int tinkeringAmount = min(CalculateSalvageAmount(highestTinkeringSkillValue, workmanship, 0), workmanship);
+
+			// We choose the one that gives best results
+			int salvageAmount = max(salvagingAmount, tinkeringAmount);
+
+			// formula taken from http://asheron.wikia.com/wiki/Salvaging/Value_Pre2013
+			int salvageValue = itemValue * ( salvagingSkillValue / 387.0 ) *(1 + numAugs * 0.25);
 			salvageMap[material].totalValue += salvageValue;
 			salvageMap[material].amount += salvageAmount;
 			salvageMap[material].itemsSalvagedCountCont++;
-			//salvageMap[material].itemsSalvagedCountDiscrete++;
 		}
 		salvageMap[material].totalWorkmanship += workmanship;
 	}
 
 	if (itemsToDestroy.empty())
 		return;
+
+	// Check if we have enough pack space first!
+	int numBags = 0;
+	for (auto salvageEntry : salvageMap)
+	{
+		SalvageInfo salvageInfo = salvageEntry.second;
+		numBags += ceil(salvageInfo.amount / 100.0);
+	}
+	if (numBags > Container_GetNumFreeMainPackSlots())
+	{
+		SendText("Not enough pack space!", LTT_ERROR);
+		return;
+	}
+
 
 	for (auto item : itemsToDestroy)
 		item->Remove();
@@ -3118,25 +3259,34 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		int valuePerUnit = salvageInfo.totalValue / salvageInfo.amount;
 		int fullBags = floor(salvageInfo.amount / 100.0);
 		int partialBagAmount = salvageInfo.amount % 100;
+
+		int fullBagTotalWorkmanship = round(salvageInfo.totalWorkmanship / (fullBags + partialBagAmount/100.0) );
+		int fullBagItemCount = round(salvageInfo.itemsSalvagedCountCont / (fullBags + partialBagAmount / 100.0) );
+
+
 		for (int i = 0; i < fullBags; i++)
 		{
-			SpawnSalvageBagInContainer(material, 100, salvageInfo.totalWorkmanship, valuePerUnit * 100, salvageInfo.itemsSalvagedCountCont);
+			SpawnSalvageBagInContainer(material, 100, fullBagTotalWorkmanship, min(valuePerUnit * 100, 75000), fullBagItemCount);
 			
 			SalvageResult salvageResult;
 			salvageResult.material = material;
 			salvageResult.units = 100;
-			salvageResult.workmanship = salvageInfo.totalWorkmanship / (double)salvageInfo.itemsSalvagedCountCont;
+			salvageResult.workmanship = fullBagTotalWorkmanship / (double) fullBagItemCount;
 			salvageResults.push_back(salvageResult);
 		}
 
-		if (partialBagAmount > 0)
+		int partialTotalWorkmanship = salvageInfo.totalWorkmanship - fullBags * fullBagTotalWorkmanship;
+		int partialTotalItems = salvageInfo.itemsSalvagedCountCont - fullBags * fullBagItemCount;
+
+		// We may lose a bit of salvage in favour of producing better full bags
+		if (partialBagAmount > 0 && partialTotalItems > 0 && partialTotalWorkmanship > 0)
 		{
-			SpawnSalvageBagInContainer(material, partialBagAmount, salvageInfo.totalWorkmanship, valuePerUnit * partialBagAmount, salvageInfo.itemsSalvagedCountCont);
+			SpawnSalvageBagInContainer(material, partialBagAmount, partialTotalWorkmanship, min(valuePerUnit * partialBagAmount, 75000), partialTotalItems);
 
 			SalvageResult salvageResult;
 			salvageResult.material = material;
 			salvageResult.units = partialBagAmount;
-			salvageResult.workmanship = salvageInfo.totalWorkmanship / (double)salvageInfo.itemsSalvagedCountCont;
+			salvageResult.workmanship = partialTotalWorkmanship / (double) partialTotalItems;
 			salvageResults.push_back(salvageResult);
 		}
 
@@ -3151,6 +3301,14 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	salvageMsg.Write<int>(0);			// int: Aug bonus - not implemented?
 
 	SendNetMessage(&salvageMsg, PRIVATE_MSG, TRUE, FALSE);
+}
+
+
+// See http://web.archive.org/web/20170130213649/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage_old.htm
+// and http://web.archive.org/web/20170130194012/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage.htm
+int CPlayerWeenie::CalculateSalvageAmount(int salvagingSkill, int workmanship, int numAugs)
+{
+	return 1 + floor( salvagingSkill/195 * workmanship * (1 + 0.25*numAugs) );
 }
 
 bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount, int workmanship, int value, int numItems)
@@ -3626,4 +3784,29 @@ DWORD CPlayerWeenie::GetAccountHouseId()
 	}
 
 	return 0;
+}
+
+TradeManager* CPlayerWeenie::GetTradeManager()
+{
+	return m_pTradeManager;
+}
+
+void CPlayerWeenie::SetTradeManager(TradeManager * tradeManager)
+{
+	m_pTradeManager = tradeManager;
+}
+
+void CPlayerWeenie::ReleaseContainedItemRecursive(CWeenieObject *item)
+{
+	CContainerWeenie::ReleaseContainedItemRecursive(item);
+}
+
+void CPlayerWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
+{
+	CMonsterWeenie::ChangeCombatMode(mode, playerRequested);
+
+	if (m_pTradeManager && mode != NONCOMBAT_COMBAT_MODE)
+	{
+		m_pTradeManager->CloseTrade(this, 2); // EnteredCombat
+	}
 }

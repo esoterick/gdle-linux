@@ -4,9 +4,12 @@
 #include "UseManager.h"
 #include "Monster.h"
 #include "Packable.h"
+#include "TradeManager.h"
 
 class CClient;
 class BinaryWriter;
+
+class TradeManager;
 
 class SalvageResult : public PackObj
 {
@@ -40,6 +43,7 @@ public:
 	virtual void OnDeathAnimComplete() override;
 	virtual void OnDeath(DWORD killerID) override;
 	virtual void OnMotionDone(DWORD motion, BOOL success) override;
+	virtual void OnRegen(STypeAttribute2nd currentAttrib, int newAmount) override;
 	
 	virtual void NotifyAttackerEvent(const char *name, unsigned int dmgType, float healthPercent, unsigned int heath, unsigned int crit, unsigned int attackConditions);
 	virtual void NotifyDefenderEvent(const char *name, unsigned int dmgType, float healthPercent, unsigned int health, BODY_PART_ENUM hitPart, unsigned int crit, unsigned int attackConditions);
@@ -53,13 +57,21 @@ public:
 	virtual void NotifyWeenieErrorWithString(int error, const char *text) override;
 	virtual void NotifyInventoryFailedEvent(DWORD object_id, int error) override;
 	std::string ToUpperCase(std::string tName);
+
+	CWeenieObject *m_pCraftingTool;
+	CWeenieObject *m_pCraftingTarget;
+
 	virtual int UseEx(CWeenieObject *pTool, CWeenieObject *pTarget);
+	virtual int UseEx(bool bConfirmed = false);
+
 	virtual bool CheckUseRequirements(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget);
 	virtual void PerformUseModifications(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem);
 	virtual void PerformUseModificationScript(DWORD scriptId, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem);
 	virtual int CPlayerWeenie::GetMaterialMod(int material);
 
 	void PerformSalvaging(DWORD toolId, PackableList<DWORD> items);
+	int CPlayerWeenie::CalculateSalvageAmount(int salvagingSkill, int dWorkmanship, int numAugs);
+
 	DWORD MaterialToSalvageBagId(MaterialType material);
 	bool SpawnSalvageBagInContainer(MaterialType material, int amount, int workmanship, int value, int numItems);
 
@@ -98,6 +110,10 @@ public:
 
 	virtual DWORD OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot) override;
 
+	void SetLastHealthRequest(DWORD guid);
+	void RemoveLastHealthRequest();
+	void RefreshTargetHealth();
+
 	//cmoski -- remove last assessed item
 	void SetLastAssessed(DWORD guid);
 	std::string RemoveLastAssessed();
@@ -108,6 +124,8 @@ public:
 	
 	DWORD GetCharacterOptions() { return _playerModule.options_; }
 	DWORD GetCharacterOptions2() { return _playerModule.options2_; }
+	void SetCharacterOptions(DWORD options) { _playerModule.options_ = options; }
+	void SetCharacterOptions2(DWORD options) { _playerModule.options2_ = options; }
 
 	// AutoRepeatAttack_CharacterOption
 	// AllowGive_CharacterOption
@@ -178,18 +196,32 @@ public:
 	CCorpseWeenie *_pendingCorpse = NULL;
 	DWORD GetAccountHouseId();
 	
+	TradeManager *GetTradeManager();
+	void SetTradeManager(TradeManager *tradeManager);
+
+	virtual void CPlayerWeenie::ReleaseContainedItemRecursive(CWeenieObject *item) override;
+
+	virtual void ChangeCombatMode(COMBAT_MODE mode, bool playerRequested) override;
+
 protected:
 	CClient *m_pClient;
+
+	DWORD m_LastHealthRequest;
 
 	double m_fNextMakeAwareCacheFlush = 0.0;
 	bool m_bAttackable = true;
 
 	double m_NextSave = 0.0;
 
+	double m_NextHealthUpdate = 0.0;
+
 	double _logoutTime = -1.0;
 	double _recallTime = -1.0;
 	Position _recallPos;
 	bool _isFirstPortalInSession = true;
+
+	TradeManager *m_pTradeManager = NULL;
+	double m_fNextTradeCheck = 0;
 };
 
 class CWandSpellUseEvent : public CUseEventData

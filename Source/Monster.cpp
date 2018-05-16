@@ -1357,12 +1357,50 @@ void CMonsterWeenie::OnTookDamage(DamageEventData &damageData)
 {
 	CWeenieObject::OnTookDamage(damageData);
 
+	if (damageData.source)
+	{
+		DWORD source = damageData.source->GetID();
+
+		int damage = max(0, damageData.outputDamageFinal);
+
+		if (m_aDamageSources.find(source) == m_aDamageSources.end())
+		{
+			m_aDamageSources[source] = 0;
+		}
+
+		m_aDamageSources[source] += damage;
+	}
+
 	//if (IsDead())
 	//	return;
 
 	if (m_MonsterAI)
 		m_MonsterAI->OnTookDamage(damageData);
 }
+
+
+void CMonsterWeenie::OnRegen(STypeAttribute2nd currentAttrib, int newAmount)
+{
+	CWeenieObject::OnRegen(currentAttrib, newAmount);
+
+	if (currentAttrib == HEALTH_ATTRIBUTE_2ND)
+	{
+		DWORD maxHealth = 0;
+		m_Qualities.InqAttribute2nd(MAX_HEALTH_ATTRIBUTE_2ND, maxHealth, FALSE);
+
+		if (maxHealth == newAmount)
+		{
+			// reset damage sources
+			m_aDamageSources.clear();
+		}
+	}
+}
+
+void CMonsterWeenie::GivePerksForKill(CWeenieObject *pKilled)
+{
+	// Prevent CWeenieObject::GivePerksForKill from running
+}
+
 
 void CMonsterWeenie::OnIdentifyAttempted(CWeenieObject *other)
 {
@@ -1535,8 +1573,16 @@ void CMonsterWeenie::OnMotionDone(DWORD motion, BOOL success)
 									int statChange = newStatValue - statValue;
 									if (statChange)
 									{
-										m_Qualities.SetAttribute2nd(statType, newStatValue);
-										NotifyAttribute2ndStatUpdated(statType);
+										if (statType == HEALTH_ATTRIBUTE_2ND)
+										{
+											AdjustHealth(statChange);
+											NotifyAttribute2ndStatUpdated(statType);
+										}
+										else
+										{
+											m_Qualities.SetAttribute2nd(statType, newStatValue);
+											NotifyAttribute2ndStatUpdated(statType);
+										}
 									}
 
 									const char *vitalName = "";
@@ -1676,8 +1722,54 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 {
 	CWeenieObject::OnDeath(killer_id);
 	
-	m_DeathKillerIDForCorpse = killer_id;
-	if (!g_pWorld->FindObjectName(killer_id, m_DeathKillerNameForCorpse))
+	DWORD mostDamageSource = killer_id;
+	int mostDamage = 0;
+	int totalDamage = 0;
+	
+	if (m_aDamageSources.size() == 0)
+	{
+		mostDamageSource = killer_id;
+	}
+	else {
+		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
+		{
+			totalDamage += it->second;
+
+			if (it->second > mostDamage)
+			{
+				mostDamage = it->second;
+				mostDamageSource = it->first;
+			}
+		}
+	}
+	int level = InqIntQuality(LEVEL_INT, 0);
+
+	int xpForKill = 0;
+
+	if (level <= 0)
+		xpForKill = 0;
+	else if (!m_Qualities.InqInt(XP_OVERRIDE_INT, xpForKill, 0, FALSE))
+		xpForKill = (int)GetXPForKillLevel(level);
+
+	xpForKill = (int)(xpForKill * g_pConfig->KillXPMultiplier(level));
+
+	if (xpForKill > 0)
+	{
+		// hand out xp proportionally
+		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
+		{
+			CWeenieObject *pSource = g_pWorld->FindObject(it->first);
+			double dPercentage = (double)it->second / totalDamage;
+
+			if (pSource)
+			{
+				pSource->GiveSharedXP(dPercentage * xpForKill, false);
+			}
+		}
+	}
+
+	m_DeathKillerIDForCorpse = mostDamageSource;
+	if (!g_pWorld->FindObjectName(mostDamageSource, m_DeathKillerNameForCorpse))
 		m_DeathKillerNameForCorpse.clear();
 
 	MakeMovementManager(TRUE);
@@ -1687,7 +1779,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 	if (g_pConfig->HardcoreMode() && _IsPlayer())
 	{
-		if (CWeenieObject *pKiller = g_pWorld->FindObject(killer_id))
+		if (CWeenieObject *pKiller = g_pWorld->FindObject(mostDamageSource))
 		{
 			if (!g_pConfig->HardcoreModePlayersOnly() || pKiller->_IsPlayer())
 			{
@@ -2156,12 +2248,12 @@ double CMonsterWeenie::GetMagicDefenseModUsingWielded()
 
 	defenseMod *= CWeenieObject::GetMagicDefenseMod();
 
-	Container_GetWieldedByMask(wielded, ARMOR_LOC);
-	for (auto item : m_Wielded) //check all armor for appropriate imbue effects
+/*	Container_GetWieldedByMask(wielded, ARMOR_LOC);
+	for (auto item : m_Wielded) //check all armor for appropriate imbue effects - commented out as this is checked in TryMagicResist and should be adding 1 to skill, not 1% 
 	{
 		if (item->GetImbueEffects() & MagicDefense_ImbuedEffectType)
 			defenseMod += 0.01;
-	}
+	}*/
 
 	return defenseMod;
 }
@@ -2309,4 +2401,22 @@ BOOL CMonsterWeenie::DoCollision(const class ObjCollisionProfile &prof)
 	}
 
 	return CContainerWeenie::DoCollision(prof);
+}
+
+int CMonsterWeenie::AdjustHealth(int amount)
+{
+	CWeenieObject::AdjustHealth(amount);
+
+	DWORD maxHealth = 0;
+	m_Qualities.InqAttribute2nd(MAX_HEALTH_ATTRIBUTE_2ND, maxHealth, FALSE);
+	DWORD currentHealth = 0;
+	m_Qualities.InqAttribute2nd(HEALTH_ATTRIBUTE_2ND, currentHealth, FALSE);
+
+	if (maxHealth == currentHealth)
+	{
+		// reset damage sources
+		m_aDamageSources.clear();
+	}
+
+	return amount;
 }
