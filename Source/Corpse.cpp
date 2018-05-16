@@ -66,6 +66,8 @@ int CCorpseWeenie::CheckOpenContainer(CWeenieObject *other)
 	else
 		return WERROR_NONE;
 
+	other->SendText("You do not have permission to loot that corpse!", LTT_ERROR);
+
 	return WERROR_CHEST_WRONG_KEY;
 }
 
@@ -94,6 +96,11 @@ void CCorpseWeenie::SaveEx(class CWeenieSave &save)
 	save.m_ObjDesc = _objDesc;
 
 	g_pDBIO->AddOrUpdateWeenieToBlock(GetID(), m_Position.objcell_id >> 16);
+}
+
+void CCorpseWeenie::RemoveEx()
+{
+	g_pDBIO->RemoveWeenieFromBlock(GetID());
 }
 
 void CCorpseWeenie::LoadEx(class CWeenieSave &save)
@@ -150,6 +157,7 @@ void CCorpseWeenie::BeginGracefulDestroy()
 	// TODO drop inventory items on the ground
 
 	_shouldSave = false; //we're on our way out, it's no longer necessary to save us to the database.
+	RemoveEx(); // and in fact, delete entries in the db
 
 	_mark_for_destroy_at = Timer::cur_time + 2.0;
 	_begun_destroy = true;

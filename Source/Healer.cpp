@@ -121,8 +121,17 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 						int statChange = newStatValue - statValue;
 						if (statChange)
 						{
-							target->m_Qualities.SetAttribute2nd(statType, newStatValue);
-							target->NotifyAttribute2ndStatUpdated(statType);
+							if (target->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
+							{
+								target->AdjustHealth(statChange);
+								target->NotifyAttribute2ndStatUpdated(statType);
+							}
+							else
+							{
+								target->m_Qualities.SetAttribute2nd(statType, newStatValue);
+								target->NotifyAttribute2ndStatUpdated(statType);
+							}
+
 						}
 					}
 
@@ -157,6 +166,15 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 						_weenie->SendText(csprintf("You %sheal %s for %d %s points with %s.", prefix, target->GetName().c_str(), amountHealed, vitalName, tool->GetName().c_str()), LTT_DEFAULT);
 
 					target->SendText(csprintf("%s heals you for %d %s points.", _weenie->GetName().c_str(), amountHealed, vitalName), LTT_DEFAULT);
+				}
+
+				if (boost_stat == HEALTH_ATTRIBUTE_2ND)
+				{
+					if (_weenie->AsPlayer())
+					{
+						// update the target's health on the healing player asap
+						((CPlayerWeenie*)_weenie)->RefreshTargetHealth();
+					}
 				}
 			}
 			else

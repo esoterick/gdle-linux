@@ -1850,7 +1850,7 @@ const char* CWeenieObject::GetTitleString()
 	return "[title]";
 }
 
-DWORD GetXPForKillLevel(int level)
+DWORD CWeenieObject::GetXPForKillLevel(int level)
 {
 	double xp = 380.5804 + 63.92362*level + 3.543397*pow(level, 2) - 0.05233995*pow(level, 3) + 0.0007008949*pow(level, 4);
 
@@ -2067,7 +2067,7 @@ DWORD CWeenieObject::GiveAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 	if (raised)
 	{
 		DWORD newLevel;
-		if (m_Qualities.InqAttribute2nd(key, newLevel, FALSE))
+		if (m_Qualities.InqAttribute2nd(key, newLevel, TRUE))
 		{
 			if (_phys_obj)
 				_phys_obj->EmitSound(Sound_RaiseTrait, 1.0, true);
@@ -2855,8 +2855,8 @@ void CWeenieObject::Tick()
 			{
 				_nextHeartBeatEmote = Timer::cur_time + Random::GenUInt(2, 15); //add a little variation to avoid synchronization.
 
-																				//_last_update_pos is the time of the last attack/movement/action, basically we don't want to do heartBeat emotes if we're active.
-				if (Timer::cur_time > _last_update_pos + 10.0 && m_Qualities._emote_table)
+				//_last_update_pos is the time of the last attack/movement/action, basically we don't want to do heartBeat emotes if we're active.
+				if (Timer::cur_time > _last_update_pos + 30.0 && m_Qualities._emote_table)
 				{
 					PackableList<EmoteSet> *emoteSetList = m_Qualities._emote_table->_emote_table.lookup(HeartBeat_EmoteCategory);
 
@@ -2976,6 +2976,14 @@ void CWeenieObject::CheckRegeneration(double rate, STypeAttribute2nd currentAttr
 				rate *= 0.5; //in combat regen
 		}
 	}
+	else if (AsMonster())
+	{
+		// boosted out of combat regen
+		if (get_minterp()->interpreted_state.current_style == Motion_NonCombat)
+		{
+			rate *= 100; 
+		}
+	}
 
 	switch (currentAttrib)
 	{
@@ -3022,12 +3030,7 @@ void CWeenieObject::CheckRegeneration(double rate, STypeAttribute2nd currentAttr
 					currentVital = maxVital;
 				}
 
-				m_Qualities.SetAttribute2nd(currentAttrib, currentVital);
-
-				if (AsPlayer())
-				{
-					NotifyAttribute2ndStatUpdated(currentAttrib);
-				}
+				OnRegen(currentAttrib, currentVital);
 			}
 		}
 	}
@@ -4274,13 +4277,21 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		{
 			SKILL_ADVANCEMENT_CLASS sac = SKILL_ADVANCEMENT_CLASS::UNTRAINED_SKILL_ADVANCEMENT_CLASS;
 			damageData.target->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac);
-
+			float cap = shield->InqFloatQuality(ABSORB_MAGIC_DAMAGE_FLOAT, 0.0);
 			float st = sac != SPECIALIZED_SKILL_ADVANCEMENT_CLASS ? .8 : 1;
 
 			unsigned long shieldSkill;
 			damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
 
-			float reduction = 1 * (float(min(shieldSkill, 433) / 433.0f) * st * shieldSkill * 0.0030) - (float(min(shieldSkill, 433) / 433.0f) * st * .3);
+			float capPercent = (shieldSkill / 433) * cap * st;
+			float reduction = 0;
+			
+			if (cap > 0.0 && shieldSkill >= 100)
+			{
+				// Needed?  boils down to the same formula as capPercent above
+				//reduction = 1 * (float(capPercent * st * shieldSkill * 0.0030) - (capPercent * st * .3));
+				reduction = capPercent;
+			}
 
 			damageData.damageAfterMitigation *= 1.0 - reduction;
 		}
@@ -4323,6 +4334,9 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 
 	damageData.outputDamageFinal = (int)vitalStartValue - (int)vitalNewValue;
 	damageData.outputDamageFinalPercent = damageData.outputDamageFinal / (double)vitalMaxValue;
+
+	// notify the victim they took damage
+	OnTookDamage(damageData);
 
 	if (vitalNewValue != vitalStartValue)
 	{
@@ -4426,9 +4440,6 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		damageData.other_msg = damageData.GetTargetName() + " died!";
 	}
 
-	// notify the victim they took damage
-	OnTookDamage(damageData);
-
 	// notify the atttacker they did damage
 	if (damageData.source)
 	{
@@ -4436,6 +4447,8 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 
 		if (damageData.killingBlow)
 		{
+			// notify the victim they took damage
+			OnTookDamage(damageData);
 			damageData.source->GivePerksForKill(this);
 		}
 	}
@@ -4690,6 +4703,12 @@ void CWeenieObject::OnDealtDamage(DamageEventData &data)
 		{
 		}
 	}
+}
+
+void CWeenieObject::OnRegen(STypeAttribute2nd currentAttrib, int newAmount)
+{
+
+	m_Qualities.SetAttribute2nd(currentAttrib, newAmount);
 }
 
 bool CWeenieObject::IsContainedWithinViewable(DWORD object_id)
@@ -5693,7 +5712,7 @@ bool CWeenieObject::TryMagicResist(DWORD magicSkill)
 		for (auto item : AsContainer()->m_Wielded)
 		{
 			if (item->GetImbueEffects() & MagicDefense_ImbuedEffectType)
-				defenseMod += 0.01;
+				defenseSkill += 1;
 		}
 	}
 	defenseSkill = (int)round((double)defenseSkill * defenseMod);

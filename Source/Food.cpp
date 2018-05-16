@@ -64,8 +64,16 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 			int statChange = newStatValue - statValue;
 			if (statChange)
 			{
-				other->m_Qualities.SetAttribute2nd(statType, newStatValue);
-				other->NotifyAttribute2ndStatUpdated(statType);
+				if (other->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
+				{
+					other->AdjustHealth(statChange);
+					other->NotifyAttribute2ndStatUpdated(statType);
+				}
+				else
+				{
+					other->m_Qualities.SetAttribute2nd(statType, newStatValue);
+					other->NotifyAttribute2ndStatUpdated(statType);
+				}
 			}
 
 			const char *vitalName = "";
@@ -77,6 +85,15 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 			}
 
 			other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), max(0, statChange), vitalName), LTT_DEFAULT);
+
+			if (boost_stat == HEALTH_ATTRIBUTE_2ND)
+			{
+				if (other->AsPlayer())
+				{
+					// update the target's health on the healing player asap
+					((CPlayerWeenie*)other)->RefreshTargetHealth();
+				}
+			}
 			break;
 		}
 	}

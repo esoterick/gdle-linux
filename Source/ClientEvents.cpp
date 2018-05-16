@@ -23,6 +23,7 @@
 #include "AllegianceManager.h"
 #include "House.h"
 #include "SpellcastingManager.h"
+#include "TradeManager.h"
 
 #include "Config.h"
 
@@ -579,6 +580,8 @@ void CClientEvents::RequestHealthUpdate(DWORD dwGUID)
 	{
 		if (pEntity->IsCreature())
 		{
+			m_pPlayer->SetLastHealthRequest(pEntity->GetID());
+
 			m_pClient->SendNetMessage(HealthUpdate((CMonsterWeenie *)pEntity), PRIVATE_MSG, TRUE, TRUE);
 		}
 	}
@@ -1996,6 +1999,24 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				SetRequestAllegianceUpdate(on);
 				break;
 			}
+		case 0x0275: // confirmation response
+		{
+			DWORD confirmType = pReader->ReadDWORD();
+			int context = pReader->ReadInt32();
+			bool accepted = pReader->ReadInt32();
+
+			switch (confirmType)
+			{
+			case 0x05: // crafting
+				if (accepted)
+				{
+					m_pPlayer->UseEx(true);
+				}
+				break;
+			}
+
+			break;
+		}
 		case 0x027D: // ust salvage request
 		{
 			DWORD toolId = pReader->ReadDWORD();
@@ -2389,6 +2410,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (!module.UnPack(pReader) || pReader->GetLastError())
 					break;
 
+				SendText("Updating character configuration.", LTT_SYSTEM_EVENT);
 				m_pPlayer->UpdateModuleFromClient(module);
 				break;
 			}
@@ -2462,6 +2484,94 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		case 0x01E9: // Ping
 		{
 			Ping();
+			break;
+		}
+		case 0x1F6: // Open Trade Negotiations
+		{
+			if (m_pPlayer->GetTradeManager() != NULL)
+			{
+				//already trading
+				return;
+			}
+
+			CPlayerWeenie *pOther = g_pWorld->FindWithinPVS(m_pPlayer, pReader->Read<DWORD>())->AsPlayer();
+
+			if (!pOther)
+			{
+				// cannot open trade
+				m_pPlayer->SendText("Unable to open trade.", LTT_ERROR);
+			}
+			else if (pOther->_playerModule.options_ & 0x20000)
+			{
+				SendText((pOther->GetName() + " has disabled trading.").c_str(), LTT_ERROR);
+			}
+			else if (pOther->IsBusyOrInAction())
+			{
+				SendText((pOther->GetName() + " is busy.").c_str(), LTT_ERROR);
+			}
+			else if (pOther->GetTradeManager() != NULL)
+			{
+				SendText((pOther->GetName() + " is already trading with someone else!").c_str(), LTT_ERROR);
+			}
+			else if (m_pPlayer->DistanceTo(pOther, true) > 1)
+			{
+				SendText((pOther->GetName() + " is too far away!").c_str(), LTT_ERROR);
+			}
+			else
+			{
+				TradeManager *tm = TradeManager::RegisterTrade(m_pPlayer, pOther);
+
+				m_pPlayer->SetTradeManager(tm);
+				pOther->SetTradeManager(tm);
+			}
+			break;
+		}
+		case 0x1F7: // Close Trade Negotiations
+		{
+			TradeManager* tm = m_pPlayer->GetTradeManager();
+			if (tm)
+			{
+				tm->CloseTrade(m_pPlayer);
+				return;
+			}
+			break;
+		}
+		case 0x1F8: // AddToTrade
+		{
+			TradeManager* tm = m_pPlayer->GetTradeManager();
+			if (tm)
+			{
+				DWORD item = pReader->Read<DWORD>();
+
+				tm->AddToTrade(m_pPlayer, item);
+			}
+			break;
+		}
+		case 0x1FA: // Accept trade
+		{
+			TradeManager* tm = m_pPlayer->GetTradeManager();
+			if (tm)
+			{
+				tm->AcceptTrade(m_pPlayer);
+			}
+			break;
+		}
+		case 0x1FB: // Decline trade
+		{
+			TradeManager* tm = m_pPlayer->GetTradeManager();
+			if (tm)
+			{
+				tm->DeclineTrade(m_pPlayer);
+			}
+			break;
+		}
+		case 0x204: // Reset trade
+		{
+			TradeManager* tm = m_pPlayer->GetTradeManager();
+			if (tm)
+			{
+				tm->ResetTrade(m_pPlayer);
+			}
 			break;
 		}
 		case 0x021C: //House_BuyHouse 

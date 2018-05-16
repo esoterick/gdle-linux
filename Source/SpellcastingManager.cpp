@@ -345,7 +345,7 @@ void CSpellcastingManager::BeginNextMotion()
 	}
 }
 
-Position CSpellcastingManager::GetSpellProjectileSpawnPosition(CSpellProjectile *pProjectile, CWeenieObject *pTarget, float *pDistToTarget)
+Position CSpellcastingManager::GetSpellProjectileSpawnPosition(CSpellProjectile *pProjectile, CWeenieObject *pTarget, float *pDistToTarget, double dDir, bool bRing)
 {
 	bool bArc = pProjectile->InqBoolQuality(GRAVITY_STATUS_BOOL, FALSE) ? true : false;
 
@@ -356,12 +356,29 @@ Position CSpellcastingManager::GetSpellProjectileSpawnPosition(CSpellProjectile 
 
 	if (pTarget == pSource)
 	{
-		targetOffset = spawnPosition.get_offset(pTarget->m_Position.add_offset(pTarget->m_Position.localtoglobalvec(Vector(0, 2000, pSource->GetHeight() * (2.0 / 3.0)))));
+		// rotate by dDir
+		double cs = cos(dDir);
+		double sn = sin(dDir);
+
+		double x = -1000 * sn;
+		double y =  1000 * cs;
+
+		float z = pSource->GetHeight() * (2.0 / 3.0);
+		if (bRing)
+			z = 1.5;
+
+		targetOffset = spawnPosition.get_offset(pTarget->m_Position.add_offset(pTarget->m_Position.localtoglobalvec(Vector(x, y, z))));
 	}
 	else
 	{
 		targetOffset = spawnPosition.get_offset(pTarget->m_Position.add_offset(Vector(0, 0, pTarget->GetHeight() * (bArc ? (5.0 / 6.0) : (2.0 / 3.0)))));
 		//targetOffset = spawnPosition.get_offset(pTarget->m_Position.add_offset(Vector(0, 0, pTarget->GetHeight() * (bArc ? (5.0 / 6.0) : (0.5)))));
+		// rotate by dDir
+		double cs = cos(dDir);
+		double sn = sin(dDir);
+
+		targetOffset.x = targetOffset.x * cs - targetOffset.y * sn;
+		targetOffset.y = targetOffset.x * sn + targetOffset.y * cs;
 	}
 
 	Vector targetDir = targetOffset;
@@ -377,7 +394,10 @@ Position CSpellcastingManager::GetSpellProjectileSpawnPosition(CSpellProjectile 
 	}
 	else
 	{
-		float minSpawnDist = (pSource->GetRadius() + pProjectile->GetRadius()) + 0.1f;
+		double minSpawnDist = (pSource->GetRadius() + pProjectile->GetRadius()) + 0.1f;
+
+		if (bRing)
+			minSpawnDist +=	1.0f;
 
 		spawnPosition.frame.m_origin += targetDir * minSpawnDist;
 		spawnPosition.frame.set_vector_heading(targetDir);
@@ -388,7 +408,7 @@ Position CSpellcastingManager::GetSpellProjectileSpawnPosition(CSpellProjectile 
 	return spawnPosition;
 }
 
-Vector CSpellcastingManager::GetSpellProjectileSpawnVelocity(Position *pSpawnPosition, CWeenieObject *pTarget, float speed, bool tracked, bool gravity, Vector *pTargetDir)
+Vector CSpellcastingManager::GetSpellProjectileSpawnVelocity(Position *pSpawnPosition, CWeenieObject *pTarget, float speed, bool tracked, bool gravity, Vector *pTargetDir, double dDir, bool bRing)
 {
 	Vector targetOffset;
 	double targetDist;
@@ -396,19 +416,41 @@ Vector CSpellcastingManager::GetSpellProjectileSpawnVelocity(Position *pSpawnPos
 	CWeenieObject *pSource = GetCastSource();
 	if (pTarget == pSource)
 	{
-		targetOffset = pSpawnPosition->get_offset(pTarget->m_Position.add_offset(pTarget->m_Position.localtoglobalvec(Vector(0, 2000, pTarget->GetHeight() * (2.0 / 3.0)))));
+		// rotate by dDir
+		double cs = cos(dDir);
+		double sn = sin(dDir);
+
+		double x = -1000 * sn;
+		double y = 1000 * cs;
+
+		float z = pTarget->GetHeight() * (2.0 / 3.0);
+		if (bRing)
+			z *= 1.5;
+
+		targetOffset = pSpawnPosition->get_offset(pTarget->m_Position.add_offset(pTarget->m_Position.localtoglobalvec(Vector(x, y, z))));
 		tracked = false;
 	}
 	else
+	{
 		targetOffset = pSpawnPosition->get_offset(pTarget->m_Position.add_offset(Vector(0, 0, pTarget->GetHeight() * (2.0 / 3.0))));
+
+		// rotate by dDir
+		double cs = cos(dDir);
+		double sn = sin(dDir);
+
+		targetOffset.x = targetOffset.x * cs - targetOffset.y * sn;
+		targetOffset.y = targetOffset.x * sn + targetOffset.y * cs;
+	}
 	//targetOffset = pSpawnPosition->get_offset(pTarget->m_Position.add_offset(Vector(0, 0, pTarget->GetHeight() * 0.5f)));
 
 	targetDist = targetOffset.magnitude();
 
+	Vector v;
+
 	if (!tracked)
 	{
 		double t = targetDist / speed;
-		Vector v = targetOffset / t;
+		v = targetOffset / t;
 
 		if (gravity)
 			v.z += (9.8*t) / 2.0f;
@@ -418,134 +460,57 @@ Vector CSpellcastingManager::GetSpellProjectileSpawnVelocity(Position *pSpawnPos
 
 		if (pTargetDir)
 			*pTargetDir = targetDir;
-
-		return v;
 	}
-
-	Vector P0 = targetOffset;
-	Vector P1(0, 0, 0);
-
-	float s0 = pTarget->get_velocity().magnitude();
-	Vector V0 = pTarget->get_velocity();
-	if (V0.normalize_check_small())
-		V0 = Vector(0, 0, 0);
-
-	float s1 = speed;
-
-	double a = (V0.x * V0.x) + (V0.y * V0.y) - (s1 * s1);
-	double b = 2 * ((P0.x * V0.x) + (P0.y * V0.y) - (P1.x * V0.x) - (P1.y * V0.y));
-	double c = (P0.x * P0.x) + (P0.y * P0.y) + (P1.x * P1.x) + (P1.y * P1.y) - (2 * P1.x * P0.x) - (2 * P1.y * P0.y);
-
-	double t1 = (-b + sqrt((b * b) - (4 * a * c))) / (2 * a);
-	double t2 = (-b - sqrt((b * b) - (4 * a * c))) / (2 * a);
-
-	if (t1 < 0)
-		t1 = FLT_MAX;
-	if (t2 < 0)
-		t2 = FLT_MAX;
-
-	double t = min(t1, t2);
-	if (t >= 100.0)
+	else
 	{
-		return GetSpellProjectileSpawnVelocity(pSpawnPosition, pTarget, speed, false, gravity, pTargetDir);
-	}
+		Vector P0 = targetOffset;
+		Vector P1(0, 0, 0);
 
-	Vector v;
-	v.x = (P0.x + (t * s0 * V0.x)) / (t); // * s1);
-	v.y = (P0.y + (t * s0 * V0.y)) / (t); // * s1);
-	v.z = (P0.z + (t * s0 * V0.z)) / (t); // * s1);
+		float s0 = pTarget->get_velocity().magnitude();
+		Vector V0 = pTarget->get_velocity();
+		if (V0.normalize_check_small())
+			V0 = Vector(0, 0, 0);
 
-	if (gravity)
-	{
-		v.z += (9.8*t) / 2.0f;
-	}
+		float s1 = speed;
 
-	if (pTargetDir)
-	{
-		Vector targetDir = v;
-		if (targetDir.normalize_check_small())
-			targetDir = Vector(0, 0, 0);
+		double a = (V0.x * V0.x) + (V0.y * V0.y) - (s1 * s1);
+		double b = 2 * ((P0.x * V0.x) + (P0.y * V0.y) - (P1.x * V0.x) - (P1.y * V0.y));
+		double c = (P0.x * P0.x) + (P0.y * P0.y) + (P1.x * P1.x) + (P1.y * P1.y) - (2 * P1.x * P0.x) - (2 * P1.y * P0.y);
 
-		*pTargetDir = targetDir;
+		double t1 = (-b + sqrt((b * b) - (4 * a * c))) / (2 * a);
+		double t2 = (-b - sqrt((b * b) - (4 * a * c))) / (2 * a);
+
+		if (t1 < 0)
+			t1 = FLT_MAX;
+		if (t2 < 0)
+			t2 = FLT_MAX;
+
+		double t = min(t1, t2);
+		if (t >= 100.0)
+		{
+			return GetSpellProjectileSpawnVelocity(pSpawnPosition, pTarget, speed, false, gravity, pTargetDir, dDir, bRing);
+		}
+
+		v.x = (P0.x + (t * s0 * V0.x)) / (t); // * s1);
+		v.y = (P0.y + (t * s0 * V0.y)) / (t); // * s1);
+		v.z = (P0.z + (t * s0 * V0.z)) / (t); // * s1);
+
+		if (gravity)
+		{
+			v.z += (9.8*t) / 2.0f;
+		}
+
+		if (pTargetDir)
+		{
+			Vector targetDir = v;
+			if (targetDir.normalize_check_small())
+				targetDir = Vector(0, 0, 0);
+
+			*pTargetDir = targetDir;
+		}
 	}
 
 	return v;
-}
-
-const double MIN_BOLT_VELOCITY = 5.0;
-const double MAX_BOLT_VELOCITY = 20.0;
-double CalculateBoltVelocityByDistance(double distance)
-{
-	return MIN_BOLT_VELOCITY + ((MAX_BOLT_VELOCITY - MIN_BOLT_VELOCITY) * min(1.0, max(0.0, (distance / 15.0))));
-}
-
-int CSpellcastingManager::LaunchRingProjectiles(DWORD wcid)
-{
-	//DWORD damage = 0;
-
-	//switch (m_SpellCastData.power_level_of_power_component)
-	//{
-	//case 1: damage = Random::GenUInt(16, 31); break;
-	//case 2: damage = Random::GenUInt(18, 35); break;
-	//case 3: damage = Random::GenUInt(21, 42); break;
-	//case 4: damage = Random::GenUInt(25, 50); break;
-	//case 5: damage = Random::GenUInt(29, 59); break;
-	//case 6: damage = Random::GenUInt(36, 71); break;
-	//case 7:
-	//case 8: damage = Random::GenUInt(42, 84); break;
-	//case 9:
-	//case 10: damage = Random::GenUInt(47, 94); break;
-	//}
-
-	float velocity = 1.0f;
-	bool tracking = true;
-	bool gravity = false;
-
-	const int NUM_RING_PROJECTILES = 4;
-
-	for (int i = 0; i < NUM_RING_PROJECTILES; i++)
-	{
-		CSpellProjectile *pProjectile = new CSpellProjectile(m_SpellCastData, m_SpellCastData.target_id);//, damage);
-
-		// spawn default object properties
-		g_pWeenieFactory->ApplyWeenieDefaults(pProjectile, wcid);
-
-		// set spell id (is this even needed?)
-		pProjectile->SetSpellID(m_SpellCastData.spell_id);
-
-		double rads = ((i * 2) / (double)NUM_RING_PROJECTILES) * PI;
-		Vector dir(sin(rads), cos(rads), 0.0f);
-
-		float velocity = 2.0f;
-
-		// create the initial object
-		Position projSpawnPos = GetCastSource()->m_Position;
-		projSpawnPos.frame.set_heading(rads);
-
-		pProjectile->SetInitialPosition(projSpawnPos);
-		pProjectile->InitPhysicsObj();
-
-		pProjectile->m_Position = pProjectile->m_Position.add_offset(Vector(
-			(GetCastSource()->GetRadius() + pProjectile->GetRadius() + F_EPSILON) * dir.x,
-			(GetCastSource()->GetRadius() + pProjectile->GetRadius() + F_EPSILON) * dir.y, /*1.223465f*/0.8f));
-
-		/*
-		m_pWeenie->SendText(
-			csprintf("DEBUG: WeenieHeight/Radius: %f %f ProjHeight/Radius: %f %f",
-				m_pWeenie->GetHeight(), m_pWeenie->GetRadius(), pProjectile->GetHeight(), pProjectile->GetRadius()), LTT_ALL_CHANNELS);
-				*/
-
-				// set velocity
-		pProjectile->set_velocity(dir * velocity, 0);
-
-		// insert the object into the world
-		g_pWorld->CreateEntity(pProjectile);
-
-		// launch particle effect
-		pProjectile->EmitEffect(PS_Launch, 0.4f);
-	}
-
-	return WERROR_NONE;
 }
 
 bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
@@ -565,6 +530,49 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 	int numZ = (int)(meta->_dims.z + 0.5f);
 
 	CWeenieObject *pSource = GetCastSource();
+
+	if (!pSource)
+	{
+		return false;
+	}
+
+	bool isLifeProjectile = false;
+	double selfDrainedAmount = 0;
+	float selfDrainedDamageRatio = 0;
+	if (meta->AsLifeProjectileSpell())
+	{
+		isLifeProjectile = true;
+		ProjectileLifeSpellEx *lifeProjectile = meta->AsLifeProjectileSpell();
+
+		DAMAGE_TYPE damageType = static_cast<DAMAGE_TYPE>(lifeProjectile->_etype);
+		selfDrainedDamageRatio = lifeProjectile->_damage_ratio;
+		float drainPercentage = lifeProjectile->_drain_percentage;
+
+		switch (damageType)
+		{
+		case HEALTH_DAMAGE_TYPE:
+		{
+			int amount = round((float)pSource->GetHealth() * drainPercentage);
+			selfDrainedAmount = abs(pSource->AdjustHealth(-amount));
+			break;
+		}
+		case STAMINA_DAMAGE_TYPE:
+		{
+			int amount = round((float)pSource->GetStamina() * drainPercentage);
+			selfDrainedAmount = abs(pSource->AdjustStamina(-amount));
+			break;
+		}
+		case MANA_DAMAGE_TYPE:
+		{
+			int amount = round((float)pSource->GetMana() * drainPercentage);
+			selfDrainedAmount = abs(pSource->AdjustMana(-amount));
+			break;
+		}
+		}
+		pSource->CheckDeath(pSource, damageType);
+	}
+
+	bool bAngled = meta->_spreadAngle > 0 && numX > 1;
 
 	for (int x = 0; x < numX; x++)
 	{
@@ -593,51 +601,79 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 				pProjectile->m_PhysicsState |= MISSILE_PS | REPORT_COLLISIONS_PS;
 				pProjectile->m_PhysicsState &= ~IGNORE_COLLISIONS_PS;
 
-				Position projSpawnPos = GetSpellProjectileSpawnPosition(pProjectile, pTarget, &distToTarget);
-
-				Vector createOffset = projSpawnPos.localtoglobalvec(meta->_createOffset);
-
-				projSpawnPos = projSpawnPos.add_offset(
-					Vector(
-						Random::GenFloat(-1.0, 1.0) * meta->_peturbation.x * meta->_padding.x,
-						Random::GenFloat(-1.0, 1.0) * meta->_peturbation.y * meta->_padding.y,
-						Random::GenFloat(-1.0, 1.0) * meta->_peturbation.z * meta->_padding.z));
-
-				projSpawnPos = projSpawnPos.add_offset(createOffset);
-
-				Position spawnSourcePosition = projSpawnPos;
-
-				float radius = pProjectile->GetRadius();
-
-				Vector sizePerProjectile = meta->_padding; // * radius;
-
-				Vector projectileGroupOffset(x, y, z);
-				projectileGroupOffset.x *= sizePerProjectile.x;
-				projectileGroupOffset.y *= sizePerProjectile.y;
-				projectileGroupOffset.z *= sizePerProjectile.z;
-
-				projectileGroupOffset.x -= sizePerProjectile.x * ((meta->_dims.x - 1.0) / 2.0);
-				projectileGroupOffset.y -= sizePerProjectile.y * ((meta->_dims.y - 1.0) / 2.0);
-				projectileGroupOffset.z -= sizePerProjectile.z * ((meta->_dims.z - 1.0) / 2.0);
-
-				projectileGroupOffset = projSpawnPos.localtoglobalvec(projectileGroupOffset);
-				projSpawnPos = projSpawnPos.add_offset(projectileGroupOffset);
-
-				// set spell id (is this even needed?)
-				pProjectile->m_Position = projSpawnPos;
-
 				double maxVelocity = 5.0;
-
 				pProjectile->m_Qualities.InqFloat(MAXIMUM_VELOCITY_FLOAT, maxVelocity);
 
 				bool bGravity = false;
-				bool bTracking = !meta->_bNonTracking;
-
 				if (pProjectile->InqBoolQuality(GRAVITY_STATUS_BOOL, FALSE))
 				{
 					pProjectile->m_PhysicsState |= GRAVITY_PS;
 					bGravity = true;
 				}
+
+				bool bTracking = !meta->_bNonTracking;
+
+				// angle at which to spawn from the caster
+				double theta = 0;
+				bool bRing = false;
+				if (bAngled)
+				{
+					double xRatio = x / (double) numX;
+					xRatio -= (numX - 1.0) / (double) (2*numX);
+
+					theta = DEG2RAD(xRatio * meta->_spreadAngle);
+
+					// if a ring we want it to start a little further out
+					if (meta->_spreadAngle > 180)
+					{
+						bRing = true;
+					}
+				}
+
+				Position projSpawnPos = GetSpellProjectileSpawnPosition(pProjectile, pTarget, &distToTarget, theta, bRing);
+
+				// set velocity based on player position
+				Vector spawnVelocity = GetSpellProjectileSpawnVelocity(&projSpawnPos, pTarget, maxVelocity, bTracking, bGravity, NULL, theta, bRing);
+
+				if (bRing)
+				{
+					// adjust for player casting position
+					Vector ringOffset = pSource->m_Position.localtoglobalvec(Vector(0, 0.1f, 0));
+					projSpawnPos = projSpawnPos.add_offset(ringOffset);
+				}
+
+				//Random offset
+				Vector createOffset = projSpawnPos.localtoglobalvec(meta->_createOffset);
+				projSpawnPos = projSpawnPos.add_offset(
+					Vector(
+						Random::GenFloat(-1.0, 1.0) * meta->_peturbation.x * meta->_padding.x,
+						Random::GenFloat(-1.0, 1.0) * meta->_peturbation.y * meta->_padding.y,
+						Random::GenFloat(-1.0, 1.0) * meta->_peturbation.z * meta->_padding.z));
+				projSpawnPos = projSpawnPos.add_offset(createOffset);
+				
+
+				// Offset for wall spells
+				if (!bAngled)
+				{
+					Vector sizePerProjectile = meta->_padding; // * radius;
+
+					Vector projectileGroupOffset = Vector(x, y, z);
+					projectileGroupOffset.x *= sizePerProjectile.x;
+					projectileGroupOffset.y *= sizePerProjectile.y;
+					projectileGroupOffset.z *= sizePerProjectile.z;
+
+					projectileGroupOffset.x -= sizePerProjectile.x * ((meta->_dims.x - 1.0) / 2.0);
+					projectileGroupOffset.y -= sizePerProjectile.y * ((meta->_dims.y - 1.0) / 2.0);
+					projectileGroupOffset.z -= sizePerProjectile.z * ((meta->_dims.z - 1.0) / 2.0);
+
+					projectileGroupOffset = projSpawnPos.localtoglobalvec(projectileGroupOffset);
+					projSpawnPos = projSpawnPos.add_offset(projectileGroupOffset);
+				}
+
+
+				pProjectile->m_Position = projSpawnPos;
+
+				pProjectile->set_velocity(spawnVelocity, 0);
 
 				if (pProjectile->InqBoolQuality(INELASTIC_BOOL, FALSE))
 					pProjectile->m_PhysicsState |= INELASTIC_PS;
@@ -648,26 +684,13 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 
 				// pProjectile->m_PhysicsState |= ETHEREAL_PS;
 
-				// set velocity
-				Vector spawnVelocity = GetSpellProjectileSpawnVelocity(&spawnSourcePosition, pTarget, maxVelocity, bTracking, bGravity, NULL);
 
-				if (meta->_spreadAngle > 0)
+
+
+				if (isLifeProjectile)
 				{
-					if (numX > 1)
-					{
-						double xRatio = x / (double)(numX - 1);
-						double theta = DEG2RAD((xRatio - 0.5) * meta->_spreadAngle);
-						double cs = cos(theta);
-						double sn = sin(theta);
-						double px = spawnVelocity.x * cs - spawnVelocity.y * sn;
-						double py = spawnVelocity.x * sn + spawnVelocity.y * cs;
-
-						spawnVelocity.x = px;
-						spawnVelocity.y = py;
-					}
+					pProjectile->makeLifeProjectile(selfDrainedAmount, selfDrainedDamageRatio);
 				}
-
-				pProjectile->set_velocity(spawnVelocity, 0);
 
 				// insert the object into the world
 				if (g_pWorld->CreateEntity(pProjectile))
@@ -685,7 +708,6 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 			}
 		}
 	}
-
 	// LOG(Temp, Normal, "-\n");
 
 	return true;
@@ -752,11 +774,12 @@ void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 
 int CSpellcastingManager::LaunchSpellEffect()
 {
-	if (int targetError = CheckTargetValidity() && m_SpellCastData.range_check)
+	int targetError = CheckTargetValidity();
+	if (targetError && m_SpellCastData.range_check)
 	{
 		switch (targetError)
 		{
-		case WERROR_MAGIC_TARGET_OUT_OF_RANGE:
+		case WERROR_MISSILE_OUT_OF_RANGE:
 		{
 			CWeenieObject *pTarget = GetCastTarget();
 			if (pTarget)
@@ -2153,7 +2176,6 @@ int CSpellcastingManager::LaunchSpellEffect()
 		{
 			ProjectileSpellEx *meta = (ProjectileSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 			bSpellPerformed = LaunchProjectileSpell(meta);
-			//bSpellPerformed = LaunchRingProjectiles(meta->_wcid);
 
 			break;
 		}
@@ -2477,6 +2499,17 @@ bool CSpellcastingManager::DoTransferSpell(CWeenieObject *other, const TransferS
 				destGiveAmount, GetAttribute2ndName(meta->_dest).c_str(), m_SpellCastData.spell->_name.c_str(), source->GetName().c_str()), LTT_MAGIC);
 			source->SendText(csprintf("You lose %d points of %s due to %s casting %s on you",
 				sourceTakeAmount, GetAttribute2ndName(meta->_src).c_str(), m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+
+			if (dest->AsPlayer())
+			{
+				// update the target's health on the casting player asap
+				((CPlayerWeenie*)source)->RefreshTargetHealth();
+			}
+			if (source->AsPlayer())
+			{
+				// update the target's health on the casting player asap
+				((CPlayerWeenie*)dest)->RefreshTargetHealth();
+			}
 		}
 		else
 		{
@@ -2609,6 +2642,15 @@ void CSpellcastingManager::SendAdjustVitalText(CWeenieObject *target, int amount
 
 		target->SendText(csprintf("%s casts %s and %s %d points of your %s.",
 			m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), bRestore ? "restores" : "drains", amount, vitalName), LTT_MAGIC);
+
+		if (vitalName == "health")
+		{
+			if (m_pWeenie->AsPlayer())
+			{
+				// update the target's health on the casting player asap
+				((CPlayerWeenie*)m_pWeenie)->RefreshTargetHealth();
+			}
+		}
 	}
 	else
 	{
@@ -2797,7 +2839,7 @@ int CSpellcastingManager::CheckTargetValidity()
 			if (pCastSource && m_SpellCastData.range_check)
 			{
 				if (pCastSource->DistanceTo(pTarget, true) > m_SpellCastData.max_range)
-					return WERROR_MAGIC_TARGET_OUT_OF_RANGE;
+					return WERROR_MISSILE_OUT_OF_RANGE;
 			}
 		}
 	}
