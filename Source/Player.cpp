@@ -1447,6 +1447,11 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
 
+			if (amountOfTimesTinkered > 9)  // Don't allow 10 tinked items to have any more tinkers/imbues (Ivory & Leather don't use this case)
+			{
+				return WERROR_NONE;   
+			}
+
 			int salvageMod;
 			
 			if (op->_SkillCheckFormulaType == 1)
@@ -1455,21 +1460,16 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			}
 			else
 			{
-				//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
-				salvageMod = 20;
+				salvageMod = 20; // All imbue materials have mod of 20
 			}
 
 			int multiple = 1;
-			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
+			double aDifficulty[10] = {1, 1.1, 1.3, 1.6, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5}; // Attempt difficulty numbers from Endy's Tinker Calc 2.3.2
+			double difficulty = aDifficulty[amountOfTimesTinkered];
 
 			if (toolWorkmanship >= itemWorkmanship)
 			{
 				multiple = 2;
-			}
-
-			if (amountOfTimesTinkered > 2)
-			{
-				difficulty = amountOfTimesTinkered * 0.5;
 			}
 
 			successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
