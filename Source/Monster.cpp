@@ -216,6 +216,12 @@ CContainerWeenie *CMonsterWeenie::FindValidNearbyContainer(DWORD containerId, fl
 		{
 			// maybe it's on the ground
 			CWeenieObject *object = g_pWorld->FindObject(containerId);
+			if (object == NULL)
+			{
+				NotifyInventoryFailedEvent(containerId, WERROR_OBJECT_GONE);
+				return NULL;
+			}
+
 			container = object->AsContainer();
 
 			if (!container || container->HasOwner() || !container->InValidCell())
@@ -227,7 +233,7 @@ CContainerWeenie *CMonsterWeenie::FindValidNearbyContainer(DWORD containerId, fl
 			if (DistanceTo(container, true) > maxDistance)
 			{
 				NotifyInventoryFailedEvent(containerId, WERROR_TOO_FAR);
-				return NULL;;
+				return NULL;
 			}
 		}
 	}
