@@ -3257,40 +3257,28 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		MaterialType material = salvageEntry.first;
 		SalvageInfo salvageInfo = salvageEntry.second;
 		int valuePerUnit = salvageInfo.totalValue / salvageInfo.amount;
-		int fullBags = floor(salvageInfo.amount / 100.0);
-		int partialBagAmount = salvageInfo.amount % 100;
 
-		int fullBagTotalWorkmanship = round(salvageInfo.totalWorkmanship / (fullBags + partialBagAmount/100.0) );
-		int fullBagItemCount = round(salvageInfo.itemsSalvagedCountCont / (fullBags + partialBagAmount / 100.0) );
+		double workmanship = salvageInfo.totalWorkmanship/(double)salvageInfo.itemsSalvagedCountCont;
+		int fullBagItems = ceil(salvageInfo.itemsSalvagedCountCont / (salvageInfo.amount / 100.0));
 
+		int remainingAmount = salvageInfo.amount;
+		int remainingItems = salvageInfo.itemsSalvagedCountCont;
 
-		for (int i = 0; i < fullBags; i++)
+		while (remainingAmount > 0)
 		{
-			SpawnSalvageBagInContainer(material, 100, fullBagTotalWorkmanship, min(valuePerUnit * 100, 75000), fullBagItemCount);
-			
-			SalvageResult salvageResult;
-			salvageResult.material = material;
-			salvageResult.units = 100;
-			salvageResult.workmanship = fullBagTotalWorkmanship / (double) fullBagItemCount;
-			salvageResults.push_back(salvageResult);
-		}
-
-		int partialTotalWorkmanship = salvageInfo.totalWorkmanship - fullBags * fullBagTotalWorkmanship;
-		int partialTotalItems = salvageInfo.itemsSalvagedCountCont - fullBags * fullBagItemCount;
-
-		// We may lose a bit of salvage in favour of producing better full bags
-		if (partialBagAmount > 0 && partialTotalItems > 0 && partialTotalWorkmanship > 0)
-		{
-			SpawnSalvageBagInContainer(material, partialBagAmount, partialTotalWorkmanship, min(valuePerUnit * partialBagAmount, 75000), partialTotalItems);
+			int amount = min(remainingAmount, 100);
+			int numItems = min(max(1, remainingItems), fullBagItems);
+			SpawnSalvageBagInContainer(material, amount, floor(numItems * workmanship), min(valuePerUnit * amount, 75000), numItems);
 
 			SalvageResult salvageResult;
 			salvageResult.material = material;
-			salvageResult.units = partialBagAmount;
-			salvageResult.workmanship = partialTotalWorkmanship / (double) partialTotalItems;
+			salvageResult.units = amount;
+			salvageResult.workmanship = floor(numItems * workmanship)/(double)numItems;
 			salvageResults.push_back(salvageResult);
+
+			remainingAmount -= 100;
+			remainingItems -= fullBagItems;
 		}
-
-
 	}
 
 	BinaryWriter salvageMsg;
