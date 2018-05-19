@@ -269,6 +269,16 @@ bool ReplaceString(std::string& str, const std::string& from, const std::string&
 	return true;
 }
 
+std::string ReplaceInString(std::string subject, const std::string& search,
+	const std::string& replace) {
+	size_t pos = 0;
+	while ((pos = subject.find(search, pos)) != std::string::npos) {
+		subject.replace(pos, search.length(), replace);
+		pos += replace.length();
+	}
+	return subject;
+}
+
 static char szReadBuffer[1024];
 static char szWriteBuffer[600];
 
