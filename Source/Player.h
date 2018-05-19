@@ -203,6 +203,9 @@ public:
 
 	virtual void ChangeCombatMode(COMBAT_MODE mode, bool playerRequested) override;
 
+	void UpdatePKActivity() { m_iPKActivity = Timer::cur_time + 60; }
+	bool CheckPKActivity() { return m_iPKActivity > Timer::cur_time; }
+
 protected:
 	CClient *m_pClient;
 
@@ -222,6 +225,9 @@ protected:
 
 	TradeManager *m_pTradeManager = NULL;
 	double m_fNextTradeCheck = 0;
+
+private:
+	int m_iPKActivity = 0;
 };
 
 class CWandSpellUseEvent : public CUseEventData

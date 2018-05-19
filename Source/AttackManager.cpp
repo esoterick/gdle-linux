@@ -521,6 +521,13 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 		}
 	}
 
+	// okay, we're attacking. check for pvp interactions
+	if (target->AsPlayer() && _weenie->AsPlayer())
+	{
+		target->AsPlayer()->UpdatePKActivity();
+		_weenie->AsPlayer()->UpdatePKActivity();
+	}
+
 	DWORD meleeDefense = 0;
 	if (target->InqSkill(MELEE_DEFENSE_SKILL, meleeDefense, FALSE) && meleeDefense > 0)
 	{

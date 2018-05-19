@@ -1437,6 +1437,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 			if (m_pWeenie->HasOwner())
 				break;
 
+			if (m_pWeenie->AsPlayer() && m_pWeenie->AsPlayer()->CheckPKActivity())
+			{
+				m_pWeenie->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+				break;
+			}
+
 			PortalRecallSpellEx *meta = (PortalRecallSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 
 			switch (meta->_index)
@@ -1999,6 +2005,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 		case SpellType::PortalSummon_SpellType:
 		{
+			if (m_pWeenie && m_pWeenie->AsPlayer() && m_pWeenie->AsPlayer()->CheckPKActivity())
+			{
+				m_pWeenie->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+				break;
+			}
+
 			PortalSummonSpellEx *meta = (PortalSummonSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 			if (!meta && (meta->_link == 1 || meta->_link == 2))
 				break;
@@ -2549,6 +2561,12 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	// negative spell
 	if (isDamage)
 	{
+		if (m_pWeenie->AsPlayer() && target->AsPlayer())
+		{
+			m_pWeenie->AsPlayer()->UpdatePKActivity();
+			target->AsPlayer()->UpdatePKActivity();
+		}
+
 		// try to resist
 		if (m_SpellCastData.spell->_bitfield & Resistable_SpellIndex)
 		{
