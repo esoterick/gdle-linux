@@ -147,7 +147,7 @@ void CPlayerWeenie::BeginLogout()
 	if (IsLoggingOut())
 		return;
 
-	_logoutTime = Timer::cur_time + 5.0;
+	_logoutTime = max(Timer::cur_time + 5.0, m_iPKActivity);
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	LeaveFellowship();
