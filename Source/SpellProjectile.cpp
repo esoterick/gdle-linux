@@ -100,6 +100,12 @@ BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 			HandleExplode();
 			m_fDestroyTime = Timer::cur_time + 1.0;
 
+			if (pSource && pHit && pSource->AsPlayer() && pHit->AsPlayer())
+			{
+				pSource->AsPlayer()->UpdatePKActivity();
+				pHit->AsPlayer()->UpdatePKActivity();
+			}
+
 			// try to resist
 			bool bResisted = false;
 
