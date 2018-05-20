@@ -1971,7 +1971,7 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 			"You've earned %s experience.",
 			FormatNumberString(amount).c_str());
 
-		SendText(notice, LTT_ADVANCEMENT);
+		SendText(notice, LTT_DEFAULT);
 	}
 
 	if (!allegianceXP)
