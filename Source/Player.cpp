@@ -147,7 +147,8 @@ void CPlayerWeenie::BeginLogout()
 	if (IsLoggingOut())
 		return;
 
-	_logoutTime = max(Timer::cur_time + 5.0, m_iPKActivity);
+	_beginLogoutTime = max(Timer::cur_time+10, m_iPKActivity);
+	_logoutTime = _beginLogoutTime + 5.0;
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	LeaveFellowship();
@@ -157,8 +158,12 @@ void CPlayerWeenie::BeginLogout()
 		m_pTradeManager->CloseTrade(this);
 		m_pTradeManager = NULL;
 	}
-
+	
 	StopCompletely(0);
+}
+
+void CPlayerWeenie::OnLogout()
+{
 	DoForcedMotion(Motion_LogOut);
 	Save();
 }
@@ -208,6 +213,12 @@ void CPlayerWeenie::Tick()
 		m_fNextMakeAwareCacheFlush = Timer::cur_time + 60.0;
 	}
 
+	if (IsLoggingOut() && _beginLogoutTime <= Timer::cur_time)
+	{
+		OnLogout();
+
+		_beginLogoutTime = Timer::cur_time + 999999;
+	}
 	if (IsLoggingOut() && _logoutTime <= Timer::cur_time)
 	{
 		// time to logout

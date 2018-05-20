@@ -185,6 +185,7 @@ public:
 	virtual void UpdateVitaeEnchantment();
 
 	virtual void BeginLogout() override;
+	virtual void OnLogout();
 	
 	bool IsLoggingOut() { return _logoutTime >= 0.0; }
 	bool IsRecalling() { return _recallTime >= 0.0; }
@@ -219,6 +220,7 @@ protected:
 	double m_NextHealthUpdate = 0.0;
 
 	double _logoutTime = -1.0;
+	double _beginLogoutTime = -1.0;
 	double _recallTime = -1.0;
 	Position _recallPos;
 	bool _isFirstPortalInSession = true;
