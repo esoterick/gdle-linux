@@ -428,6 +428,19 @@ void CInferredPortalData::Init()
 		}
 	}
 
+	{
+		std::ifstream fileStream("data\\json\\bannedwords.json");
+
+		if (fileStream.is_open())
+		{
+			json jsonData;
+			fileStream >> jsonData;
+			fileStream.close();
+
+			_bannedWords = jsonData.at("badwords").get<std::vector<std::string>>();
+		}
+	}
+
 #ifndef PUBLIC_BUILD
 	SERVER_INFO << "Finished loading inferred cell data.";
 #endif
@@ -482,4 +495,8 @@ CMutationFilter *CInferredPortalData::GetMutationFilter(DWORD id)
 	return NULL;
 }
 
+std::vector<std::string> CInferredPortalData::GetBannedWords()
+{
+	return _bannedWords;
+}
 

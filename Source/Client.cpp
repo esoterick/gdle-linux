@@ -1,7 +1,7 @@
 
 #include "StdAfx.h"
 #include "easylogging++.h"
-
+#include "InferredPortalData.h"
 #include "Client.h"
 #include "ClientEvents.h"
 #include "Config.h"
@@ -31,6 +31,7 @@
 #include "ClientCommands.h"
 #include "ChatMsgs.h"
 #include "AllegianceManager.h"
+#include "Util.h"
 
 // CClient - for client/server interaction
 CClient::CClient(SOCKADDR_IN *peer, WORD slot, AccountInformation_t &accountInfo)
@@ -246,6 +247,23 @@ void CClient::SendNetMessage(void *data, DWORD length, WORD group, BOOL game_eve
 	m_pPC->QueueNetMessage(data, length, group, game_event ? GetEvents()->GetPlayerID() : 0);
 }
 
+BOOL CClient::CheckBadName(const std::string name)
+{
+	string ps = name;
+	std::transform(ps.begin(), ps.end(), ps.begin(), ::tolower);
+	
+	ps = ReplaceInString(ps, " ", "");
+	
+	for (auto const& value : g_pPortalDataEx->GetBannedWords())
+	{
+		if (ps.find(value) != std::string::npos)
+			return false;
+	}
+
+	return true;
+}
+
+
 BOOL CClient::CheckNameValidity(const char *name, int access, std::string &resultName)
 {
 	resultName = "";
@@ -425,6 +443,12 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 	// need to reformat name here...
 	if (!CheckNameValidity(cg.name.c_str(), GetAccessLevel(), resultName))
+	{
+		errorCode = CG_VERIFICATION_RESPONSE_NAME_BANNED;
+		goto BadData;
+	}
+
+	if (!CheckBadName(cg.name))
 	{
 		errorCode = CG_VERIFICATION_RESPONSE_NAME_BANNED;
 		goto BadData;
