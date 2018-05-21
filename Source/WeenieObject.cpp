@@ -78,7 +78,7 @@ void CWeenieObject::InitPhysicsObj()
 
 	DWORD setupID = 0;
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:81): " << GetID() << " " << GetName() << "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:81): " << GetID() << " " "... ";
 
 	m_Qualities.InqDataID(SETUP_DID, setupID);
 
@@ -156,7 +156,7 @@ void CWeenieObject::InitPhysicsObj()
 	DWORD motionTableDID = 0;
 
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:159): " << GetID() << " " << GetName() << "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:159): " << GetID() << " " "... ";
 	if (m_Qualities.InqDataID(MOTION_TABLE_DID, motionTableDID) && motionTableDID)
 	{
 		_phys_obj->SetMotionTableID(motionTableDID);
@@ -1450,7 +1450,7 @@ void CWeenieObject::NotifyDIDStatUpdated(STypeDID key, bool bPrivate)
 	DWORD value;
 
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:1454): " << GetID() << " " << GetName() << "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:1454): " << GetID() << " " "... ";
 
 	if (m_Qualities.InqDataID(key, value))
 	{
@@ -1706,7 +1706,7 @@ void CWeenieObject::CopyDIDStat(STypeDID key, CACQualities *from)
 	DWORD value;
 
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:1710): " << GetID() << " " << GetName() << "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:1710): " << GetID() << " " "... ";
 
 
 	if (from->InqDataID(key, value))
@@ -3208,7 +3208,7 @@ void CWeenieObject::GetObjDesc(ObjDesc &objDesc)
 
 	DWORD basePaletteID;
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3212): " << GetID() << " " << GetName() << "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3212): " << GetID() << " " "... ";
 
 	if (m_Qualities.InqDataID(PALETTE_BASE_DID, basePaletteID))
 		objDesc.paletteID = basePaletteID;
@@ -3220,7 +3220,7 @@ void CWeenieObject::GetObjDesc(ObjDesc &objDesc)
 
 	DWORD clothingBaseID;
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3224): " << GetID() << " " << GetName() << "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3224): " << GetID() << " " "... ";
 
 	if (m_Qualities.InqDataID(CLOTHINGBASE_DID, clothingBaseID))
 	{
@@ -3353,7 +3353,7 @@ void CWeenieObject::SetValue(DWORD amount)
 DWORD CWeenieObject::GetSpellID()
 {
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3357): " << GetID() << " " << GetName() << "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3357): " << GetID() << " " "... ";
 
 	return m_Qualities.GetDID(SPELL_DID, 0);
 }
@@ -3516,7 +3516,7 @@ DWORD CWeenieObject::InqDIDQuality(STypeDID key, DWORD defaultValue)
 	DWORD value = defaultValue;
 
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3520): " << GetID() << " " << GetName() << "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3520): " << GetID() << " " "... ";
 
 	m_Qualities.InqDataID(key, value);
 	return value;

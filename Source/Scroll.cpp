@@ -23,7 +23,7 @@ const CSpellBase *CScrollWeenie::GetSpellBase()
 	DWORD spell_id = 0;
 
 
-	DEBUG_DATA << "InqDataID (Scroll.cpp:26): " << GetID() << " " << GetName() << "... ";
+	DEBUG_DATA << "InqDataID (Scroll.cpp:26): " << GetID() << " " "... ";
 
 	if (m_Qualities.InqDataID(SPELL_DID, spell_id))
 	{
