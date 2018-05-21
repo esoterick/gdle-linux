@@ -1703,6 +1703,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 					{
 						if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
 						{
+							if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+							{
+								m_pWeenie->AsPlayer()->UpdatePKActivity();
+								target->AsPlayer()->UpdatePKActivity();
+							}
+
 							if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
 							{
 								continue;
@@ -2562,7 +2568,7 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	// negative spell
 	if (isDamage)
 	{
-		if (m_pWeenie->AsPlayer() && target->AsPlayer())
+		if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
 		{
 			m_pWeenie->AsPlayer()->UpdatePKActivity();
 			target->AsPlayer()->UpdatePKActivity();
