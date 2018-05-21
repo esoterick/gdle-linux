@@ -1205,9 +1205,9 @@ void CHookWeenie::UpdateHookedObject(CWeenieObject *hookedItem, bool sendUpdate)
 		return;
 
 	DWORD value;
-#ifdef _DEBUG
+
 	DEBUG_DATA << "InqDataID (House.cpp:1209): " << hookedItem->GetID() << " " << hookedItem->GetName() << "... ";
-#endif
+
 	if (hookedItem->m_Qualities.InqDataID(SETUP_DID, value))
 	{
 		m_Qualities.SetDataID(SETUP_DID, value);
@@ -1307,9 +1307,9 @@ void CHookWeenie::ClearHookedObject(bool sendUpdate)
 
 	DWORD value;
 
-#ifdef _DEBUG
+
 	DEBUG_DATA << "InqDataID (House.cpp:1311): " << defaults->m_WCID << " " << defaults->m_Description << "... ";
-#endif
+
 	if (defaults->m_Qualities.InqDataID(SETUP_DID, value))
 	{
 		m_Qualities.SetDataID(SETUP_DID, value);

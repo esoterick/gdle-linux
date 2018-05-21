@@ -4534,9 +4534,9 @@ DWORD CBaseQualities::GetDID(STypeDID key, DWORD defaultValue)
 {
 	DWORD value = defaultValue;
 
-#ifdef _DEBUG
+
 	DEBUG_DATA << "InqDataID (Qualities.cpp:4538): " << key << " " << defaultValue << "... ";
-#endif
+
 
 	InqDataID(key, value);
 	return value;
