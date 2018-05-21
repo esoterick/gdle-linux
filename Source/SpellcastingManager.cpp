@@ -1476,6 +1476,11 @@ int CSpellcastingManager::LaunchSpellEffect()
 			case 4: // primary portal recall
 			{
 				DWORD portalDID = 0;
+
+#ifdef _DEBUG
+				DEBUG_DATA << "InqDataID (SpellcastingManager.cpp:1482): " << m_pWeenie->GetID() << " " << m_pWeenie->GetName() << "... ";
+#endif
+
 				if (m_pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_ONE_DID, portalDID) && portalDID != 0)
 				{
 					CWeenieDefaults *portalDefaults = NULL;
@@ -1540,6 +1545,9 @@ int CSpellcastingManager::LaunchSpellEffect()
 			case 5: // secondary portal recall
 			{
 				DWORD portalDID = 0;
+#ifdef _DEBUG
+				DEBUG_DATA << "InqDataID (SpellcastingManager.cpp:1549): " << m_pWeenie->GetID() << " " << m_pWeenie->GetName() << "... ";
+#endif
 				if (m_pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_TWO_DID, portalDID) && portalDID != 0)
 				{
 					CWeenieDefaults *portalDefaults = NULL;

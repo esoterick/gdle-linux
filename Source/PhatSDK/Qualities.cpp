@@ -4404,6 +4404,10 @@ BOOL CBaseQualities::InqDataID(STypeDID key, DWORD &value)
 	{
 		const DWORD *pValue = m_DIDStats->lookup(key);
 
+#ifdef _DEBUG
+			DEBUG_DATA << "InqDataID lookup done!";
+#endif
+
 		if (pValue)
 		{
 			value = *pValue;
@@ -4529,6 +4533,11 @@ std::string CBaseQualities::GetString(STypeString key, std::string defaultValue)
 DWORD CBaseQualities::GetDID(STypeDID key, DWORD defaultValue)
 {
 	DWORD value = defaultValue;
+
+#ifdef _DEBUG
+	DEBUG_DATA << "InqDataID (Qualities.cpp:4538): " << key << " " << defaultValue << "... ";
+#endif
+
 	InqDataID(key, value);
 	return value;
 }
