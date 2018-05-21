@@ -2062,6 +2062,10 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, CWeenie
 		for each (TYPERequirement<STypeDID, DWORD> dIDRequirement in op->_requirements[index]._didRequirement)
 		{
 			DWORD value = 0;
+
+#ifdef _DEBUG
+			DEBUG_DATA << "InqDataID (Player.cpp:2067): " << requirementTarget->GetID() << " " << requirementTarget->GetName() << "... ";
+#endif
 			bool exists = requirementTarget->m_Qualities.InqDataID(dIDRequirement._stat, value);
 
 			switch (dIDRequirement._operationType)

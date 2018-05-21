@@ -21,6 +21,11 @@ void CScrollWeenie::ApplyQualityOverrides()
 const CSpellBase *CScrollWeenie::GetSpellBase()
 {
 	DWORD spell_id = 0;
+
+#ifdef _DEBUG
+	DEBUG_DATA << "InqDataID (Scroll.cpp:26): " << GetID() << " " << GetName() << "... ";
+#endif
+
 	if (m_Qualities.InqDataID(SPELL_DID, spell_id))
 	{
 		return MagicSystem::GetSpellTable()->GetSpellBase(spell_id);

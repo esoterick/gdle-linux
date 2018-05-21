@@ -1809,6 +1809,9 @@ void CTreasureFactory::MutateMeleeWeapon(CWeenieObject *newItem, CWieldTier *wie
 			weenieDefs->m_Qualities.InqInt(DAMAGE_TYPE_INT, elementalType, TRUE);
 
 			DWORD setup;
+#ifdef _DEBUG
+			DEBUG_DATA << "InqDataID (TreasureFactory.cpp:1813): " << weenieDefs->m_WCID << " " << weenieDefs->m_Description << "... ";
+#endif
 			if (weenieDefs->m_Qualities.InqDataID(SETUP_DID, setup))
 				newItem->m_Qualities.SetDataID(SETUP_DID, setup);
 

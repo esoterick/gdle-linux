@@ -3366,6 +3366,10 @@ void SpawnAllAppearancesForWeenie(CPlayerWeenie *pPlayer, DWORD wcid, bool bSpaw
 	}
 
 	DWORD clothing_did = 0;
+
+#ifdef _DEBUG
+	DEBUG_DATA << "InqDataID (ClientCommands.cpp:3371): " << weenieDefs->m_WCID << " " << weenieDefs->m_Description << "... ";
+#endif
 	if (!weenieDefs->m_Qualities.InqDataID(CLOTHINGBASE_DID, clothing_did))
 	{
 		if (bSpawnWithoutVariances)
@@ -3477,6 +3481,11 @@ CLIENT_COMMAND(spawnweenieswithsamemotiontable, "<name>", "Spawn all setups with
 	}
 
 	DWORD motion_table_did = 0;
+
+
+#ifdef _DEBUG
+	DEBUG_DATA << "InqDataID (ClientCommands.cpp:3487): " << weenieDefs->m_WCID << " " << weenieDefs->m_Description << "... ";
+#endif
 	if (!weenieDefs->m_Qualities.InqDataID(MOTION_TABLE_DID, motion_table_did))
 	{
 		pPlayer->SendText("Does not have a motion table.", LTT_DEFAULT);
@@ -3548,6 +3557,9 @@ CLIENT_COMMAND(spawnsimilarsetups, "<name> <todonly>", "Spawn all setups with mo
 	}
 
 	DWORD setup_did = 0;
+#ifdef _DEBUG
+	DEBUG_DATA << "InqDataID (ClientCommands.cpp:3561): " << weenieDefs->m_WCID << " " << weenieDefs->m_Description << "... ";
+#endif
 	if (!weenieDefs->m_Qualities.InqDataID(SETUP_DID, setup_did))
 	{
 		pPlayer->SendText("Does not have a setup.", LTT_DEFAULT);
