@@ -1451,7 +1451,7 @@ void CWeenieObject::NotifyDIDStatUpdated(STypeDID key, bool bPrivate)
 	DWORD value;
 
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:1454): " << GetID() << " " "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:1454): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
 
 	if (m_Qualities.InqDataID(key, value))
 	{
@@ -1707,7 +1707,7 @@ void CWeenieObject::CopyDIDStat(STypeDID key, CACQualities *from)
 	DWORD value;
 
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:1710): " << GetID() << " " "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:1710): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
 
 
 	if (from->InqDataID(key, value))
@@ -3209,7 +3209,7 @@ void CWeenieObject::GetObjDesc(ObjDesc &objDesc)
 
 	DWORD basePaletteID;
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3212): " << GetID() << " " "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3212): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
 
 	if (m_Qualities.InqDataID(PALETTE_BASE_DID, basePaletteID))
 		objDesc.paletteID = basePaletteID;
@@ -3221,7 +3221,7 @@ void CWeenieObject::GetObjDesc(ObjDesc &objDesc)
 
 	DWORD clothingBaseID;
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3224): " << GetID() << " " "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3224): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
 
 	if (m_Qualities.InqDataID(CLOTHINGBASE_DID, clothingBaseID))
 	{
@@ -3354,7 +3354,7 @@ void CWeenieObject::SetValue(DWORD amount)
 DWORD CWeenieObject::GetSpellID()
 {
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3357): " << GetID() << " " "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3357): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
 
 	return m_Qualities.GetDID(SPELL_DID, 0);
 }
@@ -3517,7 +3517,7 @@ DWORD CWeenieObject::InqDIDQuality(STypeDID key, DWORD defaultValue)
 	DWORD value = defaultValue;
 
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3520): " << GetID() << " " "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3520): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
 
 	m_Qualities.InqDataID(key, value);
 	return value;
@@ -4785,7 +4785,7 @@ bool CWeenieObject::Save()
 	save.Pack(&writer);
 	bool result = g_pDBIO->CreateOrUpdateWeenie(GetID(), GetTopLevelID(), m_Position.objcell_id >> 16, writer.GetData(), writer.GetSize());
 	if (!result)
-		SERVER_ERROR << "Failed to save Weenie:" << GetID() << " Owner:" << GetTopLevelID() << " At:" << (m_Position.objcell_id >> 16);
+		SERVER_ERROR << "Failed to save Weenie:" << id << " Owner:" << GetTopLevelID() << " At:" << (m_Position.objcell_id >> 16);
 
 	double elapsed = watch.GetElapsed();
 	if (elapsed >= 0.1)
@@ -4953,7 +4953,7 @@ DWORD CWeenieObject::GetTopLevelID()
 		}
 		else
 		{
-			SERVER_ERROR << "Could not find parent container weenie" << container_id << "for" << GetID() << "in GetTopLevelID()";
+			SERVER_ERROR << "Could not find parent container weenie" << container_id << "for" << id << "in GetTopLevelID()";
 		}
 	}
 
@@ -4966,7 +4966,7 @@ DWORD CWeenieObject::GetTopLevelID()
 		}
 		else
 		{
-			SERVER_ERROR << "Could not find parent wielder weenie" << wielder_id << "for" << GetID() << "in GetTopLevelID()"; ;
+			SERVER_ERROR << "Could not find parent wielder weenie" << wielder_id << "for" << id << "in GetTopLevelID()"; ;
 		}
 	}
 

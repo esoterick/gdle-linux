@@ -2013,7 +2013,7 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 	DWORD head_object_id;
 
 
-	DEBUG_DATA << "InqDataID (Monster.cpp:2016): " << GetID() << " " "... ";
+	DEBUG_DATA << "InqDataID (Monster.cpp:2016): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
 
 
 	if (m_Qualities.InqDataID(HEAD_OBJECT_DID, head_object_id))
