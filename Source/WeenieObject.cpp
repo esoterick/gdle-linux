@@ -78,9 +78,10 @@ void CWeenieObject::InitPhysicsObj()
 
 	DWORD setupID = 0;
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:81): " << GetID() << " " "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:81): " << id;
 
 	m_Qualities.InqDataID(SETUP_DID, setupID);
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:84): " << id << setupID;
 
 #if 0
 	_phys_obj = CPhysicsObj::makeObject(setupID, GetID(), TRUE);
@@ -156,7 +157,7 @@ void CWeenieObject::InitPhysicsObj()
 	DWORD motionTableDID = 0;
 
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:159): " << GetID() << " " "... ";
+	DEBUG_DATA << "InqDataID (WeenieObject.cpp:159): " << id;
 	if (m_Qualities.InqDataID(MOTION_TABLE_DID, motionTableDID) && motionTableDID)
 	{
 		_phys_obj->SetMotionTableID(motionTableDID);

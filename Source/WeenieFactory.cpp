@@ -77,7 +77,7 @@ DWORD CWeenieFactory::GetScrollSpellForWCID(DWORD wcid)
 			DWORD spell_id = 0;
 
 
-			DEBUG_DATA << "InqDataID (WeenieFactory.cpp:80): " << defaults->m_WCID << " " << defaults->m_Description << "... ";
+			DEBUG_DATA << "InqDataID (WeenieFactory.cpp:80): " << defaults->m_WCID << " " << defaults->m_Description;
 
 			if (defaults->m_Qualities.InqDataID(SPELL_DID, spell_id))
 			{
@@ -129,9 +129,9 @@ std::list<DWORD> CWeenieFactory::GetWCIDsWithMotionTable(DWORD mtable)
 	{
 		DWORD mid = 0;
 
-#ifdef _DEBUG
+
 		DEBUG_DATA << "InqDataID (WeenieFactory.cpp:114): " << entry.second->m_WCID << " " << entry.second->m_Description << "... ";
-#endif
+
 		if (entry.second->m_Qualities.InqDataID(MOTION_TABLE_DID, mid))
 		{
 			if (mtable == mid)
