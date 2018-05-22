@@ -1206,7 +1206,7 @@ void CHookWeenie::UpdateHookedObject(CWeenieObject *hookedItem, bool sendUpdate)
 
 	DWORD value;
 
-	DEBUG_DATA << "InqDataID (House.cpp:1209): " << hookedItem->GetID() << " " "... ";
+	DEBUG_DATA << "InqDataID (House.cpp:1209): " << hookedItem->id << " " "... ";
 
 	if (hookedItem->m_Qualities.InqDataID(SETUP_DID, value))
 	{

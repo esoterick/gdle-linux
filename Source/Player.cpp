@@ -2064,7 +2064,7 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, CWeenie
 			DWORD value = 0;
 
 
-			DEBUG_DATA << "InqDataID (Player.cpp:2067): " << requirementTarget->GetID() << " " "... ";
+			DEBUG_DATA << "InqDataID (Player.cpp:2067): " << requirementTarget->id << " " "... ";
 
 			bool exists = requirementTarget->m_Qualities.InqDataID(dIDRequirement._stat, value);
 

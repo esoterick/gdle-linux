@@ -778,7 +778,7 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 			DWORD skillActivationTypeDID = 0;
 
 
-			DEBUG_DATA << "InqDataID (Monster.cpp:781): " << sourceItem->GetID() << " " "... ";
+			DEBUG_DATA << "InqDataID (Monster.cpp:781): " << sourceItem->id << " " "... ";
 
 
 			if (sourceItem->m_Qualities.InqInt(ITEM_SKILL_LEVEL_LIMIT_INT, difficulty, TRUE, FALSE) && sourceItem->m_Qualities.InqDataID(ITEM_SKILL_LIMIT_DID, skillActivationTypeDID))

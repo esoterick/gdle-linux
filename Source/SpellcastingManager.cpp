@@ -1478,7 +1478,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 				DWORD portalDID = 0;
 
 
-				DEBUG_DATA << "InqDataID (SpellcastingManager.cpp:1482): " << m_pWeenie->GetID() << " " "... ";
+				DEBUG_DATA << "InqDataID (SpellcastingManager.cpp:1482): " << m_pWeenie->id << " " "... ";
 
 
 				if (m_pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_ONE_DID, portalDID) && portalDID != 0)
@@ -1546,7 +1546,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 			{
 				DWORD portalDID = 0;
 
-				DEBUG_DATA << "InqDataID (SpellcastingManager.cpp:1549): " << m_pWeenie->GetID() << " " "... ";
+				DEBUG_DATA << "InqDataID (SpellcastingManager.cpp:1549): " << m_pWeenie->id << " " "... ";
 
 				if (m_pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_TWO_DID, portalDID) && portalDID != 0)
 				{
