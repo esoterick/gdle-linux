@@ -2,7 +2,7 @@
 #include "StdAfx.h"
 #include "Particles.h"
 
-void Particle::Init(CPhysicsObj *pOwner, DWORD ParticleID,
+void Particle::Init(std::shared_ptr<CPhysicsObj> pOwner, DWORD ParticleID,
 	Frame *pFrame, CPhysicsPart *pPart, Vector *Offset,
 	DWORD Info2C, BOOL Persistant,
 	Vector *RandomA, Vector *RandomB, Vector *RandomC,
@@ -181,7 +181,7 @@ void Particle::Update(DWORD Info2C, BOOL Persistant, CPhysicsPart *pPartObj, Fra
 
 BOOL ParticleEmitter::always_use_software_particles = FALSE;
 
-ParticleEmitter::ParticleEmitter(CPhysicsObj *pOwner)
+ParticleEmitter::ParticleEmitter(std::shared_ptr<CPhysicsObj> pOwner)
 	: m_Owner(pOwner), m_08(-1), m_EmitterID(0)
 {
 	m_EmitterObj = NULL;
@@ -242,7 +242,6 @@ void ParticleEmitter::Destroy()
 
 	if (m_EmitterObj)
 	{
-		delete m_EmitterObj;
 		m_EmitterObj = NULL;
 	}
 
@@ -251,7 +250,7 @@ void ParticleEmitter::Destroy()
 	m_90 = Timer::cur_time; // Timer::m_timeCurrent;
 }
 
-ParticleEmitter *ParticleEmitter::makeParticleEmitter(CPhysicsObj *pOwner)
+ParticleEmitter *ParticleEmitter::makeParticleEmitter(std::shared_ptr<CPhysicsObj> pOwner)
 {
 	if (!pOwner)
 		return NULL;
@@ -500,7 +499,7 @@ ParticleManager::~ParticleManager()
 }
 
 DWORD ParticleManager::CreateParticleEmitter
-(CPhysicsObj *pOwner, DWORD a, long b, Frame *c, DWORD EmitterID)
+(std::shared_ptr<CPhysicsObj> pOwner, DWORD a, long b, Frame *c, DWORD EmitterID)
 {
 
 	if (EmitterID)

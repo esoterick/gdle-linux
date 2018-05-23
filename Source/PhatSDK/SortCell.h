@@ -14,7 +14,7 @@ public:
 	void remove_building(CBuildingObj *_object);
 	BOOL has_building();
 
-	CPhysicsObj *get_object(DWORD obj_iid);
+	std::shared_ptr<CPhysicsObj> get_object(DWORD obj_iid);
 
 	virtual TransitionState find_collisions(class CTransition *transit) override;
 	virtual void find_transit_cells(const unsigned int num_parts, CPhysicsPart **parts, CELLARRAY *cell_array) override;

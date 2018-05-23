@@ -3,12 +3,12 @@
 #include "TradeManager.h"
 #include "World.h"
 
-TradeManager* TradeManager::RegisterTrade(CPlayerWeenie * initiator, CPlayerWeenie * partner)
+TradeManager* TradeManager::RegisterTrade(std::shared_ptr<CPlayerWeenie>  initiator, std::shared_ptr<CPlayerWeenie>  partner)
 {
 	return new TradeManager(initiator, partner);
 }
 
-TradeManager::TradeManager(CPlayerWeenie *initiator, CPlayerWeenie *partner)
+TradeManager::TradeManager(std::shared_ptr<CPlayerWeenie> initiator, std::shared_ptr<CPlayerWeenie> partner)
 {
 	_initiator = initiator;
 	_partner = partner;
@@ -32,7 +32,7 @@ TradeManager::TradeManager(CPlayerWeenie *initiator, CPlayerWeenie *partner)
 	ResetTrade(initiator);
 }
 
-void TradeManager::CloseTrade(CPlayerWeenie *playerFrom, DWORD reason)
+void TradeManager::CloseTrade(std::shared_ptr<CPlayerWeenie> playerFrom, DWORD reason)
 {
 	OnCloseTrade(_initiator, reason);
 	OnCloseTrade(_partner, reason);
@@ -40,7 +40,7 @@ void TradeManager::CloseTrade(CPlayerWeenie *playerFrom, DWORD reason)
 	Delete();
 }
 
-void TradeManager::OnCloseTrade(CPlayerWeenie *player, DWORD reason)
+void TradeManager::OnCloseTrade(std::shared_ptr<CPlayerWeenie> player, DWORD reason)
 {
 	if (player)
 	{
@@ -51,12 +51,12 @@ void TradeManager::OnCloseTrade(CPlayerWeenie *player, DWORD reason)
 	}
 }
 
-void TradeManager::AddToTrade(CPlayerWeenie *playerFrom, DWORD item)
+void TradeManager::AddToTrade(std::shared_ptr<CPlayerWeenie> playerFrom, DWORD item)
 {
 	if (!CheckTrade())
 		return;
 
-	CWeenieObject *pItem = g_pWorld->FindWithinPVS(playerFrom, item);
+	std::shared_ptr<CWeenieObject> pItem = g_pWorld->FindWithinPVS(playerFrom, item);
 
 	if (!pItem || pItem->GetWorldTopLevelOwner() != playerFrom || pItem->IsAttunedOrContainsAttuned() || pItem->IsWielded())
 	{
@@ -85,7 +85,7 @@ void TradeManager::AddToTrade(CPlayerWeenie *playerFrom, DWORD item)
 	m_bInitiatorAccepted = false;
 	m_bPartnerAccepted = false;
 
-	CPlayerWeenie *pOther = GetOtherPlayer(playerFrom);
+	std::shared_ptr<CPlayerWeenie> pOther = GetOtherPlayer(playerFrom);
 
 	pOther->MakeAware(pItem, true);
 
@@ -104,7 +104,7 @@ void TradeManager::AddToTrade(CPlayerWeenie *playerFrom, DWORD item)
 	pOther->SendNetMessage(&addToTradeOther, PRIVATE_MSG, TRUE, FALSE);
 }
 
-void TradeManager::AcceptTrade(CPlayerWeenie *playerFrom)
+void TradeManager::AcceptTrade(std::shared_ptr<CPlayerWeenie> playerFrom)
 {
 	if (!CheckTrade())
 		return;
@@ -146,10 +146,10 @@ bool TradeManager::OnTradeAccepted()
 
 	// TODO check if this takes player over 300% burden
 
-	std::list<CWeenieObject*> lpInitiatorItems;
+	std::list<std::shared_ptr<CWeenieObject>> lpInitiatorItems;
 	for (auto it = m_lInitiatorItems.begin(); it != m_lInitiatorItems.end(); ++it)
 	{
-		CWeenieObject *pItem = g_pWorld->FindWithinPVS(_initiator, *it);
+		std::shared_ptr<CWeenieObject> pItem = g_pWorld->FindWithinPVS(_initiator, *it);
 		lpInitiatorItems.push_back(pItem);
 
 		if (!pItem)
@@ -168,10 +168,10 @@ bool TradeManager::OnTradeAccepted()
 		}
 	}
 
-	std::list<CWeenieObject*> lpPartnerItems;
+	std::list<std::shared_ptr<CWeenieObject>> lpPartnerItems;
 	for (auto it = m_lPartnerItems.begin(); it != m_lPartnerItems.end(); ++it)
 	{
-		CWeenieObject *pItem = g_pWorld->FindWithinPVS(_partner, *it);
+		std::shared_ptr<CWeenieObject> pItem = g_pWorld->FindWithinPVS(_partner, *it);
 		lpPartnerItems.push_back(pItem);
 
 		if (!pItem)
@@ -231,7 +231,7 @@ bool TradeManager::OnTradeAccepted()
 	return false;
 }
 
-void TradeManager::DeclineTrade(CPlayerWeenie *playerFrom)
+void TradeManager::DeclineTrade(std::shared_ptr<CPlayerWeenie> playerFrom)
 {
 	if (!CheckTrade())
 		return;
@@ -248,7 +248,7 @@ void TradeManager::DeclineTrade(CPlayerWeenie *playerFrom)
 	GetOtherPlayer(playerFrom)->SendNetMessage(&declineTrade, PRIVATE_MSG, TRUE, FALSE);
 }
 
-void TradeManager::ResetTrade(CPlayerWeenie *playerFrom)
+void TradeManager::ResetTrade(std::shared_ptr<CPlayerWeenie> playerFrom)
 {
 	if (!CheckTrade())
 		return;
@@ -257,7 +257,7 @@ void TradeManager::ResetTrade(CPlayerWeenie *playerFrom)
 	m_lInitiatorItems.clear();
 	m_lPartnerItems.clear();
 
-	CPlayerWeenie *other = GetOtherPlayer(playerFrom);
+	std::shared_ptr<CPlayerWeenie> other = GetOtherPlayer(playerFrom);
 
 	BinaryWriter resetTrade;
 	resetTrade.Write<DWORD>(0x205);
@@ -266,7 +266,7 @@ void TradeManager::ResetTrade(CPlayerWeenie *playerFrom)
 	GetOtherPlayer(playerFrom)->SendNetMessage(&resetTrade, PRIVATE_MSG, TRUE, FALSE);
 }
 
-CPlayerWeenie* TradeManager::GetOtherPlayer(CPlayerWeenie *player)
+std::shared_ptr<CPlayerWeenie> TradeManager::GetOtherPlayer(std::shared_ptr<CPlayerWeenie> player)
 {
 	if (player == _initiator)
 		return _partner;

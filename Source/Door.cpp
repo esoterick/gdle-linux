@@ -113,7 +113,7 @@ int CBaseDoor::Activate(DWORD activator_id)
 	return WERROR_NONE;
 }
 
-int CBaseDoor::Use(CPlayerWeenie *pOther)
+int CBaseDoor::Use(std::shared_ptr<CPlayerWeenie> pOther)
 {
 	CActivationUseEvent *useEvent = new CActivationUseEvent();
 	useEvent->_target_id = GetID();

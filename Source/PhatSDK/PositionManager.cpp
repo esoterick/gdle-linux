@@ -3,7 +3,7 @@
 #include "PhatSDK.h"
 #include "PositionManager.h"
 
-PositionManager::PositionManager(CPhysicsObj *_physics_obj)
+PositionManager::PositionManager(std::shared_ptr<CPhysicsObj> _physics_obj)
 {
 	interpolation_manager = 0;
 	sticky_manager = 0;
@@ -30,12 +30,12 @@ void PositionManager::Destroy()
 		delete constraint_manager;
 }
 
-PositionManager *PositionManager::Create(CPhysicsObj *_physics_obj)
+PositionManager *PositionManager::Create(std::shared_ptr<CPhysicsObj> _physics_obj)
 {
 	return new PositionManager(_physics_obj);
 }
 
-void PositionManager::SetPhysicsObject(CPhysicsObj *_physics_obj)
+void PositionManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> _physics_obj)
 {
 	physics_obj = _physics_obj;
 	if (interpolation_manager)
@@ -138,7 +138,7 @@ void PositionManager::InterpolateTo(Position *p, int keep_heading)
 
 const float BIG_DISTANCE = 999999.0;
 
-InterpolationManager::InterpolationManager(CPhysicsObj *new_physobj)
+InterpolationManager::InterpolationManager(std::shared_ptr<CPhysicsObj> new_physobj)
 {
 	original_distance = BIG_DISTANCE;
 	frame_counter = 0;
@@ -157,7 +157,7 @@ void InterpolationManager::Destroy()
 	position_queue.clear();
 }
 
-InterpolationManager *InterpolationManager::Create(CPhysicsObj *_physics_obj)
+InterpolationManager *InterpolationManager::Create(std::shared_ptr<CPhysicsObj> _physics_obj)
 {
 	return new InterpolationManager(_physics_obj);
 }
@@ -477,12 +477,12 @@ BOOL InterpolationManager::IsInterpolating()
 	return !position_queue.empty();
 }
 
-void InterpolationManager::SetPhysicsObject(CPhysicsObj *new_physobj)
+void InterpolationManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> new_physobj)
 {
 	physics_obj = new_physobj;
 }
 
-StickyManager::StickyManager(CPhysicsObj *_physics_obj)
+StickyManager::StickyManager(std::shared_ptr<CPhysicsObj> _physics_obj)
 {
 	target_id = 0;
 	target_radius = 0;
@@ -507,12 +507,12 @@ void StickyManager::Destroy()
 	initialized = 0;
 }
 
-StickyManager *StickyManager::Create(CPhysicsObj *_physics_obj)
+StickyManager *StickyManager::Create(std::shared_ptr<CPhysicsObj> _physics_obj)
 {
 	return new StickyManager(_physics_obj);
 }
 
-void StickyManager::SetPhysicsObject(CPhysicsObj *new_physobj)
+void StickyManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> new_physobj)
 {
 	if (physics_obj)
 	{
@@ -578,7 +578,7 @@ void StickyManager::adjust_offset(Frame *offset, double quantum)
 {
 	if (target_id && initialized)
 	{
-		CPhysicsObj *target = CPhysicsObj::GetObject(target_id);
+		std::shared_ptr<CPhysicsObj> target = CPhysicsObj::GetObject(target_id);
 		Position *targetPosition = target ? &target->m_Position : &target_position;
 
 		offset->m_origin = physics_obj->m_Position.get_offset(*targetPosition);
@@ -634,7 +634,7 @@ void StickyManager::UseTime()
 	}
 }
 
-ConstraintManager::ConstraintManager(CPhysicsObj *physobj)
+ConstraintManager::ConstraintManager(std::shared_ptr<CPhysicsObj> physobj)
 {
 	physics_obj = 0;
 	is_constrained = 0;
@@ -649,12 +649,12 @@ ConstraintManager::~ConstraintManager()
 {
 }
 
-ConstraintManager *ConstraintManager::Create(CPhysicsObj *physobj)
+ConstraintManager *ConstraintManager::Create(std::shared_ptr<CPhysicsObj> physobj)
 {
 	return new ConstraintManager(physobj);
 }
 
-void ConstraintManager::SetPhysicsObject(CPhysicsObj *new_physobj)
+void ConstraintManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> new_physobj)
 {
 	if (physics_obj)
 	{

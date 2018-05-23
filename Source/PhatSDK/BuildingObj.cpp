@@ -62,7 +62,7 @@ void CBuildingObj::remove()
 	cell = NULL;
 }
 
-CPhysicsObj *CBuildingObj::get_object(DWORD obj_iid)
+std::shared_ptr<CPhysicsObj> CBuildingObj::get_object(DWORD obj_iid)
 {
 	PackableHashTable<unsigned long, int> visited_cells;
 
@@ -75,7 +75,7 @@ CPhysicsObj *CBuildingObj::get_object(DWORD obj_iid)
 				CEnvCell *pOtherCell = portals[i]->GetOtherCell();
 				if (pOtherCell)
 				{
-					CPhysicsObj *pObject = pOtherCell->recursively_get_object(obj_iid, &visited_cells);
+					std::shared_ptr<CPhysicsObj> pObject = pOtherCell->recursively_get_object(obj_iid, &visited_cells);
 					if (pObject)
 					{
 						return pObject;

@@ -9,13 +9,13 @@ public:
 	CTownCrier();
 	virtual ~CTownCrier() override;
 
-	virtual class CTownCrier *AsTownCrier() { return this; }
+	virtual class std::shared_ptr<CTownCrier> AsTownCrier() { return std::dynamic_pointer_cast<CTownCrier>(m_spThis.lock()); }
 
-	virtual int DoUseResponse(CWeenieObject *player) override;
-	virtual int Use(CPlayerWeenie *other) override;
+	virtual int DoUseResponse(std::shared_ptr<CWeenieObject> player) override;
+	virtual int Use(std::shared_ptr<CPlayerWeenie> other) override;
 	virtual void HandleMoveToDone(DWORD error) override;
 
-	virtual DWORD OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot) override;
+	virtual DWORD OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> item, DWORD desired_slot) override;
 
 	std::string GetNewsText(bool paid);
 };

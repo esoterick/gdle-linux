@@ -29,7 +29,7 @@ const CSpellBase *CScrollWeenie::GetSpellBase()
 	return NULL;
 }
 
-int CScrollWeenie::Use(CPlayerWeenie *player)
+int CScrollWeenie::Use(std::shared_ptr<CPlayerWeenie> player)
 {
 	const CSpellBase *spell = GetSpellBase();
 
@@ -92,7 +92,7 @@ void CScrollUseEvent::OnReadyToUse()
 
 void CScrollUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 
 	if (target)
 	{

@@ -86,10 +86,10 @@ BOOL CSpellProjectile::DoCollision(const class EnvCollisionProfile &prof)
 
 BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 {
-	CWeenieObject *pHit = g_pWorld->FindWithinPVS(this, prof.id);
+	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(m_spThis.lock(), prof.id);
 	if (pHit && (!m_TargetID || m_TargetID == pHit->GetID()) && (pHit->GetID() != m_SourceID))
 	{
-		CWeenieObject *pSource = NULL;
+		std::shared_ptr<CWeenieObject> pSource = NULL;
 		if (m_SourceID)
 			pSource = g_pWorld->FindObject(m_SourceID);
 
@@ -130,7 +130,7 @@ BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 
 			if (!bResisted)
 			{
-				CWeenieObject *wand = g_pWorld->FindObject(m_CachedSpellCastData.wand_id);
+				std::shared_ptr<CWeenieObject> wand = g_pWorld->FindObject(m_CachedSpellCastData.wand_id);
 
 				int preVarianceDamage;
 				double baseDamage;
@@ -176,10 +176,13 @@ BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 
 				pHit->TryToDealDamage(dmgEvent);
 
-				if (pSource && pSource->AsPlayer())
+				if (pSource)
 				{
-					// update the target's health on the casting player asap
-					((CPlayerWeenie*)pSource)->RefreshTargetHealth();
+					if (std::shared_ptr<CPlayerWeenie> pPlayer = pSource->AsPlayer())
+					{
+						// update the target's health on the casting player asap
+						pPlayer->RefreshTargetHealth();
+					}
 				}
 			}
 		}

@@ -15,7 +15,7 @@ CBindStone::~CBindStone()
 {
 }
 
-int CBindStone::Use(CPlayerWeenie *pOther)
+int CBindStone::Use(std::shared_ptr<CPlayerWeenie> pOther)
 {
 	CGenericUseEvent *useEvent = new CGenericUseEvent;
 	useEvent->_target_id = GetID();
@@ -25,7 +25,7 @@ int CBindStone::Use(CPlayerWeenie *pOther)
 	return WERROR_NONE;
 }
 
-int CBindStone::DoUseResponse(CWeenieObject *player)
+int CBindStone::DoUseResponse(std::shared_ptr<CWeenieObject> player)
 {
 	DWORD playerId = player->GetID();
 	AllegianceTreeNode *allegianceNode = g_pAllegianceManager->GetTreeNode(playerId);

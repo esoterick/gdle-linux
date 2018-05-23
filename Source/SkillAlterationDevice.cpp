@@ -13,7 +13,7 @@ CSkillAlterationDeviceWeenie::~CSkillAlterationDeviceWeenie()
 {
 }
 
-int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
+int CSkillAlterationDeviceWeenie::Use(std::shared_ptr<CPlayerWeenie> player)
 {
 	if (!player->FindContainedItem(GetID()))
 	{

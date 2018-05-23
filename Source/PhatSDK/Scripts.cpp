@@ -12,7 +12,7 @@ BOOL ScriptAndModData::UnPack(BYTE **ppData, ULONG iSize)
     return TRUE;
 }
 
-ScriptManager::ScriptManager(CPhysicsObj *pObject)
+ScriptManager::ScriptManager(std::shared_ptr<CPhysicsObj> pObject)
 {
     m_pOwner = pObject;
 

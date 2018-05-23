@@ -23,9 +23,9 @@ BOOL CSortCell::has_building()
 	return (building != NULL);
 }
 
-CPhysicsObj *CSortCell::get_object(DWORD obj_iid)
+std::shared_ptr<CPhysicsObj> CSortCell::get_object(DWORD obj_iid)
 {
-	CPhysicsObj *result = CObjCell::get_object(obj_iid);
+	std::shared_ptr<CPhysicsObj> result = CObjCell::get_object(obj_iid);
 
 	if (!result)
 	{

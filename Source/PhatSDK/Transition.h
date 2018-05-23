@@ -51,14 +51,14 @@ struct OBJECTINFO
 
 	OBJECTINFO();
 
-	void init(CPhysicsObj *object, int object_state);
-	int missile_ignore(CPhysicsObj *collideobject);
+	void init(std::shared_ptr<CPhysicsObj> object, int object_state);
+	int missile_ignore(std::shared_ptr<CPhysicsObj> collideobject);
 	float get_walkable_z();
 	void kill_velocity();
 	BOOL is_valid_walkable(Vector *normal);
 	TransitionState validate_walkable(CSphere *check_pos, Plane *contact_plane, const int is_water, const float water_depth, SPHEREPATH *path, COLLISIONINFO *collisions, unsigned int land_cell_id);
 
-	CPhysicsObj *object; // 0
+	std::shared_ptr<CPhysicsObj> object; // 0
 	int state; // 4
 	float scale; // 8
 	float step_up_height; // 0xC
@@ -162,7 +162,7 @@ struct COLLISIONINFO
 	COLLISIONINFO();
 
 	void init();
-	void add_object(CPhysicsObj *object, TransitionState ts);
+	void add_object(std::shared_ptr<CPhysicsObj> object, TransitionState ts);
 	void set_contact_plane(Plane *plane, int is_water);
 	void set_collision_normal(const Vector &normal);
 	void set_sliding_normal(Vector *normal);
@@ -181,8 +181,8 @@ struct COLLISIONINFO
 	Vector collision_normal; // 0x4C
 	Vector adjust_offset; // 0x58
 	unsigned int num_collide_object = 0; // 0x64
-	DArray<CPhysicsObj const *> collide_object; // 0x68 (0x270+0x68=0x2D8)
-	CPhysicsObj *last_collided_object = NULL; // 0x78
+	DArray<std::shared_ptr<CPhysicsObj>> collide_object; // 0x68 (0x270+0x68=0x2D8)
+	std::shared_ptr<CPhysicsObj> last_collided_object = NULL; // 0x78
 	int collided_with_environment = 0; // 0x7C
 	int frames_stationary_fall = 0; // 0x80
 };
@@ -216,11 +216,11 @@ public:
 	CTransition();
 
 	void init();
-	void init_object(CPhysicsObj *object, int object_state);
+	void init_object(std::shared_ptr<CPhysicsObj> object, int object_state);
 	void init_sphere(unsigned int num_sphere, CSphere *sphere, const float scale);
 	void init_path(CObjCell *begin_cell, Position *begin_pos, Position *end_pos);
 
-	int check_collisions(CPhysicsObj *object);
+	int check_collisions(std::shared_ptr<CPhysicsObj> object);
 	void init_contact_plane(unsigned int cell_id, Plane *plane, int is_water);
 	void init_last_known_contact_plane(unsigned int cell_id, Plane *plane, int is_water);
 	void init_sliding_normal(Vector *normal);

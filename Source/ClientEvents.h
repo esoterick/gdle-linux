@@ -23,7 +23,7 @@ public:
 
 	void DetachPlayer();
 	DWORD GetPlayerID();
-	CPlayerWeenie* GetPlayer();
+	std::shared_ptr<CPlayerWeenie> GetPlayer();
 
 	void LoginError(int iError);
 	void LoginCharacter(DWORD dwGUID, const char *szAccount);
@@ -120,7 +120,7 @@ public:
 private:
 	CClient *m_pClient;
 
-	CPlayerWeenie *m_pPlayer;
+	std::shared_ptr<CPlayerWeenie> m_pPlayer;
 
 	WORD m_MoveActionStamp = 0xFFFF;
 

@@ -49,7 +49,7 @@ void MotionTableManager::UseTime()
 	CheckForCompletedMotions();
 }
 
-void MotionTableManager::SetPhysicsObject(CPhysicsObj *pPhysicsObj)
+void MotionTableManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> pPhysicsObj)
 {
 	physics_obj = pPhysicsObj;
 }

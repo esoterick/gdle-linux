@@ -10,7 +10,7 @@ public:
 	CSpellProjectile(const SpellCastData &scd, DWORD target_id);//, unsigned int damage);
 	virtual ~CSpellProjectile();
 
-	virtual class CSpellProjectile *AsSpellProjectile() { return this; }
+	virtual class std::shared_ptr<CSpellProjectile> AsSpellProjectile() { return std::dynamic_pointer_cast<CSpellProjectile>(m_spThis.lock()); }
 
 	virtual void Tick() override;
 	virtual void PostSpawn() override;

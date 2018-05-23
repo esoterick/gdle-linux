@@ -7,10 +7,10 @@ public:
 	CBaseDoor();
 	virtual ~CBaseDoor() override;
 	
-	virtual class CBaseDoor *AsDoor() { return this; }
+	virtual class std::shared_ptr<CBaseDoor> AsDoor() { return std::dynamic_pointer_cast<CBaseDoor>(m_spThis.lock()); }
 
 	virtual int Activate(DWORD activator_id) override;
-	virtual int Use(CPlayerWeenie *) override;
+	virtual int Use(std::shared_ptr<CPlayerWeenie> ) override;
 
 	virtual void PostSpawn() override;
 	virtual void ResetToInitialState() override;

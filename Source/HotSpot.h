@@ -9,7 +9,7 @@ public:
 	CHotSpotWeenie();
 	virtual ~CHotSpotWeenie() override;
 
-	virtual class CHotSpotWeenie *AsHotSpot() { return this; }
+	virtual class std::shared_ptr<CHotSpotWeenie> AsHotSpot() { return std::dynamic_pointer_cast<CHotSpotWeenie>(m_spThis.lock()); }
 
 	virtual void ApplyQualityOverrides() override;
 	virtual void Tick() override;
@@ -21,7 +21,7 @@ public:
 protected:
 	void SetNextCycleTime();
 	void DoCycle();
-	void DoCycleDamage(CWeenieObject *other);
+	void DoCycleDamage(std::shared_ptr<CWeenieObject> other);
 
 	double m_fNextCycleTime = 0.0;
 	std::set<DWORD> m_ContactedWeenies;

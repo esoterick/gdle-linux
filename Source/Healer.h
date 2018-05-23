@@ -16,10 +16,10 @@ public:
 	CHealerWeenie();
 	virtual ~CHealerWeenie() override;
 
-	virtual class CHealerWeenie *AsHealer() { return this; }
+	virtual class std::shared_ptr<CHealerWeenie> AsHealer() { return std::dynamic_pointer_cast<CHealerWeenie>(m_spThis.lock()); }
 
 	virtual void ApplyQualityOverrides() override;
-	virtual int UseWith(CPlayerWeenie *player, CWeenieObject *with) override;
+	virtual int UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared_ptr<CWeenieObject> with) override;
 
 protected:
 };

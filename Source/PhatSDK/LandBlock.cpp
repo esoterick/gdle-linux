@@ -60,7 +60,7 @@ void CLandBlock::Release(CLandBlock *pLandBlock)
 	}
 }
 
-void CLandBlock::add_static_object(CPhysicsObj *pObject)
+void CLandBlock::add_static_object(std::shared_ptr<CPhysicsObj> pObject)
 {
 	if (num_static_objects >= static_objects.alloc_size)
 		static_objects.grow(static_objects.alloc_size + 40);
@@ -75,7 +75,7 @@ void CLandBlock::destroy_static_objects(void)
 		if (static_objects.array_data[i])
 		{
 			static_objects.array_data[i]->leave_world();
-			delete static_objects.array_data[i];
+			static_objects.array_data[i] = NULL;
 		}
 	}
 
@@ -224,7 +224,7 @@ void CLandBlock::adjust_scene_obj_height()
 
 	while (num_lbi_objects < num_static_objects)
 	{
-		CPhysicsObj *static_obj = static_objects.data[num_lbi_objects];
+		std::shared_ptr<CPhysicsObj> static_obj = static_objects.data[num_lbi_objects];
 		if (static_obj)
 		{
 			Frame obj_frame = static_obj->m_Position.frame;
@@ -262,7 +262,7 @@ void CLandBlock::init_static_objs(LongNIValHash<unsigned long> *hash)
 
 			for (DWORD i = 0; i < num_static_objects; i++)
 			{
-				CPhysicsObj *static_obj = static_objects.data[i];
+				std::shared_ptr<CPhysicsObj> static_obj = static_objects.data[i];
 				if (static_obj && !static_obj->is_completely_visible())
 				{
 					static_obj->calc_cross_cells_static();
@@ -275,7 +275,7 @@ void CLandBlock::init_static_objs(LongNIValHash<unsigned long> *hash)
 			{
 				for (DWORD i = 0; i < lbi->num_objects; i++)
 				{
-					CPhysicsObj *static_obj = CPhysicsObj::makeObject(lbi->object_ids[i], 0, 0);
+					std::shared_ptr<CPhysicsObj> static_obj = CPhysicsObj::makeObject(lbi->object_ids[i], 0, 0);
 					if (static_obj)
 					{
 						Position p;
@@ -291,10 +291,6 @@ void CLandBlock::init_static_objs(LongNIValHash<unsigned long> *hash)
 						{
 							static_obj->add_obj_to_cell(pLandCell, &lbi->object_frames[i]);
 							add_static_object(static_obj);
-						}
-						else
-						{
-							delete static_obj;
 						}
 					}
 				}

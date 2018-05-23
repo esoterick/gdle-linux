@@ -14,7 +14,7 @@ public:
 class TargetManager
 {
 public:
-	TargetManager(CPhysicsObj *object);
+	TargetManager(std::shared_ptr<CPhysicsObj> object);
 	~TargetManager();
 
 	void SetTargetQuantum(double new_quantum);
@@ -29,7 +29,7 @@ public:
 	void GetInterpolatedPosition(double quantum, Position *p);
 	void NotifyVoyeurOfEvent(TargetStatus _event);
 
-	CPhysicsObj *physobj;
+	std::shared_ptr<CPhysicsObj> physobj;
 	TargetInfo *target_info;
 	LongNIHash<TargettedVoyeurInfo> *voyeur_table;
 	long double last_update_time;	

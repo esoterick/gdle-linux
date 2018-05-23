@@ -11,7 +11,7 @@ public:
 
 	static CBuildingObj *makeBuilding(DWORD data_id, unsigned int _num_portals, class CBldPortal **_portals, unsigned int _num_leaves);
 
-	CPhysicsObj *get_object(DWORD obj_iid);
+	std::shared_ptr<CPhysicsObj> get_object(DWORD obj_iid);
 	void remove();
 
 	void add_to_cell(class CSortCell *new_cell);

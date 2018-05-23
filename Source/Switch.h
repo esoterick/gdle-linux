@@ -9,12 +9,12 @@ public:
 	CSwitchWeenie();
 	virtual ~CSwitchWeenie() override;
 
-	virtual class CSwitchWeenie *AsSwitch() { return this; }
+	virtual class std::shared_ptr<CSwitchWeenie> AsSwitch() { return std::dynamic_pointer_cast<CSwitchWeenie>(m_spThis.lock()); }
 
 	virtual void ApplyQualityOverrides() override;
 
 	virtual int Activate(DWORD activator_id) override;
-	virtual int Use(CPlayerWeenie *) override;
+	virtual int Use(std::shared_ptr<CPlayerWeenie> ) override;
 
 	void PlaySwitchMotion();
 

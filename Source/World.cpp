@@ -324,12 +324,12 @@ CWorldLandBlock *CWorld::ActivateBlock(WORD wHeader)
 	return pBlock;
 }
 
-bool CWorld::CreateEntity(CWeenieObject *pEntity, bool bMakeAware)
+bool CWorld::CreateEntity(std::shared_ptr<CWeenieObject> pEntity, bool bMakeAware)
 {
 	if (!pEntity)
 		return false;
 
-	CWeenieObject *pExistingWeenie = FindObject(pEntity->GetID());
+	std::shared_ptr<CWeenieObject> pExistingWeenie = FindObject(pEntity->GetID());
 	if (pExistingWeenie)
 	{
 		if (pExistingWeenie == pEntity)
@@ -343,10 +343,12 @@ bool CWorld::CreateEntity(CWeenieObject *pEntity, bool bMakeAware)
 
 			if (pExistingWeenie->IsContained())
 			{
-				CContainerWeenie *pContainer = (CContainerWeenie*)FindObject(pExistingWeenie->GetContainerID());
+				std::shared_ptr<CWeenieObject> pObj = FindObject(pExistingWeenie->GetContainerID());
 
-				if (pContainer && pContainer->AsCorpse())
+				if (pObj && pObj->AsCorpse())
 				{
+					// if it can be a corpse, it must be a container
+					std::shared_ptr<CContainerWeenie> pContainer = pObj->AsContainer();
 					// The dupe is in a corpse!
 					// Let's assume the corpse was already recovered.
 
@@ -360,13 +362,11 @@ bool CWorld::CreateEntity(CWeenieObject *pEntity, bool bMakeAware)
 				}
 				else
 				{
-					delete pEntity;
 					return false;
 				}
 			}
 			else
 			{
-				delete pEntity;
 				return false;
 			}
 		}
@@ -453,7 +453,7 @@ bool CWorld::CreateEntity(CWeenieObject *pEntity, bool bMakeAware)
 	}
 
 #ifdef _DEBUG
-	DEBUG_DATA << "Spawned ID" << pEntity->GetID() << "- " << pEntity->GetName().c_str() << "memory object @" << (DWORD64)pEntity;
+	DEBUG_DATA << "Spawned ID" << pEntity->GetID() << "- " << pEntity->GetName().c_str() << "memory object @" << (DWORD64)&*pEntity;
 #endif
 
 	return true;
@@ -497,7 +497,7 @@ TeleTownList_s CWorld::GetTeleportLocation(std::string location)
 	return val;
 }
 
-void CWorld::InsertEntity(CWeenieObject *pEntity, BOOL bSilent)
+void CWorld::InsertEntity(std::shared_ptr<CWeenieObject> pEntity, BOOL bSilent)
 {
 	DWORD cell_id = pEntity->GetLandcell();
 
@@ -526,7 +526,7 @@ void CWorld::InsertEntity(CWeenieObject *pEntity, BOOL bSilent)
 	m_mAllObjects[pEntity->GetID()] = pEntity;
 }
 
-void CWorld::JuggleEntity(WORD wOld, CWeenieObject* pEntity)
+void CWorld::JuggleEntity(WORD wOld, std::shared_ptr<CWeenieObject> pEntity)
 {
 	if (!pEntity->HasOwner())
 	{
@@ -564,12 +564,10 @@ void CWorld::JuggleEntity(WORD wOld, CWeenieObject* pEntity)
 
 			if (DWORD generator_id = pEntity->InqIIDQuality(GENERATOR_IID, 0))
 			{
-				CWeenieObject *target = g_pWorld->FindObject(generator_id);
+				std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(generator_id);
 				if (target)
 					target->NotifyGeneratedDeath(pEntity);
 			}
-
-			DELETE_ENTITY(pEntity);
 		}
 	}
 }
@@ -584,7 +582,7 @@ DWORD CWorld::GetNumPlayers()
 	return (DWORD)m_mAllPlayers.size();
 }
 
-CWeenieObject *CWorld::FindObject(DWORD object_id, bool allowLandblockActivation)
+std::shared_ptr<CWeenieObject> CWorld::FindObject(DWORD object_id, bool allowLandblockActivation)
 {
 	if (!object_id)
 		return NULL;
@@ -596,7 +594,7 @@ CWeenieObject *CWorld::FindObject(DWORD object_id, bool allowLandblockActivation
 		if (!g_pDBIO->IsWeenieInDatabase(object_id))
 			return NULL; //not in the database either
 
-		CWeenieObject *weenie = CWeenieObject::Load(object_id);
+		std::shared_ptr<CWeenieObject> weenie = CWeenieObject::Load(object_id);
 		if (!weenie)
 			return NULL;
 
@@ -622,7 +620,6 @@ CWeenieObject *CWorld::FindObject(DWORD object_id, bool allowLandblockActivation
 				}
 			}
 		}
-		delete weenie;
 	}
 	
 	if(result == m_mAllObjects.end())
@@ -644,7 +641,7 @@ bool CWorld::FindObjectName(DWORD object_id, std::string &name)
 //==================================================
 //Global, player search by GUID.
 //==================================================
-CPlayerWeenie *CWorld::FindPlayer(DWORD dwGUID)
+std::shared_ptr<CPlayerWeenie> CWorld::FindPlayer(DWORD dwGUID)
 {
 	PlayerWeenieMap::iterator result = m_mAllPlayers.find(dwGUID);
 
@@ -656,7 +653,7 @@ CPlayerWeenie *CWorld::FindPlayer(DWORD dwGUID)
 
 std::string CWorld::GetPlayerName(DWORD playerId, bool allowOffline)
 {
-	CPlayerWeenie *player = FindPlayer(playerId);
+	std::shared_ptr<CPlayerWeenie> player = FindPlayer(playerId);
 
 	if (player)
 		return player->GetName();
@@ -672,7 +669,7 @@ DWORD CWorld::GetPlayerId(const char *name, bool allowOffline)
 	if (*name == '+')
 		name++;
 
-	CPlayerWeenie *player = FindPlayer(name);
+	std::shared_ptr<CPlayerWeenie> player = FindPlayer(name);
 
 	if (player)
 		return player->GetID();
@@ -686,14 +683,14 @@ DWORD CWorld::GetPlayerId(const char *name, bool allowOffline)
 //==================================================
 //Global, case insensitive player name search.
 //==================================================
-CPlayerWeenie *CWorld::FindPlayer(const char *target_name)
+std::shared_ptr<CPlayerWeenie> CWorld::FindPlayer(const char *target_name)
 {
 	if (*target_name == '+')
 		target_name++;
 
 	for (auto entry : m_mAllPlayers)
 	{
-		CPlayerWeenie *player = entry.second;
+		std::shared_ptr<CPlayerWeenie> player = entry.second;
 
 		if (player)
 		{
@@ -729,12 +726,12 @@ void CWorld::SendNetMessage(CNetDeliveryTargets *target, void *data, DWORD len, 
 	}
 }
 
-void CWorld::BroadcastPVS(CPhysicsObj *physobj, void *_data, DWORD _len, WORD _group, DWORD ignore_ent, BOOL _game_event)
+void CWorld::BroadcastPVS(std::shared_ptr<CPhysicsObj> physobj, void *_data, DWORD _len, WORD _group, DWORD ignore_ent, BOOL _game_event)
 {
 	if (!physobj)
 		return;
 
-	CPhysicsObj *topLevel = physobj->parent ? physobj->parent : physobj;
+	std::shared_ptr<CPhysicsObj> topLevel = physobj->parent ? physobj->parent : physobj;
 
 	DWORD cell_id;
 
@@ -748,7 +745,7 @@ void CWorld::BroadcastPVS(CPhysicsObj *physobj, void *_data, DWORD _len, WORD _g
 	}
 }
 
-void CWorld::BroadcastPVS(CWeenieObject *weenie, void *_data, DWORD _len, WORD _group, DWORD ignore_ent, BOOL _game_event)
+void CWorld::BroadcastPVS(std::shared_ptr<CWeenieObject> weenie, void *_data, DWORD _len, WORD _group, DWORD ignore_ent, BOOL _game_event)
 {
 	if (!weenie)
 		return;
@@ -759,7 +756,7 @@ void CWorld::BroadcastPVS(CWeenieObject *weenie, void *_data, DWORD _len, WORD _
 		DWORD topLevelID = weenie->GetTopLevelID();
 		if (topLevelID != weenie->GetID() && ignore_ent != topLevelID)
 		{
-			CWeenieObject *owner = FindObject(topLevelID);
+			std::shared_ptr<CWeenieObject> owner = FindObject(topLevelID);
 
 			if (owner)
 			{
@@ -767,7 +764,7 @@ void CWorld::BroadcastPVS(CWeenieObject *weenie, void *_data, DWORD _len, WORD _
 
 				if (owner->AsContainer() != NULL && owner->AsContainer()->_openedById != 0)
 				{
-					CWeenieObject *openedBy = FindObject(owner->AsContainer()->_openedById);
+					std::shared_ptr<CWeenieObject> openedBy = FindObject(owner->AsContainer()->_openedById);
 
 					if(openedBy)
 						openedBy->SendNetMessage(_data, _len, _group, _game_event);
@@ -777,7 +774,7 @@ void CWorld::BroadcastPVS(CWeenieObject *weenie, void *_data, DWORD _len, WORD _
 	}
 	else
 	{
-		BroadcastPVS((CPhysicsObj *)weenie, _data, _len, _group, ignore_ent, _game_event);
+		BroadcastPVS((std::shared_ptr<CPhysicsObj> )weenie, _data, _len, _group, ignore_ent, _game_event);
 	}
 }
 
@@ -850,7 +847,7 @@ void CWorld::BroadcastGlobal(void *_data, DWORD _len, WORD _group, DWORD ignore_
 {
 	for (auto &playerEntry : m_mAllPlayers)
 	{
-		if (CPlayerWeenie *pPlayer = playerEntry.second)
+		if (std::shared_ptr<CPlayerWeenie> pPlayer = playerEntry.second)
 		{
 			if (!ignore_ent || (pPlayer->GetID() != ignore_ent))
 			{
@@ -876,7 +873,7 @@ void CWorld::Test()
 	WINLOG(Temp, Normal, "%u players:\n", m_mAllPlayers.size());
 	for (PlayerWeenieMap::iterator pit = m_mAllPlayers.begin(); pit != m_mAllPlayers.end(); pit++)
 	{
-		CPlayerWeenie *pPlayer = pit->second;
+		std::shared_ptr<CPlayerWeenie> pPlayer = pit->second;
 		WINLOG(Temp, Normal, "%08X %s\n", pPlayer->GetID(), pPlayer->GetName().c_str());
 	}
 	WINLOG(Temp, Normal, "%u active blocks:\n", m_vBlocks.size());
@@ -901,7 +898,7 @@ void CWorld::Test()
 	WINLOG(Temp, Normal, "</CWorld::Test()>\n");
 }
 
-void CWorld::RemoveEntity(CWeenieObject *pEntity)
+void CWorld::RemoveEntity(std::shared_ptr<CWeenieObject> pEntity)
 {
 	if (!pEntity)
 		return;
@@ -930,12 +927,10 @@ void CWorld::RemoveEntity(CWeenieObject *pEntity)
 
 		if (DWORD generator_id = pEntity->InqIIDQuality(GENERATOR_IID, 0))
 		{
-			CWeenieObject *target = g_pWorld->FindObject(generator_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(generator_id);
 			if (target)
 				target->NotifyGeneratedDeath(pEntity);
 		}
-
-		DELETE_ENTITY(pEntity);
 	}
 	else
 	{
@@ -943,7 +938,7 @@ void CWorld::RemoveEntity(CWeenieObject *pEntity)
 	}
 }
 
-void CWorld::EnsureRemoved(CWeenieObject *pEntity)
+void CWorld::EnsureRemoved(std::shared_ptr<CWeenieObject> pEntity)
 {
 	m_mAllPlayers.erase(pEntity->GetID());
 	m_mAllObjects.erase(pEntity->GetID());
@@ -1063,7 +1058,7 @@ void CWorld::Think()
 
 		double totalElapsed = measureBlocks.GetElapsed();
 
-		CPlayerWeenie *player = FindPlayer(m_SendPerformanceInfoToPlayer);
+		std::shared_ptr<CPlayerWeenie> player = FindPlayer(m_SendPerformanceInfoToPlayer);
 		if (player)
 		{
 			player->SendText(csprintf("FrameTime: %f", totalElapsed), LTT_DEFAULT);
@@ -1131,7 +1126,7 @@ void CWorld::SetNewGameMode(CGameMode *pGameMode)
 	m_pGameMode = pGameMode;
 }
 
-void CWorld::EnumNearby(const Position &position, float fRange, std::list<CWeenieObject *> *pResults)
+void CWorld::EnumNearby(const Position &position, float fRange, std::list<std::shared_ptr<CWeenieObject> > *pResults)
 {
 	// Enumerate nearby world objects
 	DWORD dwCell = position.objcell_id;
@@ -1181,7 +1176,7 @@ void CWorld::EnumNearby(const Position &position, float fRange, std::list<CWeeni
 }
 
 
-void CWorld::EnumNearbyPlayers(const Position &position, float fRange, std::list<CWeenieObject *> *pResults)
+void CWorld::EnumNearbyPlayers(const Position &position, float fRange, std::list<std::shared_ptr<CWeenieObject> > *pResults)
 {
 	// Enumerate nearby world objects
 	DWORD dwCell = position.objcell_id;
@@ -1256,7 +1251,7 @@ void CWorld::EnsureBlockIsTicking(CWorldLandBlock *pBlock)
 	}
 }
 
-void CWorld::EnumNearby(CWeenieObject *pSource, float fRange, std::list<CWeenieObject *> *pResults)
+void CWorld::EnumNearby(std::shared_ptr<CWeenieObject> pSource, float fRange, std::list<std::shared_ptr<CWeenieObject> > *pResults)
 {
 	// Enumerate nearby world objects
 	if (pSource != NULL && !pSource->HasOwner())
@@ -1308,7 +1303,7 @@ void CWorld::EnumNearby(CWeenieObject *pSource, float fRange, std::list<CWeenieO
 	}
 }
 
-void CWorld::EnumNearbyPlayers(CWeenieObject *pSource, float fRange, std::list<CWeenieObject *> *pResults)
+void CWorld::EnumNearbyPlayers(std::shared_ptr<CWeenieObject> pSource, float fRange, std::list<std::shared_ptr<CWeenieObject> > *pResults)
 {
 	// Enumerate nearby world objects
 	if (pSource != NULL && !pSource->HasOwner())
@@ -1360,7 +1355,7 @@ void CWorld::EnumNearbyPlayers(CWeenieObject *pSource, float fRange, std::list<C
 	}
 }
 
-CWeenieObject *CWorld::FindWithinPVS(CWeenieObject *source, DWORD object_id)
+std::shared_ptr<CWeenieObject> CWorld::FindWithinPVS(std::shared_ptr<CWeenieObject> source, DWORD object_id)
 {
 	if (!source || !object_id)
 		return NULL;
@@ -1403,7 +1398,7 @@ CWeenieObject *CWorld::FindWithinPVS(CWeenieObject *source, DWORD object_id)
 				CWorldLandBlock *pBlock = m_pBlocks[xit | yit];
 				if (pBlock)
 				{
-					CWeenieObject *pEntity = pBlock->FindEntity(object_id);
+					std::shared_ptr<CWeenieObject> pEntity = pBlock->FindEntity(object_id);
 					if (pEntity)
 						return pEntity;
 				}
@@ -1411,9 +1406,9 @@ CWeenieObject *CWorld::FindWithinPVS(CWeenieObject *source, DWORD object_id)
 		}
 	}
 
-	if (CWeenieObject *externalObject = g_pWorld->FindObject(object_id))
+	if (std::shared_ptr<CWeenieObject> externalObject = g_pWorld->FindObject(object_id))
 	{
-		if (CContainerWeenie *externalContainer = externalObject->GetWorldTopLevelContainer())
+		if (std::shared_ptr<CContainerWeenie> externalContainer = externalObject->GetWorldTopLevelContainer())
 		{
 			if (externalContainer->_openedById == source->GetID())
 			{
@@ -1518,7 +1513,7 @@ void CWorld::EnumerateDungeonsFromCellData()
 #endif
 }
 
-void CWorld::BroadcastChatChannel(DWORD channel_id, CPlayerWeenie *sender, const std::string &message)
+void CWorld::BroadcastChatChannel(DWORD channel_id, std::shared_ptr<CPlayerWeenie> sender, const std::string &message)
 {
 	DWORD sender_monarch_id = 0;
 	if (channel_id == Allegiance_ChatChannel)
@@ -1554,7 +1549,7 @@ void CWorld::BroadcastChatChannel(DWORD channel_id, CPlayerWeenie *sender, const
 
 	for (auto &entry : m_mAllPlayers)
 	{
-		CPlayerWeenie *player = entry.second;
+		std::shared_ptr<CPlayerWeenie> player = entry.second;
 
 		BOOL bShouldHear = FALSE;
 
@@ -1708,7 +1703,7 @@ void CWorld::NotifyEventStarted(const char *eventName)
 
 	for (auto it = result.first; it != result.second; it++)
 	{
-		if (CWeenieObject *weenie = FindObject(it->second))
+		if (std::shared_ptr<CWeenieObject> weenie = FindObject(it->second))
 		{
 			weenie->CheckEventState();
 		}
@@ -1721,7 +1716,7 @@ void CWorld::NotifyEventStopped(const char *eventName)
 
 	for (auto it = result.first; it != result.second; it++)
 	{
-		if (CWeenieObject *weenie = FindObject(it->second))
+		if (std::shared_ptr<CWeenieObject> weenie = FindObject(it->second))
 		{
 			weenie->CheckEventState();
 		}

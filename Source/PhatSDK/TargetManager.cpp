@@ -3,7 +3,7 @@
 #include "PhatSDK.h"
 #include "TargetManager.h"
 
-TargetManager::TargetManager(CPhysicsObj *object)
+TargetManager::TargetManager(std::shared_ptr<CPhysicsObj> object)
 {
 	physobj = object;
 	target_info = 0;
@@ -33,7 +33,7 @@ void TargetManager::SetTargetQuantum(double new_quantum)
 	{
 		quantum = new_quantum;
 
-		CPhysicsObj *ptarget = CPhysicsObj::GetObject(target_info->object_id);
+		std::shared_ptr<CPhysicsObj> ptarget = CPhysicsObj::GetObject(target_info->object_id);
 
 		if (ptarget)
 		{
@@ -84,7 +84,7 @@ void TargetManager::SendVoyeurUpdate(TargettedVoyeurInfo *voyeur, Position *p, T
 	info.velocity = physobj->get_velocity();
 	info.status = status;
 
-	CPhysicsObj *voyObj = CPhysicsObj::GetObject(voyeur->object_id);
+	std::shared_ptr<CPhysicsObj> voyObj = CPhysicsObj::GetObject(voyeur->object_id);
 	if (voyObj)
 		voyObj->receive_target_update(&info);
 }
@@ -132,7 +132,7 @@ void TargetManager::ClearTarget()
 {
 	if (target_info)
 	{
-		CPhysicsObj *targetObj = CPhysicsObj::GetObjectA(target_info->object_id);
+		std::shared_ptr<CPhysicsObj> targetObj = CPhysicsObj::GetObjectA(target_info->object_id);
 		if (targetObj)
 			targetObj->remove_voyeur(physobj->id);
 
@@ -157,7 +157,7 @@ void TargetManager::SetTarget(DWORD context_id, DWORD object_id, float radius, d
 		target_info->quantum = quantum;
 		target_info->last_update_time = Timer::cur_time;
 
-		CPhysicsObj *ptarget = CPhysicsObj::GetObject(target_info->object_id);
+		std::shared_ptr<CPhysicsObj> ptarget = CPhysicsObj::GetObject(target_info->object_id);
 		if (ptarget)
 			ptarget->add_voyeur(physobj->id, target_info->radius, target_info->quantum);
 	}

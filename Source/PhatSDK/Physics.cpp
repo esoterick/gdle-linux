@@ -3,20 +3,20 @@
 #include "PhysicsObj.h"
 #include "Physics.h"
 
-SmartArray<CPhysicsObj *> CPhysics::static_animating_objects(8);
+SmartArray<std::shared_ptr<CPhysicsObj> > CPhysics::static_animating_objects(8);
 
 double PhysicsTimer::curr_time = INVALID_TIME;
 double PhysicsGlobals::floor_z = cos(3437.746770784939);
 double PhysicsGlobals::ceiling_z;
 double PhysicsGlobals::gravity = -9.8000002;
 
-CPhysics::CPhysics(CObjectMaint *_ObjMaint, SmartBox *_SmartBox)
+CPhysics::CPhysics(SmartBox *_SmartBox)
 {
     m_Player = NULL;
-    m_ObjMaint = _ObjMaint;
+    //m_ObjMaint = _ObjMaint;
     m_SmartBox = _SmartBox;
 
-    // m_0C = new HashBaseIter<CPhysicsObj *>(m_ObjMaint->m_Objects);
+    // m_0C = new HashBaseIter<std::shared_ptr<CPhysicsObj> >(m_ObjMaint->m_Objects);
 
     PhysicsTimer::curr_time = Timer::cur_time; // Timer::m_timeCurrent
 }
@@ -28,18 +28,18 @@ CPhysics::~CPhysics()
     // delete m_0C;
 }
 
-void CPhysics::AddStaticAnimatingObject(CPhysicsObj *pObject)
+void CPhysics::AddStaticAnimatingObject(std::shared_ptr<CPhysicsObj> pObject)
 {
     static_animating_objects.RemoveUnOrdered(&pObject);
     static_animating_objects.add(&pObject);
 }
 
-void CPhysics::RemoveStaticAnimatingObject(CPhysicsObj *pObject)
+void CPhysics::RemoveStaticAnimatingObject(std::shared_ptr<CPhysicsObj> pObject)
 {
     static_animating_objects.RemoveUnOrdered(&pObject);
 }
 
-void CPhysics::SetPlayer(CPhysicsObj *Player)
+void CPhysics::SetPlayer(std::shared_ptr<CPhysicsObj> Player)
 {
     m_Player = Player;
 }
@@ -70,7 +70,7 @@ void CPhysics::UseTime()
 
       while (!m_Iter->EndReached())
       {
-         CPhysicsObj *pObject = m_Iter->GetCurrent()->GetID();
+         std::shared_ptr<CPhysicsObj> pObject = m_Iter->GetCurrent()->GetID();
 
          pObject->update_object();
          if (m_Player == pObject)

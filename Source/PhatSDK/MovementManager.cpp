@@ -28,7 +28,7 @@ MovementManager::~MovementManager()
 	Destroy();
 }
 
-MovementManager *MovementManager::Create(CPhysicsObj *pPObject, CWeenieObject *pWObject)
+MovementManager *MovementManager::Create(std::shared_ptr<CPhysicsObj> pPObject, std::shared_ptr<CWeenieObject> pWObject)
 {
 	MovementManager *pManager = new MovementManager;
 	pManager->SetPhysicsObject(pPObject);
@@ -158,7 +158,7 @@ BOOL MovementManager::motions_pending()
 	return TRUE;
 }
 
-void MovementManager::SetPhysicsObject(CPhysicsObj *pObject)
+void MovementManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> pObject)
 {
 	physics_obj = pObject;
 
@@ -169,7 +169,7 @@ void MovementManager::SetPhysicsObject(CPhysicsObj *pObject)
 		moveto_manager->SetPhysicsObject(pObject);
 }
 
-void MovementManager::SetWeenieObject(CWeenieObject *pObject)
+void MovementManager::SetWeenieObject(std::shared_ptr<CWeenieObject> pObject)
 {
 	weenie_obj = pObject;
 
@@ -261,7 +261,7 @@ void MovementManager::MotionDone(DWORD motion, BOOL success)
 		motion_interpreter->MotionDone(success);
 }
 
-CMotionInterp::CMotionInterp(CPhysicsObj *pPObject, CWeenieObject *pWObject)
+CMotionInterp::CMotionInterp(std::shared_ptr<CPhysicsObj> pPObject, std::shared_ptr<CWeenieObject> pWObject)
 {
 	initted = 0;
 	weenie_obj = NULL;
@@ -288,7 +288,7 @@ void CMotionInterp::Destroy()
 	pending_motions.clear();
 }
 
-CMotionInterp* CMotionInterp::Create(CPhysicsObj *pPObject, CWeenieObject *pWObject)
+CMotionInterp* CMotionInterp::Create(std::shared_ptr<CPhysicsObj> pPObject, std::shared_ptr<CWeenieObject> pWObject)
 {
 	CMotionInterp *pInterp = new CMotionInterp(pPObject, pWObject);
 
@@ -1073,14 +1073,14 @@ BOOL CMotionInterp::motions_pending()
 	return !!pending_motions.size();
 }
 
-void CMotionInterp::SetPhysicsObject(CPhysicsObj *pObject)
+void CMotionInterp::SetPhysicsObject(std::shared_ptr<CPhysicsObj> pObject)
 {
 	physics_obj = pObject;
 
 	apply_current_movement(TRUE, 0);
 }
 
-void CMotionInterp::SetWeenieObject(CWeenieObject *pObject)
+void CMotionInterp::SetWeenieObject(std::shared_ptr<CWeenieObject> pObject)
 {
 	weenie_obj = pObject;
 
@@ -1179,7 +1179,7 @@ void MoveToManager::CleanUp()
 	InitializeLocalVariables();
 }
 
-MoveToManager* MoveToManager::Create(CPhysicsObj *pPhysicsObj, CWeenieObject *pWeenieObj)
+MoveToManager* MoveToManager::Create(std::shared_ptr<CPhysicsObj> pPhysicsObj, std::shared_ptr<CWeenieObject> pWeenieObj)
 {
 	MoveToManager *pManager = new MoveToManager();
 
@@ -1192,12 +1192,12 @@ MoveToManager* MoveToManager::Create(CPhysicsObj *pPhysicsObj, CWeenieObject *pW
 	return pManager;
 }
 
-void MoveToManager::SetPhysicsObject(CPhysicsObj *pPhysicsObj)
+void MoveToManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> pPhysicsObj)
 {
 	physics_obj = pPhysicsObj;
 }
 
-void MoveToManager::SetWeenieObject(CWeenieObject *pWeenieObj)
+void MoveToManager::SetWeenieObject(std::shared_ptr<CWeenieObject> pWeenieObj)
 {
 	weenie_obj = pWeenieObj;
 }

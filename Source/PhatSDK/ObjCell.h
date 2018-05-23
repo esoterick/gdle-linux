@@ -42,9 +42,9 @@ public:
 	CShadowObj();
 	virtual ~CShadowObj();
 
-	void set_physobj(CPhysicsObj *pObject);
+	void set_physobj(std::shared_ptr<CPhysicsObj> pObject);
 
-	CPhysicsObj *physobj; // 0x0C
+	std::shared_ptr<CPhysicsObj> physobj; // 0x0C
 	DWORD m_CellID; // 0x10
 	class CObjCell *cell; // 0x14
 };
@@ -55,17 +55,17 @@ public:
 	CObjCell();
 	virtual ~CObjCell();
 
-	void add_object(CPhysicsObj *pObject);
+	void add_object(std::shared_ptr<CPhysicsObj> pObject);
 	void add_shadow_object(CShadowObj *_object, unsigned int num_shadow_cells);
 	void add_light(LIGHTOBJ *Light);
 
-	void remove_object(CPhysicsObj *pObject);
+	void remove_object(std::shared_ptr<CPhysicsObj> pObject);
 	void remove_shadow_object(CShadowObj *_object);
 	void remove_light(LIGHTOBJ *Light);
 
 	void release_objects();
 
-	CPhysicsObj *get_object(DWORD iid);
+	std::shared_ptr<CPhysicsObj> get_object(DWORD iid);
 
 	virtual TransitionState find_collisions(class CTransition *);
 	virtual TransitionState find_env_collisions(class CTransition *transition);
@@ -84,7 +84,7 @@ public:
 
 	static CObjCell *GetVisible(DWORD cell_id);
 
-	int check_collisions(CPhysicsObj *object);
+	int check_collisions(std::shared_ptr<CPhysicsObj> object);
 	LandDefs::WaterType get_block_water_type();
 	double get_water_depth(Vector *point);
 
@@ -92,7 +92,7 @@ public:
 	Position pos; // 0x54
 
 	DWORD num_objects = 0; // 0x9C
-	DArray<CPhysicsObj *> object_list; // 0xA0
+	DArray<std::shared_ptr<CPhysicsObj> > object_list; // 0xA0
 
 	// Light Information
 	DWORD num_lights = 0; // 0xB0

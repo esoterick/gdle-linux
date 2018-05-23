@@ -66,7 +66,7 @@ void CommandBase::Create(const char* szName, const char* szArguments, const char
 bool g_bSilence = false;
 bool g_bSpawnMonsterDisabled = false;
 
-bool SpawningEnabled(CPlayerWeenie *pPlayer, bool item = false)
+bool SpawningEnabled(std::shared_ptr<CPlayerWeenie> pPlayer, bool item = false)
 {
 	if (g_bSilence || (!item && g_bSpawnMonsterDisabled))
 	{
@@ -129,7 +129,7 @@ CLIENT_COMMAND(spawnportal, "", "Spawns a dysfunctional portal near you.", ADMIN
 		return false;
 	}
 
-	CPortal *pPortal = new CPortal();
+	std::shared_ptr<CPortal> pPortal = std::shared_ptr<CPortal>(new CPortal());
 	pPortal->SetInitialPosition(pPlayer->GetPosition());
 	g_pWorld->CreateEntity(pPortal);
 
@@ -143,7 +143,7 @@ CLIENT_COMMAND(spawndoor, "", "Spawns a door at your location.", ADMIN_ACCESS)
 		return false;
 	}
 
-	CWeenieObject *pDoor = new CBaseDoor();
+	std::shared_ptr<CWeenieObject> pDoor = std::shared_ptr<CWeenieObject>(new CBaseDoor());
 	pDoor->SetInitialPosition(pPlayer->GetPosition());
 	g_pWorld->CreateEntity(pDoor);
 
@@ -319,7 +319,7 @@ CLIENT_COMMAND(targeteffect, "[effect] [scale]", "Plays an effect on the last ta
 	else
 		flScale = (float)1.0f;
 
-	CWeenieObject *pTarget = g_pWorld->FindWithinPVS(pPlayer, pPlayer->m_LastAssessed);
+	std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(pPlayer, pPlayer->m_LastAssessed);
 	if (pTarget)
 	{
 		pTarget->EmitEffect(dwIndex, flScale);
@@ -347,7 +347,7 @@ CLIENT_COMMAND(targetsound, "[effect] [speed]", "Plays an effect on the last tar
 	else
 		flScale = (float)1.0f;
 
-	CWeenieObject *pTarget = g_pWorld->FindWithinPVS(pPlayer, pPlayer->m_LastAssessed);
+	std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(pPlayer, pPlayer->m_LastAssessed);
 	if (pTarget)
 	{
 		pTarget->EmitSound(dwIndex, flScale);
@@ -362,7 +362,7 @@ CLIENT_COMMAND(spawnorbiter, "", "Just a test.", BASIC_ACCESS)
 	if (argc < 3)
 		return true;
 
-	CTargetDrudge *pDrudge = new CTargetDrudge();
+	std::shared_ptr<CTargetDrudge> pDrudge = std::shared_ptr<CTargetDrudge>(new CTargetDrudge());
 	pDrudge->SetID(g_pWorld->GenerateGUID(eDynamicGUID));
 	pDrudge->m_Position = player_physobj->m_Position;
 	pDrudge->m_Position.frame.m_origin.x += 10.0f;
@@ -392,7 +392,7 @@ CLIENT_COMMAND(tele, "<player name>", "Teleports you to a player.", BASIC_ACCESS
 	if (argc < 1)
 		return true;
 
-	CPlayerWeenie *pTarget = g_pWorld->FindPlayer(argv[0]);
+	std::shared_ptr<CPlayerWeenie> pTarget = g_pWorld->FindPlayer(argv[0]);
 
 	if (pTarget)
 	{
@@ -420,7 +420,7 @@ CLIENT_COMMAND(teletome, "<player name>", "Teleports someone to you.", ADVOCATE_
 	if (argc < 1)
 		return true;
 
-	CPlayerWeenie *pTarget = g_pWorld->FindPlayer(argv[0]);
+	std::shared_ptr<CPlayerWeenie> pTarget = g_pWorld->FindPlayer(argv[0]);
 
 	if (pTarget)
 	{
@@ -435,7 +435,7 @@ CLIENT_COMMAND(teletome, "<player name>", "Teleports someone to you.", ADVOCATE_
 
 CLIENT_COMMAND(teleall, "<target>", "Teleports all players target. If no target specified, teleports to you.", ADMIN_ACCESS)
 {
-	CPlayerWeenie* target;
+	std::shared_ptr<CPlayerWeenie> target;
 	if (argc < 1)
 	{
 		target = pPlayer;
@@ -458,7 +458,7 @@ CLIENT_COMMAND(teleall, "<target>", "Teleports all players target. If no target 
 	bool teleportedOne = false;
 	while (pit != pend)
 	{
-		CPlayerWeenie *them = pit->second;
+		std::shared_ptr<CPlayerWeenie> them = pit->second;
 
 		if (them != target)
 		{
@@ -661,12 +661,12 @@ CLIENT_COMMAND(debug, "<index>", "", ADMIN_ACCESS)
 
 	int debugLevel = atoi(argv[0]);
 
-	CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
 	if (!target)
 		return false;
 
 	float respawnTime = 0.0f;
-	CWeenieObject *pGenerator = g_pWorld->FindObject(target->InqIIDQuality(GENERATOR_IID, 0));
+	std::shared_ptr<CWeenieObject> pGenerator = g_pWorld->FindObject(target->InqIIDQuality(GENERATOR_IID, 0));
 
 	std::string info;
 	info += csprintf("ID: %08X WCID: %u\nWClass: %s @ %08X %.1f %.1f %.1f (%.f away)\nGen: %08X Act: %08X RespawnTime: %.1fm",
@@ -969,7 +969,7 @@ CLIENT_COMMAND(spawnbael, "", "Spawns Bael'Zharon.", ADMIN_ACCESS)
 		return false;
 	}
 
-	CBaelZharon *pBael = new CBaelZharon();
+	std::shared_ptr<CBaelZharon> pBael = std::shared_ptr<CBaelZharon>(new CBaelZharon());
 	pBael->SetInitialPosition(pPlayer->GetPosition());
 	g_pWorld->CreateEntity(pBael);
 
@@ -1030,7 +1030,7 @@ CLIENT_COMMAND(targetdrudge, "", "Spawns a Target Drudge.", BASIC_ACCESS)
 		return false;
 	}
 
-	CTargetDrudge *pDrudge = new CTargetDrudge();
+	std::shared_ptr<CTargetDrudge> pDrudge = std::shared_ptr<CTargetDrudge>(new CTargetDrudge());
 	pDrudge->SetInitialPosition(pPlayer->GetPosition().add_offset(Vector(0, 0, 1.0f)));
 
 	g_pWorld->CreateEntity(pDrudge);
@@ -1068,13 +1068,13 @@ CLIENT_COMMAND(spawnwand, "", "Spawns a wand.", BASIC_ACCESS)
 
 	/*
 
-	CBaseWand* pWand = new CBaseWand();
+	CBaseWand* pWand = std::shared_ptr<CBaseWand>(new CBaseWand());
 	pWand->SetInitialPosition(pPlayer->GetPosition());
 	pWand->m_bDontClear = false;
 	g_pWorld->CreateEntity(pWand);
 	*/
 
-	CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByName("Drudge Wand", &pPlayer->m_Position, true);
+	std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByName("Drudge Wand", &pPlayer->m_Position, true);
 
 	if (weenie)
 		weenie->m_bDontClear = false;
@@ -1140,7 +1140,7 @@ CLIENT_COMMAND(spawnmodel, "<model index> [scale=1] [name=*]", "Spawns a model."
 	float flScale = max(0.1, min(10, (float)((argc >= 2) ? atof(argv[1]) : 1.0f)));
 	const char* szName = (argc >= 3) ? argv[2] : csprintf("Model #%08X", dwModel);
 
-	CWeenieObject *pSpawn = new CWeenieObject();
+	std::shared_ptr<CWeenieObject> pSpawn = std::shared_ptr<CWeenieObject>(new CWeenieObject());
 	pSpawn->SetSetupID(dwModel);
 	pSpawn->SetScale(flScale);
 	pSpawn->SetName(szName);
@@ -1191,7 +1191,7 @@ CLIENT_COMMAND(spawnmodels, "<start index> <end index>", "Spawns a range of mode
 	int y = 0;
 	for (DWORD i = dwModelStart; i <= dwModelEnd; i++)
 	{
-		CWeenieObject *pSpawn = new CWeenieObject();
+		std::shared_ptr<CWeenieObject> pSpawn = std::shared_ptr<CWeenieObject>(new CWeenieObject());
 		pSpawn->SetSetupID(i);
 		pSpawn->SetScale(1.0f);
 		pSpawn->SetName(csprintf("Model #%08X", i));
@@ -1236,7 +1236,7 @@ CLIENT_COMMAND(spawnmonster2, "<model index> <base palette>", "Spawns a monster.
 	dwPalette1 &= 0xFFFFF;
 	dwPalette2 &= 0xFFFFF;
 
-	CMonsterWeenie *pSpawn = new CMonsterWeenie();
+	std::shared_ptr<CMonsterWeenie> pSpawn = std::shared_ptr<CMonsterWeenie>(new CMonsterWeenie());
 	pSpawn->SetSetupID(dwModel);
 	pSpawn->m_scale = 1.0f;
 	pSpawn->SetName(csprintf("0x%X 0x%X 0x%X", dwModel, dwPalette1, dwPalette2));
@@ -1273,7 +1273,7 @@ CLIENT_COMMAND(spawnmonster, "<model index> [scale=1] [name=*] [dotcolor]", "Spa
 	const char* szName = (argc >= 3) ? argv[2] : csprintf("Model #%08X", dwModel);
 	int dotColor = (int)((argc >= 4) ? atoi(argv[3]) : 0);
 
-	CMonsterWeenie *pSpawn = new CMonsterWeenie();
+	std::shared_ptr<CMonsterWeenie> pSpawn = std::shared_ptr<CMonsterWeenie>(new CMonsterWeenie());
 	pSpawn->SetSetupID(dwModel);
 	pSpawn->SetScale(flScale);
 	pSpawn->SetName(szName);
@@ -1307,7 +1307,7 @@ CLIENT_COMMAND(spawnitem, "<model index> [scale=1] [name=*]", "Spawns an item.",
 	float flScale = max(0.1, min(10, (float)((argc >= 2) ? atof(argv[1]) : 1.0f)));
 	const char* szName = (argc >= 3) ? argv[2] : csprintf("Model #%08X", dwModel);
 
-	CWeenieObject *pSpawn = new CWeenieObject();
+	std::shared_ptr<CWeenieObject> pSpawn = std::shared_ptr<CWeenieObject>(new CWeenieObject());
 	pSpawn->m_Qualities.SetBool(STUCK_BOOL, FALSE);
 	pSpawn->SetSetupID(dwModel);
 	pSpawn->SetScale(flScale);
@@ -1326,7 +1326,7 @@ CLIENT_COMMAND(spawnlifestone, "", "Spawns a lifestone.", ADVOCATE_ACCESS)
 	if (!SpawningEnabled(pPlayer))
 		return false;
 
-	CBaseLifestone *pSpawn = new CBaseLifestone();
+	std::shared_ptr<CBaseLifestone> pSpawn = std::shared_ptr<CBaseLifestone>(new CBaseLifestone());
 	pSpawn->SetInitialPosition(pPlayer->GetPosition());
 	g_pWorld->CreateEntity(pSpawn);
 
@@ -1370,7 +1370,7 @@ SERVER_COMMAND(kick, "<player name>", "Kicks the specified player.", SENTINEL_AC
 		SERVER_INFO << "Server is using the kick command.";
 	}
 
-	CPlayerWeenie *pTarget = g_pWorld->FindPlayer(argv[0]);
+	std::shared_ptr<CPlayerWeenie> pTarget = g_pWorld->FindPlayer(argv[0]);
 
 	if (pTarget)
 		g_pNetwork->KickClient(pTarget->GetClient());
@@ -1396,7 +1396,7 @@ SERVER_COMMAND(ban, "<add/remove/list> <player name (if adding) or IP (if removi
 		if (argc < 3)
 			return true;
 
-		CPlayerWeenie *other = g_pWorld->FindPlayer(argv[1]);
+		std::shared_ptr<CPlayerWeenie> other = g_pWorld->FindPlayer(argv[1]);
 		if (other && other->GetClient())
 		{
 			g_pNetwork->AddBan(other->GetClient()->GetHostAddress()->sin_addr, pPlayer->GetName().c_str(), argv[2]);
@@ -1461,7 +1461,7 @@ CLIENT_COMMAND(instakill, "<radius>", "Deals damage to all nearby creatures.", A
 	if (radius < 0)
 		radius = 0;
 
-	std::list<CWeenieObject *> results;
+	std::list<std::shared_ptr<CWeenieObject> > results;
 	g_pWorld->EnumNearby(pPlayer, radius, &results);
 
 	for (auto &entry : results)
@@ -1581,7 +1581,7 @@ CLIENT_COMMAND(waivenextrent, "<on/off>", "Toggles this rent period rent.", ADMI
 	PlayerWeenieMap *pPlayers = g_pWorld->GetPlayers();
 	for (PlayerWeenieMap::iterator i = pPlayers->begin(); i != pPlayers->end(); i++)
 	{
-		CPlayerWeenie *player = i->second;
+		std::shared_ptr<CPlayerWeenie> player = i->second;
 		DWORD houseId = player->InqDIDQuality(HOUSEID_DID, 0);
 		if (houseId)
 			g_pHouseManager->SendHouseData(player, houseId);
@@ -1833,18 +1833,13 @@ CLIENT_COMMAND(test, "<index>", "Performs the specified test.", ADMIN_ACCESS)
 		}
 	case 3:
 		{
-			CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByName("Virindi Puppet", &pPlayer->m_Position.add_offset(Vector(0.0, 5, 1)), true);
-
-			if (weenie)
-			{
-				CMonsterWeenie *monster = (CMonsterWeenie *)weenie;
-			}
+			std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByName("Virindi Puppet", &pPlayer->m_Position.add_offset(Vector(0.0, 5, 1)), true);
 
 			break;
 		}
 	case 4:
 		{
-			CWeenieObject *weenie = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+			std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindObject(pPlayer->m_LastAssessed);
 
 			if (weenie && weenie->AsMonster() && !weenie->AsPlayer())
 			{
@@ -1866,7 +1861,7 @@ CLIENT_COMMAND(test, "<index>", "Performs the specified test.", ADMIN_ACCESS)
 
 #if 0
 	case 3: {
-			CBaseItem *pSpawn = new CBoboHelm();
+			std::shared_ptr<CBaseItem> pSpawn = std::shared_ptr<CBaseItem>(new CBoboHelm());
 			pSpawn->m_Position = position;
 			g_pWorld->CreateEntity(pSpawn);
 
@@ -1877,7 +1872,7 @@ CLIENT_COMMAND(test, "<index>", "Performs the specified test.", ADMIN_ACCESS)
 			break;
 		}
 	case 4: {
-			CBaseItem *pSpawn = new CPhatRobe();
+			std::shared_ptr<CBaseItem> pSpawn = std::shared_ptr<CBaseItem>(new CPhatRobe());
 			pSpawn->m_Position = position;
 			g_pWorld->CreateEntity(pSpawn);
 
@@ -1928,7 +1923,7 @@ CLIENT_COMMAND(animationother, "<index> [speed=1]", "Plays a primary animation."
 	if (argc < 1)
 		return true;
 
-	CWeenieObject *other = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	std::shared_ptr<CWeenieObject> other = g_pWorld->FindObject(pPlayer->m_LastAssessed);
 	if (!other)
 		return false;
 
@@ -2032,7 +2027,7 @@ CLIENT_COMMAND(setname, "[name]", "Changes the last assessed target's name.", AD
 
 	if (pPlayer->m_LastAssessed)
 	{
-		CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
 		if (target)
 		{
 			target->m_Qualities.SetString(NAME_STRING, argv[0]);
@@ -2124,13 +2119,13 @@ CLIENT_COMMAND(motion, "<index> [speed=1]", "Plays a sequenced animation.", BASI
 }
 */
 
-void SendDungeonInfo(CPlayerWeenie* pPlayer, DungeonDesc_t* pInfo)
+void SendDungeonInfo(std::shared_ptr<CPlayerWeenie> pPlayer, DungeonDesc_t* pInfo)
 {
 	pPlayer->SendText(csprintf("Information for ID %04X:", pInfo->wBlockID), LTT_DEFAULT);
 	pPlayer->SendText(csprintf("Name: %s\nAuthor: %s\nDescription: %s", pInfo->szDungeonName, pInfo->szAuthor, pInfo->szDescription), LTT_DEFAULT);
 }
 
-void SendDungeonInfo(CPlayerWeenie* pPlayer, WORD wBlockID)
+void SendDungeonInfo(std::shared_ptr<CPlayerWeenie> pPlayer, WORD wBlockID)
 {
 	DungeonDesc_t* pInfo = g_pWorld->GetDungeonDesc(wBlockID);
 
@@ -2474,7 +2469,7 @@ CLIENT_COMMAND(player, "<command>", "Player commands.", BASIC_ACCESS)
 		if (argc < 2)
 			return true;
 
-		CPlayerWeenie *pOther = g_pWorld->FindPlayer(argv[1]);
+		std::shared_ptr<CPlayerWeenie> pOther = g_pWorld->FindPlayer(argv[1]);
 
 		if (!pOther)
 			pPlayer->SendText(csprintf("Couldn't find player \"%s\"", argv[1]), LTT_DEFAULT);
@@ -2540,7 +2535,7 @@ CLIENT_COMMAND(doomshard, "[palette=0xBF7]", "Spawns a doom shard.", BASIC_ACCES
 	if (argc >= 1)
 		palette = (unsigned short)strtoul(argv[0], NULL, 16);
 
-	CMonsterWeenie *pDoomShard = new CMonsterWeenie();
+	std::shared_ptr<CMonsterWeenie> pDoomShard = std::shared_ptr<CMonsterWeenie>(new CMonsterWeenie());
 	pDoomShard->SetSetupID(0x02000700);
 	pDoomShard->SetScale(1.6f);
 	pDoomShard->SetName("Doom Shard");
@@ -2595,7 +2590,7 @@ CLIENT_COMMAND(spawnsetup, "[id]", "Spawns something by setup ID using default p
 		return false;
 	}
 
-	CMonsterWeenie *pSpawn = new CMonsterWeenie();
+	std::shared_ptr<CMonsterWeenie> pSpawn = std::shared_ptr<CMonsterWeenie>(new CMonsterWeenie());
 	pSpawn->SetSetupID(setupID);
 	pSpawn->SetName(csprintf("Model #%08X", setupID));
 	pSpawn->SetInitialPosition(pPlayer->GetPosition());
@@ -2662,7 +2657,7 @@ CLIENT_COMMAND(spawn2, "[name] [replacement index] [palette index] [shade from 0
 	float fScale = 1.0f;
 	bool bAnimate = false;
 
-	CWeenieObject *pMonster = g_pGameDatabase->CreateFromCapturedData(pMonsterInfo);
+	std::shared_ptr<CWeenieObject> pMonster = g_pGameDatabase->CreateFromCapturedData(pMonsterInfo);
 
 	// Modify these
 	pMonster->SetInitialPosition(pPlayer->GetPosition());
@@ -2816,7 +2811,7 @@ CLIENT_COMMAND(restartserver, "<yes>", "Restarts the server.", ADVOCATE_ACCESS)
 #ifndef PUBLIC_BUILD
 CLIENT_COMMAND(debugresistances, "", "", ADMIN_ACCESS)
 {
-	CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
 
 	if (!target)
 	{
@@ -2974,14 +2969,13 @@ CLIENT_COMMAND(spawntreasure, "<tier>", "Spawn treasure of a specific tier", ADM
 
 	//pPlayer->SpawnTreasureInContainer(eTreasureCategory::TreasureCategory_Junk, 1, 3);
 
-	CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), (eTreasureCategory)getRandomNumber(2, 8));
-	//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Caster);
+	std::shared_ptr<CWeenieObject> treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), (eTreasureCategory)getRandomNumber(2, 8));
+	//std::shared_ptr<CWeenieObject> treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Caster);
 
 	if (treasure)
 	{
 		treasure->SetInitialPosition(pPlayer->GetPosition());
-		if (!g_pWorld->CreateEntity(treasure))
-			delete treasure;
+		g_pWorld->CreateEntity(treasure);
 	}
 
 	return false;
@@ -2997,8 +2991,8 @@ CLIENT_COMMAND(spawntreasure2, "<tier> <num>", "Spawn treasure of a specific tie
 
 	for (int i = 0; i < num; i++)
 	{
-		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), (eTreasureCategory)getRandomNumber(2, 8));
-		//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Armor);
+		std::shared_ptr<CWeenieObject> treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), (eTreasureCategory)getRandomNumber(2, 8));
+		//std::shared_ptr<CWeenieObject> treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Armor);
 
 		if (treasure)
 		{
@@ -3006,7 +3000,6 @@ CLIENT_COMMAND(spawntreasure2, "<tier> <num>", "Spawn treasure of a specific tie
 
 			if (!g_pWorld->CreateEntity(treasure))
 			{
-				delete treasure;
 				return false;
 			}
 		}
@@ -3036,7 +3029,7 @@ CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid in
 	if (argc < 1)
 		return true;
 
-	CWeenieObject *weenieTemplate;
+	std::shared_ptr<CWeenieObject> weenieTemplate;
 
 	if (IsNumeric(argv[0]))
 	{
@@ -3062,8 +3055,6 @@ CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid in
 		if (weenieTemplate->m_Qualities.m_WeenieType != MeleeWeapon_WeenieType)
 		{
 			pPlayer->SendText("Only weapon spawning is enabled.", LTT_DEFAULT);
-			delete weenieTemplate;
-
 			return false;
 		}
 	}
@@ -3079,8 +3070,6 @@ CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid in
 	if (!weenieTemplate->CanPickup())
 	{
 		pPlayer->SendText("That can't be spawned in a container.", LTT_DEFAULT);
-		delete weenieTemplate;
-
 		return false;
 	}
 
@@ -3088,13 +3077,10 @@ CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid in
 	if (amount > maxStackSize * 100)
 	{
 		pPlayer->SendText("The amount requested is too large.", LTT_DEFAULT);
-		delete weenieTemplate;
-
 		return false;
 	}
 
 	pPlayer->SpawnCloneInContainer(weenieTemplate, amount);
-	delete weenieTemplate;
 
 	return false;
 }
@@ -3116,7 +3102,7 @@ CLIENT_COMMAND(spawnjewelerytoinvbymatid, "<tier> <num> <mat>", "Spawn treasure 
 
 	for (int i = 0; i < num; i++)
 	{
-		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Jewelry);
+		std::shared_ptr<CWeenieObject> treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Jewelry);
 		treasure->m_Qualities.SetInt(MATERIAL_TYPE_INT, atoi(argv[2]));
 
 		if (treasure)
@@ -3124,7 +3110,6 @@ CLIENT_COMMAND(spawnjewelerytoinvbymatid, "<tier> <num> <mat>", "Spawn treasure 
 			pPlayer->SpawnCloneInContainer(treasure, 1);
 			if (!g_pWorld->CreateEntity(treasure))
 			{
-				delete treasure;
 				return false;
 			}
 		}
@@ -3155,7 +3140,7 @@ CLIENT_COMMAND(spawnwcid, "<name> [ptid] [shade]", "Spawn by wcid.", ADMIN_ACCES
 	if (argc < 1)
 		return true;
 
-	CWeenieObject *weenie;
+	std::shared_ptr<CWeenieObject> weenie;
 
 	if (IsNumeric(argv[0]))
 	{
@@ -3181,8 +3166,6 @@ CLIENT_COMMAND(spawnwcid, "<name> [ptid] [shade]", "Spawn by wcid.", ADMIN_ACCES
 		if (weenie->m_Qualities.m_WeenieType != MeleeWeapon_WeenieType)
 		{
 			pPlayer->SendText("Only weapon spawning is enabled.", LTT_DEFAULT);
-			delete weenie;
-
 			return false;
 		}
 	}
@@ -3224,7 +3207,7 @@ CLIENT_COMMAND(spawnwcidfresh, "<name> [ptid] [shade]", "Spawn by wcid.", ADMIN_
 
 	g_pWeenieFactory->RefreshLocalStorage();
 
-	CWeenieObject *weenie;
+	std::shared_ptr<CWeenieObject> weenie;
 
 	if (IsNumeric(argv[0]))
 	{
@@ -3250,8 +3233,6 @@ CLIENT_COMMAND(spawnwcidfresh, "<name> [ptid] [shade]", "Spawn by wcid.", ADMIN_
 		if (weenie->m_Qualities.m_WeenieType != MeleeWeapon_WeenieType)
 		{
 			pPlayer->SendText("Only weapon spawning is enabled.", LTT_DEFAULT);
-			delete weenie;
-
 			return false;
 		}
 	}
@@ -3282,7 +3263,7 @@ CLIENT_COMMAND(spawnwcidstack, "<name> <amount>", "Spawn a stackable wcid.", ADM
 	if (argc < 2)
 		return true;
 
-	CWeenieObject *weenie;
+	std::shared_ptr<CWeenieObject> weenie;
 
 	if (IsNumeric(argv[0]))
 	{
@@ -3326,7 +3307,7 @@ CLIENT_COMMAND(spawnwcidgroup, "<name> [num]", "Spawn by wcid.", ADMIN_ACCESS)
 	
 	for (int i = 0; i < num; i++)
 	{
-		CWeenieObject *weenie;
+		std::shared_ptr<CWeenieObject> weenie;
 		if (IsNumeric(argv[0]))
 		{
 			weenie = g_pWeenieFactory->CreateWeenieByClassID(atoi(argv[0]), &pPlayer->m_Position, false);
@@ -3355,7 +3336,7 @@ CLIENT_COMMAND(spawnwcidgroup, "<name> [num]", "Spawn by wcid.", ADMIN_ACCESS)
 	return false;
 }
 
-void SpawnAllAppearancesForWeenie(CPlayerWeenie *pPlayer, DWORD wcid, bool bSpawnWithoutVariances = false, DWORD setup_override = 0)
+void SpawnAllAppearancesForWeenie(std::shared_ptr<CPlayerWeenie> pPlayer, DWORD wcid, bool bSpawnWithoutVariances = false, DWORD setup_override = 0)
 {
 	CWeenieDefaults *weenieDefs = g_pWeenieFactory->GetWeenieDefaults(wcid);
 
@@ -3370,7 +3351,7 @@ void SpawnAllAppearancesForWeenie(CPlayerWeenie *pPlayer, DWORD wcid, bool bSpaw
 	{
 		if (bSpawnWithoutVariances)
 		{
-			CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid, &pPlayer->m_Position, false);
+			std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid, &pPlayer->m_Position, false);
 			weenie->SetInitialPosition(pPlayer->m_Position.add_offset(Vector(Random::GenFloat(-10.0, 10.0), Random::GenFloat(-10.0, 10.0), 1.0)));
 
 			if (setup_override)
@@ -3395,7 +3376,7 @@ void SpawnAllAppearancesForWeenie(CPlayerWeenie *pPlayer, DWORD wcid, bool bSpaw
 
 	for (auto ptit = ct->_paletteTemplatesHash.begin(); ptit != ct->_paletteTemplatesHash.end(); ptit++)
 	{
-		CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid, &pPlayer->m_Position, false);
+		std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid, &pPlayer->m_Position, false);
 
 		weenie->m_Qualities.SetInt(PALETTE_TEMPLATE_INT, ptit->first);
 		weenie->SetInitialPosition(pPlayer->m_Position.add_offset(Vector(Random::GenFloat(-30.0, 30.0), Random::GenFloat(-30.0, 30.0), 1.0)));
@@ -3589,7 +3570,7 @@ CLIENT_COMMAND(spawnarchitect, "[name]", "Spawn architect.", ADMIN_ACCESS)
 		return false;
 	}
 
-	CWeenieObject *weenie;
+	std::shared_ptr<CWeenieObject> weenie;
 	weenie = g_pWeenieFactory->CreateWeenieByClassID(6854, &pPlayer->m_Position, false);
 
 	if (!weenie)
@@ -3615,10 +3596,13 @@ CLIENT_COMMAND(spawnavatarvendor, "[name]", "Spawn avatar vendor.", ADMIN_ACCESS
 		return false;
 	}
 
-	CAvatarVendor *pVendor = new CAvatarVendor();
+	std::shared_ptr<CAvatarVendor> pVendor = std::shared_ptr<CAvatarVendor>(new CAvatarVendor());
 	g_pWeenieFactory->ApplyWeenieDefaults(pVendor, 719);
+	/* TODO
+	 * do we need these? mwnciau
 	SafeDelete(pVendor->m_Qualities._emote_table);
 	SafeDelete(pVendor->m_Qualities._create_list);
+	*/
 
 	pVendor->SetInitialPosition(pPlayer->m_Position);
 	pVendor->SetScale(1.0f);
@@ -3639,7 +3623,7 @@ CLIENT_COMMAND(spawnpyreal, "[name]", "Spawns pyreal.", BASIC_ACCESS)
 		return false;
 	}
 
-	CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(273, &pPlayer->m_Position, false);
+	std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(273, &pPlayer->m_Position, false);
 
 	if (!weenie)
 	{
@@ -3672,7 +3656,7 @@ CLIENT_COMMAND(spawnfollow, "", "", ADMIN_ACCESS)
 	if (!pPlayer->m_dwLastSpawnedCreatureID)
 		return false;
 
-	CWeenieObject *pObject = g_pWorld->FindObject(pPlayer->m_dwLastSpawnedCreatureID);
+	std::shared_ptr<CWeenieObject> pObject = g_pWorld->FindObject(pPlayer->m_dwLastSpawnedCreatureID);
 	if (!pObject)
 		return false;
 
@@ -3689,7 +3673,7 @@ CLIENT_COMMAND(spawnfollow2, "", "", ADMIN_ACCESS)
 	if (!pPlayer->m_dwLastSpawnedCreatureID)
 		return false;
 
-	CWeenieObject *pObject = g_pWorld->FindObject(pPlayer->m_dwLastSpawnedCreatureID);
+	std::shared_ptr<CWeenieObject> pObject = g_pWorld->FindObject(pPlayer->m_dwLastSpawnedCreatureID);
 	if (!pObject)
 		return false;
 
@@ -3731,7 +3715,7 @@ CLIENT_COMMAND(spawnitem2, "[name] [scale]", "Spawns something by name (works fo
 	if (argc >= 2)
 		fScale = max(0.1, min(10, (float)atof(argv[1])));
 
-	CWeenieObject *pItem = g_pWeenieFactory->CreateWeenieByName(argv[0], &pPlayer->m_Position, false);
+	std::shared_ptr<CWeenieObject> pItem = g_pWeenieFactory->CreateWeenieByName(argv[0], &pPlayer->m_Position, false);
 
 	if (pItem)
 	{
@@ -3775,7 +3759,7 @@ CLIENT_COMMAND(spawnamuli, "[#] [#]", "Spawns an amuli variation.", BASIC_ACCESS
 		return false;
 	}
 
-	CWeenieObject *pItem = g_pGameDatabase->CreateFromCapturedData(pItemInfo);
+	std::shared_ptr<CWeenieObject> pItem = g_pGameDatabase->CreateFromCapturedData(pItemInfo);
 	if (!pItem)
 	{
 		return false;
@@ -3898,7 +3882,7 @@ CLIENT_COMMAND(spawnarmor, "[name]", "Spawns armor by name.", BASIC_ACCESS)
 		bAnimate = atoi(argv[2]) ? true : false;
 	}
 
-	CWeenieObject *pItem = g_pGameDatabase->CreateFromCapturedData(pItemInfo);
+	std::shared_ptr<CWeenieObject> pItem = g_pGameDatabase->CreateFromCapturedData(pItemInfo);
 
 	pItem->m_scale = pItemInfo->physics.object_scale * fScale;
 	pItem->m_dwCoverage2 = 0;
@@ -3941,7 +3925,7 @@ CLIENT_COMMAND(spawnarmor, "[name] [palette] [shade]", "Spawns armor by name.", 
 		return false;
 	}
 
-	CWeenieObject *pItem = g_pGameDatabase->CreateFromCapturedData(pItemInfo);
+	std::shared_ptr<CWeenieObject> pItem = g_pGameDatabase->CreateFromCapturedData(pItemInfo);
 
 	pItem->SetInitialPosition(pPlayer->GetPosition());
 
@@ -3992,7 +3976,7 @@ CLIENT_COMMAND(spawnrandomarmor, "", "Spawns random armor.", SENTINEL_ACCESS)
 		return false;
 	}
 
-	CWeenieObject *pItem = g_pGameDatabase->CreateFromCapturedData(pItemInfo);
+	std::shared_ptr<CWeenieObject> pItem = g_pGameDatabase->CreateFromCapturedData(pItemInfo);
 
 	pItem->SetInitialPosition(pPlayer->GetPosition());
 
@@ -4034,7 +4018,7 @@ CLIENT_COMMAND(spawnrandom, "[num to spawn] [scale]", "Spawns random objects.", 
 			return false;
 		}
 
-		CWeenieObject *pMonster = g_pGameDatabase->CreateFromCapturedData(pMonsterInfo);
+		std::shared_ptr<CWeenieObject> pMonster = g_pGameDatabase->CreateFromCapturedData(pMonsterInfo);
 
 		pMonster->SetScale(pMonsterInfo->physics.object_scale * fScale);
 		pMonster->SetInitialPosition(pPlayer->GetPosition().add_offset(Vector(Random::GenFloat(-2.0f * total, 2.0f * total), Random::GenFloat(-2.0f * total, 2.0f * total), 0)));
@@ -4094,7 +4078,10 @@ CLIENT_COMMAND(spawnrandomshadows, "[phase] [num to spawn]", "Spawns random shad
 		CCapturedWorldObjectInfo *pMonsterInfo = g_pGameDatabase->GetCapturedMonsterData(spawnName.c_str());
 		if (pMonsterInfo)
 		{
-			CMonsterWeenie *pMonster = (CMonsterWeenie *)g_pGameDatabase->CreateFromCapturedData(pMonsterInfo);
+			/* TODO
+			 * is it safe to assume this will succeed? mwnciau
+			*/
+			std::shared_ptr<CMonsterWeenie> pMonster = g_pGameDatabase->CreateFromCapturedData(pMonsterInfo)->AsMonster();
 
 			Position spawnPos = pPlayer->GetPosition().add_offset(Vector(Random::GenFloat(-4.0f * total, 4.0f * total), Random::GenFloat(-4.0f * total, 4.0f * total), 0));
 			pMonster->SetInitialPosition(spawnPos);
@@ -4378,7 +4365,7 @@ CLIENT_COMMAND(givexpother, "[value]", "Gives you some XP for testing.", ADMIN_A
 
 	// pPlayer->SendText("Your attributes have been greatly increased.", 1);
 
-	CWeenieObject *assessed = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	std::shared_ptr<CWeenieObject> assessed = g_pWorld->FindObject(pPlayer->m_LastAssessed);
 
 	if (assessed && assessed->AsPlayer())
 	{
@@ -4467,8 +4454,8 @@ bool CommandBase::Execute(char *command, CClient *client)
 
 	if (argc > 0)
 	{
-		CPlayerWeenie *player_weenie = client ? client->GetEvents()->GetPlayer() : NULL;
-		CPhysicsObj *player_physobj = player_weenie ? player_weenie->_phys_obj : NULL;
+		std::shared_ptr<CPlayerWeenie> player_weenie = client ? client->GetEvents()->GetPlayer() : NULL;
+		std::shared_ptr<CPhysicsObj> player_physobj = player_weenie ? player_weenie->_phys_obj : NULL;
 		int access_level = client ? client->GetAccessLevel() : BASIC_ACCESS;
 
 		char *command_name = argv[0];

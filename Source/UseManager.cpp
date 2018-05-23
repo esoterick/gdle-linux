@@ -19,7 +19,7 @@ void CUseEventData::Update()
 
 void CUseEventData::SetupUse()
 {	
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (target)
 	{
 		_max_use_distance = target->InqFloatQuality(USE_RADIUS_FLOAT, 0.0);
@@ -34,7 +34,7 @@ void CUseEventData::Begin()
 
 	if (_target_id)
 	{
-		CWeenieObject *target = GetTarget();
+		std::shared_ptr<CWeenieObject> target = GetTarget();
 		if (!target)
 		{
 			Cancel(WERROR_OBJECT_GONE);
@@ -48,7 +48,7 @@ void CUseEventData::Begin()
 			if (!_weenie->FindContainedItem(target->GetID()))
 			{
 				bool bInViewedContainer = false;
-				if (CContainerWeenie *externalContainer = target->GetWorldTopLevelContainer())
+				if (std::shared_ptr<CContainerWeenie> externalContainer = target->GetWorldTopLevelContainer())
 				{
 					if (externalContainer->_openedById == _weenie->GetID())
 					{
@@ -128,7 +128,7 @@ double CUseEventData::DistanceToTarget()
 	if (!_target_id || _target_id == _weenie->GetID())
 		return 0.0;
 
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target)
 		return FLT_MAX;
 
@@ -140,7 +140,7 @@ double CUseEventData::HeadingDifferenceToTarget()
 	if (!_target_id || _target_id == _weenie->GetID())
 		return 0.0;
 
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target)
 		return 0.0;
 
@@ -149,7 +149,7 @@ double CUseEventData::HeadingDifferenceToTarget()
 
 bool CUseEventData::InUseRange()
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (target && (_weenie->IsContainedWithinViewable(target->GetID())))
 		return true;
 
@@ -159,12 +159,12 @@ bool CUseEventData::InUseRange()
 	return true;
 }
 
-CWeenieObject *CUseEventData::GetTarget()
+std::shared_ptr<CWeenieObject> CUseEventData::GetTarget()
 {
 	return g_pWorld->FindObject(_target_id);
 }
 
-CWeenieObject *CUseEventData::GetTool()
+std::shared_ptr<CWeenieObject> CUseEventData::GetTool()
 {
 	return g_pWorld->FindObject(_tool_id);
 }
@@ -258,14 +258,14 @@ void CGenericUseEvent::OnUseAnimSuccess(DWORD motion)
 
 void CGenericUseEvent::Finish()
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
 		return;
 	}
 
-	CWeenieObject *tool = GetTool();
+	std::shared_ptr<CWeenieObject> tool = GetTool();
 	if (!tool && _tool_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -325,7 +325,7 @@ void CGenericUseEvent::Finish()
 
 void CActivationUseEvent::OnReadyToUse()
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (target)
 	{
 		target->Activate(_weenie->GetID());
@@ -344,7 +344,7 @@ void CInventoryUseEvent::SetupUse()
 
 void CPickupInventoryUseEvent::OnReadyToUse()
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 
 	if (target->HasOwner()) {
 		
@@ -369,7 +369,7 @@ void CPickupInventoryUseEvent::OnReadyToUse()
 
 void CPickupInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -433,7 +433,7 @@ void CDropInventoryUseEvent::OnReadyToUse()
 
 void CDropInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -471,7 +471,7 @@ void CMoveToWieldInventoryUseEvent::OnReadyToUse()
 
 void CMoveToWieldInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -535,7 +535,7 @@ void CStackMergeInventoryUseEvent::OnReadyToUse()
 
 void CStackMergeInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -599,7 +599,7 @@ void CStackSplitToContainerInventoryUseEvent::OnReadyToUse()
 
 void CStackSplitToContainerInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -664,7 +664,7 @@ void CStackSplitTo3DInventoryUseEvent::OnReadyToUse()
 
 void CStackSplitTo3DInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -728,7 +728,7 @@ void CStackSplitToWieldInventoryUseEvent::OnReadyToUse()
 
 void CStackSplitToWieldInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -785,7 +785,7 @@ void CStackSplitToWieldInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 
 //-------------------------------------------------------------------------------------
 
-UseManager::UseManager(CWeenieObject *weenie)
+UseManager::UseManager(std::shared_ptr<CWeenieObject> weenie)
 {
 	_weenie = weenie;
 }

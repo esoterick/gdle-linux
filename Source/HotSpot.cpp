@@ -77,7 +77,7 @@ void CHotSpotWeenie::DoCycle()
 {
 	for (std::set<DWORD>::iterator i = m_ContactedWeenies.begin(); i != m_ContactedWeenies.end();)
 	{
-		CWeenieObject *other = g_pWorld->FindObject(*i);
+		std::shared_ptr<CWeenieObject> other = g_pWorld->FindObject(*i);
 
 		//if (other && check_collision(other))
 		//{
@@ -91,14 +91,14 @@ void CHotSpotWeenie::DoCycle()
 	}
 }
 
-void CHotSpotWeenie::DoCycleDamage(CWeenieObject *other)
+void CHotSpotWeenie::DoCycleDamage(std::shared_ptr<CWeenieObject> other)
 {
 	DamageEventData damageEvent;
 	damageEvent.damage_type = (DAMAGE_TYPE) m_Qualities.GetInt(DAMAGE_TYPE_INT, 0);
 	damageEvent.damage_form = DAMAGE_FORM::DF_HOTSPOT;
 	damageEvent.damageAfterMitigation = damageEvent.damageBeforeMitigation = (int)(m_Qualities.GetInt(DAMAGE_INT, 0) * (1.0 - (Random::GenFloat(0.0f, m_Qualities.GetFloat(DAMAGE_VARIANCE_FLOAT, 0.0)))));
 	damageEvent.target = other;
-	damageEvent.source = this;
+	damageEvent.source = m_spThis.lock();
 
 	TryToDealDamage(damageEvent);
 }

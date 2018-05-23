@@ -26,7 +26,7 @@ class ParticleManager;
 class Particle
 {
 public:
-	void Init(CPhysicsObj *pOwner, DWORD EmitterID, Frame *pFrame, CPhysicsPart *pPart, Vector *Offset, DWORD Info2C, BOOL Persistant,
+	void Init(std::shared_ptr<CPhysicsObj> pOwner, DWORD EmitterID, Frame *pFrame, CPhysicsPart *pPart, Vector *Offset, DWORD Info2C, BOOL Persistant,
 		Vector *RandomA, Vector *RandomB, Vector *RandomC, float StartScale, float FinalScale, float StartTrans, float FinalTrans, double Lifespan);
 
 	void Update(DWORD Info2C, BOOL Persistant, CPhysicsPart *pPartObj, Frame *pFrame);
@@ -51,10 +51,10 @@ public:
 class ParticleEmitter
 {
 public:
-	ParticleEmitter(CPhysicsObj *pOwner);
+	ParticleEmitter(std::shared_ptr<CPhysicsObj> pOwner);
 	~ParticleEmitter();
 
-	static ParticleEmitter *makeParticleEmitter(CPhysicsObj *pOwner);
+	static ParticleEmitter *makeParticleEmitter(std::shared_ptr<CPhysicsObj> pOwner);
 
 	void Destroy();
 
@@ -72,12 +72,12 @@ public:
 	BOOL UpdateParticles();
 
 	DWORD m_EmitterID; // 0x00
-	CPhysicsObj *m_Owner; // 0x04
+	std::shared_ptr<CPhysicsObj> m_Owner; // 0x04
 	DWORD m_08; // 0x08
 
 	Frame m_Frame; // 0x0C (size: 0x40)
 
-	CPhysicsObj *m_EmitterObj; // 0x4C
+	std::shared_ptr<CPhysicsObj> m_EmitterObj; // 0x4C
 	ParticleEmitterInfo *m_EmitterInfo; // 0x50
 	Particle *m_Particles; // 0x54
 	CPhysicsPart **m_Parts58; // 0x58
@@ -178,7 +178,7 @@ public:
 	ParticleManager();
 	~ParticleManager();
 
-	DWORD CreateParticleEmitter(CPhysicsObj *pOwner, DWORD a, long b, Frame *c, DWORD d);
+	DWORD CreateParticleEmitter(std::shared_ptr<CPhysicsObj> pOwner, DWORD a, long b, Frame *c, DWORD d);
 
 	void UpdateParticles();
 

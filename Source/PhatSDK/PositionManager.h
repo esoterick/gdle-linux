@@ -36,12 +36,12 @@ public:
 class ConstraintManager
 {
 public:
-	ConstraintManager(CPhysicsObj *physobj);
+	ConstraintManager(std::shared_ptr<CPhysicsObj> physobj);
 	~ConstraintManager();
 
-	static ConstraintManager *Create(CPhysicsObj *physobj);
+	static ConstraintManager *Create(std::shared_ptr<CPhysicsObj> physobj);
 
-	void SetPhysicsObject(CPhysicsObj *_physics_obj);
+	void SetPhysicsObject(std::shared_ptr<CPhysicsObj> _physics_obj);
 
 	void UseTime();
 
@@ -50,7 +50,7 @@ public:
 	void UnConstrain();
 	void adjust_offset(Frame *offset, double quantum);
 
-	CPhysicsObj *physics_obj;
+	std::shared_ptr<CPhysicsObj> physics_obj;
 	int is_constrained;
 	float constraint_pos_offset;
 	Position constraint_pos;
@@ -61,15 +61,15 @@ public:
 class StickyManager
 {
 public:
-	StickyManager(CPhysicsObj *_physics_obj);
+	StickyManager(std::shared_ptr<CPhysicsObj> _physics_obj);
 	~StickyManager();
 
 	void Destroy();
 
-	static StickyManager *Create(CPhysicsObj *_physics_obj);
+	static StickyManager *Create(std::shared_ptr<CPhysicsObj> _physics_obj);
 
 	void UseTime();
-	void SetPhysicsObject(CPhysicsObj *_physics_obj);
+	void SetPhysicsObject(std::shared_ptr<CPhysicsObj> _physics_obj);
 	void HandleExitWorld();
 	void HandleUpdateTarget(TargetInfo target_info);
 	void StickTo(unsigned int _target_id, float _target_radius, float _target_height);
@@ -78,7 +78,7 @@ public:
 	unsigned int target_id;
 	float target_radius;
 	Position target_position;
-	CPhysicsObj *physics_obj;
+	std::shared_ptr<CPhysicsObj> physics_obj;
 	int initialized;
 	long double sticky_timeout_time;
 };
@@ -95,15 +95,15 @@ public:
 class InterpolationManager
 {
 public:
-	InterpolationManager(CPhysicsObj *new_physobj);
+	InterpolationManager(std::shared_ptr<CPhysicsObj> new_physobj);
 	~InterpolationManager();
 
 	void Destroy();
 
-	static InterpolationManager *Create(CPhysicsObj *_physics_obj);
+	static InterpolationManager *Create(std::shared_ptr<CPhysicsObj> _physics_obj);
 
 	void UseTime();
-	void SetPhysicsObject(CPhysicsObj *_physics_obj);
+	void SetPhysicsObject(std::shared_ptr<CPhysicsObj> _physics_obj);
 
 	void adjust_offset(Frame *offset, double quantum);
 
@@ -117,7 +117,7 @@ public:
 	static BOOL fUseAdjustedSpeed_;
 
 	std::list<InterpolationNode> position_queue;
-	CPhysicsObj *physics_obj;
+	std::shared_ptr<CPhysicsObj> physics_obj;
 	int keep_heading;
 	unsigned int frame_counter;
 	float original_distance;
@@ -129,15 +129,15 @@ public:
 class PositionManager
 {
 public:
-	PositionManager(CPhysicsObj *_physics_obj);
+	PositionManager(std::shared_ptr<CPhysicsObj> _physics_obj);
 	~PositionManager();
 
 	void Destroy();
 
-	static PositionManager *Create(CPhysicsObj *_physics_obj);
+	static PositionManager *Create(std::shared_ptr<CPhysicsObj> _physics_obj);
 
 	void UseTime();
-	void SetPhysicsObject(CPhysicsObj *_physics_obj);
+	void SetPhysicsObject(std::shared_ptr<CPhysicsObj> _physics_obj);
 	void adjust_offset(Frame *offset, double quantum);
 	
 	BOOL IsInterpolating();
@@ -156,5 +156,5 @@ public:
 	class InterpolationManager *interpolation_manager;
 	class StickyManager *sticky_manager;
 	class ConstraintManager *constraint_manager;
-	CPhysicsObj *physics_obj;
+	std::shared_ptr<CPhysicsObj> physics_obj;
 };

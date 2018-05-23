@@ -30,7 +30,7 @@ enum MonsterAIState
 class MonsterAIManager
 {
 public:
-	MonsterAIManager(CMonsterWeenie *pWeenie, const Position &HomePos);
+	MonsterAIManager(std::shared_ptr<CMonsterWeenie> pWeenie, const Position &HomePos);
 	virtual ~MonsterAIManager();
 
 	void SetHomePosition(const Position &pos);
@@ -59,22 +59,22 @@ public:
 	void EndMissileModeAttack();
 	void UpdateMissileModeAttack();
 
-	CWeenieObject *GetTargetWeenie();
-	void SetNewTarget(CWeenieObject *pTarget);
+	std::shared_ptr<CWeenieObject> GetTargetWeenie();
+	void SetNewTarget(std::shared_ptr<CWeenieObject> pTarget);
 
 	bool SeekTarget();
 
-	bool IsValidTarget(CWeenieObject *pWeenie);
+	bool IsValidTarget(std::shared_ptr<CWeenieObject> pWeenie);
 	void OnDeath();
 	void OnDealtDamage(DamageEventData &damageData);
 	void OnTookDamage(DamageEventData &damageData);
-	void OnResistSpell(CWeenieObject *attacker);
-	void OnEvadeAttack(CWeenieObject *attacker);
+	void OnResistSpell(std::shared_ptr<CWeenieObject> attacker);
+	void OnEvadeAttack(std::shared_ptr<CWeenieObject> attacker);
 
-	void AlertIdleFriendsToAggro(CWeenieObject *pAttacker);
+	void AlertIdleFriendsToAggro(std::shared_ptr<CWeenieObject> pAttacker);
 
-	void OnIdentifyAttempted(CWeenieObject *other);
-	void HandleAggro(CWeenieObject *pAttacker);
+	void OnIdentifyAttempted(std::shared_ptr<CWeenieObject> other);
+	void HandleAggro(std::shared_ptr<CWeenieObject> pAttacker);
 
 	float DistanceToHome();
 	bool ShouldSeekNewTarget();
@@ -83,10 +83,10 @@ public:
 	bool DoCastSpell(DWORD spell_id);
 	bool DoMeleeAttack();
 
-	void GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height, float *power, CWeenieObject *weapon = NULL);
+	void GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height, float *power, std::shared_ptr<CWeenieObject> weapon = NULL);
 	float GetChaseDistance() { return m_fChaseRange; }
 
-	CMonsterWeenie *m_pWeenie = NULL;
+	std::shared_ptr<CMonsterWeenie> m_pWeenie = NULL;
 
 	Position m_HomePosition;
 	double m_fAwarenessRange = 40.0f;
@@ -98,11 +98,11 @@ public:
 	double m_fMeleeAttackRange = 3.0;
 	double m_fReturnTimeout = 30.0f;
 
-	CWeenieObject *_currentWeapon = NULL;
-	CWeenieObject *_currentShield = NULL;
-	CWeenieObject *_shield = NULL;
-	CWeenieObject *_meleeWeapon = NULL;
-	CWeenieObject *_missileWeapon = NULL;
+	std::shared_ptr<CWeenieObject> _currentWeapon = NULL;
+	std::shared_ptr<CWeenieObject> _currentShield = NULL;
+	std::shared_ptr<CWeenieObject> _shield = NULL;
+	std::shared_ptr<CWeenieObject> _meleeWeapon = NULL;
+	std::shared_ptr<CWeenieObject> _missileWeapon = NULL;
 	bool _hasUnarmedSkill = false;
 	double _nextTaunt = -1.0;
 

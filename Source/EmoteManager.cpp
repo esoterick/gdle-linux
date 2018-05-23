@@ -11,7 +11,7 @@
 #include "GameEventManager.h"
 #include "MonsterAI.h"
 
-EmoteManager::EmoteManager(CWeenieObject *weenie)
+EmoteManager::EmoteManager(std::shared_ptr<CWeenieObject> weenie)
 {
 	_weenie = weenie;
 }
@@ -129,7 +129,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	default:
 		{
 #ifndef PUBLIC_BUILD
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (!target || !target->IsAdmin())
 				break;
 
@@ -145,7 +145,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		{
 			BinaryWriter *textMsg = ServerText(text.c_str(), LTT_EMOTE);
 
-			std::list<CWeenieObject *> results;
+			std::list<std::shared_ptr<CWeenieObject> > results;
 			g_pWorld->EnumNearbyPlayers(_weenie->GetPosition(), 30.0f, &results);
 
 			for (auto target : results)
@@ -203,7 +203,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		{
 			if (DWORD activation_target_id = _weenie->InqIIDQuality(ACTIVATION_TARGET_IID, 0))
 			{
-				CWeenieObject *target = g_pWorld->FindObject(activation_target_id);
+				std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(activation_target_id);
 				if (target)
 					target->Activate(target_id);
 			}
@@ -226,7 +226,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case AwardXP_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (!target)
 				break;
 
@@ -242,7 +242,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case AwardNoShareXP_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (!target)
 				break;
 
@@ -258,7 +258,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case AwardSkillXP_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (!target)
 				break;
 
@@ -267,7 +267,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case AwardLevelProportionalSkillXP_EmoteType:
 	{
-		CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+		std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 		if (!target)
 			break;
 
@@ -295,7 +295,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case AwardSkillPoints_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (!target)
 				break;
 
@@ -304,7 +304,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case AwardTrainingCredits_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (!target)
 				break;
 
@@ -313,7 +313,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case AwardLevelProportionalXP_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (!target)
 				break;
 
@@ -330,7 +330,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case Give_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (!target)
 				break;
 
@@ -349,7 +349,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case PhysScript_EmoteType:
 	{
-		CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+		std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 		if (target)
 			target->EmitEffect(emote.pscript, 1.0);
 
@@ -372,7 +372,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case Tell_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
 				std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
@@ -385,7 +385,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case InflictVitaePenalty_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
 				target->UpdateVitaePool(0);
@@ -397,7 +397,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case TellFellow_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
 				std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
@@ -415,7 +415,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 				{
 					for (auto &entry : fellow->_fellowship_table)
 					{
-						if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+						if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindPlayer(entry.first))
 						{
 							member->SendNetMessage(DirectChat(text.c_str(), _weenie->GetName().c_str(), _weenie->GetID(), target->GetID(), LTT_SPEECH_DIRECT), PRIVATE_MSG, TRUE);
 						}
@@ -428,7 +428,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 	case LockFellow_EmoteType:
 	{
-		CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+		std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 		if (target)
 		{
 			Fellowship *fellow = target->GetFellowship();
@@ -442,7 +442,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 	case TextDirect_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
 				std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
@@ -455,7 +455,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case DirectBroadcast_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
 				std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
@@ -468,7 +468,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case BLog_EmoteType:
 	{
-		CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+		std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 		if (target)
 		{
 			std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
@@ -481,7 +481,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case FellowBroadcast_EmoteType:
 		{
-			CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
 				std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
@@ -499,7 +499,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 				{
 					for (auto &entry : fellow->_fellowship_table)
 					{
-						if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+						if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindPlayer(entry.first))
 						{
 							member->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
 						}
@@ -511,7 +511,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case TurnToTarget_EmoteType:
 		{
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				MovementParameters params;
@@ -534,7 +534,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case TeachSpell_EmoteType:
 		{
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				target->LearnSpell(emote.spellid, true);
@@ -566,7 +566,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				bool success = target->InqQuest(emote.msg.c_str());
@@ -583,7 +583,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			break;
 		}
 
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			Fellowship *fellow = target->GetFellowship();
@@ -612,7 +612,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 				break;
 			}
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				Fellowship *fellow = target->GetFellowship();
@@ -625,7 +625,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 					for (auto &entry : fellow->_fellowship_table)
 					{
-						if (CWeenieObject *member = g_pWorld->FindObject(entry.first))
+						if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindObject(entry.first))
 						{
 							success = member->InqQuest(emote.msg.c_str());
 
@@ -645,7 +645,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				bool success = target->UpdateQuest(emote.msg.c_str());
@@ -657,7 +657,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case StampQuest_EmoteType:
 		{
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				target->StampQuest(emote.msg.c_str());
@@ -666,7 +666,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case StampFellowQuest_EmoteType:
 		{
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				Fellowship *fellow = target->GetFellowship();
@@ -675,7 +675,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 				{
 					for (auto &entry : fellow->_fellowship_table)
 					{
-						if (CWeenieObject *member = g_pWorld->FindObject(entry.first))
+						if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindObject(entry.first))
 						{
 							member->StampQuest(emote.msg.c_str());
 						}
@@ -687,7 +687,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case UpdateFellowQuest_EmoteType:
 		{
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				Fellowship *fellow = target->GetFellowship();
@@ -700,7 +700,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 					for (auto &entry : fellow->_fellowship_table)
 					{
-						if (CWeenieObject *member = g_pWorld->FindObject(entry.first))
+						if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindObject(entry.first))
 						{
 							success = member->UpdateQuest(emote.msg.c_str());
 
@@ -737,7 +737,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				target->IncrementQuest(emote.msg.c_str());
@@ -750,7 +750,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				target->DecrementQuest(emote.msg.c_str());
@@ -763,7 +763,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				target->EraseQuest(emote.msg.c_str());
@@ -780,7 +780,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!_weenie->m_Qualities._emote_table)
 			break;
 
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			bool success = false;
@@ -806,7 +806,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				bool success = false;
@@ -834,7 +834,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!_weenie->m_Qualities._emote_table)
 			break;
 
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			bool success = false;
@@ -860,7 +860,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!_weenie->m_Qualities._emote_table)
 			break;
 
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			bool success = false;
@@ -886,7 +886,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!_weenie->m_Qualities._emote_table)
 			break;
 
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			bool success = false;
@@ -912,7 +912,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!_weenie->m_Qualities._emote_table)
 			break;
 
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			bool success = false;
@@ -938,7 +938,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!_weenie->m_Qualities._emote_table)
 			break;
 
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			bool success = false;
@@ -964,7 +964,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!_weenie->m_Qualities._emote_table)
 			break;
 
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			bool success = false;
@@ -990,7 +990,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				bool success = false;
@@ -1013,7 +1013,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				bool success = false;
@@ -1036,7 +1036,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				bool success = false;
@@ -1064,7 +1064,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				bool success = false;
@@ -1092,7 +1092,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!_weenie->m_Qualities._emote_table)
 				break;
 
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				bool success = false;
@@ -1109,14 +1109,14 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case SetIntStat_EmoteType:
 		{
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 				target->m_Qualities.SetInt((STypeInt)emote.stat, emote.amount);
 			break;
 		}
 	case IncrementIntStat_EmoteType:
 		{
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
 				int intStat = target->InqIntQuality((STypeInt)emote.stat, 0, TRUE) + 1;
@@ -1126,7 +1126,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case DecrementIntStat_EmoteType:
 	{
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			int intStat = target->InqIntQuality((STypeInt)emote.stat, 0, TRUE) - 1;
@@ -1136,14 +1136,14 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case CreateTreasure_EmoteType:
 	{
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target && target->AsContainer())
 			target->AsContainer()->SpawnTreasureInContainer((eTreasureCategory)emote.treasure_type, emote.wealth_rating, emote.treasure_class);
 		break;
 	}
 	case ResetHomePosition_EmoteType:
 	{
-		CMonsterWeenie *monster = _weenie->AsMonster();
+		std::shared_ptr<CMonsterWeenie> monster = _weenie->AsMonster();
 		if (monster && monster->m_MonsterAI)
 			monster->m_MonsterAI->SetHomePosition(monster->m_Position);
 
@@ -1152,7 +1152,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case MoveHome_EmoteType:
 	{
-		CMonsterWeenie *monster = _weenie->AsMonster();
+		std::shared_ptr<CMonsterWeenie> monster = _weenie->AsMonster();
 		if (monster && monster->m_MonsterAI)
 			monster->m_MonsterAI->SwitchState(ReturningToSpawn);
 		else
@@ -1203,7 +1203,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case SetSanctuaryPosition_EmoteType:
 	{
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			target->SetInitialPosition(target->m_Position);
@@ -1216,7 +1216,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!_weenie->m_Qualities._emote_table)
 			break;
 
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
 			bool success = false;

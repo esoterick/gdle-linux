@@ -30,11 +30,11 @@ public:
 	CMonsterWeenie();
 	virtual ~CMonsterWeenie() override;
 
-	virtual class CMonsterWeenie *AsMonster() { return this; }
+	virtual class std::shared_ptr<CMonsterWeenie> AsMonster() { return std::dynamic_pointer_cast<CMonsterWeenie>(m_spThis.lock()); }
 
 	virtual void Tick();
 
-	static bool ClothingPrioritySorter(const CWeenieObject *first, const CWeenieObject *second);
+	static bool ClothingPrioritySorter(const std::shared_ptr<CWeenieObject> first, const std::shared_ptr<CWeenieObject> second);
 	virtual void GetObjDesc(ObjDesc &objDesc) override;
 
 	virtual void ApplyQualityOverrides() override;
@@ -49,12 +49,12 @@ public:
 	void UpdateDamageList(DamageEventData &damageData);
 	virtual void OnRegen(STypeAttribute2nd currentAttrib, int newAmount) override;
 
-	virtual void GivePerksForKill(CWeenieObject *pKilled) override;
+	virtual void GivePerksForKill(std::shared_ptr<CWeenieObject> pKilled) override;
 
-	virtual void OnIdentifyAttempted(CWeenieObject *other) override;
-	virtual void OnResistSpell(CWeenieObject *attacker) override;
-	virtual void OnEvadeAttack(CWeenieObject *attacker) override;
-	virtual DWORD OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot) override;
+	virtual void OnIdentifyAttempted(std::shared_ptr<CWeenieObject> other) override;
+	virtual void OnResistSpell(std::shared_ptr<CWeenieObject> attacker) override;
+	virtual void OnEvadeAttack(std::shared_ptr<CWeenieObject> attacker) override;
+	virtual DWORD OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> item, DWORD desired_slot) override;
 
 	DWORD DoForcedUseMotion(MotionUseType useType, DWORD motion, DWORD target = 0, DWORD childID = 0, DWORD childLoc = 0, MovementParameters *params = NULL);
 
@@ -75,15 +75,15 @@ public:
 	virtual int GetAttackDamage() override;
 	virtual float GetEffectiveArmorLevel(DamageEventData &damageData, bool bIgnoreMagicArmor) override;
 
-	virtual void HandleAggro(CWeenieObject *attacker) override;
+	virtual void HandleAggro(std::shared_ptr<CWeenieObject> attacker) override;
 	
-	void DropAllLoot(CCorpseWeenie *pCorpse);
-	virtual void GenerateDeathLoot(CCorpseWeenie *pCorpse);
+	void DropAllLoot(std::shared_ptr<CCorpseWeenie> pCorpse);
+	virtual void GenerateDeathLoot(std::shared_ptr<CCorpseWeenie> pCorpse);
 
 	virtual BOOL DoCollision(const class ObjCollisionProfile &prof);
 	virtual int AdjustHealth(int amount) override;
 
-	CCorpseWeenie *CreateCorpse(bool visible = true);
+	std::shared_ptr<CCorpseWeenie> CreateCorpse(bool visible = true);
 
 	bool IsAttackMotion(DWORD motion);
 
@@ -107,25 +107,25 @@ public:
 
 	class MonsterAIManager *m_MonsterAI = NULL;
 
-	CWeenieObject *SpawnWielded(CWeenieObject *item, bool deleteItemOnFailure = true);
-	CWeenieObject *SpawnWielded(DWORD wcid, int ptid, float shade);
-	CWeenieObject *SpawnWielded(DWORD index, SmartArray<Style_CG> possibleStyles, DWORD color, SmartArray<DWORD> validColors, long double shade);
+	std::shared_ptr<CWeenieObject> SpawnWielded(std::shared_ptr<CWeenieObject> item, bool deleteItemOnFailure = true);
+	std::shared_ptr<CWeenieObject> SpawnWielded(DWORD wcid, int ptid, float shade);
+	std::shared_ptr<CWeenieObject> SpawnWielded(DWORD index, SmartArray<Style_CG> possibleStyles, DWORD color, SmartArray<DWORD> validColors, long double shade);
 
 	// Inventory
-	CWeenieObject *FindValidNearbyItem(DWORD itemId, float maxDistance = 2.0);
-	CContainerWeenie *FindValidNearbyContainer(DWORD itemId, float maxDistance = 2.0);
-	bool GetEquipPlacementAndHoldLocation(CWeenieObject *item, DWORD location, DWORD *pPlacementFrame, DWORD *pHoldLocation);
+	std::shared_ptr<CWeenieObject> FindValidNearbyItem(DWORD itemId, float maxDistance = 2.0);
+	std::shared_ptr<CContainerWeenie> FindValidNearbyContainer(DWORD itemId, float maxDistance = 2.0);
+	bool GetEquipPlacementAndHoldLocation(std::shared_ptr<CWeenieObject> item, DWORD location, DWORD *pPlacementFrame, DWORD *pHoldLocation);
 	BYTE GetEnchantmentSerialByteForMask(int priority);
-	int CheckWieldRequirements(CWeenieObject *item, CWeenieObject *wielder, STypeInt requirementStat, STypeInt skillStat, STypeInt difficultyStat);
+	int CheckWieldRequirements(std::shared_ptr<CWeenieObject> item, std::shared_ptr<CWeenieObject> wielder, STypeInt requirementStat, STypeInt skillStat, STypeInt difficultyStat);
 
 	bool MoveItemToContainer(DWORD sourceItemId, DWORD targetContainerId, DWORD targetSlot, bool animationDone = false);
-	void FinishMoveItemToContainer(CWeenieObject *sourceItem, CContainerWeenie *targetContainer, DWORD targetSlot, bool bSendEvent = true, bool silent = false);
+	void FinishMoveItemToContainer(std::shared_ptr<CWeenieObject> sourceItem, std::shared_ptr<CContainerWeenie> targetContainer, DWORD targetSlot, bool bSendEvent = true, bool silent = false);
 
 	bool MoveItemTo3D(DWORD sourceItemId, bool animationDone = false);
-	void FinishMoveItemTo3D(CWeenieObject *sourceItem);
+	void FinishMoveItemTo3D(std::shared_ptr<CWeenieObject> sourceItem);
 
 	bool MoveItemToWield(DWORD sourceItemId, DWORD targetLoc, bool animationDone = false);
-	bool FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targetLoc);
+	bool FinishMoveItemToWield(std::shared_ptr<CWeenieObject> sourceItem, DWORD targetLoc);
 
 	bool MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amountToTransfer, bool animationDone = false);
 	bool SplitItemToContainer(DWORD sourceItemId, DWORD targetContainerId, DWORD targetSlot, DWORD amountToMove, bool animationDone = false);
@@ -133,7 +133,7 @@ public:
 	bool SplitItemToWield(DWORD sourceItemId, DWORD targetLoc, DWORD amountToTransfer, bool animationDone = false);
 
 	void GiveItem(DWORD targetContainerId, DWORD sourceItemId, DWORD amountToTransfer);
-	void FinishGiveItem(CContainerWeenie *targetContainer, CWeenieObject *sourceItem, DWORD amountToTransfer);
+	void FinishGiveItem(std::shared_ptr<CContainerWeenie> targetContainer, std::shared_ptr<CWeenieObject> sourceItem, DWORD amountToTransfer);
 
 private:
 	void CheckRegeneration(bool &bRegenerateNext, double &lastRegen, float regenRate, STypeAttribute2nd currentAttrib, STypeAttribute2nd maxAttrib);

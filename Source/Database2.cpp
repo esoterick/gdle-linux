@@ -793,7 +793,7 @@ void CGameDatabase::SpawnBSD()
 		if (!pMonsterInfo)
 			return;
 
-		std::list<CWeenieObject *> results;
+		std::list<std::shared_ptr<CWeenieObject> > results;
 		g_pWorld->EnumNearby(spawnPos, 10.0f, &results);
 		
 		bool bHasTusker = false;
@@ -809,7 +809,10 @@ void CGameDatabase::SpawnBSD()
 		if (bHasTusker)
 			continue;
 
-		CMonsterWeenie *pMonster = (CMonsterWeenie *)g_pGameDatabase->CreateFromCapturedData(pMonsterInfo);
+		/* TODO
+		 * is it safe to assume this works? mwnciau
+		 */
+		std::shared_ptr<CMonsterWeenie> pMonster = g_pGameDatabase->CreateFromCapturedData(pMonsterInfo)->AsMonster();
 
 		// Modify these
 		pMonster->SetScale(pMonsterInfo->physics.object_scale);
@@ -983,7 +986,7 @@ void CGameDatabase::LoadStaticsData()
 #if 0
 	for (auto pSpawnInfo : m_CapturedStaticsData)
 	{
-		CWeenieObject *pSpawn;
+		std::shared_ptr<CWeenieObject> pSpawn;
 
 		if (pSpawnInfo->guid >= 0x80000000)
 			continue; // Dynamic perhaps
@@ -996,15 +999,15 @@ void CGameDatabase::LoadStaticsData()
 			continue;
 
 		if (pSpawnInfo->weenie._bitfield & BitfieldIndex::BF_DOOR)
-			pSpawn = new CBaseDoor();
+			pSpawn = std::shared_ptr<CBaseDoor>(new CBaseDoor());
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_CREATURE)
-			pSpawn = new CMonsterWeenie();
+			pSpawn = std::shared_ptr<CMonsterWeenie>(new CMonsterWeenie());
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_PORTAL)
-			pSpawn = new CPortal();
+			pSpawn = std::shared_ptr<CPortal>(new CPortal());
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_LIFESTONE)
-			pSpawn = new CBaseLifestone();
+			pSpawn = std::shared_ptr<CBaseLifestone>(new CBaseLifestone());
 		else
-			pSpawn = new CWeenieObject();
+			pSpawn = std::shared_ptr<CWeenieObject>(new CWeenieObject());
 
 		pSpawn->id = pSpawnInfo->guid; // g_pWorld->GenerateGUID(eDynamicGUID);
 		pSpawn->m_miBaseModel = pSpawnInfo->appearance;
@@ -1061,7 +1064,7 @@ void CGameDatabase::SpawnStaticsForLandBlock(WORD lb_gid)
 
 	for (auto &pSpawnInfo : *pStatics)
 	{
-		// CWeenieObject *pSpawn;
+		// std::shared_ptr<CWeenieObject> pSpawn;
 
 		if (pSpawnInfo->guid >= 0x80000000)
 		{
@@ -1072,7 +1075,7 @@ void CGameDatabase::SpawnStaticsForLandBlock(WORD lb_gid)
 				continue; // Dynamic perhaps
 
 			// make sure there isn't another one nearby
-			std::list<CWeenieObject *> results;
+			std::list<std::shared_ptr<CWeenieObject> > results;
 			g_pWorld->EnumNearby(pSpawnInfo->physics.pos, 4.0f, &results);
 
 			bool bFound = false;
@@ -1096,7 +1099,7 @@ void CGameDatabase::SpawnStaticsForLandBlock(WORD lb_gid)
 		if (pSpawnInfo->physics.state & PhysicsState::MISSILE_PS)
 			continue;
 
-		CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(pSpawnInfo->weenie._wcid, &pSpawnInfo->physics.pos, false);
+		std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(pSpawnInfo->weenie._wcid, &pSpawnInfo->physics.pos, false);
 		if (weenie)
 		{
 			// weenie->m_ObjDesc = pSpawnInfo->objdesc;
@@ -1108,22 +1111,22 @@ void CGameDatabase::SpawnStaticsForLandBlock(WORD lb_gid)
 
 #if 0
 		if (pSpawnInfo->weenie._bitfield & BitfieldIndex::BF_DOOR)
-			pSpawn = new CBaseDoor();
+			pSpawn = std::shared_ptr<CBaseDoor>(new CBaseDoor());
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_LIFESTONE)
-			pSpawn = new CBaseLifestone();
+			pSpawn = std::shared_ptr<CBaseLifestone>(new CBaseLifestone());
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_CREATURE)
 		{
 			if (!strcmp(pSpawnInfo->weenie._name.c_str(), "Town Crier"))
-				pSpawn = new CTownCrier();
+				pSpawn = std::shared_ptr<CTownCrier>(new CTownCrier());
 			else if (pSpawnInfo->weenie._bitfield & BF_VENDOR)
-				pSpawn = new CVendor();
+				pSpawn = std::shared_ptr<CVendor>(new CVendor());
 			else
-				pSpawn = new CMonsterWeenie();
+				pSpawn = std::shared_ptr<CMonsterWeenie>(new CMonsterWeenie());
 		}
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_PORTAL)
-			pSpawn = new CPortal();
+			pSpawn = std::shared_ptr<CPortal>(new CPortal());
 		else
-			pSpawn = new CWeenieObject();
+			pSpawn = std::shared_ptr<CWeenieObject>(new CWeenieObject());
 
 		pSpawn->id = pSpawnInfo->guid; // g_pWorld->GenerateGUID(eDynamicGUID);
 		pSpawn->m_miBaseModel = pSpawnInfo->appearance;
@@ -1200,7 +1203,7 @@ void CGameDatabase::SpawnStaticsForLandBlock(WORD lb_gid)
 		/*
 		if (pSpawn->IsMonsterWeenie())
 		{
-			CMonsterWeenie *pMonster = (CMonsterWeenie *)pSpawn;
+			std::shared_ptr<CMonsterWeenie> pMonster = (std::shared_ptr<CMonsterWeenie> )pSpawn;
 			pMonster->m_MonsterAI = new MonsterAIManager(pMonster, pMonster->m_Position);
 		}
 		*/
@@ -1847,18 +1850,18 @@ void CGameDatabase::LoadTeleTownList()
 	}
 }
 
-CWeenieObject *CGameDatabase::CreateFromCapturedData(CCapturedWorldObjectInfo *pObjectInfo)
+std::shared_ptr<CWeenieObject> CGameDatabase::CreateFromCapturedData(CCapturedWorldObjectInfo *pObjectInfo)
 {
 	if (!pObjectInfo)
 	{
 		return NULL;
 	}
 
-	CWeenieObject *pObject;
+	std::shared_ptr<CWeenieObject> pObject;
 
 	if (pObjectInfo->weenie._type & ITEM_TYPE::TYPE_CREATURE)
 	{
-		pObject = new CMonsterWeenie();
+		pObject = std::shared_ptr<CWeenieObject>(new CMonsterWeenie());
 	}
 	else if (pObjectInfo->weenie._location ||
 		(pObjectInfo->weenie._type &
@@ -1868,11 +1871,11 @@ CWeenieObject *CGameDatabase::CreateFromCapturedData(CCapturedWorldObjectInfo *p
 			ITEM_TYPE::TYPE_MANASTONE | ITEM_TYPE::TYPE_MELEE_WEAPON | ITEM_TYPE::TYPE_MISSILE_WEAPON | ITEM_TYPE::TYPE_MONEY |
 			ITEM_TYPE::TYPE_PROMISSORY_NOTE | ITEM_TYPE::TYPE_SPELL_COMPONENTS | ITEM_TYPE::TYPE_CASTER)))
 	{
-		pObject = new CWeenieObject();
+		pObject = std::shared_ptr<CWeenieObject>(new CWeenieObject());
 	}
 	else
 	{
-		pObject = new CWeenieObject();
+		pObject = std::shared_ptr<CWeenieObject>(new CWeenieObject());
 	}
 
 	// pObject->SetID(pObjectInfo->guid);
@@ -1922,7 +1925,7 @@ CWeenieObject *CGameDatabase::CreateFromCapturedData(CCapturedWorldObjectInfo *p
 
 			if (pCT)
 			{
-				CWeenieObject *pItem = pObject;
+				std::shared_ptr<CWeenieObject> pItem = pObject;
 				pItem->m_WornObjDesc.Clear();
 				pItem->m_WornObjDesc.paletteID = 0x0400007E; // pObject->m_miBaseModel.dwBasePalette;
 

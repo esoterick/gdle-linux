@@ -55,7 +55,7 @@ void CAttackEventData::Begin()
 {
 	Setup();
 
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -138,7 +138,7 @@ double CAttackEventData::DistanceToTarget()
 	if (!_target_id || _target_id == _weenie->GetID())
 		return 0.0;
 
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target)
 		return FLT_MAX;
 
@@ -150,7 +150,7 @@ double CAttackEventData::HeadingToTarget(bool relative)
 	if (!_target_id || _target_id == _weenie->GetID())
 		return 0.0;
 
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target)
 		return 0.0;
 
@@ -159,7 +159,7 @@ double CAttackEventData::HeadingToTarget(bool relative)
 
 bool CAttackEventData::InAttackRange()
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target || target->HasOwner())
 		return true;
 
@@ -171,7 +171,7 @@ bool CAttackEventData::InAttackRange()
 
 bool CAttackEventData::InAttackCone()
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target || target->HasOwner())
 		return true;
 
@@ -183,7 +183,7 @@ bool CAttackEventData::InAttackCone()
 	return true;
 }
 
-CWeenieObject *CAttackEventData::GetTarget()
+std::shared_ptr<CWeenieObject> CAttackEventData::GetTarget()
 {
 	return g_pWorld->FindObject(_target_id);
 }
@@ -239,7 +239,7 @@ void CAttackEventData::Done(DWORD error)
 
 bool CAttackEventData::IsValidTarget()
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 
 	if (!target || !target->IsAttackable() || target->IsDead() || target->IsInPortalSpace() || target->ImmuneToDamage(_weenie))
 	{
@@ -280,7 +280,7 @@ void CMeleeAttackEvent::Setup()
 	{
 		if (_weenie->_combatTable)
 		{
-			CWeenieObject *weapon = NULL;
+			std::shared_ptr<CWeenieObject> weapon = NULL;
 			if (!_weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
 			{
 				weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
@@ -391,7 +391,7 @@ void CMeleeAttackEvent::OnAttackAnimSuccess(DWORD motion)
 
 void CMeleeAttackEvent::Finish()
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -403,7 +403,7 @@ void CMeleeAttackEvent::Finish()
 
 void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 
 	if (!target || !IsValidTarget())
 	{
@@ -419,7 +419,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	double offenseMod = 1.0;
 
 	bool isBodyPart = false;
-	CWeenieObject *weapon = NULL;
+	std::shared_ptr<CWeenieObject> weapon = NULL;
 	if (!_weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
 		weapon = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
 	else {
@@ -441,7 +441,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 			}
 		}
 
-		CWeenieObject *gloverOrBoots;
+		std::shared_ptr<CWeenieObject> gloverOrBoots;
 		if (_attack_power >= 0.75f) //this is a kick
 			gloverOrBoots = _weenie->GetWielded(FOOT_WEAR_LOC);
 		else //this is a punch
@@ -482,7 +482,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 			damageType = DAMAGE_TYPE::FIRE_DAMAGE_TYPE;
 	}
 
-	CWeenieObject *shield = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_SHIELD);
+	std::shared_ptr<CWeenieObject> shield = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_SHIELD);
 
 	int burden = 0;
 	if (weapon != NULL && weapon != _weenie)
@@ -618,7 +618,7 @@ void CMissileAttackEvent::Setup()
 		/*
 		if (_weenie->_combatTable)
 		{
-			CWeenieObject *weapon = _weenie->GetWieldedCombat(COMBAT_USE_MISSILE);
+			std::shared_ptr<CWeenieObject> weapon = _weenie->GetWieldedCombat(COMBAT_USE_MISSILE);
 			if (weapon)
 			{
 				weapon_id = weapon->GetID();
@@ -702,7 +702,7 @@ void CMissileAttackEvent::OnReadyToAttack()
 
 void CMissileAttackEvent::CalculateAttackMotion()
 {
-	CWeenieObject *weapon = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_MISSILE);
+	std::shared_ptr<CWeenieObject> weapon = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_MISSILE);
 
 	if (!weapon)
 	{
@@ -710,7 +710,7 @@ void CMissileAttackEvent::CalculateAttackMotion()
 		return;
 	}
 
-	CWeenieObject *equippedAmmo;
+	std::shared_ptr<CWeenieObject> equippedAmmo;
 
 	bool isThrownWeapon = (weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) == ThrownWeapon_CombatStyle);
 	bool isAtlatl = (weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) == Atlatl_CombatStyle);
@@ -732,7 +732,7 @@ void CMissileAttackEvent::CalculateAttackMotion()
 
 	bool bTrack = true;
 	float fSpeed = weapon->InqFloatQuality(MAXIMUM_VELOCITY_FLOAT, 20.0);
-	if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> pPlayer = _weenie->AsPlayer())
 	{
 		bTrack = pPlayer->GetCharacterOptions2() & LeadMissileTargets_CharacterOptions2;
 		fSpeed *= pPlayer->GetCharacterOptions2() & UseFastMissiles_CharacterOptions2 ? MISSILE_FAST_SPEED : MISSILE_SLOW_SPEED;
@@ -763,7 +763,7 @@ void CMissileAttackEvent::CalculateAttackMotion()
 
 bool CMissileAttackEvent::CalculateTargetPosition()
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	assert(target);
 
 	if (!target || !target->InValidCell())
@@ -828,7 +828,7 @@ bool CMissileAttackEvent::CalculateSpawnPosition(float missileRadius)
 
 bool CMissileAttackEvent::CalculateMissileVelocity(bool track, bool gravity, float speed)
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 
 	if (!target)
 	{
@@ -908,7 +908,7 @@ bool CMissileAttackEvent::CalculateMissileVelocity(bool track, bool gravity, flo
 
 void CMissileAttackEvent::FireMissile()
 {
-	CWeenieObject *weapon = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_MISSILE);
+	std::shared_ptr<CWeenieObject> weapon = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_MISSILE);
 
 	if (!weapon)
 	{
@@ -916,7 +916,7 @@ void CMissileAttackEvent::FireMissile()
 		return;
 	}
 
-	CWeenieObject *equippedAmmo;
+	std::shared_ptr<CWeenieObject> equippedAmmo;
 	bool isThrownWeapon = (weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) == ThrownWeapon_CombatStyle);
 	bool isAtlatl = (weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) == Atlatl_CombatStyle);
 	if (isThrownWeapon)
@@ -931,7 +931,7 @@ void CMissileAttackEvent::FireMissile()
 		return;
 	}
 
-	CWeenieObject *missileAsWeenieObject = g_pWeenieFactory->CloneWeenie(equippedAmmo);
+	std::shared_ptr<CWeenieObject> missileAsWeenieObject = g_pWeenieFactory->CloneWeenie(equippedAmmo);
 
 	if (!missileAsWeenieObject)
 	{
@@ -940,7 +940,7 @@ void CMissileAttackEvent::FireMissile()
 		return;
 	}
 
-	CAmmunitionWeenie *missile = missileAsWeenieObject->AsAmmunition();
+	std::shared_ptr<CAmmunitionWeenie> missile = missileAsWeenieObject->AsAmmunition();
 
 	if (!missile)
 	{
@@ -971,7 +971,7 @@ void CMissileAttackEvent::FireMissile()
 
 	bool bTrack = true;
 	float fSpeed = weapon->InqFloatQuality(MAXIMUM_VELOCITY_FLOAT, 20.0);
-	if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> pPlayer = _weenie->AsPlayer())
 	{
 		bTrack = pPlayer->GetCharacterOptions2() & LeadMissileTargets_CharacterOptions2;
 		fSpeed *= pPlayer->GetCharacterOptions2() & UseFastMissiles_CharacterOptions2 ? MISSILE_FAST_SPEED : MISSILE_SLOW_SPEED;
@@ -986,15 +986,15 @@ void CMissileAttackEvent::FireMissile()
 	missile->m_Position = _missile_spawn_position;
 	missile->set_velocity(_missile_velocity, FALSE);
 
-	CWeenieObject *launcher = _weenie->GetWieldedCombat(COMBAT_USE_MISSILE);
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> launcher = _weenie->GetWieldedCombat(COMBAT_USE_MISSILE);
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	missile->_sourceID = _weenie->GetID();
 	missile->_launcherID = launcher ? launcher->GetID() : 0;
 	missile->_targetID = target ? target->GetID() : 0;
 	missile->_attackPower = _attack_power;
 	missile->_timeToRot = Timer::cur_time + 5.0;
 
-	CWeenieObject *shield = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_SHIELD); //thrown weapons users can have a shield
+	std::shared_ptr<CWeenieObject> shield = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_SHIELD); //thrown weapons users can have a shield
 
 	int burden = weapon->InqIntQuality(ENCUMB_VAL_INT, 0);
 	if (shield != NULL)
@@ -1101,7 +1101,7 @@ void CMissileAttackEvent::OnAttackAnimSuccess(DWORD motion)
 
 void CMissileAttackEvent::Finish()
 {
-	CWeenieObject *target = GetTarget();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -1115,7 +1115,7 @@ void CMissileAttackEvent::HandleAttackHook(const AttackCone &cone)
 {
 }
 
-AttackManager::AttackManager(CWeenieObject *weenie)
+AttackManager::AttackManager(std::shared_ptr<CWeenieObject> weenie)
 {
 	_weenie = weenie;
 }
@@ -1157,9 +1157,8 @@ void AttackManager::OnAttackCancelled(DWORD error)
 
 bool AttackManager::RepeatAttacks()
 {
-	if (_weenie->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> player = _weenie->AsPlayer())
 	{
-		CPlayerWeenie *player = (CPlayerWeenie *)_weenie;
 		return player->ShouldRepeatAttacks();
 	}
 

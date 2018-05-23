@@ -56,7 +56,7 @@ DWORD CClientEvents::GetPlayerID()
 	return m_pPlayer->GetID();
 }
 
-CPlayerWeenie *CClientEvents::GetPlayer()
+std::shared_ptr<CPlayerWeenie> CClientEvents::GetPlayer()
 {
 	return m_pPlayer;
 }
@@ -151,14 +151,12 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	}
 	*/
 	
-	m_pPlayer = new CPlayerWeenie(m_pClient, char_weenie_id, m_pClient->IncCharacterInstanceTS(char_weenie_id));
+	m_pPlayer = std::shared_ptr<CPlayerWeenie>(new CPlayerWeenie(m_pClient, char_weenie_id, m_pClient->IncCharacterInstanceTS(char_weenie_id)));
 	
 	if (!m_pPlayer->Load())
 	{
 		LoginError(13); // update error codes
 		SERVER_WARN << szAccount << "Login request, but character failed to load!";
-
-		delete m_pPlayer;
 
 		return;
 	}
@@ -449,7 +447,7 @@ void CClientEvents::SendTellByGUID(const char* szText, DWORD dwGUID)
 	}
 	*/
 
-	CPlayerWeenie *pTarget;
+	std::shared_ptr<CPlayerWeenie> pTarget;
 
 	if (!(pTarget = g_pWorld->FindPlayer(dwGUID)))
 		return;
@@ -478,7 +476,7 @@ void CClientEvents::SendTellByName(const char* szText, const char* szName)
 	if (szText[0] == '\0') //Make sure the text isn't blank
 		return;
 
-	CPlayerWeenie *pTarget;
+	std::shared_ptr<CPlayerWeenie> pTarget;
 
 	if (!(pTarget = g_pWorld->FindPlayer(szName)))
 		return;
@@ -597,15 +595,15 @@ void CClientEvents::ChannelText(DWORD channel_id, const char *text)
 
 void CClientEvents::RequestHealthUpdate(DWORD dwGUID)
 {
-	CWeenieObject *pEntity = g_pWorld->FindWithinPVS(m_pPlayer, dwGUID);
+	std::shared_ptr<CWeenieObject> pEntity = g_pWorld->FindWithinPVS(m_pPlayer, dwGUID);
 
 	if (pEntity)
 	{
-		if (pEntity->IsCreature())
+		if (std::shared_ptr<CMonsterWeenie> pMonster = pEntity->AsMonster())
 		{
 			m_pPlayer->SetLastHealthRequest(pEntity->GetID());
 
-			m_pClient->SendNetMessage(HealthUpdate((CMonsterWeenie *)pEntity), PRIVATE_MSG, TRUE, TRUE);
+			m_pClient->SendNetMessage(HealthUpdate(pMonster), PRIVATE_MSG, TRUE, TRUE);
 		}
 	}
 }
@@ -630,8 +628,8 @@ void CClientEvents::Ping()
 
 void CClientEvents::UseItemEx(DWORD dwSourceID, DWORD dwDestID)
 {
-	CWeenieObject *pSource = g_pWorld->FindWithinPVS(m_pPlayer, dwSourceID);
-	CWeenieObject *pDest = g_pWorld->FindWithinPVS(m_pPlayer, dwDestID);
+	std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindWithinPVS(m_pPlayer, dwSourceID);
+	std::shared_ptr<CWeenieObject> pDest = g_pWorld->FindWithinPVS(m_pPlayer, dwDestID);
 
 	if (pSource && pSource->AsCaster())
 		m_pPlayer->ExecuteUseEvent(new CWandSpellUseEvent(dwSourceID, pDest ? dwDestID : dwSourceID));
@@ -649,7 +647,7 @@ void CClientEvents::UseObject(DWORD dwEID)
 		return;
 	}
 
-	CWeenieObject *pTarget = g_pWorld->FindWithinPVS(m_pPlayer, dwEID);
+	std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(m_pPlayer, dwEID);
 
 	if (pTarget)
 	{
@@ -689,7 +687,7 @@ void CClientEvents::Identify(DWORD target_id)
 	}
 
 	/*
-	CWeenieObject *pTarget = g_pWorld->FindWithinPVS(m_pPlayer, target_id);
+	std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(m_pPlayer, target_id);
 
 	if (!pTarget)
 	{
@@ -698,7 +696,7 @@ void CClientEvents::Identify(DWORD target_id)
 	}
 	*/
 
-	CWeenieObject *pTarget = g_pWorld->FindObject(target_id);
+	std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindObject(target_id);
 
 #ifndef PUBLIC_BUILD
 	if (pTarget)
@@ -857,7 +855,7 @@ void CClientEvents::MarketplaceRecall()
 
 void CClientEvents::TryInscribeItem(DWORD object_id, const std::string &text)
 {
-	CWeenieObject *weenie = m_pPlayer->FindContainedItem(object_id);
+	std::shared_ptr<CWeenieObject> weenie = m_pPlayer->FindContainedItem(object_id);
 
 	if (!weenie)
 	{
@@ -875,7 +873,7 @@ void CClientEvents::TryInscribeItem(DWORD object_id, const std::string &text)
 
 void CClientEvents::TryBuyItems(DWORD vendor_id, std::list<class ItemProfile *> &items)
 {
-	CWeenieObject *weenie = g_pWorld->FindWithinPVS(m_pPlayer, vendor_id);
+	std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindWithinPVS(m_pPlayer, vendor_id);
 
 	if (!weenie)
 	{
@@ -884,10 +882,10 @@ void CClientEvents::TryBuyItems(DWORD vendor_id, std::list<class ItemProfile *> 
 	}
 
 	int error = WERROR_NO_OBJECT;
-	if (weenie->IsVendor())
+	if (std::shared_ptr<CVendor> pVendor = weenie->AsVendor())
 	{
-		error = ((CVendor *)weenie)->TrySellItemsToPlayer(m_pPlayer, items);
-		((CVendor *)weenie)->SendVendorInventory(m_pPlayer);
+		error = pVendor->TrySellItemsToPlayer(m_pPlayer, items);
+		pVendor->SendVendorInventory(m_pPlayer);
 	}
 
 	ActionComplete(error);
@@ -896,7 +894,7 @@ void CClientEvents::TryBuyItems(DWORD vendor_id, std::list<class ItemProfile *> 
 
 void CClientEvents::TrySellItems(DWORD vendor_id, std::list<class ItemProfile *> &items)
 {
-	CWeenieObject *weenie = g_pWorld->FindWithinPVS(m_pPlayer, vendor_id);
+	std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindWithinPVS(m_pPlayer, vendor_id);
 
 	if (!weenie)
 	{
@@ -905,10 +903,10 @@ void CClientEvents::TrySellItems(DWORD vendor_id, std::list<class ItemProfile *>
 	}
 
 	int error = WERROR_NO_OBJECT;
-	if (weenie->IsVendor())
+	if (std::shared_ptr<CVendor> pVendor = weenie->AsVendor())
 	{
-		error = ((CVendor *)weenie)->TryBuyItemsFromPlayer(m_pPlayer, items);
-		((CVendor *)weenie)->SendVendorInventory(m_pPlayer);
+		error = pVendor->TryBuyItemsFromPlayer(m_pPlayer, items);
+		pVendor->SendVendorInventory(m_pPlayer);
 	}
 
 	ActionComplete(error);
@@ -1040,7 +1038,7 @@ void CClientEvents::TryBreakAllegiance(DWORD target)
 
 void CClientEvents::TrySwearAllegiance(DWORD target)
 {
-	CPlayerWeenie *targetWeenie = g_pWorld->FindPlayer(target);
+	std::shared_ptr<CPlayerWeenie> targetWeenie = g_pWorld->FindPlayer(target);
 	if (!targetWeenie)
 	{
 		m_pPlayer->NotifyWeenieError(WERROR_NO_OBJECT);
@@ -1146,12 +1144,12 @@ void CClientEvents::AllegianceHometownRecall()
 
 void CClientEvents::HouseBuy(DWORD slumlord, const PackableList<DWORD> &items)
 {
-	if (CWeenieObject *slumlordObj = g_pWorld->FindObject(slumlord))
+	if (std::shared_ptr<CWeenieObject> slumlordObj = g_pWorld->FindObject(slumlord))
 	{
 		if (m_pPlayer->DistanceTo(slumlordObj, true) > 10.0)
 			return;
 
-		if (CSlumLordWeenie *slumlord = slumlordObj->AsSlumLord())
+		if (std::shared_ptr<CSlumLordWeenie> slumlord = slumlordObj->AsSlumLord())
 		{
 			slumlord->BuyHouse(m_pPlayer, items);
 		}
@@ -1160,12 +1158,12 @@ void CClientEvents::HouseBuy(DWORD slumlord, const PackableList<DWORD> &items)
 
 void CClientEvents::HouseRent(DWORD slumlord, const PackableList<DWORD> &items)
 {
-	if (CWeenieObject *slumlordObj = g_pWorld->FindObject(slumlord))
+	if (std::shared_ptr<CWeenieObject> slumlordObj = g_pWorld->FindObject(slumlord))
 	{
 		if (m_pPlayer->DistanceTo(slumlordObj, true) > 10.0)
 			return;
 
-		if (CSlumLordWeenie *slumlord = slumlordObj->AsSlumLord())
+		if (std::shared_ptr<CSlumLordWeenie> slumlord = slumlordObj->AsSlumLord())
 		{
 			slumlord->RentHouse(m_pPlayer, items);
 		}
@@ -1232,14 +1230,13 @@ void CClientEvents::HouseMansionRecall()
 
 	DWORD allegianceHouseId;
 
-	CWeenieObject *monarch = g_pWorld->FindObject(allegianceNode->_monarchID);
+	std::shared_ptr<CWeenieObject> monarch = g_pWorld->FindObject(allegianceNode->_monarchID);
 	if (!monarch)
 	{
 		monarch = CWeenieObject::Load(allegianceNode->_monarchID);
 		if (!monarch)
 			return;
 		allegianceHouseId = monarch->InqDIDQuality(HOUSEID_DID, 0);
-		delete monarch;
 	}
 	else
 		allegianceHouseId = monarch->InqDIDQuality(HOUSEID_DID, 0);
@@ -1653,9 +1650,9 @@ void CClientEvents::HouseClearStorageAccess()
 
 void CClientEvents::NoLongerViewingContents(DWORD container_id)
 {	
-	if (CWeenieObject *remoteContainerObj = g_pWorld->FindObject(container_id))
+	if (std::shared_ptr<CWeenieObject> remoteContainerObj = g_pWorld->FindObject(container_id))
 	{
-		if (CContainerWeenie *remoteContainer = remoteContainerObj->AsContainer())
+		if (std::shared_ptr<CContainerWeenie> remoteContainer = remoteContainerObj->AsContainer())
 		{
 			remoteContainer->HandleNoLongerViewing(m_pPlayer);
 		}
@@ -2547,7 +2544,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				return;
 			}
 
-			CPlayerWeenie *pOther = g_pWorld->FindWithinPVS(m_pPlayer, pReader->Read<DWORD>())->AsPlayer();
+			std::shared_ptr<CPlayerWeenie> pOther = g_pWorld->FindWithinPVS(m_pPlayer, pReader->Read<DWORD>())->AsPlayer();
 
 			if (!pOther)
 			{

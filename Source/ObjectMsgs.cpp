@@ -16,7 +16,7 @@
 #define MESSAGE_BEGIN(x)	BinaryWriter *x = new BinaryWriter
 #define MESSAGE_END(x)		return x
 
-BinaryWriter *GetWeenieObjData(CWeenieObject *pEntity)
+BinaryWriter *GetWeenieObjData(std::shared_ptr<CWeenieObject> pEntity)
 {
 	BinaryWriter *pWriter = new BinaryWriter;
 
@@ -151,7 +151,7 @@ BinaryWriter *GetWeenieObjData(CWeenieObject *pEntity)
 #endif
 }
 
-BinaryWriter *GetPhysicsObjData(CWeenieObject *pEntity)
+BinaryWriter *GetPhysicsObjData(std::shared_ptr<CWeenieObject> pEntity)
 {
 	BinaryWriter OptionalPhysicsObjData;
 	DWORD dwSections = 0; //0x019803
@@ -302,7 +302,7 @@ BinaryWriter *GetPhysicsObjData(CWeenieObject *pEntity)
 	return PhysicsObjData;
 }
 
-BinaryWriter *CreateObject(CWeenieObject *pEntity)
+BinaryWriter *CreateObject(std::shared_ptr<CWeenieObject> pEntity)
 {
 	BinaryWriter *CO = new BinaryWriter;
 
@@ -325,7 +325,7 @@ BinaryWriter *CreateObject(CWeenieObject *pEntity)
 	return CO;
 }
 
-BinaryWriter *UpdateObject(CWeenieObject *pEntity)
+BinaryWriter *UpdateObject(std::shared_ptr<CWeenieObject> pEntity)
 {
 	BinaryWriter *UO = new BinaryWriter;
 
@@ -358,7 +358,7 @@ BinaryWriter *UpdateObject(CWeenieObject *pEntity)
 	return UO;
 }
 
-BinaryWriter *IdentifyObjectFail(CWeenieObject *pEntity, bool bShowLevel)
+BinaryWriter *IdentifyObjectFail(std::shared_ptr<CWeenieObject> pEntity, bool bShowLevel)
 {
 	BinaryWriter *pWriter = new BinaryWriter;
 
@@ -527,7 +527,7 @@ BinaryWriter *IdentifyObjectFail(CWeenieObject *pEntity, bool bShowLevel)
 	return pWriter;
 }
 
-BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWORD overrideId)
+BinaryWriter *IdentifyObject(std::shared_ptr<CWeenieObject> pSource, std::shared_ptr<CWeenieObject> pEntity, DWORD overrideId)
 {
 	BinaryWriter *pWriter = new BinaryWriter;
 
@@ -547,12 +547,12 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 	DWORD characterOptions;
 	DWORD characterOptions2;
 
-	if (CPlayerWeenie *pPlayerSource = pSource->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> pPlayerSource = pSource->AsPlayer())
 	{
 		bIsSourceAdmin = pPlayerSource->GetAccessLevel() >= ADMIN_ACCESS;
 	}
 
-	if (CPlayerWeenie *pPlayer = pEntity->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> pPlayer = pEntity->AsPlayer())
 	{
 		bIsPlayer = true;
 		characterOptions = pPlayer->GetCharacterOptions();
@@ -1009,7 +1009,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 	return pWriter;
 }
 
-BinaryWriter *LoginCharacter(CPlayerWeenie *pPlayer)
+BinaryWriter *LoginCharacter(std::shared_ptr<CPlayerWeenie> pPlayer)
 {
 	BinaryWriter *LC = new BinaryWriter;
 
@@ -1078,7 +1078,7 @@ BinaryWriter *LoginCharacter(CPlayerWeenie *pPlayer)
 	return LC;
 }
 
-BinaryWriter *HealthUpdate(CWeenieObject *pWeenie)
+BinaryWriter *HealthUpdate(std::shared_ptr<CWeenieObject> pWeenie)
 {
 	MESSAGE_BEGIN(HealthUpdate);
 
@@ -1095,7 +1095,7 @@ BinaryWriter *HealthUpdate(CWeenieObject *pWeenie)
 	MESSAGE_END(HealthUpdate);
 }
 
-BinaryWriter *ItemManaUpdate(CWeenieObject *item)
+BinaryWriter *ItemManaUpdate(std::shared_ptr<CWeenieObject> item)
 {
 	MESSAGE_BEGIN(ItemManaUpdate);
 
@@ -1158,7 +1158,7 @@ BinaryWriter *InventoryDrop(DWORD dwItemID)
 	MESSAGE_END(InventoryDrop);
 }
 
-BinaryWriter *MoveUpdate(CWeenieObject *pEntity)
+BinaryWriter *MoveUpdate(std::shared_ptr<CWeenieObject> pEntity)
 {
 	BinaryWriter *pWriter = new BinaryWriter();
 

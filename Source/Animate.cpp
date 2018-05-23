@@ -116,7 +116,7 @@ BinaryWriter *CPhysicsObj::Animation_GetAnimationInfo(bool bMoveToUpdate)
 			AnimInfo->Write<DWORD>(moveToManager->sought_object_id);
 
 			// _position_timestamp++;
-			CPhysicsObj *pTarget = CPhysicsObj::GetObject(moveToManager->sought_object_id);
+			std::shared_ptr<CPhysicsObj> pTarget = CPhysicsObj::GetObject(moveToManager->sought_object_id);
 			if (pTarget && !pTarget->parent && pTarget->m_Position.objcell_id != 0)
 				pTarget->m_Position.PackOrigin(AnimInfo);
 			else
@@ -133,7 +133,7 @@ BinaryWriter *CPhysicsObj::Animation_GetAnimationInfo(bool bMoveToUpdate)
 
 			float heading = 0.0f;
 
-			CPhysicsObj *pTarget = CPhysicsObj::GetObject(moveToManager->sought_object_id);
+			std::shared_ptr<CPhysicsObj> pTarget = CPhysicsObj::GetObject(moveToManager->sought_object_id);
 			if (pTarget && !pTarget->parent)
 				m_Position.heading(pTarget->m_Position);
 
@@ -175,7 +175,7 @@ void CPhysicsObj::Animation_Update()
 	AnimUpdate.Write(AnimInfo);
 	delete AnimInfo;
 
-	g_pWorld->BroadcastPVS(this, AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	g_pWorld->BroadcastPVS(m_spThis.lock(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
 }
 
 void CPhysicsObj::Animation_MoveToUpdate()
@@ -198,7 +198,7 @@ void CPhysicsObj::Animation_MoveToUpdate()
 	AnimUpdate.Write(AnimInfo);
 	delete AnimInfo;
 
-	g_pWorld->BroadcastPVS(this, AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	g_pWorld->BroadcastPVS(m_spThis.lock(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
 
 	last_move_was_autonomous = false;
 }

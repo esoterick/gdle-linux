@@ -15,7 +15,7 @@ CAugmentationDeviceWeenie::~CAugmentationDeviceWeenie()
 {
 }
 
-int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
+int CAugmentationDeviceWeenie::Use(std::shared_ptr<CPlayerWeenie> player)
 {
 	if (!player->FindContainedItem(GetID()))
 	{

@@ -5,28 +5,28 @@
 #include "HashData.h"
 
 class SmartBox;
-class CObjectMaint;
+//class CObjectMaint;
 // class CPhysicsObj;
 
 class CPhysics
 {
 public:
-    static SmartArray<CPhysicsObj *> static_animating_objects;
+    static SmartArray<std::shared_ptr<CPhysicsObj> > static_animating_objects;
 
-    static void AddStaticAnimatingObject(CPhysicsObj *pObject);
-    static void RemoveStaticAnimatingObject(CPhysicsObj *pObject);
+    static void AddStaticAnimatingObject(std::shared_ptr<CPhysicsObj> pObject);
+    static void RemoveStaticAnimatingObject(std::shared_ptr<CPhysicsObj> pObject);
 
-    CPhysics(CObjectMaint *_ObjMaint, SmartBox *_SmartBox);
+    CPhysics(SmartBox *_SmartBox);
     ~CPhysics();
 
-    void SetPlayer(CPhysicsObj *Player);
+    void SetPlayer(std::shared_ptr<CPhysicsObj> Player);
     void UseTime();
     void UpdateTexVelocity(float FrameTime);
 
-    CObjectMaint *    m_ObjMaint;                  // 0x00
+    //CObjectMaint *    m_ObjMaint;                  // 0x00
     SmartBox *        m_SmartBox;                  // 0x04
-    CPhysicsObj *    m_Player;                   // 0x08
-    HashBaseIter<CPhysicsObj *>* m_Iter;    // 0x0C
+    std::shared_ptr<CPhysicsObj>     m_Player;                   // 0x08
+    HashBaseIter<std::shared_ptr<CPhysicsObj> >* m_Iter;    // 0x0C
     DWORD            m_10;                          // 0x10
 };
 

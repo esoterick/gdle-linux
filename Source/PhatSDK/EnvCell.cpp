@@ -110,7 +110,7 @@ void CEnvCell::Destroy()
 			if (static_objects[i])
 			{
 				static_objects[i]->leave_world();
-				delete static_objects[i];
+				static_objects[i] = NULL;
 			}
 		}
 
@@ -311,7 +311,7 @@ void CEnvCell::init_static_objects()
 	{
 		if (num_static_objects > 0)
 		{
-			static_objects = new CPhysicsObj*[num_static_objects];
+			static_objects = new std::shared_ptr<CPhysicsObj> [num_static_objects];
 
 			for (DWORD i = 0; i < num_static_objects; i++)
 			{
@@ -627,9 +627,9 @@ bool CEnvCell::Custom_GetDungeonDrop(int dropIndex, Frame *pDropFrame, int *pNum
 	return bFoundDrop || (dropIndex < 0);
 }
 
-CPhysicsObj *CEnvCell::recursively_get_object(DWORD obj_iid, PackableHashTable<unsigned long, int> *visited_cells)
+std::shared_ptr<CPhysicsObj> CEnvCell::recursively_get_object(DWORD obj_iid, PackableHashTable<unsigned long, int> *visited_cells)
 {
-	CPhysicsObj *pObject = get_object(obj_iid);
+	std::shared_ptr<CPhysicsObj> pObject = get_object(obj_iid);
 
 	if (!pObject)
 	{

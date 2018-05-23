@@ -9,7 +9,7 @@
 
 #define DEFAULT_AWARENESS_RANGE 40.0
 
-MonsterAIManager::MonsterAIManager(CMonsterWeenie *pWeenie, const Position &HomePos)
+MonsterAIManager::MonsterAIManager(std::shared_ptr<CMonsterWeenie> pWeenie, const Position &HomePos)
 {
 	m_pWeenie = pWeenie;
 	_toleranceType = pWeenie->InqIntQuality(TOLERANCE_INT, 0, TRUE);
@@ -215,12 +215,12 @@ bool MonsterAIManager::SeekTarget()
 	{
 		m_fNextPVSCheck = Timer::cur_time + 2.0f;
 
-		std::list<CWeenieObject *> results;
+		std::list<std::shared_ptr<CWeenieObject> > results;
 		g_pWorld->EnumNearbyPlayers(m_pWeenie, _cachedVisualAwarenessRange, &results); // m_HomePosition
 
-		std::list<CWeenieObject *> validTargets;
+		std::list<std::shared_ptr<CWeenieObject> > validTargets;
 
-		CWeenieObject *pClosestWeenie = NULL;
+		std::shared_ptr<CWeenieObject> pClosestWeenie = NULL;
 		double fClosestWeenieDist = FLT_MAX;
 
 		for (auto weenie : results)
@@ -257,7 +257,7 @@ bool MonsterAIManager::SeekTarget()
 		if (!validTargets.empty())
 		{
 			// Random target
-			std::list<CWeenieObject *>::iterator i = validTargets.begin();
+			std::list<std::shared_ptr<CWeenieObject> >::iterator i = validTargets.begin();
 			std::advance(i, Random::GenInt(0, (unsigned int)(validTargets.size() - 1)));
 			SetNewTarget(*i);
 			return true;
@@ -267,7 +267,7 @@ bool MonsterAIManager::SeekTarget()
 	return false;
 }
 
-void MonsterAIManager::SetNewTarget(CWeenieObject *pTarget)
+void MonsterAIManager::SetNewTarget(std::shared_ptr<CWeenieObject> pTarget)
 {
 	m_TargetID = pTarget->GetID();
 
@@ -285,7 +285,7 @@ void MonsterAIManager::SetNewTarget(CWeenieObject *pTarget)
 	m_pWeenie->ChanceExecuteEmoteSet(pTarget->GetID(), NewEnemy_EmoteCategory);
 }
 
-CWeenieObject *MonsterAIManager::GetTargetWeenie()
+std::shared_ptr<CWeenieObject> MonsterAIManager::GetTargetWeenie()
 {
 	return g_pWorld->FindObject(m_TargetID);
 }
@@ -356,7 +356,7 @@ bool MonsterAIManager::RollDiceCastSpell()
 
 bool MonsterAIManager::DoCastSpell(DWORD spell_id)
 {	
-	CWeenieObject *pTarget = GetTargetWeenie();
+	std::shared_ptr<CWeenieObject> pTarget = GetTargetWeenie();
 	m_pWeenie->MakeSpellcastingManager()->CreatureBeginCast(pTarget ? pTarget->GetID() : 0, spell_id);
 	return true;
 }
@@ -372,7 +372,7 @@ bool MonsterAIManager::DoMeleeAttack()
 		return false;
 	}
 
-	CWeenieObject *pTarget = GetTargetWeenie();
+	std::shared_ptr<CWeenieObject> pTarget = GetTargetWeenie();
 	if (!pTarget)
 	{
 		return false;
@@ -387,7 +387,7 @@ bool MonsterAIManager::DoMeleeAttack()
 	return true;
 }
 
-void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height, float *power, CWeenieObject *weapon)
+void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height, float *power, std::shared_ptr<CWeenieObject> weapon)
 {
 	*motion = 0;
 	*height = ATTACK_HEIGHT::UNDEF_ATTACK_HEIGHT;
@@ -545,7 +545,7 @@ void MonsterAIManager::OnDeath()
 {
 }
 
-bool MonsterAIManager::IsValidTarget(CWeenieObject *pWeenie)
+bool MonsterAIManager::IsValidTarget(std::shared_ptr<CWeenieObject> pWeenie)
 {
 	if (!pWeenie)
 		return false;
@@ -562,9 +562,9 @@ bool MonsterAIManager::IsValidTarget(CWeenieObject *pWeenie)
 	return true;
 }
 
-void MonsterAIManager::AlertIdleFriendsToAggro(CWeenieObject *pAttacker)
+void MonsterAIManager::AlertIdleFriendsToAggro(std::shared_ptr<CWeenieObject> pAttacker)
 {
-	std::list<CWeenieObject *> results;
+	std::list<std::shared_ptr<CWeenieObject> > results;
 	g_pWorld->EnumNearby(m_pWeenie, 20.0f, &results);
 
 	int ourType = m_pWeenie->InqIntQuality(CREATURE_TYPE_INT, 0);
@@ -578,7 +578,8 @@ void MonsterAIManager::AlertIdleFriendsToAggro(CWeenieObject *pAttacker)
 		if (!weenie->IsCreature())
 			continue;
 
-		CMonsterWeenie *creature = (CMonsterWeenie *)weenie;
+		// TODO is this safe to assume? mwnciau
+		std::shared_ptr<CMonsterWeenie> creature = weenie->AsMonster();
 		if (!creature->m_MonsterAI)
 			continue;
 
@@ -616,13 +617,13 @@ void MonsterAIManager::AlertIdleFriendsToAggro(CWeenieObject *pAttacker)
 	}
 }
 
-void MonsterAIManager::OnResistSpell(CWeenieObject *attacker)
+void MonsterAIManager::OnResistSpell(std::shared_ptr<CWeenieObject> attacker)
 {
 	if(attacker)
 		m_pWeenie->ChanceExecuteEmoteSet(attacker->GetID(), ResistSpell_EmoteCategory);
 }
 
-void MonsterAIManager::OnEvadeAttack(CWeenieObject *attacker)
+void MonsterAIManager::OnEvadeAttack(std::shared_ptr<CWeenieObject> attacker)
 {
 
 }
@@ -639,7 +640,7 @@ void MonsterAIManager::OnDealtDamage(DamageEventData &damageData)
 
 void MonsterAIManager::OnTookDamage(DamageEventData &damageData)
 {
-	CWeenieObject *source = damageData.source;
+	std::shared_ptr<CWeenieObject> source = damageData.source;
 	unsigned int damage = damageData.outputDamageFinal;
 
 	if (!source)
@@ -676,7 +677,7 @@ void MonsterAIManager::OnTookDamage(DamageEventData &damageData)
 	}
 }
 
-void MonsterAIManager::OnIdentifyAttempted(CWeenieObject *other)
+void MonsterAIManager::OnIdentifyAttempted(std::shared_ptr<CWeenieObject> other)
 {
 	if (_toleranceType != TolerateUnlessBothered)
 	{
@@ -691,7 +692,7 @@ void MonsterAIManager::OnIdentifyAttempted(CWeenieObject *other)
 	HandleAggro(other);
 }
 
-void MonsterAIManager::HandleAggro(CWeenieObject *pAttacker)
+void MonsterAIManager::HandleAggro(std::shared_ptr<CWeenieObject> pAttacker)
 {
 	if (_toleranceType == TolerateEverything)
 	{
@@ -790,7 +791,7 @@ void MonsterAIManager::UpdateMeleeModeAttack()
 	// dont chase a target that is outside the chase range, unless attacked
 	// dont chase any new target, even if attacked, outside home range
 
-	CWeenieObject *pTarget = GetTargetWeenie();
+	std::shared_ptr<CWeenieObject> pTarget = GetTargetWeenie();
 	if (!pTarget || pTarget->IsDead() || !pTarget->IsAttackable() || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
 	{
 		if (ShouldSeekNewTarget())
@@ -848,7 +849,7 @@ void MonsterAIManager::BeginMissileModeAttack()
 	{
 		if (_missileWeapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle)
 		{
-			CWeenieObject *equippedAmmo = m_pWeenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_AMMO);
+			std::shared_ptr<CWeenieObject> equippedAmmo = m_pWeenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_AMMO);
 			if (!equippedAmmo)
 			{
 				//we don't have ammo, disable missile mode and switch to melee.
@@ -911,7 +912,7 @@ void MonsterAIManager::UpdateMissileModeAttack()
 	// dont chase a target that is outside the chase range, unless attacked
 	// dont chase any new target, even if attacked, outside home range
 
-	CWeenieObject *pTarget = GetTargetWeenie();
+	std::shared_ptr<CWeenieObject> pTarget = GetTargetWeenie();
 	if (!pTarget || pTarget->IsDead() || !pTarget->IsAttackable() || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
 	{
 		if (ShouldSeekNewTarget())

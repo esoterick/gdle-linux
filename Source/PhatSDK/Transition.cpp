@@ -70,7 +70,7 @@ void COLLISIONINFO::init()
 	frames_stationary_fall = 0;
 }
 
-void COLLISIONINFO::add_object(CPhysicsObj *object, TransitionState ts)
+void COLLISIONINFO::add_object(std::shared_ptr<CPhysicsObj> object, TransitionState ts)
 {
 	for (DWORD i = 0; i < num_collide_object; i++)
 	{
@@ -160,7 +160,7 @@ void CTransition::init()
 	cell_array.do_not_load_cells = 0;
 }
 
-int OBJECTINFO::missile_ignore(CPhysicsObj *collideobject)
+int OBJECTINFO::missile_ignore(std::shared_ptr<CPhysicsObj> collideobject)
 {
 	int result;
 
@@ -186,7 +186,7 @@ int OBJECTINFO::missile_ignore(CPhysicsObj *collideobject)
 	return result;
 }
 
-void OBJECTINFO::init(CPhysicsObj *_object, int object_state)
+void OBJECTINFO::init(std::shared_ptr<CPhysicsObj> _object, int object_state)
 {
 	object = _object;
 	state = object_state;
@@ -195,7 +195,7 @@ void OBJECTINFO::init(CPhysicsObj *_object, int object_state)
 	step_down_height = _object->GetStepDownHeight();
 	ethereal = object->m_PhysicsState & ETHEREAL_PS;
 	step_down = ~(unsigned __int8)(object->m_PhysicsState >> 6) & 1; // if not a missile MISSILE_PS
-	CWeenieObject *pWeenie = object->weenie_obj;
+	std::shared_ptr<CWeenieObject> pWeenie = object->weenie_obj;
 	if (pWeenie)
 	{
 		if (pWeenie->IsImpenetrable()) // 28 IsImpenetrable
@@ -211,7 +211,7 @@ void OBJECTINFO::init(CPhysicsObj *_object, int object_state)
 	targetID = pWeenie->GetPhysicsTargetID();
 }
 
-void CTransition::init_object(CPhysicsObj *object, int object_state)
+void CTransition::init_object(std::shared_ptr<CPhysicsObj> object, int object_state)
 {
 	object_info.init(object, object_state);
 }
@@ -336,7 +336,7 @@ void CTransition::init_sliding_normal(Vector *normal)
 	}
 }
 
-BOOL CTransition::check_collisions(CPhysicsObj *object)
+BOOL CTransition::check_collisions(std::shared_ptr<CPhysicsObj> object)
 {
 	sphere_path.insert_type = SPHEREPATH::PLACEMENT_INSERT;
 	sphere_path.set_check_pos(&sphere_path.curr_pos, sphere_path.curr_cell);

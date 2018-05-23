@@ -18,7 +18,7 @@ void CHealerWeenie::ApplyQualityOverrides()
 {
 }
 
-int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
+int CHealerWeenie::UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared_ptr<CWeenieObject> with)
 {
 	DWORD healing_skill = 0;
 	if (!player->InqSkill(HEALING_SKILL, healing_skill, TRUE) || !healing_skill)
@@ -52,8 +52,8 @@ void CHealerUseEvent::OnReadyToUse()
 
 void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	CWeenieObject *target = GetTarget();
-	CWeenieObject *tool = GetTool();
+	std::shared_ptr<CWeenieObject> target = GetTarget();
+	std::shared_ptr<CWeenieObject> tool = GetTool();
 
 	if (tool && target && !target->IsDead() && !target->IsInPortalSpace())
 	{
@@ -170,10 +170,10 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 
 				if (boost_stat == HEALTH_ATTRIBUTE_2ND)
 				{
-					if (_weenie->AsPlayer())
+					if (std::shared_ptr<CPlayerWeenie> pPlayer = _weenie->AsPlayer())
 					{
 						// update the target's health on the healing player asap
-						((CPlayerWeenie*)_weenie)->RefreshTargetHealth();
+						pPlayer->RefreshTargetHealth();
 					}
 				}
 			}

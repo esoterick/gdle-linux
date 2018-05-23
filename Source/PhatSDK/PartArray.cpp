@@ -34,7 +34,7 @@ CSequence::~CSequence()
 		anim_list.DestroyContents();
 }
 
-void CSequence::set_object(CPhysicsObj *pPhysicsObj)
+void CSequence::set_object(std::shared_ptr<CPhysicsObj> pPhysicsObj)
 {
 	hook_obj = pPhysicsObj;
 }
@@ -485,7 +485,7 @@ void CPartArray::Destroy()
 	owner = NULL;
 }
 
-CPartArray *CPartArray::CreateMesh(CPhysicsObj *pPhysicsObj, DWORD ID)
+CPartArray *CPartArray::CreateMesh(std::shared_ptr<CPhysicsObj> pPhysicsObj, DWORD ID)
 {
 	CPartArray *pPartArray = new CPartArray();
 
@@ -503,7 +503,7 @@ CPartArray *CPartArray::CreateMesh(CPhysicsObj *pPhysicsObj, DWORD ID)
 	return pPartArray;
 }
 
-CPartArray *CPartArray::CreateSetup(CPhysicsObj *_owner, DWORD setup_did, BOOL bCreateParts)
+CPartArray *CPartArray::CreateSetup(std::shared_ptr<CPhysicsObj> _owner, DWORD setup_did, BOOL bCreateParts)
 {
 	CPartArray *pPartArray = new CPartArray();
 
@@ -520,7 +520,7 @@ CPartArray *CPartArray::CreateSetup(CPhysicsObj *_owner, DWORD setup_did, BOOL b
 	return pPartArray;
 }
 
-CPartArray *CPartArray::CreateParticle(CPhysicsObj *_owner, DWORD _num_parts, CSphere *sorting_sphere)
+CPartArray *CPartArray::CreateParticle(std::shared_ptr<CPhysicsObj> _owner, DWORD _num_parts, CSphere *sorting_sphere)
 {
 	CPartArray *pPartArray = new CPartArray();
 

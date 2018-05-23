@@ -21,7 +21,7 @@ const float MAX_TURN_TIME_FOR_CAST = 8.0f;
 const float MAX_MOTION_TIME_FOR_CAST = 4.0f;
 const float MAX_PROJECTILE_CAST_RANGE = 100.0;
 
-CSpellcastingManager::CSpellcastingManager(CWeenieObject *pWeenie)
+CSpellcastingManager::CSpellcastingManager(std::shared_ptr<CWeenieObject> pWeenie)
 {
 	m_pWeenie = pWeenie;
 }
@@ -192,7 +192,7 @@ void CSpellcastingManager::BeginCast()
 	BeginNextMotion();
 }
 
-CWeenieObject *CSpellcastingManager::GetCastTarget()
+std::shared_ptr<CWeenieObject> CSpellcastingManager::GetCastTarget()
 {
 	if (!m_bCasting || !m_SpellCastData.target_id)
 		return NULL;
@@ -200,13 +200,13 @@ CWeenieObject *CSpellcastingManager::GetCastTarget()
 	return g_pWorld->FindObject(m_SpellCastData.target_id);
 }
 
-CWeenieObject *CSpellcastingManager::GetCastCaster()
+std::shared_ptr<CWeenieObject> CSpellcastingManager::GetCastCaster()
 {
 	// could be a contained item casting a spell on the player
 	return g_pWorld->FindObject(m_SpellCastData.caster_id);
 }
 
-CWeenieObject *CSpellcastingManager::GetCastSource()
+std::shared_ptr<CWeenieObject> CSpellcastingManager::GetCastSource()
 {
 	return g_pWorld->FindObject(m_SpellCastData.source_id);
 }
@@ -219,7 +219,7 @@ float CSpellcastingManager::HeadingToTarget()
 		return 0.0;
 	}
 
-	CWeenieObject *pTarget = GetCastTarget();
+	std::shared_ptr<CWeenieObject> pTarget = GetCastTarget();
 	if (!pTarget)
 	{
 		// Don't know where the target is
@@ -250,9 +250,9 @@ bool CSpellcastingManager::MotionRequiresHeading()
 	if (!m_SpellCastData.target_id || m_SpellCastData.target_id == m_SpellCastData.caster_id || m_SpellCastData.target_id == m_SpellCastData.source_id)
 		return false;
 
-	if (CWeenieObject *target = g_pWorld->FindObject(m_SpellCastData.target_id))
+	if (std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(m_SpellCastData.target_id))
 	{
-		if (CWeenieObject *owner = target->GetWorldTopLevelOwner())
+		if (std::shared_ptr<CWeenieObject> owner = target->GetWorldTopLevelOwner())
 		{
 			if (owner->GetID() == m_SpellCastData.source_id)
 				return false;
@@ -345,11 +345,11 @@ void CSpellcastingManager::BeginNextMotion()
 	}
 }
 
-Position CSpellcastingManager::GetSpellProjectileSpawnPosition(CSpellProjectile *pProjectile, CWeenieObject *pTarget, float *pDistToTarget, double dDir, bool bRing)
+Position CSpellcastingManager::GetSpellProjectileSpawnPosition(std::shared_ptr<CSpellProjectile> pProjectile, std::shared_ptr<CWeenieObject> pTarget, float *pDistToTarget, double dDir, bool bRing)
 {
 	bool bArc = pProjectile->InqBoolQuality(GRAVITY_STATUS_BOOL, FALSE) ? true : false;
 
-	CWeenieObject *pSource = GetCastSource();
+	std::shared_ptr<CWeenieObject> pSource = GetCastSource();
 	Position spawnPosition = pSource->m_Position.add_offset(Vector(0, 0, pSource->GetHeight() * (bArc ? 1.0 : (2.0 / 3.0))));
 
 	Vector targetOffset;
@@ -408,12 +408,12 @@ Position CSpellcastingManager::GetSpellProjectileSpawnPosition(CSpellProjectile 
 	return spawnPosition;
 }
 
-Vector CSpellcastingManager::GetSpellProjectileSpawnVelocity(Position *pSpawnPosition, CWeenieObject *pTarget, float speed, bool tracked, bool gravity, Vector *pTargetDir, double dDir, bool bRing)
+Vector CSpellcastingManager::GetSpellProjectileSpawnVelocity(Position *pSpawnPosition, std::shared_ptr<CWeenieObject> pTarget, float speed, bool tracked, bool gravity, Vector *pTargetDir, double dDir, bool bRing)
 {
 	Vector targetOffset;
 	double targetDist;
 
-	CWeenieObject *pSource = GetCastSource();
+	std::shared_ptr<CWeenieObject> pSource = GetCastSource();
 	if (pTarget == pSource)
 	{
 		// rotate by dDir
@@ -518,7 +518,7 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 	if (!meta)
 		return false;
 
-	CWeenieObject *pTarget = GetCastTarget();
+	std::shared_ptr<CWeenieObject> pTarget = GetCastTarget();
 	if (!pTarget || !pTarget->InValidCell())
 	{
 		// Don't know where the target is
@@ -529,7 +529,7 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 	int numY = (int)(meta->_dims.y + 0.5f);
 	int numZ = (int)(meta->_dims.z + 0.5f);
 
-	CWeenieObject *pSource = GetCastSource();
+	std::shared_ptr<CWeenieObject> pSource = GetCastSource();
 
 	if (!pSource)
 	{
@@ -590,7 +590,7 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 					target = 0;
 				}
 
-				CSpellProjectile *pProjectile = new CSpellProjectile(m_SpellCastData, target);
+				std::shared_ptr<CSpellProjectile> pProjectile = std::shared_ptr<CSpellProjectile>(new CSpellProjectile(m_SpellCastData, target));
 
 				// create the initial object
 				float distToTarget;
@@ -728,7 +728,7 @@ void CSpellcastingManager::PerformCastParticleEffects()
 	// target effect
 	if (m_SpellCastData.spell->_target_effect)
 	{
-		if (CWeenieObject *pTarget = GetCastTarget())
+		if (std::shared_ptr<CWeenieObject> pTarget = GetCastTarget())
 			pTarget->EmitEffect(m_SpellCastData.spell->_target_effect, max(0.0, min(1.0, (m_SpellCastData.power_level_of_power_component - 1.0) / 7.0)));
 	}
 }
@@ -749,7 +749,7 @@ void CSpellcastingManager::PerformFellowCastParticleEffects(Fellowship *fellow)
 	{
 		for (auto &entry : fellow->_fellowship_table)
 		{
-			if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+			if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindPlayer(entry.first))
 			{
 				if (member)
 					member->EmitEffect(m_SpellCastData.spell->_target_effect, max(0.0, min(1.0, (m_SpellCastData.power_level_of_power_component - 1.0) / 7.0)));
@@ -760,7 +760,7 @@ void CSpellcastingManager::PerformFellowCastParticleEffects(Fellowship *fellow)
 
 void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 {
-	if (CPlayerWeenie *player = m_pWeenie->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> player = m_pWeenie->AsPlayer())
 	{
 		if (!player->IsRecalling())
 		{
@@ -782,7 +782,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 		{
 		case WERROR_MISSILE_OUT_OF_RANGE:
 		{
-			CWeenieObject *pTarget = GetCastTarget();
+			std::shared_ptr<CWeenieObject> pTarget = GetCastTarget();
 			if (pTarget)
 				pTarget->SendText(csprintf("%s tried to cast a spell on you, but was too far away!", m_pWeenie->GetName().c_str()), LTT_MAGIC);
 
@@ -833,7 +833,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 				std::string componentsConsumedString = "";
 				for (std::map<DWORD, DWORD>::iterator iter = m_UsedComponents.begin(); iter != m_UsedComponents.end(); ++iter)
 				{
-					CWeenieObject *component = g_pWorld->FindObject(iter->first);
+					std::shared_ptr<CWeenieObject> component = g_pWorld->FindObject(iter->first);
 					if (!component) // where did it go? force fizzle.
 						return WERROR_MAGIC_FIZZLE;
 
@@ -892,7 +892,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 		{
 			FellowshipBoostSpellEx *meta = (FellowshipBoostSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 
-			CWeenieObject *target = GetCastTarget();
+			std::shared_ptr<CWeenieObject> target = GetCastTarget();
 
 			if (!target->HasFellowship())
 				break;
@@ -903,7 +903,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 				CWorldLandBlock *block = target->GetBlock();
 				for (auto &entry : fellow->_fellowship_table)
 				{
-					if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+					if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindPlayer(entry.first))
 					{
 						if (member->GetBlock() == block)
 						{
@@ -927,7 +927,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 			int numToDispel = Random::GenInt(minNum, maxNum);
 
-			CWeenieObject *pTarget = GetCastTarget();
+			std::shared_ptr<CWeenieObject> pTarget = GetCastTarget();
 			if (pTarget)
 			{
 				if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
@@ -1133,7 +1133,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 			int numToDispel = Random::GenInt(minNum, maxNum);
 
-			CWeenieObject *target = GetCastTarget();
+			std::shared_ptr<CWeenieObject> target = GetCastTarget();
 
 			if (!target->HasFellowship())
 				break;
@@ -1144,7 +1144,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 				CWorldLandBlock *block = target->GetBlock();
 				for (auto &entry : fellow->_fellowship_table)
 				{
-					if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+					if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindPlayer(entry.first))
 					{
 						if (member->GetBlock() == block)
 						{
@@ -1356,7 +1356,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 			PortalLinkSpellEx *meta = (PortalLinkSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 
-			CWeenieObject *pTarget = GetCastTarget();
+			std::shared_ptr<CWeenieObject> pTarget = GetCastTarget();
 			if (pTarget)
 			{
 				// portal bitmask, 0x10 = cannot be summoned
@@ -1513,7 +1513,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					std::string restriction;
 					if (portalDefaults->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction))
 					{
-						if (CPlayerWeenie *player = m_pWeenie->AsPlayer())
+						if (std::shared_ptr<CPlayerWeenie> player = m_pWeenie->AsPlayer())
 						{
 							if (!player->InqQuest(restriction.c_str()))
 							{
@@ -1577,7 +1577,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					std::string restriction;
 					if (portalDefaults->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction))
 					{
-						if (CPlayerWeenie *player = m_pWeenie->AsPlayer())
+						if (std::shared_ptr<CPlayerWeenie> player = m_pWeenie->AsPlayer())
 						{
 							if (!player->InqQuest(restriction.c_str()))
 							{
@@ -1646,9 +1646,9 @@ int CSpellcastingManager::LaunchSpellEffect()
 			}
 
 
-			std::list<CWeenieObject *> targets;
+			std::list<std::shared_ptr<CWeenieObject> > targets;
 
-			if (CWeenieObject *castTarget = GetCastTarget())
+			if (std::shared_ptr<CWeenieObject> castTarget = GetCastTarget())
 			{
 				if (m_SpellCastData.spell->InqTargetType() != ITEM_TYPE::TYPE_ITEM_ENCHANTABLE_TARGET)
 				{
@@ -1656,7 +1656,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 				}
 				else
 				{
-					CContainerWeenie *container = castTarget->AsContainer();
+					std::shared_ptr<CContainerWeenie> container = castTarget->AsContainer();
 					if (container && !container->HasOwner())
 					{
 						for (auto wielded : container->m_Wielded)
@@ -1687,7 +1687,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					// You cast Harlune's Blessing on yourself, refreshing Harlune's Blessing
 					// You cast Impenetrability III on Pathwarden Robe, surpassing Impenetrability II
 
-					CWeenieObject *topLevelOwner = target->GetWorldTopLevelOwner();
+					std::shared_ptr<CWeenieObject> topLevelOwner = target->GetWorldTopLevelOwner();
 
 					if (target->InqIntQuality(MAX_STACK_SIZE_INT, 1) > 1) //do not allow enchanting stackable items(ammunition)
 					{
@@ -1825,7 +1825,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 			enchant._last_time_degraded = -1.0;
 			enchant._smod = meta->_smod;
 
-			CWeenieObject *target = GetCastTarget();
+			std::shared_ptr<CWeenieObject> target = GetCastTarget();
 
 			if (!target->HasFellowship())
 				break;
@@ -1836,7 +1836,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 				CWorldLandBlock *block = target->GetBlock();
 				for (auto &entry : fellow->_fellowship_table)
 				{
-					if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+					if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindPlayer(entry.first))
 					{
 						if (member->GetBlock() == block)
 						{
@@ -1847,7 +1847,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 							}
 
 
-							std::list<CWeenieObject *> targets;
+							std::list<std::shared_ptr<CWeenieObject> > targets;
 
 							if (member)
 							{
@@ -1857,7 +1857,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 								}
 								else
 								{
-									CContainerWeenie *container = member->AsContainer();
+									std::shared_ptr<CContainerWeenie> container = member->AsContainer();
 									if (container && !container->HasOwner())
 									{
 										for (auto wielded : container->m_Wielded)
@@ -1888,7 +1888,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 									// You cast Harlune's Blessing on yourself, refreshing Harlune's Blessing
 									// You cast Impenetrability III on Pathwarden Robe, surpassing Impenetrability II
 
-									CWeenieObject *topLevelOwner = target->GetWorldTopLevelOwner();
+									std::shared_ptr<CWeenieObject> topLevelOwner = target->GetWorldTopLevelOwner();
 
 									if (target->InqIntQuality(MAX_STACK_SIZE_INT, 1) > 1) //do not allow enchanting stackable items(ammunition)
 									{
@@ -2100,7 +2100,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					canFlagForQuest = true;
 			}
 
-			CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(W_PORTALGATEWAY_CLASS, &spawnPos, false);
+			std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(W_PORTALGATEWAY_CLASS, &spawnPos, false);
 
 			if (weenie)
 			{
@@ -2146,7 +2146,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 		{
 			PortalSendingSpellEx *meta = (PortalSendingSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 
-			CWeenieObject *target = GetCastTarget();
+			std::shared_ptr<CWeenieObject> target = GetCastTarget();
 
 			if (target)
 			{
@@ -2162,7 +2162,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 		{
 			FellowshipPortalSendingSpellEx *meta = (FellowshipPortalSendingSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 
-			CWeenieObject *target = GetCastTarget();
+			std::shared_ptr<CWeenieObject> target = GetCastTarget();
 
 			if (!target->HasFellowship())
 				break;
@@ -2173,7 +2173,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 				CWorldLandBlock *block = target->GetBlock();
 				for (auto &entry : fellow->_fellowship_table)
 				{
-					if (CWeenieObject *member = g_pWorld->FindPlayer(entry.first))
+					if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindPlayer(entry.first))
 					{
 						if (member->GetBlock() == block)
 						{
@@ -2210,7 +2210,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 }
 
 // You gain 37 points of health due to casting Drain Health Other I on Gelidite Lord
-void CSpellcastingManager::TransferVitalPercent(CWeenieObject *target, float drainPercent, float infusePercent, STypeAttribute2nd attribute)
+void CSpellcastingManager::TransferVitalPercent(std::shared_ptr<CWeenieObject> target, float drainPercent, float infusePercent, STypeAttribute2nd attribute)
 {
 	if (!target || target->IsDead())
 		return;
@@ -2310,7 +2310,7 @@ void CSpellcastingManager::TransferVitalPercent(CWeenieObject *target, float dra
 	}
 }
 
-void CSpellcastingManager::SendTransferVitalPercentText(CWeenieObject *target, int drained, int infused, bool reversed, const char *vitalName)
+void CSpellcastingManager::SendTransferVitalPercentText(std::shared_ptr<CWeenieObject> target, int drained, int infused, bool reversed, const char *vitalName)
 {
 	// You gain 37 points of health due to casting Drain Health Other I on Gelidite Lord
 
@@ -2345,16 +2345,16 @@ std::string GetAttribute2ndName(STypeAttribute2nd attribute2nd)
 	return "";
 }
 
-bool CSpellcastingManager::DoTransferSpell(CWeenieObject *other, const TransferSpellEx *meta)
+bool CSpellcastingManager::DoTransferSpell(std::shared_ptr<CWeenieObject> other, const TransferSpellEx *meta)
 {
 	// Calculate source amount
-	CWeenieObject *source = NULL;
+	std::shared_ptr<CWeenieObject> source = NULL;
 	if (meta->_bitfield & TransferSpellEx::SourceSelf)
 		source = GetCastSource();
 	else if (meta->_bitfield & TransferSpellEx::SourceOther)
 		source = other;
 
-	CWeenieObject *dest = NULL;
+	std::shared_ptr<CWeenieObject> dest = NULL;
 	if (meta->_bitfield & TransferSpellEx::DestinationSelf)
 		dest = GetCastSource();
 	else if (meta->_bitfield & TransferSpellEx::DestinationOther)
@@ -2519,15 +2519,15 @@ bool CSpellcastingManager::DoTransferSpell(CWeenieObject *other, const TransferS
 			source->SendText(csprintf("You lose %d points of %s due to %s casting %s on you",
 				sourceTakeAmount, GetAttribute2ndName(meta->_src).c_str(), m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 
-			if (dest->AsPlayer())
+			if (std::shared_ptr<CPlayerWeenie> pDestPlayer = dest->AsPlayer())
 			{
 				// update the target's health on the casting player asap
-				((CPlayerWeenie*)source)->RefreshTargetHealth();
+				pDestPlayer->RefreshTargetHealth();
 			}
-			if (source->AsPlayer())
+			if (std::shared_ptr<CPlayerWeenie> pSourcePlayer = source->AsPlayer())
 			{
 				// update the target's health on the casting player asap
-				((CPlayerWeenie*)dest)->RefreshTargetHealth();
+				pSourcePlayer->RefreshTargetHealth();
 			}
 		}
 		else
@@ -2542,7 +2542,7 @@ bool CSpellcastingManager::DoTransferSpell(CWeenieObject *other, const TransferS
 	return true;
 }
 
-bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
+bool CSpellcastingManager::AdjustVital(std::shared_ptr<CWeenieObject> target)
 {
 	if (!target || target->IsDead())
 		return false;
@@ -2556,7 +2556,7 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	double preVarianceDamage = boostMax;
 	double damageOrHealAmount = Random::RollDice(boostMin, boostMax);
 
-	CWeenieObject *wand = g_pWorld->FindObject(m_SpellCastData.wand_id);
+	std::shared_ptr<CWeenieObject> wand = g_pWorld->FindObject(m_SpellCastData.wand_id);
 	if (wand)
 	{
 		double elementalDamageMod = wand->InqDamageType() == meta->_dt ? wand->InqFloatQuality(ELEMENTAL_DAMAGE_MOD_FLOAT, 1.0) : 1.0;
@@ -2651,7 +2651,7 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	}
 }
 
-void CSpellcastingManager::SendAdjustVitalText(CWeenieObject *target, int amount, const char *vitalName)
+void CSpellcastingManager::SendAdjustVitalText(std::shared_ptr<CWeenieObject> target, int amount, const char *vitalName)
 {
 	bool bRestore = true;
 	if (amount < 0 || (amount == 0 && !(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex)))
@@ -2670,10 +2670,10 @@ void CSpellcastingManager::SendAdjustVitalText(CWeenieObject *target, int amount
 
 		if (vitalName == "health")
 		{
-			if (m_pWeenie->AsPlayer())
+			if (std::shared_ptr<CPlayerWeenie> pPlayer = m_pWeenie->AsPlayer())
 			{
 				// update the target's health on the casting player asap
-				((CPlayerWeenie*)m_pWeenie)->RefreshTargetHealth();
+				pPlayer->RefreshTargetHealth();
 			}
 		}
 	}
@@ -2848,11 +2848,11 @@ int CSpellcastingManager::CheckTargetValidity()
 	if (!m_SpellCastData.spell)
 		return WERROR_MAGIC_GENERAL_FAILURE;
 
-	CWeenieObject *pCastSource = GetCastSource();
+	std::shared_ptr<CWeenieObject> pCastSource = GetCastSource();
 	if (!pCastSource)
 		return WERROR_OBJECT_GONE;
 
-	CWeenieObject *pTarget = g_pWorld->FindWithinPVS(pCastSource, m_SpellCastData.target_id);
+	std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(pCastSource, m_SpellCastData.target_id);
 
 	if (!(m_SpellCastData.spell->_bitfield & SelfTargeted_SpellIndex))
 	{
@@ -2991,7 +2991,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		return targetError;
 
 	//Components
-	CContainerWeenie *caster = m_pWeenie->AsContainer();
+	std::shared_ptr<CContainerWeenie> caster = m_pWeenie->AsContainer();
 	if (caster != NULL && caster->InqBoolQuality(SPELL_COMPONENTS_REQUIRED_BOOL, FALSE) == TRUE)
 	{
 		bool foci;
@@ -3010,7 +3010,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		SpellFormula randomizedComponents;
 		randomizedComponents.CopyFrom(m_SpellCastData.spell->InqSpellFormula());
 
-		CPlayerWeenie *player = m_pWeenie->AsPlayer();
+		std::shared_ptr<CPlayerWeenie> player = m_pWeenie->AsPlayer();
 		if (player)
 			randomizedComponents.RandomizeForName(player->GetClient()->GetAccount(), m_SpellCastData.spell->_formula_version);
 
@@ -3066,7 +3066,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 	return WERROR_NONE;
 }
 
-std::map<DWORD, DWORD> CSpellcastingManager::FindComponentInContainer(CContainerWeenie *container, unsigned int componentId, int amountNeeded)
+std::map<DWORD, DWORD> CSpellcastingManager::FindComponentInContainer(std::shared_ptr<CContainerWeenie> container, unsigned int componentId, int amountNeeded)
 {
 	std::map<DWORD, DWORD> foundItems;
 	int amountLeftToFind = amountNeeded;
@@ -3091,7 +3091,7 @@ std::map<DWORD, DWORD> CSpellcastingManager::FindComponentInContainer(CContainer
 
 	for (auto packSlot : container->m_Packs)
 	{
-		CContainerWeenie *pack = packSlot->AsContainer();
+		std::shared_ptr<CContainerWeenie> pack = packSlot->AsContainer();
 		if (pack != NULL)
 		{
 			for (auto item : pack->m_Items)
@@ -3120,7 +3120,7 @@ std::map<DWORD, DWORD> CSpellcastingManager::FindComponentInContainer(CContainer
 	return foundItems;
 }
 
-CWeenieObject *CSpellcastingManager::FindFociInContainer(CContainerWeenie *container, DWORD fociWcid)
+std::shared_ptr<CWeenieObject> CSpellcastingManager::FindFociInContainer(std::shared_ptr<CContainerWeenie> container, DWORD fociWcid)
 {
 	for (auto pack : container->m_Packs)
 	{
@@ -3172,7 +3172,7 @@ void CSpellcastingManager::Update()
 		else
 		{
 			/*
-			CWeenieObject *pTarget = g_pWorld->FindWithinPVS(m_pWeenie, m_TargetID);
+			std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(m_pWeenie, m_TargetID);
 			if (pTarget)
 			{
 				LOG(Temp, Normal, "%f (%f %f) %08X %f %f %f\n",

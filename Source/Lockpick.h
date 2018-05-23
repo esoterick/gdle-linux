@@ -9,8 +9,8 @@ public:
 	CLockpickWeenie();
 	virtual ~CLockpickWeenie() override;
 
-	virtual CLockpickWeenie *AsLockpick() override { return this; }
+	virtual std::shared_ptr<CLockpickWeenie> AsLockpick() override { return std::dynamic_pointer_cast<CLockpickWeenie>(m_spThis.lock()); }
 
-	virtual int UseWith(CPlayerWeenie *player, CWeenieObject *with) override;
-	virtual int DoUseWithResponse(CWeenieObject *player, CWeenieObject *with) override;
+	virtual int UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared_ptr<CWeenieObject> with) override;
+	virtual int DoUseWithResponse(std::shared_ptr<CWeenieObject> player, std::shared_ptr<CWeenieObject> with) override;
 };

@@ -9,8 +9,8 @@ public:
 	CAttributeTransferDeviceWeenie();
 	virtual ~CAttributeTransferDeviceWeenie() override;
 
-	virtual CAttributeTransferDeviceWeenie *AsAttributeTransferDevice() override { return this; }
+	virtual std::shared_ptr<CAttributeTransferDeviceWeenie> AsAttributeTransferDevice() override { return std::dynamic_pointer_cast<CAttributeTransferDeviceWeenie>(m_spThis.lock()); }
 
-	virtual int Use(CPlayerWeenie *pOther) override;
+	virtual int Use(std::shared_ptr<CPlayerWeenie> pOther) override;
 };
 

@@ -23,7 +23,7 @@ SmartBox::SmartBox(void *_in_queue)
 	camera_manager = 0;
 	cell_manager = 0;
 	physics = 0;
-	m_pObjMaint = 0;
+	//m_pObjMaint = 0;
 	lscape = 0;
 	ambient_sounds = 0;
 	cmdinterp = 0;

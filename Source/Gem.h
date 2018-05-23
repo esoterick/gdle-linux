@@ -9,9 +9,9 @@ public:
 	CGemWeenie();
 	virtual ~CGemWeenie() override;
 
-	virtual CGemWeenie *AsGem() override { return this; }
+	virtual std::shared_ptr<CGemWeenie> AsGem() override { return std::dynamic_pointer_cast<CGemWeenie>(m_spThis.lock()); }
 
-	virtual int Use(CPlayerWeenie *pOther) override;
-	virtual int DoUseResponse(CWeenieObject *player) override;
+	virtual int Use(std::shared_ptr<CPlayerWeenie> pOther) override;
+	virtual int DoUseResponse(std::shared_ptr<CWeenieObject> player) override;
 };
 

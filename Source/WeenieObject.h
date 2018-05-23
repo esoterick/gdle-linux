@@ -5,6 +5,8 @@
 #include "PhysicsObj.h"
 #include "Qualities.h"
 
+#include <memory>
+
 class CWorldLandBlock;
 
 #define MAX_PLAYER_INVENTORY 102
@@ -81,9 +83,9 @@ enum BODY_PART_ENUM
 
 struct DamageEventData
 {
-	CWeenieObject *source = NULL;
-	CWeenieObject *target = NULL;
-	CWeenieObject *weapon = NULL;
+	std::shared_ptr<CWeenieObject> source = NULL;
+	std::shared_ptr<CWeenieObject> target = NULL;
+	std::shared_ptr<CWeenieObject> weapon = NULL;
 
 	DWORD attackSkill = 0;
 	DWORD attackSkillLevel = 0;
@@ -129,12 +131,55 @@ struct DamageEventData
 	std::string GetTargetName();
 };
 
+// define these for the smart pointers
+class CAmmunitionWeenie;
+class CAttributeTransferDeviceWeenie;
+class CBookWeenie;
+class CBootSpotWeenie;
+class CCasterWeenie;
+class CChestWeenie;
+class CClothingWeenie;
+class CContainerWeenie;
+class CCorpseWeenie;
+class CDeedWeenie;
+class CBaseDoor;
+class CFoodWeenie;
+class CGemWeenie;
+class CHealerWeenie;
+class CHotSpotWeenie;
+class CHookWeenie;
+class CHouseWeenie;
+class CHousePortalWeenie;
+class CKeyWeenie;
+class CBaseLifestone;
+class CBindStone;
+class CLockpickWeenie;
+class CManaStoneWeenie;
+class CMeleeWeaponWeenie;
+class CMissileWeenie;
+class CMissileLauncherWeenie;
+class CMonsterWeenie;
+class CPKModifierWeenie;
+class CPlayerWeenie;
+class CPortal;
+class CPressurePlateWeenie;
+class CScrollWeenie;
+class CSkillAlterationDeviceWeenie;
+class CSlumLordWeenie;
+class CSpellProjectile;
+class CStorageWeenie;
+class CSwitchWeenie;
+class CTownCrier;
+class CVendor;
+class CAugmentationDeviceWeenie;
+
 class CWeenieObject : public CPhysicsObj
 {
 private:
 	double accumulatedHealthRegen = 0.0;
 	double accumulatedStaminaRegen = 0.0;
 	double accumulatedManaRegen = 0.0;
+
 public:
 	CWeenieObject();
 	virtual ~CWeenieObject();
@@ -156,55 +201,55 @@ public:
 	virtual bool Save();
 	virtual void LoadEx(class CWeenieSave &save);
 	virtual bool Load();
-	static CWeenieObject *Load(DWORD weenie_id);
+	static std::shared_ptr<CWeenieObject> Load(DWORD weenie_id);
 
 	DWORD GetTopLevelID();
 
-	virtual void MakeAware(CWeenieObject *, bool bForceUpdate = false) { }
+	virtual void MakeAware(std::shared_ptr<CWeenieObject> , bool bForceUpdate = false) { }
 
 	// Returns WERROR code
-	virtual int UseChecked(CPlayerWeenie *);
+	virtual int UseChecked(std::shared_ptr<CPlayerWeenie> );
 
-	virtual class CAmmunitionWeenie *AsAmmunition() { return NULL; }
-	virtual class CAttributeTransferDeviceWeenie *AsAttributeTransferDevice() { return NULL; }
-	virtual class CBookWeenie *AsBook() { return NULL; }
-	virtual class CBootSpotWeenie *AsBootSpot() { return NULL; }
-	virtual class CCasterWeenie *AsCaster() { return NULL; }
-	virtual class CChestWeenie *AsChest() { return NULL; }
-	virtual class CClothingWeenie *AsClothing() { return NULL; }
-	virtual class CContainerWeenie *AsContainer() { return NULL; }
-	virtual class CCorpseWeenie *AsCorpse() { return NULL; }
-	virtual class CDeedWeenie *AsDeed() { return NULL; }
-	virtual class CBaseDoor *AsDoor() { return NULL; }
-	virtual class CFoodWeenie *AsFood() { return NULL; }
-	virtual class CGemWeenie *AsGem() { return NULL; }
-	virtual class CHealerWeenie *AsHealer() { return NULL; }
-	virtual class CHotSpotWeenie *AsHotSpot() { return NULL; }
-	virtual class CHookWeenie *AsHook() { return NULL; }
-	virtual class CHouseWeenie *AsHouse() { return NULL; }
-	virtual class CHousePortalWeenie *AsHousePortal() { return NULL; }
-	virtual class CKeyWeenie *AsKey() { return NULL; }
-	virtual class CBaseLifestone *AsLifestone() { return NULL; }
-	virtual class CBindStone *AsBindStone() { return NULL; }
-	virtual class CLockpickWeenie *AsLockpick() { return NULL; }
-	virtual class CManaStoneWeenie *AsManaStone() { return NULL; }
-	virtual class CMeleeWeaponWeenie *AsMeleeWeapon() { return NULL; }
-	virtual class CMissileWeenie *AsMissile() { return NULL; }
-	virtual class CMissileLauncherWeenie *AsMissileLauncher() { return NULL; }
-	virtual class CMonsterWeenie *AsMonster() { return NULL; }
-	virtual class CPKModifierWeenie *AsPKModifier() { return NULL; }
-	virtual class CPlayerWeenie *AsPlayer() { return NULL; }
-	virtual class CPortal *AsPortal() { return NULL; }
-	virtual class CPressurePlateWeenie *AsPressurePlate() { return NULL; }
-	virtual class CScrollWeenie *AsScroll() { return NULL; }
-	virtual class CSkillAlterationDeviceWeenie *AsSkillAlterationDevice() { return NULL; }
-	virtual class CSlumLordWeenie *AsSlumLord() { return NULL; }
-	virtual class CSpellProjectile *AsSpellProjectile() { return NULL; }
-	virtual class CStorageWeenie *AsStorage() { return NULL; }
-	virtual class CSwitchWeenie *AsSwitch() { return NULL; }
-	virtual class CTownCrier *AsTownCrier() { return NULL; }
-	virtual class CVendor *AsVendor() { return NULL; }
-	virtual class CAugmentationDeviceWeenie *AsAugmentationDevice() { return NULL; }
+	virtual class std::shared_ptr<CAmmunitionWeenie> AsAmmunition() { return NULL; }
+	virtual class std::shared_ptr<CAttributeTransferDeviceWeenie> AsAttributeTransferDevice() { return NULL; }
+	virtual class std::shared_ptr<CBookWeenie> AsBook() { return NULL; }
+	virtual class std::shared_ptr<CBootSpotWeenie> AsBootSpot() { return NULL; }
+	virtual class std::shared_ptr<CCasterWeenie> AsCaster() { return NULL; }
+	virtual class std::shared_ptr<CChestWeenie> AsChest() { return NULL; }
+	virtual class std::shared_ptr<CClothingWeenie> AsClothing() { return NULL; }
+	virtual class std::shared_ptr<CContainerWeenie> AsContainer() { return NULL; }
+	virtual class std::shared_ptr<CCorpseWeenie> AsCorpse() { return NULL; }
+	virtual class std::shared_ptr<CDeedWeenie> AsDeed() { return NULL; }
+	virtual class std::shared_ptr<CBaseDoor> AsDoor() { return NULL; }
+	virtual class std::shared_ptr<CFoodWeenie> AsFood() { return NULL; }
+	virtual class std::shared_ptr<CGemWeenie> AsGem() { return NULL; }
+	virtual class std::shared_ptr<CHealerWeenie> AsHealer() { return NULL; }
+	virtual class std::shared_ptr<CHotSpotWeenie> AsHotSpot() { return NULL; }
+	virtual class std::shared_ptr<CHookWeenie> AsHook() { return NULL; }
+	virtual class std::shared_ptr<CHouseWeenie> AsHouse() { return NULL; }
+	virtual class std::shared_ptr<CHousePortalWeenie> AsHousePortal() { return NULL; }
+	virtual class std::shared_ptr<CKeyWeenie> AsKey() { return NULL; }
+	virtual class std::shared_ptr<CBaseLifestone> AsLifestone() { return NULL; }
+	virtual class std::shared_ptr<CBindStone> AsBindStone() { return NULL; }
+	virtual class std::shared_ptr<CLockpickWeenie> AsLockpick() { return NULL; }
+	virtual class std::shared_ptr<CManaStoneWeenie> AsManaStone() { return NULL; }
+	virtual class std::shared_ptr<CMeleeWeaponWeenie> AsMeleeWeapon() { return NULL; }
+	virtual class std::shared_ptr<CMissileWeenie> AsMissile() { return NULL; }
+	virtual class std::shared_ptr<CMissileLauncherWeenie> AsMissileLauncher() { return NULL; }
+	virtual class std::shared_ptr<CMonsterWeenie> AsMonster() { return NULL; }
+	virtual class std::shared_ptr<CPKModifierWeenie> AsPKModifier() { return NULL; }
+	virtual class std::shared_ptr<CPlayerWeenie> AsPlayer() { return NULL; }
+	virtual class std::shared_ptr<CPortal> AsPortal() { return NULL; }
+	virtual class std::shared_ptr<CPressurePlateWeenie> AsPressurePlate() { return NULL; }
+	virtual class std::shared_ptr<CScrollWeenie> AsScroll() { return NULL; }
+	virtual class std::shared_ptr<CSkillAlterationDeviceWeenie> AsSkillAlterationDevice() { return NULL; }
+	virtual class std::shared_ptr<CSlumLordWeenie> AsSlumLord() { return NULL; }
+	virtual class std::shared_ptr<CSpellProjectile> AsSpellProjectile() { return NULL; }
+	virtual class std::shared_ptr<CStorageWeenie> AsStorage() { return NULL; }
+	virtual class std::shared_ptr<CSwitchWeenie> AsSwitch() { return NULL; }
+	virtual class std::shared_ptr<CTownCrier> AsTownCrier() { return NULL; }
+	virtual class std::shared_ptr<CVendor> AsVendor() { return NULL; }
+	virtual class std::shared_ptr<CAugmentationDeviceWeenie> AsAugmentationDevice() { return NULL; }
 
 	virtual bool IsAdvocate() { return false; }
 	virtual bool IsSentinel() { return false; }
@@ -218,23 +263,23 @@ public:
 
 	// The use functionality, minus the pre-checks
 	virtual int Activate(DWORD activator_id);
-	virtual int Use(CPlayerWeenie *);
-	virtual int UseWith(CPlayerWeenie *player, CWeenieObject *with);
-	virtual int DoUseResponse(CWeenieObject *player) { return WERROR_NONE; }
-	virtual int DoUseWithResponse(CWeenieObject *player, CWeenieObject *with);
+	virtual int Use(std::shared_ptr<CPlayerWeenie> );
+	virtual int UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared_ptr<CWeenieObject> with);
+	virtual int DoUseResponse(std::shared_ptr<CWeenieObject> player) { return WERROR_NONE; }
+	virtual int DoUseWithResponse(std::shared_ptr<CWeenieObject> player, std::shared_ptr<CWeenieObject> with);
 	void DoActivationEmote(DWORD activator_id);
-	void DoUseEmote(CWeenieObject *other);
+	void DoUseEmote(std::shared_ptr<CWeenieObject> other);
 	void ChanceExecuteEmoteSet(DWORD other_id, EmoteCategory category);
 	bool IsExecutingEmote();
 
-	virtual void EnsureLink(CWeenieObject *source);
-	virtual void NotifyGeneratedDeath(CWeenieObject *weenie);
-	virtual void OnGeneratedDeath(CWeenieObject *weenie);
-	virtual void NotifyGeneratedPickedUp(CWeenieObject *weenie);
-	virtual void OnGeneratedPickedUp(CWeenieObject *weenie);
+	virtual void EnsureLink(std::shared_ptr<CWeenieObject> source);
+	virtual void NotifyGeneratedDeath(std::shared_ptr<CWeenieObject> weenie);
+	virtual void OnGeneratedDeath(std::shared_ptr<CWeenieObject> weenie);
+	virtual void NotifyGeneratedPickedUp(std::shared_ptr<CWeenieObject> weenie);
+	virtual void OnGeneratedPickedUp(std::shared_ptr<CWeenieObject> weenie);
 
-	virtual void TryIdentify(CWeenieObject *other);
-	virtual void Identify(CWeenieObject *other, DWORD overrideId = 0);
+	virtual void TryIdentify(std::shared_ptr<CWeenieObject> other);
+	virtual void Identify(std::shared_ptr<CWeenieObject> other, DWORD overrideId = 0);
 
 	virtual void MarkForDestroy() { m_bDestroyMe = true; }
 	virtual bool ShouldDestroy() { return m_bDestroyMe; }
@@ -256,7 +301,7 @@ public:
 	void DecrementStructureNum(int amount = 1, bool bDestroyOnZero = true);
 	void SetStackSize(DWORD stackSize);
 
-	void CheckDeath(CWeenieObject *source, DAMAGE_TYPE dt);
+	void CheckDeath(std::shared_ptr<CWeenieObject> source, DAMAGE_TYPE dt);
 
 	// Actions
 	virtual void SpeakLocal(const char *text, LogTextType ltt = LTT_SPEECH);
@@ -285,7 +330,7 @@ public:
 
 	virtual int InqCollisionProfile(ObjCollisionProfile &prof); // 0x5C
 
-	virtual CWeenieObject *FindContainedItem(DWORD object_id) { return NULL; }
+	virtual std::shared_ptr<CWeenieObject> FindContainedItem(DWORD object_id) { return NULL; }
 
 	virtual void BeginLogout() { }
 
@@ -316,8 +361,8 @@ public:
 	DWORD GetContainerID() { return InqIIDQuality(CONTAINER_IID, 0); }
 	DWORD GetWielderID() { return InqIIDQuality(WIELDER_IID, 0); }
 
-	virtual CWeenieObject *GetWieldedCaster() { return NULL; }
-	DWORD GetWieldedCasterID() { CWeenieObject *caster = GetWieldedCaster(); return caster ? caster->GetID() : 0; }
+	virtual std::shared_ptr<CWeenieObject> GetWieldedCaster() { return NULL; }
+	DWORD GetWieldedCasterID() { std::shared_ptr<CWeenieObject> caster = GetWieldedCaster(); return caster ? caster->GetID() : 0; }
 
 	bool IsGeneratorSlotReady(int slot);
 	void InitCreateGenerator();
@@ -332,17 +377,17 @@ public:
 
 	void SendText(const char* szText, long lColor);
 
-	float DistanceTo(CWeenieObject *other, bool bUseSpheres = false);
-	float DistanceSquared(CWeenieObject *other);
-	float HeadingTo(CWeenieObject *target, bool absolute = true);
-	float HeadingFrom(CWeenieObject *target, bool absolute = true);
+	float DistanceTo(std::shared_ptr<CWeenieObject> other, bool bUseSpheres = false);
+	float DistanceSquared(std::shared_ptr<CWeenieObject> other);
+	float HeadingTo(std::shared_ptr<CWeenieObject> target, bool absolute = true);
+	float HeadingFrom(std::shared_ptr<CWeenieObject> target, bool absolute = true);
 	float HeadingTo(DWORD targetId, bool relative = true);
 	float HeadingFrom(DWORD targetId, bool relative = true);
 
 	float GetBurdenPercent();
 
 	DWORD GetXPForKillLevel(int level);
-	virtual void GivePerksForKill(CWeenieObject *pKilled);
+	virtual void GivePerksForKill(std::shared_ptr<CWeenieObject> pKilled);
 	void GiveSharedXP(long long amount, bool showText);
 	void GiveXP(long long amount, bool showText = false, bool allegianceXP = false);
 	virtual void OnGivenXP(long long amount, bool allegianceXP) { }
@@ -390,7 +435,7 @@ public:
 	void ExecuteUseEvent(class CUseEventData *useEvent);
 	void ExecuteAttackEvent(class CAttackEventData *attackEvent);
 
-	void SendUseMessage(CWeenieObject *other, unsigned int channel);
+	void SendUseMessage(std::shared_ptr<CWeenieObject> other, unsigned int channel);
 
 	BinaryWriter *CreateMessage();
 	BinaryWriter *UpdateMessage();
@@ -498,13 +543,13 @@ public:
 	virtual void NotifyWeenieErrorWithString(int error, const char *text) { }
 	virtual void NotifyInventoryFailedEvent(DWORD object_id, int error) { }
 
-	void CopyIntStat(STypeInt key, CWeenieObject *from);
-	void CopyInt64Stat(STypeInt64 key, CWeenieObject *from);
-	void CopyBoolStat(STypeBool key, CWeenieObject *from);
-	void CopyFloatStat(STypeFloat key, CWeenieObject *from);
-	void CopyStringStat(STypeString key, CWeenieObject *from);
-	void CopyDIDStat(STypeDID key, CWeenieObject *from);
-	void CopyPositionStat(STypePosition key, CWeenieObject *from);
+	void CopyIntStat(STypeInt key, std::shared_ptr<CWeenieObject> from);
+	void CopyInt64Stat(STypeInt64 key, std::shared_ptr<CWeenieObject> from);
+	void CopyBoolStat(STypeBool key, std::shared_ptr<CWeenieObject> from);
+	void CopyFloatStat(STypeFloat key, std::shared_ptr<CWeenieObject> from);
+	void CopyStringStat(STypeString key, std::shared_ptr<CWeenieObject> from);
+	void CopyDIDStat(STypeDID key, std::shared_ptr<CWeenieObject> from);
+	void CopyPositionStat(STypePosition key, std::shared_ptr<CWeenieObject> from);
 
 	void CopyIntStat(STypeInt key, CACQualities *from);
 	void CopyInt64Stat(STypeInt64 key, CACQualities *from);
@@ -522,16 +567,16 @@ public:
 	const char *GetRaceString();
 	const char *GetTitleString();
 
-	virtual void HandleAggro(CWeenieObject *attacker);
-	virtual void OnIdentifyAttempted(CWeenieObject *other) { };
-	virtual void OnResistSpell(CWeenieObject *attacker) { };
-	virtual void OnEvadeAttack(CWeenieObject *attacker) { };
+	virtual void HandleAggro(std::shared_ptr<CWeenieObject> attacker);
+	virtual void OnIdentifyAttempted(std::shared_ptr<CWeenieObject> other) { };
+	virtual void OnResistSpell(std::shared_ptr<CWeenieObject> attacker) { };
+	virtual void OnEvadeAttack(std::shared_ptr<CWeenieObject> attacker) { };
 
-	virtual void OnWield(CWeenieObject *wielder);
-	virtual void OnUnwield(CWeenieObject *wielder);
+	virtual void OnWield(std::shared_ptr<CWeenieObject> wielder);
+	virtual void OnUnwield(std::shared_ptr<CWeenieObject> wielder);
 
-	virtual void OnPickedUp(CWeenieObject *pickedUpBy);
-	virtual void OnDropped(CWeenieObject *droppedBy);
+	virtual void OnPickedUp(std::shared_ptr<CWeenieObject> pickedUpBy);
+	virtual void OnDropped(std::shared_ptr<CWeenieObject> droppedBy);
 
 	virtual void OnTeleported();
 	void Movement_Teleport(const Position &position, bool bWasDeath = false);
@@ -548,8 +593,8 @@ public:
 	DWORD m_LastUsedBy = 0;
 	double m_LastUsed = 0.0;
 
-	CPhysicsObj *_phys_obj = NULL;
-	class CPhysicsObj *GetPhysicsObj() { return _phys_obj; }
+	std::shared_ptr<CPhysicsObj> _phys_obj = NULL;
+	class std::shared_ptr<CPhysicsObj> GetPhysicsObj() { return _phys_obj; }
 
 	virtual void HandleAttackHook(const AttackCone &cone);
 
@@ -557,7 +602,7 @@ public:
 	DWORD DoAutonomousMotion(DWORD motion, MovementParameters *params = NULL);
 	DWORD DoForcedMotion(DWORD motion, MovementParameters *params = NULL);
 	
-	virtual bool ImmuneToDamage(class CWeenieObject *other);
+	virtual bool ImmuneToDamage(class std::shared_ptr<CWeenieObject> other);
 	virtual bool IsBusy();
 	bool IsMovingTo();
 	bool IsCompletelyIdle();
@@ -593,11 +638,11 @@ public:
 	double _nextHeartBeatEmote = -1.0;
 	CombatManeuverTable *_combatTable = NULL;
 
-	CWeenieObject *GetWorldContainer();
-	CWeenieObject *GetWorldWielder();
-	CWeenieObject *GetWorldOwner();
-	CWeenieObject *GetWorldTopLevelOwner();
-	class CContainerWeenie *GetWorldTopLevelContainer();
+	std::shared_ptr<CWeenieObject> GetWorldContainer();
+	std::shared_ptr<CWeenieObject> GetWorldWielder();
+	std::shared_ptr<CWeenieObject> GetWorldOwner();
+	std::shared_ptr<CWeenieObject> GetWorldTopLevelOwner();
+	class std::shared_ptr<CContainerWeenie> GetWorldTopLevelContainer();
 
 	virtual void ChangeCombatMode(COMBAT_MODE mode, bool playerRequested) { }
 
@@ -612,15 +657,15 @@ public:
 
 	void RecacheHasOwner();
 
-	virtual CWeenieObject *FindContained(DWORD object_id);
+	virtual std::shared_ptr<CWeenieObject> FindContained(DWORD object_id);
 	virtual bool IsValidWieldLocation(DWORD location);
-	virtual bool CanEquipWith(CWeenieObject *other, DWORD otherLocation);
-	virtual void SimulateGiveObject(class CContainerWeenie *target, DWORD wcid, int amount = 1, int ptid = 0, float shade = 0, int bondedType = 0);
-	virtual int SimulateGiveObject(class CContainerWeenie *target, CWeenieObject *object_weenie);
-	virtual int CraftObject(CContainerWeenie *target_container, CWeenieObject *object_weenie);
-	virtual void ReleaseContainedItemRecursive(CWeenieObject *object_weenie) { }
-	virtual CWeenieObject *GetWieldedCombat(COMBAT_USE combatUse) { return NULL; }
-	virtual CWeenieObject *GetWielded(INVENTORY_LOC slot) { return NULL; }
+	virtual bool CanEquipWith(std::shared_ptr<CWeenieObject> other, DWORD otherLocation);
+	virtual void SimulateGiveObject(class std::shared_ptr<CContainerWeenie> target, DWORD wcid, int amount = 1, int ptid = 0, float shade = 0, int bondedType = 0);
+	virtual int SimulateGiveObject(class std::shared_ptr<CContainerWeenie> target, std::shared_ptr<CWeenieObject> object_weenie);
+	virtual int CraftObject(std::shared_ptr<CContainerWeenie> target_container, std::shared_ptr<CWeenieObject> object_weenie);
+	virtual void ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObject> object_weenie) { }
+	virtual std::shared_ptr<CWeenieObject> GetWieldedCombat(COMBAT_USE combatUse) { return NULL; }
+	virtual std::shared_ptr<CWeenieObject> GetWielded(INVENTORY_LOC slot) { return NULL; }
 
 	virtual double GetMeleeDefenseMod();
 	virtual double GetMissileDefenseMod();

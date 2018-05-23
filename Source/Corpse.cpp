@@ -28,7 +28,7 @@ void CCorpseWeenie::GetObjDesc(ObjDesc &desc)
 	desc = _objDesc;
 }
 
-int CCorpseWeenie::CheckOpenContainer(CWeenieObject *other)
+int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
 {
 	int error = CContainerWeenie::CheckOpenContainer(other);
 
@@ -71,14 +71,14 @@ int CCorpseWeenie::CheckOpenContainer(CWeenieObject *other)
 	return WERROR_CHEST_WRONG_KEY;
 }
 
-void CCorpseWeenie::OnContainerOpened(CWeenieObject *other)
+void CCorpseWeenie::OnContainerOpened(std::shared_ptr<CWeenieObject> other)
 {
 	CContainerWeenie::OnContainerOpened(other);
 
 	_hasBeenOpened = true;
 }
 
-void CCorpseWeenie::OnContainerClosed(CWeenieObject *other)
+void CCorpseWeenie::OnContainerClosed(std::shared_ptr<CWeenieObject> other)
 {
 	CContainerWeenie::OnContainerClosed(other);
 

@@ -162,11 +162,11 @@ void CWorldLandBlock::SpawnDynamics()
 
 			pos.frame.m_origin = Vector(x_shift, y_shift, CalcSurfaceZ(landcell_id, x_shift, y_shift));
 
-			CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(spawn_ids->array_data[j], &pos, true);
+			std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(spawn_ids->array_data[j], &pos, true);
 
 			if (weenie && weenie->IsMonsterWeenie())
 			{
-				CMonsterWeenie *monster = (CMonsterWeenie *)weenie;
+				std::shared_ptr<CMonsterWeenie> monster = (std::shared_ptr<CMonsterWeenie> )weenie;
 				monster->m_MonsterAI = new MonsterAIManager(monster, monster->m_Position);
 			}
 		}
@@ -204,7 +204,7 @@ void CWorldLandBlock::SpawnDynamics()
 				if (wcid == W_HUMAN_CLASS || wcid == W_ADMIN_CLASS || wcid == W_SENTINEL_CLASS)
 					continue;
 
-				CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid, &pos, true);
+				std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid, &pos, true);
 
 				if (!weenie)
 				{
@@ -288,7 +288,7 @@ void CWorldLandBlock::SpawnDynamics()
 				}
 			}
 
-			CWeenieObject *weenie;
+			std::shared_ptr<CWeenieObject> weenie;
 
 			CWeenieDefaults *weenieDefs = g_pWeenieFactory->GetWeenieDefaults(wcid);
 			if (weenieDefs != NULL &&
@@ -336,10 +336,10 @@ void CWorldLandBlock::SpawnDynamics()
 			DWORD source_id = data->weenie_links.array_data[i].source;
 			DWORD target_id = data->weenie_links.array_data[i].target;
 
-			CWeenieObject *source_weenie = g_pWorld->FindObject(source_id); // often creature, or respawnable item
+			std::shared_ptr<CWeenieObject> source_weenie = g_pWorld->FindObject(source_id); // often creature, or respawnable item
 			if (source_weenie)
 			{
-				CWeenieObject *target_weenie = g_pWorld->FindObject(target_id); // often generator
+				std::shared_ptr<CWeenieObject> target_weenie = g_pWorld->FindObject(target_id); // often generator
 				if (target_weenie)
 				{
 					target_weenie->EnsureLink(source_weenie);
@@ -449,12 +449,12 @@ void CWorldLandBlock::MakeNotDormant()
 	m_pWorld->EnsureBlockIsTicking(this);
 }
 
-void CWorldLandBlock::Insert(CWeenieObject *pEntity, WORD wOld, BOOL bNew, bool bMakeAware)
+void CWorldLandBlock::Insert(std::shared_ptr<CWeenieObject> pEntity, WORD wOld, BOOL bNew, bool bMakeAware)
 {
-	if (CPlayerWeenie *player = pEntity->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> player = pEntity->AsPlayer())
 	{
 		Position pos = pEntity->GetPosition();
-		m_PlayerMap.insert(std::pair<DWORD, CPlayerWeenie *>(pEntity->GetID(), player));
+		m_PlayerMap.insert(std::pair<DWORD, std::shared_ptr<CPlayerWeenie> >(pEntity->GetID(), player));
 		m_PlayerList.push_back(player);
 
 		MakeNotDormant();
@@ -464,7 +464,7 @@ void CWorldLandBlock::Insert(CWeenieObject *pEntity, WORD wOld, BOOL bNew, bool 
 			ActivateLandblocksWithinPVS(pEntity->GetLandcell());
 	}
 
-	m_EntityMap.insert(std::pair<DWORD, CWeenieObject *>(pEntity->GetID(), pEntity));
+	m_EntityMap.insert(std::pair<DWORD, std::shared_ptr<CWeenieObject> >(pEntity->GetID(), pEntity));
 	m_EntitiesToAdd.push_back(pEntity);
 
 	pEntity->Attach(this);
@@ -476,7 +476,7 @@ void CWorldLandBlock::Insert(CWeenieObject *pEntity, WORD wOld, BOOL bNew, bool 
 		ExchangePVS(pEntity, wOld);
 }
 
-CWeenieObject *CWorldLandBlock::FindEntity(DWORD dwGUID)
+std::shared_ptr<CWeenieObject> CWorldLandBlock::FindEntity(DWORD dwGUID)
 {
 	WeenieMap::iterator eit = m_EntityMap.find(dwGUID);
 
@@ -486,7 +486,7 @@ CWeenieObject *CWorldLandBlock::FindEntity(DWORD dwGUID)
 	return eit->second;
 }
 
-CPlayerWeenie *CWorldLandBlock::FindPlayer(DWORD dwGUID)
+std::shared_ptr<CPlayerWeenie> CWorldLandBlock::FindPlayer(DWORD dwGUID)
 {
 	PlayerWeenieMap::iterator pit = m_PlayerMap.find(dwGUID);
 
@@ -502,7 +502,7 @@ ExchangeData --
 Makes all entities mutually aware of the source.
 
 */
-void CWorldLandBlock::ExchangeData(CWeenieObject *source)
+void CWorldLandBlock::ExchangeData(std::shared_ptr<CWeenieObject> source)
 {
 	if (source->AsPlayer() && m_DormancyStatus != DoNotGoDormant)
 	{
@@ -534,7 +534,7 @@ void CWorldLandBlock::ExchangeData(CWeenieObject *source)
 	}
 }
 
-void CWorldLandBlock::ExchangeDataForStabChange(CWeenieObject *pSource, DWORD old_cell_id, DWORD new_cell_id)
+void CWorldLandBlock::ExchangeDataForStabChange(std::shared_ptr<CWeenieObject> pSource, DWORD old_cell_id, DWORD new_cell_id)
 {
 	CObjCell *old_cell, *new_cell;
 
@@ -572,7 +572,7 @@ void CWorldLandBlock::ExchangeDataForStabChange(CWeenieObject *pSource, DWORD ol
 	}
 }
 
-void CWorldLandBlock::ExchangeDataForCellID(CWeenieObject *source, DWORD cell_id)
+void CWorldLandBlock::ExchangeDataForCellID(std::shared_ptr<CWeenieObject> source, DWORD cell_id)
 {
 	for (auto &entity : m_EntitiesToAdd)
 	{
@@ -599,7 +599,7 @@ void CWorldLandBlock::ExchangeDataForCellID(CWeenieObject *source, DWORD cell_id
 	}
 }
 
-void CWorldLandBlock::ExchangePVS(CWeenieObject *pSource, WORD old_block_id)
+void CWorldLandBlock::ExchangePVS(std::shared_ptr<CWeenieObject> pSource, WORD old_block_id)
 {
 	if (!pSource)
 		return;
@@ -650,7 +650,7 @@ void CWorldLandBlock::Broadcast(void *_data, DWORD _len, WORD _group, DWORD igno
 {
 	for (PlayerWeenieVector::iterator pit = m_PlayerList.begin(); pit != m_PlayerList.end();)
 	{
-		CPlayerWeenie *pPlayer = (*pit);
+		std::shared_ptr<CPlayerWeenie> pPlayer = (*pit);
 
 		if (!pPlayer)
 		{
@@ -709,7 +709,7 @@ bool CWorldLandBlock::PossiblyVisibleToOutdoors(DWORD cell_id)
 	return true;
 }
 
-void CWorldLandBlock::Release(CWeenieObject *pEntity)
+void CWorldLandBlock::Release(std::shared_ptr<CWeenieObject> pEntity)
 {
 	if (pEntity->GetBlock() == this)
 	{
@@ -793,7 +793,7 @@ void CWorldLandBlock::Release(CWeenieObject *pEntity)
 	}
 }
 
-void CWorldLandBlock::Destroy(CWeenieObject *pEntity, bool bDoRelease)
+void CWorldLandBlock::Destroy(std::shared_ptr<CWeenieObject> pEntity, bool bDoRelease)
 {
 	if (pEntity->ShouldSave())
 	{
@@ -840,12 +840,10 @@ void CWorldLandBlock::Destroy(CWeenieObject *pEntity, bool bDoRelease)
 
 	if (DWORD generator_id = pEntity->InqIIDQuality(GENERATOR_IID, 0))
 	{
-		CWeenieObject *target = g_pWorld->FindObject(generator_id);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(generator_id);
 		if (target)
 			target->NotifyGeneratedDeath(pEntity);
 	}
-
-	DELETE_ENTITY(pEntity);
 }
 
 BOOL CWorldLandBlock::Think()
@@ -874,7 +872,7 @@ BOOL CWorldLandBlock::Think()
 
 		for (auto entry : weeniesList)
 		{
-			CWeenieObject *weenie = CWeenieObject::Load(entry);
+			std::shared_ptr<CWeenieObject> weenie = CWeenieObject::Load(entry);
 
 			if (weenie)
 				g_pWorld->CreateEntity(weenie);
@@ -890,7 +888,7 @@ BOOL CWorldLandBlock::Think()
 
 	while (eit != eend)
 	{
-		CWeenieObject *pEntity = (*eit);
+		std::shared_ptr<CWeenieObject> pEntity = (*eit);
 
 		if (!pEntity || pEntity->GetBlock() != this)
 		{
@@ -925,7 +923,7 @@ BOOL CWorldLandBlock::Think()
 
 				if (!pEntity->cell)
 				{
-					if (CPlayerWeenie *player = pEntity->AsPlayer())
+					if (std::shared_ptr<CPlayerWeenie> player = pEntity->AsPlayer())
 					{
 						if (player->_nextTryFixBrokenPosition < Timer::cur_time)
 						{
@@ -1095,7 +1093,7 @@ void CWorldLandBlock::ClearSpawns()
 	WeenieVector::iterator eit = m_EntityList.begin();
 	WeenieVector::iterator eend = m_EntityList.end();
 
-	CWeenieObject *pEntity;
+	std::shared_ptr<CWeenieObject> pEntity;
 
 	while (eit != eend)
 	{
@@ -1123,13 +1121,13 @@ void CWorldLandBlock::ClearSpawns()
 	}
 }
 
-void CWorldLandBlock::EnumNearbyFastNoSphere(const Position &pos, float range, std::list<CWeenieObject *> *results)
+void CWorldLandBlock::EnumNearbyFastNoSphere(const Position &pos, float range, std::list<std::shared_ptr<CWeenieObject> > *results)
 {
 	float range_squared = range * range;
 
 	for (WeenieMap::iterator i = m_EntityMap.begin(); i != m_EntityMap.end(); i++)
 	{
-		CWeenieObject *other = i->second;
+		std::shared_ptr<CWeenieObject> other = i->second;
 
 		if (pos.distance_squared(other->m_Position) <= range_squared)
 		{
@@ -1138,7 +1136,7 @@ void CWorldLandBlock::EnumNearbyFastNoSphere(const Position &pos, float range, s
 	}
 }
 
-void CWorldLandBlock::EnumNearby(const Position &pos, float range, std::list<CWeenieObject *> *results)
+void CWorldLandBlock::EnumNearby(const Position &pos, float range, std::list<std::shared_ptr<CWeenieObject> > *results)
 {
 	for (auto pOther : m_EntityList)
 	{
@@ -1169,7 +1167,7 @@ void CWorldLandBlock::EnumNearby(const Position &pos, float range, std::list<CWe
 	}
 }
 
-void CWorldLandBlock::EnumNearby(CWeenieObject *source, float range, std::list<CWeenieObject *> *results)
+void CWorldLandBlock::EnumNearby(std::shared_ptr<CWeenieObject> source, float range, std::list<std::shared_ptr<CWeenieObject> > *results)
 {
 	float selfRadius = source->GetRadius();
 
@@ -1198,7 +1196,7 @@ void CWorldLandBlock::EnumNearby(CWeenieObject *source, float range, std::list<C
 	}
 }
 
-void CWorldLandBlock::EnumNearbyPlayers(const Position &pos, float range, std::list<CWeenieObject *> *results)
+void CWorldLandBlock::EnumNearbyPlayers(const Position &pos, float range, std::list<std::shared_ptr<CWeenieObject> > *results)
 {
 	for (auto player : m_PlayerList)
 	{
@@ -1215,7 +1213,7 @@ void CWorldLandBlock::EnumNearbyPlayers(const Position &pos, float range, std::l
 	}
 }
 
-void CWorldLandBlock::EnumNearbyPlayers(CWeenieObject *source, float range, std::list<CWeenieObject *> *results)
+void CWorldLandBlock::EnumNearbyPlayers(std::shared_ptr<CWeenieObject> source, float range, std::list<std::shared_ptr<CWeenieObject> > *results)
 {
 	float selfRadius = source->GetRadius();
 

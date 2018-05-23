@@ -50,7 +50,7 @@ void CPhysicsObj::EmitSound(DWORD sound_id, float speed, bool bLocalClientOnly)
 	}
 	else
 	{
-		g_pWorld->BroadcastPVS(this, SoundMsg.GetData(), SoundMsg.GetSize(), OBJECT_MSG);
+		g_pWorld->BroadcastPVS(m_spThis.lock(), SoundMsg.GetData(), SoundMsg.GetSize(), OBJECT_MSG);
 	}
 }
 
@@ -65,7 +65,7 @@ void CPhysicsObj::EmitEffect(DWORD dwIndex, float flScale)
 	EffectMsg.Write<DWORD>(dwIndex);
 	EffectMsg.Write<float>(flScale);
 
-	g_pWorld->BroadcastPVS(this, EffectMsg.GetData(), EffectMsg.GetSize(), OBJECT_MSG, 0);
+	g_pWorld->BroadcastPVS(m_spThis.lock(), EffectMsg.GetData(), EffectMsg.GetSize(), OBJECT_MSG, 0);
 }
 
 void CPhysicsObj::InitPhysicsTemporary()
@@ -80,12 +80,12 @@ void CPhysicsObj::CleanupPhysicsTemporary()
 	Movement_Shutdown();
 }
 
-float CPhysicsObj::DistanceTo(CPhysicsObj *pOther)
+float CPhysicsObj::DistanceTo(std::shared_ptr<CPhysicsObj> pOther)
 {
 	return m_Position.distance(pOther->m_Position);
 }
 
-float CPhysicsObj::DistanceSquared(CPhysicsObj *pOther)
+float CPhysicsObj::DistanceSquared(std::shared_ptr<CPhysicsObj> pOther)
 {
 	return m_Position.distance_squared(pOther->m_Position);
 }
@@ -121,7 +121,7 @@ void CPhysicsObj::Tick()
 {
 }
 
-CWeenieObject *CPhysicsObj::GetWeenie()
+std::shared_ptr<CWeenieObject> CPhysicsObj::GetWeenie()
 {
 	return weenie_obj;
 }

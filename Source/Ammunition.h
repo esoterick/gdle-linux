@@ -9,7 +9,7 @@ public:
 	CAmmunitionWeenie();
 	virtual ~CAmmunitionWeenie() override;
 
-	virtual class CAmmunitionWeenie *AsAmmunition() { return this; }
+	virtual class std::shared_ptr<CAmmunitionWeenie> AsAmmunition() { return std::dynamic_pointer_cast<CAmmunitionWeenie>(m_spThis.lock()); }
 
 	virtual void ApplyQualityOverrides() override;
 

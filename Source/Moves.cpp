@@ -38,7 +38,7 @@ void CPhysicsObj::Movement_Think()
 
 void CPhysicsObj::Movement_SendUpdate(DWORD dwCell)
 {
-	if (CWeenieObject *pWeenie = GetWeenie())
+	if (std::shared_ptr<CWeenieObject> pWeenie = GetWeenie())
 	{
 		BinaryWriter* poo = MoveUpdate(pWeenie);
 		g_pWorld->BroadcastPVS(dwCell, poo->GetData(), poo->GetSize());
@@ -96,5 +96,5 @@ void CPhysicsObj::Movement_UpdateVector()
 	moveMsg.Write<WORD>(_instance_timestamp);
 	moveMsg.Write<WORD>(++_vector_timestamp);
 
-	g_pWorld->BroadcastPVS(this, moveMsg.GetData(), moveMsg.GetSize(), OBJECT_MSG);
+	g_pWorld->BroadcastPVS(m_spThis.lock(), moveMsg.GetData(), moveMsg.GetSize(), OBJECT_MSG);
 }
