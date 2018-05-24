@@ -104,10 +104,24 @@ public:
 class CPhysicsObj : public LongHashData
 {
 protected:
-	std::weak_ptr<CWeenieObject> m_spThis;
+	std::weak_ptr<CPhysicsObj> m_spThis;
 public:
 	CPhysicsObj();
 	virtual ~CPhysicsObj();
+
+	template <class T>
+	std::shared_ptr<T> GetPointer()
+	{
+		std::shared_ptr<CPhysicsObj> pThis = m_spThis.lock();
+		if (!pThis)
+		{
+			pThis = std::shared_ptr<CPhysicsObj>(this);
+
+			m_spThis = pThis;
+		}
+		std::shared_ptr<T> pReturn = std::dynamic_pointer_cast<T>(pThis);
+		return pReturn;
+	}
 
 	void Destroy();
 

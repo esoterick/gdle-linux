@@ -8,7 +8,7 @@ class CClothingWeenie : public CWeenieObject
 public:
 	CClothingWeenie();
 
-	virtual class std::shared_ptr<CClothingWeenie> AsClothing() { return std::dynamic_pointer_cast<CClothingWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CClothingWeenie> AsClothing() { return GetPointer<CClothingWeenie>(); }
 
 	virtual void ApplyQualityOverrides() override;
 	virtual int Use(std::shared_ptr<CPlayerWeenie> other) override;

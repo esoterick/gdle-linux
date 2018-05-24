@@ -30,7 +30,7 @@ public:
 	CMonsterWeenie();
 	virtual ~CMonsterWeenie() override;
 
-	virtual class std::shared_ptr<CMonsterWeenie> AsMonster() { return std::dynamic_pointer_cast<CMonsterWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CMonsterWeenie> AsMonster() { return GetPointer<CMonsterWeenie>(); }
 
 	virtual void Tick();
 

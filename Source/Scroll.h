@@ -18,7 +18,7 @@ public:
 	CScrollWeenie();
 	virtual ~CScrollWeenie() override;
 
-	virtual class std::shared_ptr<CScrollWeenie> AsScroll() { return std::dynamic_pointer_cast<CScrollWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CScrollWeenie> AsScroll() { return GetPointer<CScrollWeenie>(); }
 
 	virtual void ApplyQualityOverrides() override;
 	virtual int Use(std::shared_ptr<CPlayerWeenie> player) override;

@@ -9,7 +9,7 @@ public:
 	CSwitchWeenie();
 	virtual ~CSwitchWeenie() override;
 
-	virtual class std::shared_ptr<CSwitchWeenie> AsSwitch() { return std::dynamic_pointer_cast<CSwitchWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CSwitchWeenie> AsSwitch() { return GetPointer<CSwitchWeenie>(); }
 
 	virtual void ApplyQualityOverrides() override;
 

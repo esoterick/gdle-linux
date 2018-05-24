@@ -9,7 +9,7 @@ public:
 	CChestWeenie();
 	virtual ~CChestWeenie() override;
 
-	virtual class std::shared_ptr<CChestWeenie> AsChest() { return std::dynamic_pointer_cast<CChestWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CChestWeenie> AsChest() { return GetPointer<CChestWeenie>(); }
 
 	virtual void PostSpawn() override;
 

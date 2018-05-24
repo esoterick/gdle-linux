@@ -9,7 +9,7 @@ public:
 	CMissileWeenie();
 	virtual ~CMissileWeenie() override;
 
-	virtual class std::shared_ptr<CMissileWeenie> AsMissile() { return std::dynamic_pointer_cast<CMissileWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CMissileWeenie> AsMissile() { return GetPointer<CMissileWeenie>(); }
 
 protected:
 };

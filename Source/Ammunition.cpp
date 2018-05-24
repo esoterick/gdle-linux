@@ -96,7 +96,7 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 {
 	bool targetCollision = false;
 
-	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(m_spThis.lock(), prof.id);
+	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(GetPointer<CWeenieObject>(), prof.id);
 	if (pHit && (!_targetID || _targetID == pHit->GetID()) && (pHit->GetID() != _sourceID) && (pHit->GetID() != _launcherID))
 	{
 		std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindObject(_sourceID);

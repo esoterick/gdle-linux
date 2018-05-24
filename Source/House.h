@@ -65,7 +65,7 @@ class CHouseWeenie : public CWeenieObject
 public:
 	CHouseWeenie();
 
-	virtual class std::shared_ptr<CHouseWeenie> AsHouse() { return std::dynamic_pointer_cast<CHouseWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CHouseWeenie> AsHouse() { return GetPointer<CHouseWeenie>(); }
 
 	virtual void EnsureLink(std::shared_ptr<CWeenieObject> source) override;
 
@@ -99,7 +99,7 @@ public:
 
 	virtual void Tick() override;
 
-	virtual class std::shared_ptr<CSlumLordWeenie> AsSlumLord() { return std::dynamic_pointer_cast<CSlumLordWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CSlumLordWeenie> AsSlumLord() { return GetPointer<CSlumLordWeenie>(); }
 
 	std::shared_ptr<CHouseWeenie> GetHouse();
 	void GetHouseProfile(HouseProfile &prof);
@@ -119,7 +119,7 @@ class CHookWeenie : public CContainerWeenie
 public:
 	CHookWeenie();
 
-	virtual class std::shared_ptr<CHookWeenie> AsHook() { return std::dynamic_pointer_cast<CHookWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CHookWeenie> AsHook() { return GetPointer<CHookWeenie>(); }
 
 	virtual void Tick() override;
 
@@ -148,7 +148,7 @@ class CDeedWeenie : public CWeenieObject
 public:
 	CDeedWeenie();
 
-	virtual class std::shared_ptr<CDeedWeenie> AsDeed() { return std::dynamic_pointer_cast<CDeedWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CDeedWeenie> AsDeed() { return GetPointer<CDeedWeenie>(); }
 
 	class std::shared_ptr<CHouseWeenie> GetHouse();
 };
@@ -158,7 +158,7 @@ class CBootSpotWeenie : public CWeenieObject
 public:
 	CBootSpotWeenie();
 
-	virtual class std::shared_ptr<CBootSpotWeenie> AsBootSpot() { return std::dynamic_pointer_cast<CBootSpotWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CBootSpotWeenie> AsBootSpot() { return GetPointer<CBootSpotWeenie>(); }
 
 	class std::shared_ptr<CHouseWeenie> GetHouse();
 };
@@ -168,7 +168,7 @@ class CHousePortalWeenie : public CPortal
 public:
 	CHousePortalWeenie();
 
-	virtual class std::shared_ptr<CHousePortalWeenie> AsHousePortal() { return std::dynamic_pointer_cast<CHousePortalWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CHousePortalWeenie> AsHousePortal() { return GetPointer<CHousePortalWeenie>(); }
 	virtual void ApplyQualityOverrides() override;
 
 	class std::shared_ptr<CHouseWeenie> GetHouse();
@@ -183,7 +183,7 @@ class CStorageWeenie : public CChestWeenie
 public:
 	CStorageWeenie();
 
-	virtual class std::shared_ptr<CStorageWeenie> AsStorage() { return std::dynamic_pointer_cast<CStorageWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CStorageWeenie> AsStorage() { return GetPointer<CStorageWeenie>(); }
 	virtual bool ShouldSave() override { return true; }
 
 	int DoUseResponse(std::shared_ptr<CWeenieObject> other) override;

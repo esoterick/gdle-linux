@@ -111,7 +111,7 @@ int CPressurePlateWeenie::Activate(DWORD activator_id)
 
 					for (int i = 0; i < numToSpawn; i++)
 					{
-						g_pWeenieFactory->GenerateFromTypeOrWcid(m_spThis.lock(), &entry);
+						g_pWeenieFactory->GenerateFromTypeOrWcid(GetPointer<CWeenieObject>(), &entry);
 					}
 				}
 			}

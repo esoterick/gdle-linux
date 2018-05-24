@@ -287,7 +287,7 @@ void CContainerWeenie::Container_EquipItem(DWORD dwCell, std::shared_ptr<CWeenie
 	if (child_location && placement)
 	{
 		item->m_Qualities.SetInt(PARENT_LOCATION_INT, child_location);
-		item->set_parent(m_spThis.lock(), child_location);
+		item->set_parent(GetPointer<CWeenieObject>(), child_location);
 		item->SetPlacementFrame(placement, FALSE);
 
 		if (m_bWorldIsAware)
@@ -504,7 +504,7 @@ void CContainerWeenie::Container_DeleteItem(DWORD item_id)
 	RemoveObject[0] = 0xF747;
 	RemoveObject[1] = item->GetID();
 	RemoveObject[2] = item->_instance_timestamp;
-	g_pWorld->BroadcastPVS(m_spThis.lock(), RemoveObject, sizeof(RemoveObject));
+	g_pWorld->BroadcastPVS(GetPointer<CWeenieObject>(), RemoveObject, sizeof(RemoveObject));
 
 	g_pWorld->RemoveEntity(item);
 }
@@ -739,7 +739,7 @@ bool CContainerWeenie::SpawnInContainer(std::shared_ptr<CWeenieObject> item, boo
 	{
 		SendNetMessage(InventoryMove(item->GetID(), GetID(), 0, item->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
 		if (item->AsContainer())
-			item->AsContainer()->MakeAwareViewContent(m_spThis.lock());
+			item->AsContainer()->MakeAwareViewContent(GetPointer<CWeenieObject>());
 		MakeAware(item, true);
 
 		if (_openedById != 0)
@@ -750,19 +750,19 @@ bool CContainerWeenie::SpawnInContainer(std::shared_ptr<CWeenieObject> item, boo
 			{
 				openedBy->SendNetMessage(InventoryMove(item->GetID(), GetID(), 0, item->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
 				if (item->AsContainer())
-					item->AsContainer()->MakeAwareViewContent(m_spThis.lock());
+					item->AsContainer()->MakeAwareViewContent(GetPointer<CWeenieObject>());
 				openedBy->MakeAware(item, true);
 			}
 		}
 	}
 
-	OnReceiveInventoryItem(m_spThis.lock(), item, 0);
+	OnReceiveInventoryItem(GetPointer<CWeenieObject>(), item, 0);
 	return true;
 }
 
 DWORD CContainerWeenie::OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> item, DWORD desired_slot)
 {
-	if (source != m_spThis.lock())
+	if (source != GetPointer<CWeenieObject>())
 	{
 		// By default, if we receive things just delete them... creatures can override this
 		g_pWorld->RemoveEntity(item);
@@ -802,7 +802,7 @@ void CContainerWeenie::InitPhysicsObj()
 		int parentLocation = item->InqIntQuality(PARENT_LOCATION_INT, PARENT_ENUM::PARENT_NONE);
 		if (parentLocation != PARENT_ENUM::PARENT_NONE)
 		{
-			item->set_parent(m_spThis.lock(), parentLocation);
+			item->set_parent(GetPointer<CWeenieObject>(), parentLocation);
 
 			int placement = item->InqIntQuality(PLACEMENT_POSITION_INT, 0);
 			assert(placement);

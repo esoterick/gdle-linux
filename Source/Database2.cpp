@@ -999,15 +999,15 @@ void CGameDatabase::LoadStaticsData()
 			continue;
 
 		if (pSpawnInfo->weenie._bitfield & BitfieldIndex::BF_DOOR)
-			pSpawn = std::shared_ptr<CBaseDoor>(new CBaseDoor());
+			pSpawn = std::shared_ptr<CBaseDoor>((new CBaseDoor())->GetPointer<CBaseDoor>());
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_CREATURE)
-			pSpawn = std::shared_ptr<CMonsterWeenie>(new CMonsterWeenie());
+			pSpawn = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer<CMonsterWeenie>());
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_PORTAL)
-			pSpawn = std::shared_ptr<CPortal>(new CPortal());
+			pSpawn = std::shared_ptr<CPortal>((new CPortal())->GetPointer<CPortal>());
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_LIFESTONE)
-			pSpawn = std::shared_ptr<CBaseLifestone>(new CBaseLifestone());
+			pSpawn = std::shared_ptr<CBaseLifestone>((new CBaseLifestone())->GetPointer<CBaseLifestone>());
 		else
-			pSpawn = std::shared_ptr<CWeenieObject>(new CWeenieObject());
+			pSpawn = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>());
 
 		pSpawn->id = pSpawnInfo->guid; // g_pWorld->GenerateGUID(eDynamicGUID);
 		pSpawn->m_miBaseModel = pSpawnInfo->appearance;
@@ -1111,22 +1111,22 @@ void CGameDatabase::SpawnStaticsForLandBlock(WORD lb_gid)
 
 #if 0
 		if (pSpawnInfo->weenie._bitfield & BitfieldIndex::BF_DOOR)
-			pSpawn = std::shared_ptr<CBaseDoor>(new CBaseDoor());
+			pSpawn = std::shared_ptr<CBaseDoor>((new CBaseDoor())->GetPointer<CBaseDoor>());
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_LIFESTONE)
-			pSpawn = std::shared_ptr<CBaseLifestone>(new CBaseLifestone());
+			pSpawn = std::shared_ptr<CBaseLifestone>((new CBaseLifestone())->GetPointer<CBaseLifestone>());
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_CREATURE)
 		{
 			if (!strcmp(pSpawnInfo->weenie._name.c_str(), "Town Crier"))
-				pSpawn = std::shared_ptr<CTownCrier>(new CTownCrier());
+				pSpawn = std::shared_ptr<CTownCrier>((new CTownCrier())->GetPointer<CTownCrier>());
 			else if (pSpawnInfo->weenie._bitfield & BF_VENDOR)
-				pSpawn = std::shared_ptr<CVendor>(new CVendor());
+				pSpawn = std::shared_ptr<CVendor>((new CVendor())->GetPointer<CVendor>());
 			else
-				pSpawn = std::shared_ptr<CMonsterWeenie>(new CMonsterWeenie());
+				pSpawn = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer<CMonsterWeenie>());
 		}
 		else if (pSpawnInfo->weenie._type == ITEM_TYPE::TYPE_PORTAL)
-			pSpawn = std::shared_ptr<CPortal>(new CPortal());
+			pSpawn = std::shared_ptr<CPortal>((new CPortal())->GetPointer<CPortal>());
 		else
-			pSpawn = std::shared_ptr<CWeenieObject>(new CWeenieObject());
+			pSpawn = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>());
 
 		pSpawn->id = pSpawnInfo->guid; // g_pWorld->GenerateGUID(eDynamicGUID);
 		pSpawn->m_miBaseModel = pSpawnInfo->appearance;
@@ -1861,7 +1861,7 @@ std::shared_ptr<CWeenieObject> CGameDatabase::CreateFromCapturedData(CCapturedWo
 
 	if (pObjectInfo->weenie._type & ITEM_TYPE::TYPE_CREATURE)
 	{
-		pObject = std::shared_ptr<CWeenieObject>(new CMonsterWeenie());
+		pObject = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>());
 	}
 	else if (pObjectInfo->weenie._location ||
 		(pObjectInfo->weenie._type &
@@ -1871,11 +1871,11 @@ std::shared_ptr<CWeenieObject> CGameDatabase::CreateFromCapturedData(CCapturedWo
 			ITEM_TYPE::TYPE_MANASTONE | ITEM_TYPE::TYPE_MELEE_WEAPON | ITEM_TYPE::TYPE_MISSILE_WEAPON | ITEM_TYPE::TYPE_MONEY |
 			ITEM_TYPE::TYPE_PROMISSORY_NOTE | ITEM_TYPE::TYPE_SPELL_COMPONENTS | ITEM_TYPE::TYPE_CASTER)))
 	{
-		pObject = std::shared_ptr<CWeenieObject>(new CWeenieObject());
+		pObject = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>());
 	}
 	else
 	{
-		pObject = std::shared_ptr<CWeenieObject>(new CWeenieObject());
+		pObject = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>());
 	}
 
 	// pObject->SetID(pObjectInfo->guid);

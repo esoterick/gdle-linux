@@ -29,7 +29,7 @@ public:
 
 	virtual void Tick() override;
 	
-	virtual class std::shared_ptr<CPlayerWeenie> AsPlayer() { return std::dynamic_pointer_cast<CPlayerWeenie>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CPlayerWeenie> AsPlayer() { return GetPointer<CPlayerWeenie>(); }
 
 	virtual bool IsAdvocate() override;
 	virtual bool IsSentinel() override;

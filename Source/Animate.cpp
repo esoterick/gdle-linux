@@ -175,7 +175,7 @@ void CPhysicsObj::Animation_Update()
 	AnimUpdate.Write(AnimInfo);
 	delete AnimInfo;
 
-	g_pWorld->BroadcastPVS(m_spThis.lock(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	g_pWorld->BroadcastPVS(GetPointer<CWeenieObject>(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
 }
 
 void CPhysicsObj::Animation_MoveToUpdate()
@@ -198,7 +198,7 @@ void CPhysicsObj::Animation_MoveToUpdate()
 	AnimUpdate.Write(AnimInfo);
 	delete AnimInfo;
 
-	g_pWorld->BroadcastPVS(m_spThis.lock(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	g_pWorld->BroadcastPVS(GetPointer<CWeenieObject>(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
 
 	last_move_was_autonomous = false;
 }

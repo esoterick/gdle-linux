@@ -45,7 +45,7 @@ const float max_velocity = 50.0f;
 class CObjectMaint *CPhysicsObj::obj_maint = NULL;
 #else
 CServerObjectMaint server_obj_maint;
-class CServerObjectMaint *CPhysicsObj::obj_maint = &server_obj_maint; // TODO move m_spThis.lock()
+class CServerObjectMaint *CPhysicsObj::obj_maint = &server_obj_maint; // TODO move this()
 #endif
 
 CPhysicsObj::CPhysicsObj() : shadow_objects(4)
@@ -96,7 +96,7 @@ CPhysicsObj::CPhysicsObj() : shadow_objects(4)
 	colliding_with_environment = 0;
 	memset(update_times, 0, sizeof(update_times));
 
-	// m_spThis.lock() part is custom
+	// GetPointer<CWeenieObject>() part is custom
 	_position_timestamp = 0; // 0x164
 	_movement_timestamp = 0; // 0x166
 	_state_timestamp = 0; // 0x168
@@ -105,14 +105,15 @@ CPhysicsObj::CPhysicsObj() : shadow_objects(4)
 	_server_control_timestamp = 0; // 0x16E
 	_force_position_timestamp = 0; // 0x170
 	_objdesc_timestamp = 0; // 0x172
-	_instance_timestamp = 1; // 0x174 -- setting to 1 even though m_spThis.lock() is 0
+	_instance_timestamp = 1; // 0x174 -- setting to 1 even though GetPointer<CWeenieObject>() is 0
 }
 
-CPhysicsObj::~CPhysicsObj ()
+
+
+CPhysicsObj::~CPhysicsObj()
 {
 	Destroy();
 }
-
 
 void CPhysicsObj::Destroy()
 {
@@ -150,7 +151,7 @@ void CPhysicsObj::Destroy()
 	hooks = NULL;
 
 	if ((m_PhysicsState & STATIC_PS) && (m_PhysicsState & 0xC0000))
-		CPhysics::RemoveStaticAnimatingObject(m_spThis.lock());
+		CPhysics::RemoveStaticAnimatingObject(GetPointer<CWeenieObject>());
 
 	if (physics_script_table)
 	{
@@ -216,7 +217,7 @@ void CPhysicsObj::MakeMovementManager(BOOL init_motion)
 {
 	if (!movement_manager)
 	{
-		movement_manager = MovementManager::Create(m_spThis.lock(), weenie_obj);
+		movement_manager = MovementManager::Create(GetPointer<CWeenieObject>(), weenie_obj);
 
 		if (init_motion)
 		{
@@ -491,7 +492,7 @@ void CPhysicsObj::leave_world()
 
 	if (obj_maint)
 	{
-		obj_maint->RemoveFromLostCell(m_spThis.lock());
+		obj_maint->RemoveFromLostCell(GetPointer<CWeenieObject>());
 		obj_maint->RemoveObjectToBeDestroyed(id);
 	}
 
@@ -647,7 +648,7 @@ int CPhysicsObj::ethereal_check_for_collisions()
 		CObjCell *pcell = shadow_objects.data[i].cell;
 		if (pcell)
 		{
-			if (pcell->check_collisions(m_spThis.lock()))
+			if (pcell->check_collisions(GetPointer<CWeenieObject>()))
 				return 1;
 		}
 	}
@@ -800,7 +801,7 @@ void CPhysicsObj::update_object()
 		/*
 		if (CPhysicsObj::player_object)
 		{
-			v2 = Position::get_offset(&CPhysicsObj::player_object->m_position, &quantum, &m_spThis.lock()->m_position);
+			v2 = Position::get_offset(&CPhysicsObj::player_object->m_position, &quantum, &GetPointer<CWeenieObject>()->m_position);
 			v3 = (int)&v1->player_vector;
 			*(float *)v3 = v2->x;
 			*(float *)(v3 + 4) = v2->y;
@@ -921,7 +922,7 @@ void CPhysicsObj::MotionDone(DWORD motion, BOOL success)
 
 std::shared_ptr<CPhysicsObj> CPhysicsObj::makeObject(DWORD data_did, DWORD object_iid, BOOL bDynamic)
 {
-	std::shared_ptr<CPhysicsObj> pObject = std::shared_ptr<CPhysicsObj>(new CPhysicsObj());
+	std::shared_ptr<CPhysicsObj> pObject = std::shared_ptr<CPhysicsObj>((new CPhysicsObj())->GetPointer<CPhysicsObj>());
 
 	if (!pObject)
 		return NULL;
@@ -1029,7 +1030,7 @@ void CPhysicsObj::InitDefaults(CSetup *pSetup)
 			m_PhysicsState |= HAS_DEFAULT_SCRIPT_PS;
 
 		if (m_PhysicsState & (HAS_DEFAULT_ANIM_PS| HAS_DEFAULT_SCRIPT_PS))
-			CPhysics::AddStaticAnimatingObject(m_spThis.lock());
+			CPhysics::AddStaticAnimatingObject(GetPointer<CWeenieObject>());
 	}
 }
 
@@ -1070,7 +1071,7 @@ void CPhysicsObj::report_collision_end(const int force_end)
 {
 	if (collision_table)
 	{
-		// m_spThis.lock() code isn't perfect but should be same behavior
+		// GetPointer<CWeenieObject>() code isn't perfect but should be same behavior
 		LongNIValHashIter<CPhysicsObj::CollisionRecord> iter(collision_table);
 		SmartArray<DWORD> end_array(10);
 
@@ -1141,7 +1142,7 @@ void CPhysicsObj::leave_cell(BOOL is_changing_cell)
 	if (!cell)
 		return;
 
-	cell->remove_object(m_spThis.lock());
+	cell->remove_object(GetPointer<CWeenieObject>());
 
 	if (children)
 	{
@@ -1161,7 +1162,7 @@ void CPhysicsObj::enter_cell(CObjCell *pCell)
 	if (!part_array)
 		return;
 
-	pCell->add_object(m_spThis.lock());
+	pCell->add_object(GetPointer<CWeenieObject>());
 
 	if (children)
 	{
@@ -1217,14 +1218,14 @@ BOOL CPhysicsObj::InitPartArrayObject(DWORD data_did, BOOL bCreateParts)
 
 	if (dataType == 0x01000000)
 	{
-		part_array = CPartArray::CreateMesh(m_spThis.lock(), data_did);
+		part_array = CPartArray::CreateMesh(GetPointer<CWeenieObject>(), data_did);
 
 		if (!part_array)
 			return FALSE;
 	}
 	else if (dataType == 0x02000000)
 	{
-		part_array = CPartArray::CreateSetup(m_spThis.lock(), data_did, bCreateParts);
+		part_array = CPartArray::CreateSetup(GetPointer<CWeenieObject>(), data_did, bCreateParts);
 
 		if (!part_array)
 			return FALSE;
@@ -1327,7 +1328,7 @@ BOOL CPhysicsObj::play_script_internal(DWORD ScriptID)
 
 	if (!script_manager)
 	{
-		script_manager = new ScriptManager(m_spThis.lock());
+		script_manager = new ScriptManager(GetPointer<CWeenieObject>());
 	}
 
 	if (script_manager)
@@ -1380,7 +1381,7 @@ void CPhysicsObj::set_phstable_id(DWORD ID)
 
 BOOL CPhysicsObj::makeAnimObject(DWORD setup_id, BOOL bCreateParts)
 {
-	part_array = CPartArray::CreateSetup(m_spThis.lock(), setup_id, bCreateParts);
+	part_array = CPartArray::CreateSetup(GetPointer<CWeenieObject>(), setup_id, bCreateParts);
 
 	return part_array ? TRUE : FALSE;
 }
@@ -1498,8 +1499,8 @@ void CPhysicsObj::process_hooks()
 	// UNFINISHED hooks
 	
 	/*
-	v1 = m_spThis.lock();
-	v2 = m_spThis.lock()->hooks;
+	v1 = GetPointer<CWeenieObject>();
+	v2 = GetPointer<CWeenieObject>()->hooks;
 	if (v2)
 	{
 		do
@@ -1528,7 +1529,7 @@ void CPhysicsObj::process_hooks()
 	for (DWORD i = 0; i < anim_hooks.num_used; i++)
 	{
 		CAnimHook *pHook = anim_hooks.array_data[i];
-		pHook->Execute(m_spThis.lock());
+		pHook->Execute(GetPointer<CWeenieObject>());
 	}
 	
 	// shrink.... missing
@@ -1579,7 +1580,7 @@ int CPhysicsObj::check_collision(std::shared_ptr<CPhysicsObj> object)
 		return FALSE;
 
 	get_object_info(transit, 0);
-	transit->init_object(m_spThis.lock(), get_object_info(transit, 0));
+	transit->init_object(GetPointer<CWeenieObject>(), get_object_info(transit, 0));
 
 	if (GetNumSphere())
 	{
@@ -1715,11 +1716,11 @@ TransitionState CPhysicsObj::FindObjCollisions(CTransition *transition)
 	if (m_PhysicsState & MISSILE_PS || (weenie_obj && weenie_obj->IsCreature()))
 		is_creature = 1;
 
-	if (!(m_PhysicsState & HAS_PHYSICS_BSP_PS) || v10 || transition->object_info.missile_ignore(m_spThis.lock()))
+	if (!(m_PhysicsState & HAS_PHYSICS_BSP_PS) || v10 || transition->object_info.missile_ignore(GetPointer<CWeenieObject>()))
 	{
-		if (!part_array || !part_array->GetNumCylsphere() || v10 || transition->object_info.missile_ignore(m_spThis.lock()))
+		if (!part_array || !part_array->GetNumCylsphere() || v10 || transition->object_info.missile_ignore(GetPointer<CWeenieObject>()))
 		{
-			if (part_array && part_array->GetNumSphere() && !v10 && !transition->object_info.missile_ignore(m_spThis.lock()))
+			if (part_array && part_array->GetNumSphere() && !v10 && !transition->object_info.missile_ignore(GetPointer<CWeenieObject>()))
 			{
 				DWORD transitionIndex = 0;
 
@@ -1783,11 +1784,11 @@ transition_finish:
 			{
 				result = OK_TS;
 				transition->collision_info.collision_normal_valid = 0;
-				transition->collision_info.add_object(m_spThis.lock(), OK_TS);
+				transition->collision_info.add_object(GetPointer<CWeenieObject>(), OK_TS);
 			}
 			else
 			{
-				transition->collision_info.add_object(m_spThis.lock(), result);
+				transition->collision_info.add_object(GetPointer<CWeenieObject>(), result);
 			}
 		}
 	}
@@ -1834,7 +1835,7 @@ CTransition *CPhysicsObj::transition(Position *old_pos, Position *new_pos, int a
 	if (!transit)
 		return NULL;
 
-	transit->init_object(m_spThis.lock(), get_object_info(transit, admin_move));
+	transit->init_object(GetPointer<CWeenieObject>(), get_object_info(transit, admin_move));
 
 	if (GetNumSphere())
 		transit->init_sphere(GetNumSphere(), GetSphere(), m_scale);
@@ -1899,7 +1900,7 @@ void CPhysicsObj::add_particle_shadow_to_cell()
 	if (shadow_objects.alloc_size < 1)
 		shadow_objects.grow(1);
 
-	shadow_objects.data[0].set_physobj(m_spThis.lock());
+	shadow_objects.data[0].set_physobj(GetPointer<CWeenieObject>());
 	shadow_objects.data[0].m_CellID = cell->id;
 	cell->add_shadow_object(&shadow_objects.data[0], 1);
 	if (part_array)
@@ -1920,7 +1921,7 @@ void CPhysicsObj::add_shadows_to_cells(CELLARRAY *cell_array)
 
 		for (DWORD i = 0; i < num_shadow_objects; i++)
 		{
-			shadow_objects.array_data[i].set_physobj(m_spThis.lock());
+			shadow_objects.array_data[i].set_physobj(GetPointer<CWeenieObject>());
 			shadow_objects.array_data[i].m_CellID = cell_array->cells.array_data[i].cell_id;
 		}
 
@@ -1938,7 +1939,7 @@ void CPhysicsObj::add_shadows_to_cells(CELLARRAY *cell_array)
 				shadow_objects.array_data[i].cell = NULL;
 			}
 
-			shadow_objects.array_data[i].set_physobj(m_spThis.lock());
+			shadow_objects.array_data[i].set_physobj(GetPointer<CWeenieObject>());
 			shadow_objects.array_data[i].m_CellID = cell_array->cells.array_data[i].cell_id;
 		}
 	}
@@ -1981,7 +1982,7 @@ void CPhysicsObj::leave_visibility()
 	store_position(&m_Position);
 
 	if (obj_maint)
-		obj_maint->GotoLostCell(m_spThis.lock(), m_Position.objcell_id);
+		obj_maint->GotoLostCell(GetPointer<CWeenieObject>(), m_Position.objcell_id);
 
 	transient_state &= ~(ACTIVE_TS);
 }
@@ -1989,7 +1990,7 @@ void CPhysicsObj::leave_visibility()
 int CPhysicsObj::prepare_to_leave_visibility()
 {
 	remove_shadows_from_cells();
-	obj_maint->RemoveFromLostCell(m_spThis.lock());
+	obj_maint->RemoveFromLostCell(GetPointer<CWeenieObject>());
 	leave_cell(0);
 	obj_maint->AddObjectToBeDestroyed(id);
 
@@ -2008,7 +2009,7 @@ void CPhysicsObj::prepare_to_enter_world()
 {
 	update_time = Timer::cur_time;
 
-	obj_maint->RemoveFromLostCell(m_spThis.lock());
+	obj_maint->RemoveFromLostCell(GetPointer<CWeenieObject>());
 	obj_maint->RemoveObjectToBeDestroyed(id);
 
 	if (children)
@@ -2295,7 +2296,7 @@ int CPhysicsObj::report_object_collision(std::shared_ptr<CPhysicsObj> object, in
 			
 			object->build_collision_profile(
 				&prof,
-				m_spThis.lock(),
+				GetPointer<CWeenieObject>(),
 				&collision_velocity,
 				object->transient_state & 1,
 				prev_has_contact,
@@ -2541,7 +2542,7 @@ int CPhysicsObj::SetPositionInternal(CTransition *transit)
 		prepare_to_leave_visibility();
 		store_position(&transit->sphere_path.curr_pos);
 
-		obj_maint->GotoLostCell(m_spThis.lock(), m_Position.objcell_id);
+		obj_maint->GotoLostCell(GetPointer<CWeenieObject>(), m_Position.objcell_id);
 
 		transient_state &= ~((DWORD)ACTIVE_TS);
 	}
@@ -2581,7 +2582,7 @@ SetPositionError CPhysicsObj::SetPositionInternal(Position *p, const SetPosition
 		prepare_to_leave_visibility();
 		store_position(p);
 
-		obj_maint->GotoLostCell(m_spThis.lock(), m_spThis.lock()->m_Position.objcell_id);
+		obj_maint->GotoLostCell(GetPointer<CWeenieObject>(), GetPointer<CWeenieObject>()->m_Position.objcell_id);
 
 		set_active(FALSE);
 	}
@@ -2641,7 +2642,7 @@ SetPositionError CPhysicsObj::SetPosition(const SetPositionStruct &sps)
 
 	if (transit)
 	{
-		transit->init_object(m_spThis.lock(), 0);
+		transit->init_object(GetPointer<CWeenieObject>(), 0);
 
 		if (GetNumSphere())
 		{
@@ -2824,7 +2825,7 @@ void CPhysicsObj::unset_parent()
 		return;
 
 	if (parent->children)
-		parent->children->remove_child(m_spThis.lock());
+		parent->children->remove_child(GetPointer<CWeenieObject>());
 
 	if (parent->m_PhysicsState & HIDDEN_PS)
 	{
@@ -2871,7 +2872,7 @@ BOOL CPhysicsObj::set_parent(std::shared_ptr<CPhysicsObj> obj, unsigned int part
 {
 	if (obj)
 	{
-		if (obj->add_child(m_spThis.lock(), part_index, frame))
+		if (obj->add_child(GetPointer<CWeenieObject>(), part_index, frame))
 		{
 			m_bExaminationObject = obj->m_bExaminationObject;
 
@@ -2883,7 +2884,7 @@ BOOL CPhysicsObj::set_parent(std::shared_ptr<CPhysicsObj> obj, unsigned int part
 			if (obj->cell)
 			{
 				change_cell(obj->cell);
-				obj->UpdateChild(m_spThis.lock(), part_index, frame);
+				obj->UpdateChild(GetPointer<CWeenieObject>(), part_index, frame);
 				recalc_cross_cells();
 			}			
 
@@ -2896,7 +2897,7 @@ BOOL CPhysicsObj::set_parent(std::shared_ptr<CPhysicsObj> obj, unsigned int part
 
 BOOL CPhysicsObj::add_child(std::shared_ptr<CPhysicsObj> obj, DWORD location_id)
 {
-	if (obj == m_spThis.lock())
+	if (obj == GetPointer<CWeenieObject>())
 		return FALSE;
 
 	LocationType *holdingLocation = NULL;
@@ -2914,7 +2915,7 @@ BOOL CPhysicsObj::add_child(std::shared_ptr<CPhysicsObj> obj, DWORD location_id)
 
 BOOL CPhysicsObj::set_parent(std::shared_ptr<CPhysicsObj> obj, DWORD location_id)
 {
-	if (obj && obj->add_child(m_spThis.lock(), location_id))
+	if (obj && obj->add_child(GetPointer<CWeenieObject>(), location_id))
 	{
 		unset_parent();
 		leave_world();
@@ -2928,9 +2929,9 @@ BOOL CPhysicsObj::set_parent(std::shared_ptr<CPhysicsObj> obj, DWORD location_id
 			if (obj->children)
 			{
 				WORD index;
-				if (obj->children->FindChildIndex(m_spThis.lock(), &index))
+				if (obj->children->FindChildIndex(GetPointer<CWeenieObject>(), &index))
 				{
-					obj->UpdateChild(m_spThis.lock(), obj->children->part_numbers.data[index], &obj->children->frames.data[index]);
+					obj->UpdateChild(GetPointer<CWeenieObject>(), obj->children->part_numbers.data[index], &obj->children->frames.data[index]);
 					recalc_cross_cells();
 				}
 			}
@@ -2981,7 +2982,7 @@ void CPhysicsObj::recalc_cross_cells()
 
 BOOL CPhysicsObj::add_child(std::shared_ptr<CPhysicsObj> obj, unsigned int part_index, Frame *frame)
 {
-	if (obj == m_spThis.lock())
+	if (obj == GetPointer<CWeenieObject>())
 		return FALSE;
 		
 	if (part_index == -1 || part_index < part_array->num_parts)
@@ -3022,7 +3023,7 @@ void CPhysicsObj::AddPartToShadowCells(CPhysicsPart *part)
 
 std::shared_ptr<CPhysicsObj> CPhysicsObj::makeParticleObject(unsigned int num_parts, CSphere *sorting_sphere)
 {
-	std::shared_ptr<CPhysicsObj> obj = std::shared_ptr<CPhysicsObj>(new CPhysicsObj());
+	std::shared_ptr<CPhysicsObj> obj = std::shared_ptr<CPhysicsObj>((new CPhysicsObj())->GetPointer<CPhysicsObj>());
 
 	obj->id = 0;
 	obj->m_PhysicsState |= PARTICLE_EMITTER_PS| STATIC_PS;
@@ -3101,7 +3102,7 @@ DWORD CPhysicsObj::create_particle_emitter(DWORD emitter_info_id, unsigned int p
 	if (!particle_manager)
 		particle_manager = new ParticleManager();
 
-	return particle_manager->CreateParticleEmitter(m_spThis.lock(), emitter_info_id, part_index, offset, emitter_id);
+	return particle_manager->CreateParticleEmitter(GetPointer<CWeenieObject>(), emitter_info_id, part_index, offset, emitter_id);
 }
 
 void CPhysicsObj::remove_parts(CObjCell *obj_cell)
@@ -3118,7 +3119,7 @@ BOOL CPhysicsObj::is_valid_walkable(Vector *normal)
 void CPhysicsObj::set_target(unsigned int context_id, unsigned int object_id, float radius, long double quantum)
 {
 	if (!target_manager)
-		target_manager = new TargetManager(m_spThis.lock());
+		target_manager = new TargetManager(GetPointer<CWeenieObject>());
 
 	target_manager->SetTarget(context_id, object_id, radius, quantum);
 }
@@ -3150,7 +3151,7 @@ std::shared_ptr<CPhysicsObj> CPhysicsObj::GetObject(DWORD object_id)
 void CPhysicsObj::MakePositionManager()
 {
 	if (!position_manager)
-		position_manager = PositionManager::Create(m_spThis.lock());
+		position_manager = PositionManager::Create(GetPointer<CWeenieObject>());
 
 	set_active(TRUE);
 }
@@ -3240,7 +3241,7 @@ void CPhysicsObj::set_target_quantum(double new_quantum)
 void CPhysicsObj::add_voyeur(DWORD object_id, float radius, float quantum)
 {
 	if (!target_manager)
-		target_manager = new TargetManager(m_spThis.lock());
+		target_manager = new TargetManager(GetPointer<CWeenieObject>());
 	
 	target_manager->AddVoyeur(object_id, radius, quantum);
 }
@@ -3388,12 +3389,12 @@ double CPhysicsObj::GetAutonomyBlipDistance()
 	/*
 	if (CPhysicsObj::player_object)
 	{
-		if ((m_spThis.lock()->m_position.objcell_id & 0xFFFF) >= 0x100)
+		if ((GetPointer<CWeenieObject>()->m_position.objcell_id & 0xFFFF) >= 0x100)
 			result = 25.0;
 		else
 			result = 100.0;
 	}
-	else if ((m_spThis.lock()->m_position.objcell_id & 0xFFFF) >= 0x100)
+	else if ((GetPointer<CWeenieObject>()->m_position.objcell_id & 0xFFFF) >= 0x100)
 	{
 		result = 20.0;
 	}

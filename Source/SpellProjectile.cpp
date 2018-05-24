@@ -86,7 +86,7 @@ BOOL CSpellProjectile::DoCollision(const class EnvCollisionProfile &prof)
 
 BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 {
-	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(m_spThis.lock(), prof.id);
+	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(GetPointer<CWeenieObject>(), prof.id);
 	if (pHit && (!m_TargetID || m_TargetID == pHit->GetID()) && (pHit->GetID() != m_SourceID))
 	{
 		std::shared_ptr<CWeenieObject> pSource = NULL;

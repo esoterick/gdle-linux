@@ -9,7 +9,7 @@ public:
 	CAugmentationDeviceWeenie();
 	virtual ~CAugmentationDeviceWeenie() override;
 
-	virtual std::shared_ptr<CAugmentationDeviceWeenie> AsAugmentationDevice() override { return std::dynamic_pointer_cast<CAugmentationDeviceWeenie>(m_spThis.lock()); }
+	virtual std::shared_ptr<CAugmentationDeviceWeenie> AsAugmentationDevice() override { return GetPointer<CAugmentationDeviceWeenie>(); }
 
 	virtual int Use(std::shared_ptr<CPlayerWeenie> pOther) override;
 };

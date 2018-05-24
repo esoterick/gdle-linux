@@ -20,7 +20,7 @@ public:
 	CVendor();
 	virtual ~CVendor() override;
 
-	virtual class std::shared_ptr<CVendor> AsVendor() { return std::dynamic_pointer_cast<CVendor>(m_spThis.lock()); }
+	virtual class std::shared_ptr<CVendor> AsVendor() { return GetPointer<CVendor>(); }
 
 	virtual int DoUseResponse(std::shared_ptr<CWeenieObject> player) override;
 

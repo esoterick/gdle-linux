@@ -98,7 +98,7 @@ void CHotSpotWeenie::DoCycleDamage(std::shared_ptr<CWeenieObject> other)
 	damageEvent.damage_form = DAMAGE_FORM::DF_HOTSPOT;
 	damageEvent.damageAfterMitigation = damageEvent.damageBeforeMitigation = (int)(m_Qualities.GetInt(DAMAGE_INT, 0) * (1.0 - (Random::GenFloat(0.0f, m_Qualities.GetFloat(DAMAGE_VARIANCE_FLOAT, 0.0)))));
 	damageEvent.target = other;
-	damageEvent.source = m_spThis.lock();
+	damageEvent.source = GetPointer<CWeenieObject>();
 
 	TryToDealDamage(damageEvent);
 }

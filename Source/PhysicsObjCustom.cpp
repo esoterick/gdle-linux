@@ -50,7 +50,7 @@ void CPhysicsObj::EmitSound(DWORD sound_id, float speed, bool bLocalClientOnly)
 	}
 	else
 	{
-		g_pWorld->BroadcastPVS(m_spThis.lock(), SoundMsg.GetData(), SoundMsg.GetSize(), OBJECT_MSG);
+		g_pWorld->BroadcastPVS(GetPointer<CWeenieObject>(), SoundMsg.GetData(), SoundMsg.GetSize(), OBJECT_MSG);
 	}
 }
 
@@ -65,7 +65,7 @@ void CPhysicsObj::EmitEffect(DWORD dwIndex, float flScale)
 	EffectMsg.Write<DWORD>(dwIndex);
 	EffectMsg.Write<float>(flScale);
 
-	g_pWorld->BroadcastPVS(m_spThis.lock(), EffectMsg.GetData(), EffectMsg.GetSize(), OBJECT_MSG, 0);
+	g_pWorld->BroadcastPVS(GetPointer<CWeenieObject>(), EffectMsg.GetData(), EffectMsg.GetSize(), OBJECT_MSG, 0);
 }
 
 void CPhysicsObj::InitPhysicsTemporary()
