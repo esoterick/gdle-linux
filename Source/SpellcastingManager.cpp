@@ -365,7 +365,7 @@ Position CSpellcastingManager::GetSpellProjectileSpawnPosition(CSpellProjectile 
 
 		float z = pSource->GetHeight() * (2.0 / 3.0);
 		if (bRing)
-			z = 1.5;
+			z *= 1.5;
 
 		targetOffset = spawnPosition.get_offset(pTarget->m_Position.add_offset(pTarget->m_Position.localtoglobalvec(Vector(x, y, z))));
 	}
@@ -582,8 +582,15 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 			{
 				//DWORD damage = Random::GenUInt(meta->_baseIntensity, meta->_baseIntensity + meta->_variance);
 
-				CSpellProjectile *pProjectile = new CSpellProjectile( // revise me
-					m_SpellCastData, pTarget == pSource ? 0 : m_SpellCastData.target_id);//, damage);
+				int target = m_SpellCastData.target_id;
+
+				if (numX > 1 || numY > 1 || numZ > 1)
+				{
+					// volleys, blasts, rings aren't limited to one target
+					target = 0;
+				}
+
+				CSpellProjectile *pProjectile = new CSpellProjectile(m_SpellCastData, target);
 
 				// create the initial object
 				float distToTarget;
@@ -632,8 +639,6 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 
 				Position projSpawnPos = GetSpellProjectileSpawnPosition(pProjectile, pTarget, &distToTarget, theta, bRing);
 
-				// set velocity based on player position
-				Vector spawnVelocity = GetSpellProjectileSpawnVelocity(&projSpawnPos, pTarget, maxVelocity, bTracking, bGravity, NULL, theta, bRing);
 
 				if (bRing)
 				{
@@ -642,7 +647,7 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 					projSpawnPos = projSpawnPos.add_offset(ringOffset);
 				}
 
-				//Random offset
+				// overall offset
 				Vector createOffset = projSpawnPos.localtoglobalvec(meta->_createOffset);
 				projSpawnPos = projSpawnPos.add_offset(
 					Vector(
@@ -650,9 +655,10 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 						Random::GenFloat(-1.0, 1.0) * meta->_peturbation.y * meta->_padding.y,
 						Random::GenFloat(-1.0, 1.0) * meta->_peturbation.z * meta->_padding.z));
 				projSpawnPos = projSpawnPos.add_offset(createOffset);
-				
 
-				// Offset for wall spells
+				Vector spawnVelocity = GetSpellProjectileSpawnVelocity(&projSpawnPos, pTarget, maxVelocity, bTracking, bGravity, NULL, theta, bRing);
+
+				// individual offset
 				if (!bAngled)
 				{
 					Vector sizePerProjectile = meta->_padding; // * radius;
@@ -675,12 +681,7 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 
 				pProjectile->set_velocity(spawnVelocity, 0);
 
-				if (pProjectile->InqBoolQuality(INELASTIC_BOOL, FALSE))
-					pProjectile->m_PhysicsState |= INELASTIC_PS;
-				if (pProjectile->InqBoolQuality(SCRIPTED_COLLISION_BOOL, FALSE))
-					pProjectile->m_PhysicsState |= SCRIPTED_COLLISION_PS;
-				if (pProjectile->InqBoolQuality(LIGHTS_STATUS_BOOL, FALSE))
-					pProjectile->m_PhysicsState |= LIGHTING_ON_PS;
+				pProjectile->m_PhysicsState |= INELASTIC_PS | SCRIPTED_COLLISION_PS | LIGHTING_ON_PS;
 
 				// pProjectile->m_PhysicsState |= ETHEREAL_PS;
 
@@ -1437,6 +1438,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 			if (m_pWeenie->HasOwner())
 				break;
 
+			if (m_pWeenie->AsPlayer() && m_pWeenie->AsPlayer()->CheckPKActivity())
+			{
+				m_pWeenie->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+				break;
+			}
+
 			PortalRecallSpellEx *meta = (PortalRecallSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 
 			switch (meta->_index)
@@ -1704,6 +1711,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 					{
 						if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
 						{
+							if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+							{
+								m_pWeenie->AsPlayer()->UpdatePKActivity();
+								target->AsPlayer()->UpdatePKActivity();
+							}
+
 							if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
 							{
 								continue;
@@ -2007,6 +2020,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 		case SpellType::PortalSummon_SpellType:
 		{
+			if (m_pWeenie && m_pWeenie->AsPlayer() && m_pWeenie->AsPlayer()->CheckPKActivity())
+			{
+				m_pWeenie->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+				break;
+			}
+
 			PortalSummonSpellEx *meta = (PortalSummonSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 			if (!meta && (meta->_link == 1 || meta->_link == 2))
 				break;
@@ -2557,6 +2576,12 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	// negative spell
 	if (isDamage)
 	{
+		if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+		{
+			m_pWeenie->AsPlayer()->UpdatePKActivity();
+			target->AsPlayer()->UpdatePKActivity();
+		}
+
 		// try to resist
 		if (m_SpellCastData.spell->_bitfield & Resistable_SpellIndex)
 		{

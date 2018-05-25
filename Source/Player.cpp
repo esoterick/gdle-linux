@@ -147,7 +147,8 @@ void CPlayerWeenie::BeginLogout()
 	if (IsLoggingOut())
 		return;
 
-	_logoutTime = Timer::cur_time + 5.0;
+	_beginLogoutTime = max(Timer::cur_time, m_iPKActivity-30);
+	_logoutTime = _beginLogoutTime + 5.0;
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	LeaveFellowship();
@@ -157,8 +158,12 @@ void CPlayerWeenie::BeginLogout()
 		m_pTradeManager->CloseTrade(this);
 		m_pTradeManager = NULL;
 	}
-
+	
 	StopCompletely(0);
+}
+
+void CPlayerWeenie::OnLogout()
+{
 	DoForcedMotion(Motion_LogOut);
 	Save();
 }
@@ -208,6 +213,12 @@ void CPlayerWeenie::Tick()
 		m_fNextMakeAwareCacheFlush = Timer::cur_time + 60.0;
 	}
 
+	if (IsLoggingOut() && _beginLogoutTime <= Timer::cur_time)
+	{
+		OnLogout();
+
+		_beginLogoutTime = Timer::cur_time + 999999;
+	}
 	if (IsLoggingOut() && _logoutTime <= Timer::cur_time)
 	{
 		// time to logout
@@ -1447,6 +1458,11 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
 
+			if (amountOfTimesTinkered > 9)  // Don't allow 10 tinked items to have any more tinkers/imbues (Ivory & Leather don't use this case)
+			{
+				return WERROR_NONE;   
+			}
+
 			int salvageMod;
 			
 			if (op->_SkillCheckFormulaType == 1)
@@ -1455,21 +1471,16 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			}
 			else
 			{
-				//TODO:salvage mod needs to be grabbed from material type rather than a hard coded value
-				salvageMod = 20;
+				salvageMod = 20; // All imbue materials have mod of 20
 			}
 
 			int multiple = 1;
-			double difficulty = (1 + (amountOfTimesTinkered * 0.1));
+			double aDifficulty[10] = {1, 1.1, 1.3, 1.6, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5}; // Attempt difficulty numbers from Endy's Tinker Calc 2.3.2
+			double difficulty = aDifficulty[amountOfTimesTinkered];
 
 			if (toolWorkmanship >= itemWorkmanship)
 			{
 				multiple = 2;
-			}
-
-			if (amountOfTimesTinkered > 2)
-			{
-				difficulty = amountOfTimesTinkered * 0.5;
 			}
 
 			successChance = GetSkillChance(skillLevel, ((int)floor(((5 * salvageMod) + (2 * itemWorkmanship * salvageMod) - (toolWorkmanship * multiple * salvageMod / 5)) * difficulty))); //Formulas from Endy's Tinkering Calculator
@@ -3261,40 +3272,28 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 		MaterialType material = salvageEntry.first;
 		SalvageInfo salvageInfo = salvageEntry.second;
 		int valuePerUnit = salvageInfo.totalValue / salvageInfo.amount;
-		int fullBags = floor(salvageInfo.amount / 100.0);
-		int partialBagAmount = salvageInfo.amount % 100;
 
-		int fullBagTotalWorkmanship = round(salvageInfo.totalWorkmanship / (fullBags + partialBagAmount/100.0) );
-		int fullBagItemCount = round(salvageInfo.itemsSalvagedCountCont / (fullBags + partialBagAmount / 100.0) );
+		double workmanship = salvageInfo.totalWorkmanship/(double)salvageInfo.itemsSalvagedCountCont;
+		int fullBagItems = ceil(salvageInfo.itemsSalvagedCountCont / (salvageInfo.amount / 100.0));
 
+		int remainingAmount = salvageInfo.amount;
+		int remainingItems = salvageInfo.itemsSalvagedCountCont;
 
-		for (int i = 0; i < fullBags; i++)
+		while (remainingAmount > 0)
 		{
-			SpawnSalvageBagInContainer(material, 100, fullBagTotalWorkmanship, min(valuePerUnit * 100, 75000), fullBagItemCount);
-			
-			SalvageResult salvageResult;
-			salvageResult.material = material;
-			salvageResult.units = 100;
-			salvageResult.workmanship = fullBagTotalWorkmanship / (double) fullBagItemCount;
-			salvageResults.push_back(salvageResult);
-		}
-
-		int partialTotalWorkmanship = salvageInfo.totalWorkmanship - fullBags * fullBagTotalWorkmanship;
-		int partialTotalItems = salvageInfo.itemsSalvagedCountCont - fullBags * fullBagItemCount;
-
-		// We may lose a bit of salvage in favour of producing better full bags
-		if (partialBagAmount > 0 && partialTotalItems > 0 && partialTotalWorkmanship > 0)
-		{
-			SpawnSalvageBagInContainer(material, partialBagAmount, partialTotalWorkmanship, min(valuePerUnit * partialBagAmount, 75000), partialTotalItems);
+			int amount = min(remainingAmount, 100);
+			int numItems = min(max(1, remainingItems), fullBagItems);
+			SpawnSalvageBagInContainer(material, amount, floor(numItems * workmanship), min(valuePerUnit * amount, 75000), numItems);
 
 			SalvageResult salvageResult;
 			salvageResult.material = material;
-			salvageResult.units = partialBagAmount;
-			salvageResult.workmanship = partialTotalWorkmanship / (double) partialTotalItems;
+			salvageResult.units = amount;
+			salvageResult.workmanship = floor(numItems * workmanship)/(double)numItems;
 			salvageResults.push_back(salvageResult);
+
+			remainingAmount -= 100;
+			remainingItems -= fullBagItems;
 		}
-
-
 	}
 
 	BinaryWriter salvageMsg;
@@ -3312,7 +3311,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 // and http://web.archive.org/web/20170130194012/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage.htm
 int CPlayerWeenie::CalculateSalvageAmount(int salvagingSkill, int workmanship, int numAugs)
 {
-	return 1 + floor( salvagingSkill/195 * workmanship * (1 + 0.25*numAugs) );
+	return 1 + floor( salvagingSkill/195.0 * workmanship * (1 + 0.25*numAugs) );
 }
 
 bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount, int workmanship, int value, int numItems)

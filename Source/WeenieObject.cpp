@@ -1987,7 +1987,7 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 			"You've earned %s experience.",
 			FormatNumberString(amount).c_str());
 
-		SendText(notice, LTT_ADVANCEMENT);
+		SendText(notice, LTT_DEFAULT);
 	}
 
 	if (!allegianceXP)
@@ -4364,8 +4364,11 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 	damageData.outputDamageFinal = (int)vitalStartValue - (int)vitalNewValue;
 	damageData.outputDamageFinalPercent = damageData.outputDamageFinal / (double)vitalMaxValue;
 
-	// notify the victim they took damage
-	OnTookDamage(damageData);
+	if (AsMonster())
+	{
+		// add to list of attackers
+		AsMonster()->UpdateDamageList(damageData);
+	}
 
 	if (vitalNewValue != vitalStartValue)
 	{
@@ -4417,40 +4420,6 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		}
 	}
 
-	/*
-	if (damageData.outputDamageFinal >= 0)
-	{
-	switch (damageData.damage_type)
-	{
-	default:
-	{
-	if (damageData.outputDamageFinal >= GetHealth())
-	{
-	damageData.killingBlow = true;
-	damageData.outputDamageFinal = GetHealth();
-	damageData.outputDamageFinalPercent = ((float)damageData.outputDamageFinal / GetMaxHealth());
-	SetHealth(0);
-	OnDeath(damageData.source ? damageData.source->GetID() : 0);
-	}
-	else
-	{
-	damageData.outputDamageFinalPercent = ((float)damageData.outputDamageFinal / GetMaxHealth());
-	SetHealth(GetHealth() - damageData.outputDamageFinal);
-
-	if (damageData.outputDamageFinalPercent >= 0.1f)
-	{
-	if (_IsPlayer())
-	{
-	EmitSound(Random::GenInt(12, 14), 1.0f);
-	}
-	}
-	}
-	break;
-	}
-	}
-	}
-	*/
-
 	if (damageData.killingBlow && (damageData.source && damageData.source->IsCreature()))
 	{
 		std::string kmsg, vmsg, omsg;
@@ -4469,6 +4438,9 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		damageData.other_msg = damageData.GetTargetName() + " died!";
 	}
 
+	// notify the victim they took damage
+	OnTookDamage(damageData);
+
 	// notify the atttacker they did damage
 	if (damageData.source)
 	{
@@ -4476,8 +4448,6 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 
 		if (damageData.killingBlow)
 		{
-			// notify the victim they took damage
-			OnTookDamage(damageData);
 			damageData.source->GivePerksForKill(this);
 		}
 	}

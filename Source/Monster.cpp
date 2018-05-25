@@ -699,6 +699,14 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		sourceItem->m_Qualities.SetInt(SHIELD_VALUE_INT, sourceItem->InqIntQuality(ARMOR_LEVEL_INT, 0));
 	}
 
+	// Weeping wand nerf
+	if (sourceItem->m_Qualities.m_WeenieType == 35 && sourceItem->InqStringQuality(NAME_STRING, "") == "Weeping Wand"
+		&& (sourceItem->InqDIDQuality(SPELL_DID, 0) > 0 || sourceItem->InqFloatQuality(SLAYER_DAMAGE_BONUS_FLOAT, 0) != 1.4))
+	{
+		sourceItem->m_Qualities.RemoveDataID(SPELL_DID);
+		sourceItem->m_Qualities.SetFloat(SLAYER_DAMAGE_BONUS_FLOAT, 1.4);
+	}
+
 	//if (!sourceItem->HasOwner())
 	//{
 		if (CWeenieObject *generator = g_pWorld->FindObject(sourceItem->InqIIDQuality(GENERATOR_IID, 0)))
@@ -1362,27 +1370,24 @@ void CMonsterWeenie::OnTookDamage(DamageEventData &damageData)
 {
 	CWeenieObject::OnTookDamage(damageData);
 
-	if (damageData.source)
+	if (m_MonsterAI)
+		m_MonsterAI->OnTookDamage(damageData);
+}
+
+void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
+{
+	if (damageData.source && damageData.outputDamageFinal > 0)
 	{
 		DWORD source = damageData.source->GetID();
-
-		int damage = max(0, damageData.outputDamageFinal);
 
 		if (m_aDamageSources.find(source) == m_aDamageSources.end())
 		{
 			m_aDamageSources[source] = 0;
 		}
 
-		m_aDamageSources[source] += damage;
+		m_aDamageSources[source] += damageData.outputDamageFinal;
 	}
-
-	//if (IsDead())
-	//	return;
-
-	if (m_MonsterAI)
-		m_MonsterAI->OnTookDamage(damageData);
 }
-
 
 void CMonsterWeenie::OnRegen(STypeAttribute2nd currentAttrib, int newAmount)
 {

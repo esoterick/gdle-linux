@@ -216,47 +216,70 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
-	// Updates shields to have SHIELD_VALUE_INT
 	for (auto wielded : m_pPlayer->m_Wielded)
 	{
+	
+		// Updates shields to have SHIELD_VALUE_INT
 		if(wielded->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && wielded->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
 		{
 			wielded->m_Qualities.SetInt(SHIELD_VALUE_INT, wielded->InqIntQuality(ARMOR_LEVEL_INT, 0));
 		}
+
+		// Weeping wand nerf
+		if (wielded->m_Qualities.m_WeenieType == 35 && wielded->InqStringQuality(NAME_STRING, "") == "Weeping Wand" 
+			&& (wielded->InqDIDQuality(SPELL_DID, 0) > 0 || wielded->InqFloatQuality(SLAYER_DAMAGE_BONUS_FLOAT, 0) != 1.4))
+		{
+			wielded->m_Qualities.RemoveDataID(SPELL_DID);
+			wielded->m_Qualities.SetFloat(SLAYER_DAMAGE_BONUS_FLOAT, 1.4);
+		}
+
 	}
 
 	for (auto item : m_pPlayer->m_Items)
 	{
+		// Updates shields to have SHIELD_VALUE_INT
 		if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
 		{
 			item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
+		}
+
+		// Weeping wand nerf
+		if (item->m_Qualities.m_WeenieType == 35 && item->InqStringQuality(NAME_STRING, "") == "Weeping Wand"
+			&& (item->InqDIDQuality(SPELL_DID, 0) > 0 || item->InqFloatQuality(SLAYER_DAMAGE_BONUS_FLOAT, 0) != 1.4))
+		{
+			item->m_Qualities.RemoveDataID(SPELL_DID);
+			item->m_Qualities.SetFloat(SLAYER_DAMAGE_BONUS_FLOAT, 1.4);
 		}
 	}
 
 	for (auto pack : m_pPlayer->m_Packs)
 	{
+		
 		if (pack->m_Qualities.id != W_PACKCREATUREESSENCE_CLASS && pack->m_Qualities.id != W_PACKITEMESSENCE_CLASS && pack->m_Qualities.id != W_PACKLIFEESSENCE_CLASS &&
 			pack->m_Qualities.id != W_PACKWARESSENCE_CLASS )
 		{
+			
 			for (auto item : pack->AsContainer()->m_Items)
 			{
+				// Updates shields to have SHIELD_VALUE_INT
 				if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
 				{
 					item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
 				}
+
+				// Weeping wand nerf
+				if (item->m_Qualities.m_WeenieType == 35 && item->InqStringQuality(NAME_STRING, "") == "Weeping Wand"
+					&& (item->InqDIDQuality(SPELL_DID, 0) > 0 || item->InqFloatQuality(SLAYER_DAMAGE_BONUS_FLOAT, 0) != 1.4))
+				{
+					item->m_Qualities.RemoveDataID(SPELL_DID);
+					item->m_Qualities.SetFloat(SLAYER_DAMAGE_BONUS_FLOAT, 1.4);
+				}
 			}
+
+
+
 		}
 	}
-
-	/*
-	if (*g_pConfig->WelcomePopup() != 0)
-	{
-		BinaryWriter popupString;
-		popupString.Write<DWORD>(4);
-		popupString.WriteString(g_pConfig->WelcomePopup()); // "Welcome to GDLEnhanced"
-		m_pPlayer->SendNetMessage(&popupString, PRIVATE_MSG, FALSE, FALSE);
-	}
-	*/
 
 	m_pPlayer->SendText("GDLEnhanced " SERVER_VERSION_NUMBER_STRING " " SERVER_VERSION_STRING, LTT_DEFAULT);
 	m_pPlayer->SendText("Maintained by, ChosenOne, LikeableLime and Scribble, Contact us at https://discord.gg/WzGX348", LTT_DEFAULT);
@@ -802,6 +825,12 @@ void CClientEvents::SpendSkillCredits(STypeSkill key, DWORD credits)
 
 void CClientEvents::LifestoneRecall()
 {
+	if ( m_pPlayer->CheckPKActivity())
+	{
+		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
 	Position lifestone;
 	if (m_pPlayer->m_Qualities.InqPosition(SANCTUARY_POSITION, lifestone) && lifestone.objcell_id)
 	{
@@ -818,6 +847,12 @@ void CClientEvents::LifestoneRecall()
 
 void CClientEvents::MarketplaceRecall()
 {
+	if (m_pPlayer->CheckPKActivity())
+	{
+		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
 	if (!m_pPlayer->IsBusyOrInAction())
 	{
 		m_pPlayer->ExecuteUseEvent(new CMarketplaceRecallUseEvent());
@@ -1088,6 +1123,12 @@ void CClientEvents::TrySetAllegianceMOTD(const std::string &text)
 
 void CClientEvents::AllegianceHometownRecall()
 {
+	if (m_pPlayer->CheckPKActivity())
+	{
+		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
 	AllegianceTreeNode *allegianceNode = g_pAllegianceManager->GetTreeNode(m_pPlayer->GetID());
 
 	if (!allegianceNode)
@@ -1155,6 +1196,12 @@ void CClientEvents::HouseAbandon()
 
 void CClientEvents::HouseRecall()
 {
+	if (m_pPlayer->CheckPKActivity())
+	{
+		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
 	DWORD houseId = m_pPlayer->GetAccountHouseId();
 	if (houseId)
 	{
@@ -1173,6 +1220,12 @@ void CClientEvents::HouseRecall()
 
 void CClientEvents::HouseMansionRecall()
 {
+	if (m_pPlayer->CheckPKActivity())
+	{
+		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
 	AllegianceTreeNode *allegianceNode = g_pAllegianceManager->GetTreeNode(m_pPlayer->GetID());
 
 	if (!allegianceNode)

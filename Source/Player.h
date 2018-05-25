@@ -185,6 +185,7 @@ public:
 	virtual void UpdateVitaeEnchantment();
 
 	virtual void BeginLogout() override;
+	virtual void OnLogout();
 	
 	bool IsLoggingOut() { return _logoutTime >= 0.0; }
 	bool IsRecalling() { return _recallTime >= 0.0; }
@@ -203,6 +204,9 @@ public:
 
 	virtual void ChangeCombatMode(COMBAT_MODE mode, bool playerRequested) override;
 
+	void UpdatePKActivity() { m_iPKActivity = Timer::cur_time + 60; }
+	bool CheckPKActivity() { return m_iPKActivity > Timer::cur_time; }
+
 protected:
 	CClient *m_pClient;
 
@@ -216,12 +220,16 @@ protected:
 	double m_NextHealthUpdate = 0.0;
 
 	double _logoutTime = -1.0;
+	double _beginLogoutTime = -1.0;
 	double _recallTime = -1.0;
 	Position _recallPos;
 	bool _isFirstPortalInSession = true;
 
 	TradeManager *m_pTradeManager = NULL;
 	double m_fNextTradeCheck = 0;
+
+private:
+	int m_iPKActivity = 0;
 };
 
 class CWandSpellUseEvent : public CUseEventData
