@@ -216,6 +216,13 @@ CContainerWeenie *CMonsterWeenie::FindValidNearbyContainer(DWORD containerId, fl
 		{
 			// maybe it's on the ground
 			CWeenieObject *object = g_pWorld->FindObject(containerId);
+
+			if (!object)
+			{
+				NotifyInventoryFailedEvent(containerId, WERROR_OBJECT_GONE);
+				return NULL;
+			}
+			
 			container = object->AsContainer();
 
 			if (!container || container->HasOwner() || !container->InValidCell())
@@ -777,6 +784,11 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		{
 			difficulty = 0;
 			DWORD skillActivationTypeDID = 0;
+
+
+			DEBUG_DATA << "InqDataID (Monster.cpp:781): " << sourceItem->id << " " "... ";
+
+
 			if (sourceItem->m_Qualities.InqInt(ITEM_SKILL_LEVEL_LIMIT_INT, difficulty, TRUE, FALSE) && sourceItem->m_Qualities.InqDataID(ITEM_SKILL_LIMIT_DID, skillActivationTypeDID))
 			{
 				STypeSkill skillActivationType = SkillTable::OldToNewSkill((STypeSkill)skillActivationTypeDID);
@@ -2002,7 +2014,13 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 
 	CWeenieObject::GetObjDesc(objDesc);
 
+
 	DWORD head_object_id;
+
+
+	DEBUG_DATA << "InqDataID (Monster.cpp:2016): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
+
+
 	if (m_Qualities.InqDataID(HEAD_OBJECT_DID, head_object_id))
 		objDesc.AddAnimPartChange(new AnimPartChange(16, head_object_id));
 

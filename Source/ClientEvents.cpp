@@ -329,6 +329,10 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 			{
 				difficulty = 0;
 				DWORD skillActivationTypeDID = 0;
+
+
+				DEBUG_DATA << "InqDataID (ClientEvents.cpp:311): " << item->id << " " "... ";
+
 				if (item->m_Qualities.InqInt(ITEM_SKILL_LEVEL_LIMIT_INT, difficulty, TRUE, FALSE) && item->m_Qualities.InqDataID(ITEM_SKILL_LIMIT_DID, skillActivationTypeDID))
 				{
 					STypeSkill skillActivationType = SkillTable::OldToNewSkill((STypeSkill)skillActivationTypeDID);
