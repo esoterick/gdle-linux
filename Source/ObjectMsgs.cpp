@@ -182,8 +182,6 @@ BinaryWriter *GetPhysicsObjData(CWeenieObject *pEntity)
 
 	DWORD motion_table = 0;
 
-	DEBUG_DATA << "InqDataID (ObjectMsgs.cpp:184): " << pEntity->id << " " << pEntity->m_Qualities.GetString(NAME_STRING, "");
-
 	if (pEntity->m_Qualities.InqDataID(MOTION_TABLE_DID, motion_table) && motion_table)
 	{
 		dwSections |= PhysicsDescInfo::MTABLE;

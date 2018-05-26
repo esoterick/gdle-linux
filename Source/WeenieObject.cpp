@@ -78,10 +78,7 @@ void CWeenieObject::InitPhysicsObj()
 
 	DWORD setupID = 0;
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:81): " << id;
-
 	m_Qualities.InqDataID(SETUP_DID, setupID);
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:84): " << id << setupID;
 
 #if 0
 	_phys_obj = CPhysicsObj::makeObject(setupID, GetID(), TRUE);
@@ -157,7 +154,6 @@ void CWeenieObject::InitPhysicsObj()
 	DWORD motionTableDID = 0;
 
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:159): " << id;
 	if (m_Qualities.InqDataID(MOTION_TABLE_DID, motionTableDID) && motionTableDID)
 	{
 		_phys_obj->SetMotionTableID(motionTableDID);
@@ -1450,9 +1446,6 @@ void CWeenieObject::NotifyDIDStatUpdated(STypeDID key, bool bPrivate)
 
 	DWORD value;
 
-
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:1454): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
-
 	if (m_Qualities.InqDataID(key, value))
 	{
 		if (bPrivate)
@@ -1705,10 +1698,6 @@ void CWeenieObject::CopyDIDStat(STypeDID key, CWeenieObject *from)
 void CWeenieObject::CopyDIDStat(STypeDID key, CACQualities *from)
 {
 	DWORD value;
-
-
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:1710): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
-
 
 	if (from->InqDataID(key, value))
 		m_Qualities.SetDataID(key, value);
@@ -3209,8 +3198,6 @@ void CWeenieObject::GetObjDesc(ObjDesc &objDesc)
 
 	DWORD basePaletteID;
 
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3212): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
-
 	if (m_Qualities.InqDataID(PALETTE_BASE_DID, basePaletteID))
 		objDesc.paletteID = basePaletteID;
 	else
@@ -3220,8 +3207,6 @@ void CWeenieObject::GetObjDesc(ObjDesc &objDesc)
 		objDesc.paletteID = 0x0400007E; // shadows are messed up
 
 	DWORD clothingBaseID;
-
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3224): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
 
 	if (m_Qualities.InqDataID(CLOTHINGBASE_DID, clothingBaseID))
 	{
@@ -3353,9 +3338,6 @@ void CWeenieObject::SetValue(DWORD amount)
 
 DWORD CWeenieObject::GetSpellID()
 {
-
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3357): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
-
 	return m_Qualities.GetDID(SPELL_DID, 0);
 }
 
@@ -3515,10 +3497,6 @@ std::string CWeenieObject::InqStringQuality(STypeString key, std::string default
 DWORD CWeenieObject::InqDIDQuality(STypeDID key, DWORD defaultValue)
 {
 	DWORD value = defaultValue;
-
-
-	DEBUG_DATA << "InqDataID (WeenieObject.cpp:3520): " << id << " " << m_Qualities.GetString(NAME_STRING, "");
-
 	m_Qualities.InqDataID(key, value);
 	return value;
 }

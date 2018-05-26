@@ -1810,8 +1810,6 @@ void CTreasureFactory::MutateMeleeWeapon(CWeenieObject *newItem, CWieldTier *wie
 
 			DWORD setup;
 
-			DEBUG_DATA << "InqDataID (TreasureFactory.cpp:1813): " << weenieDefs->m_WCID << " " << weenieDefs->m_Description << "... ";
-
 			if (weenieDefs->m_Qualities.InqDataID(SETUP_DID, setup))
 				newItem->m_Qualities.SetDataID(SETUP_DID, setup);
 

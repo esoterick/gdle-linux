@@ -3367,7 +3367,6 @@ void SpawnAllAppearancesForWeenie(CPlayerWeenie *pPlayer, DWORD wcid, bool bSpaw
 
 	DWORD clothing_did = 0;
 
-	DEBUG_DATA << "InqDataID (ClientCommands.cpp:3371): " << weenieDefs->m_WCID << " " << weenieDefs->m_Description << "... ";
 	if (!weenieDefs->m_Qualities.InqDataID(CLOTHINGBASE_DID, clothing_did))
 	{
 		if (bSpawnWithoutVariances)
@@ -3482,7 +3481,6 @@ CLIENT_COMMAND(spawnweenieswithsamemotiontable, "<name>", "Spawn all setups with
 
 
 
-	DEBUG_DATA << "InqDataID (ClientCommands.cpp:3487): " << weenieDefs->m_WCID << " " << weenieDefs->m_Description << "... ";
 
 	if (!weenieDefs->m_Qualities.InqDataID(MOTION_TABLE_DID, motion_table_did))
 	{
@@ -3556,7 +3554,6 @@ CLIENT_COMMAND(spawnsimilarsetups, "<name> <todonly>", "Spawn all setups with mo
 
 	DWORD setup_did = 0;
 
-	DEBUG_DATA << "InqDataID (ClientCommands.cpp:3561): " << weenieDefs->m_WCID << " " << weenieDefs->m_Description << "... ";
 
 	if (!weenieDefs->m_Qualities.InqDataID(SETUP_DID, setup_did))
 	{

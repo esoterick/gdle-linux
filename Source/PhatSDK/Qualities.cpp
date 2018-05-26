@@ -4402,11 +4402,7 @@ BOOL CBaseQualities::InqDataID(STypeDID key, DWORD &value)
 {
 	if (m_DIDStats)
 	{
-		DEBUG_DATA << "InqDataID asking for " << key;
-
 		const DWORD *pValue = m_DIDStats->lookup(key);
-
-		DEBUG_DATA << "InqDataID lookup done!";
 
 		if (pValue)
 		{
@@ -4533,11 +4529,6 @@ std::string CBaseQualities::GetString(STypeString key, std::string defaultValue)
 DWORD CBaseQualities::GetDID(STypeDID key, DWORD defaultValue)
 {
 	DWORD value = defaultValue;
-
-
-	DEBUG_DATA << "InqDataID (Qualities.cpp:4538): " << key << " " << defaultValue << "... ";
-
-
 	InqDataID(key, value);
 	return value;
 }
@@ -5967,8 +5958,7 @@ std::string IntStatKeyEnumPacker(const STypeInt &key)
 void CBaseQualities::CopyFrom(CBaseQualities *pOther)
 {
 	Clear();
-	DEBUG_DATA << "CopyFrom (Qualities.cpp: 5970)" << pOther->GetString(NAME_STRING, "") << " Starting";
-
+	
 	m_WeenieType = pOther->m_WeenieType;
 
 	if (pOther->m_IntStats)
@@ -6012,8 +6002,6 @@ void CBaseQualities::CopyFrom(CBaseQualities *pOther)
 		m_PositionStats = new PackableHashTableWithJson<STypePosition, Position>();
 		*m_PositionStats = *pOther->m_PositionStats;
 	}
-
-	DEBUG_DATA << "CopyFrom (Qualities.cpp: 5970)" << pOther->GetString(NAME_STRING, "") << " Ending";
 }
 
 void CACQualities::CopyFrom(CACQualities *pOther)
