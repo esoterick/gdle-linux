@@ -22,7 +22,7 @@ public:
 
 	// not sent to the client:
 	BOOL _updates = TRUE;
-	std::shared_ptr<CWeenieObject> _cachedWeenie = NULL;
+	std::weak_ptr<CWeenieObject> _cachedWeenie;
 	double splitPercent = 1.0;
 };
 

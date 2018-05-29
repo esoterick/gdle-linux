@@ -98,7 +98,7 @@ public:
 
 	void UseTime();
 
-	std::shared_ptr<CPhysicsObj> physics_obj; // 0x00
+	std::weak_ptr<CPhysicsObj> physics_obj; // 0x00
 	CMotionTable *table; // 0x04
 	MotionState state; // 0x08
 	DWORD animation_counter;

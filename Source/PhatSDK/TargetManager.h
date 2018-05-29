@@ -29,7 +29,7 @@ public:
 	void GetInterpolatedPosition(double quantum, Position *p);
 	void NotifyVoyeurOfEvent(TargetStatus _event);
 
-	std::shared_ptr<CPhysicsObj> physobj;
+	std::weak_ptr<CPhysicsObj> physobj;
 	TargetInfo *target_info;
 	LongNIHash<TargettedVoyeurInfo> *voyeur_table;
 	long double last_update_time;	

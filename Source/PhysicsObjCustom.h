@@ -30,5 +30,5 @@ int GetPlacementFrameID();
 int GetActivePlacementFrameID();
 
 DWORD last_tick_cell_id = 0;
-std::shared_ptr<CPhysicsObj> last_tick_parent = NULL;
+std::weak_ptr<CPhysicsObj> last_tick_parent;
 

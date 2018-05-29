@@ -3,7 +3,7 @@
 #include "PhysicsObj.h"
 #include "Physics.h"
 
-SmartArray<std::shared_ptr<CPhysicsObj> > CPhysics::static_animating_objects(8);
+SmartArray<std::weak_ptr<CPhysicsObj> > CPhysics::static_animating_objects(8);
 
 double PhysicsTimer::curr_time = INVALID_TIME;
 double PhysicsGlobals::floor_z = cos(3437.746770784939);
@@ -12,7 +12,6 @@ double PhysicsGlobals::gravity = -9.8000002;
 
 CPhysics::CPhysics(SmartBox *_SmartBox)
 {
-    m_Player = NULL;
     //m_ObjMaint = _ObjMaint;
     m_SmartBox = _SmartBox;
 
@@ -30,13 +29,13 @@ CPhysics::~CPhysics()
 
 void CPhysics::AddStaticAnimatingObject(std::shared_ptr<CPhysicsObj> pObject)
 {
-    static_animating_objects.RemoveUnOrdered(&pObject);
-    static_animating_objects.add(&pObject);
+    static_animating_objects.RemoveUnOrdered(&std::weak_ptr<CPhysicsObj>(pObject));
+    static_animating_objects.add(&std::weak_ptr<CPhysicsObj>(pObject));
 }
 
 void CPhysics::RemoveStaticAnimatingObject(std::shared_ptr<CPhysicsObj> pObject)
 {
-    static_animating_objects.RemoveUnOrdered(&pObject);
+    static_animating_objects.RemoveUnOrdered(&std::weak_ptr<CPhysicsObj>(pObject));
 }
 
 void CPhysics::SetPlayer(std::shared_ptr<CPhysicsObj> Player)
@@ -89,17 +88,20 @@ void CPhysics::UseTime()
     }
 	*/
 
-   if (m_Player)
+   if (m_Player.lock())
    {
       // m_Player->update_position();
-      m_Player->update_object();
+      m_Player.lock()->update_object();
    }
 
     LastUpdate = Timer::cur_time;
 
     for (long i = 0; i < static_animating_objects.num_used; i++)
     {
-      static_animating_objects.array_data[i]->animate_static_object();
+		if (std::shared_ptr<CPhysicsObj> pObj = static_animating_objects.array_data[i].lock())
+		{
+			pObj->animate_static_object();
+		}
     }
 
     UpdateTexVelocity(FrameTime);

@@ -253,7 +253,7 @@ DWORD MotionTableManager::PerformMovement(const MovementStruct &ms, CSequence *s
 		}
 
 	default:
-		return (DWORD)seq;
+		return (DWORD)-1;
 	}
 }
 

@@ -58,7 +58,7 @@ struct OBJECTINFO
 	BOOL is_valid_walkable(Vector *normal);
 	TransitionState validate_walkable(CSphere *check_pos, Plane *contact_plane, const int is_water, const float water_depth, SPHEREPATH *path, COLLISIONINFO *collisions, unsigned int land_cell_id);
 
-	std::shared_ptr<CPhysicsObj> object; // 0
+	std::weak_ptr<CPhysicsObj> object; // 0
 	int state; // 4
 	float scale; // 8
 	float step_up_height; // 0xC
@@ -181,8 +181,8 @@ struct COLLISIONINFO
 	Vector collision_normal; // 0x4C
 	Vector adjust_offset; // 0x58
 	unsigned int num_collide_object = 0; // 0x64
-	DArray<std::shared_ptr<CPhysicsObj>> collide_object; // 0x68 (0x270+0x68=0x2D8)
-	std::shared_ptr<CPhysicsObj> last_collided_object = NULL; // 0x78
+	std::vector<std::weak_ptr<CPhysicsObj>> collide_object; // 0x68 (0x270+0x68=0x2D8)
+	std::weak_ptr<CPhysicsObj> last_collided_object; // 0x78
 	int collided_with_environment = 0; // 0x7C
 	int frames_stationary_fall = 0; // 0x80
 };

@@ -26,7 +26,7 @@ public:
 	bool IsExecutingAlready();
 
 protected:
-	class std::shared_ptr<CWeenieObject> _weenie = NULL;
+	class std::weak_ptr<CWeenieObject> _weenie;
 
 	double _emoteEndTime;
 	std::list<QueuedEmote> _emoteQueue;

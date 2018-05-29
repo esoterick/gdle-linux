@@ -44,8 +44,8 @@ const float max_velocity = 50.0f;
 #if !PHATSDK_IS_SERVER
 class CObjectMaint *CPhysicsObj::obj_maint = NULL;
 #else
-CServerObjectMaint server_obj_maint;
-class CServerObjectMaint *CPhysicsObj::obj_maint = &server_obj_maint; // TODO move this()
+//CServerObjectMaint server_obj_maint;
+//class CServerObjectMaint *CPhysicsObj::obj_maint = &server_obj_maint; // TODO move this()
 #endif
 
 CPhysicsObj::CPhysicsObj() : shadow_objects(4)

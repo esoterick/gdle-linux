@@ -72,12 +72,12 @@ public:
 	BOOL UpdateParticles();
 
 	DWORD m_EmitterID; // 0x00
-	std::shared_ptr<CPhysicsObj> m_Owner; // 0x04
+	std::weak_ptr<CPhysicsObj> m_Owner; // 0x04
 	DWORD m_08; // 0x08
 
 	Frame m_Frame; // 0x0C (size: 0x40)
 
-	std::shared_ptr<CPhysicsObj> m_EmitterObj; // 0x4C
+	std::weak_ptr<CPhysicsObj> m_EmitterObj; // 0x4C
 	ParticleEmitterInfo *m_EmitterInfo; // 0x50
 	Particle *m_Particles; // 0x54
 	CPhysicsPart **m_Parts58; // 0x58

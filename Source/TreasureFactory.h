@@ -371,7 +371,7 @@ struct sItemCreationInfo
 
 struct SItemListCreationData
 {
-	std::shared_ptr<CWeenieObject> parent;
+	std::weak_ptr<CWeenieObject> parent;
 	int destinationType;
 	bool isRegenLocationType;
 	DWORD treasureTypeOrWcid;

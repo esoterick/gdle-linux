@@ -114,7 +114,6 @@ void CEnvCell::Destroy()
 			}
 		}
 
-		delete[] static_objects;
 		static_objects = NULL;
 	}
 	num_static_objects = 0;
@@ -296,7 +295,7 @@ void CEnvCell::calc_clip_planes()
 
 void CEnvCell::init_static_objects()
 {
-	if (static_objects)
+	if (static_objects.size())
 	{
 		for (DWORD i = 0; i < num_static_objects; i++)
 		{
@@ -311,8 +310,6 @@ void CEnvCell::init_static_objects()
 	{
 		if (num_static_objects > 0)
 		{
-			static_objects = new std::shared_ptr<CPhysicsObj> [num_static_objects];
-
 			for (DWORD i = 0; i < num_static_objects; i++)
 			{
 				if (static_object_ids[i])

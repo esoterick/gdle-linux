@@ -120,7 +120,7 @@ public:
 private:
 	CClient *m_pClient;
 
-	std::shared_ptr<CPlayerWeenie> m_pPlayer;
+	std::weak_ptr<CPlayerWeenie> m_pPlayer;
 
 	WORD m_MoveActionStamp = 0xFFFF;
 

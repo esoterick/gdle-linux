@@ -58,8 +58,8 @@ public:
 	virtual void NotifyInventoryFailedEvent(DWORD object_id, int error) override;
 	std::string ToUpperCase(std::string tName);
 
-	std::shared_ptr<CWeenieObject> m_pCraftingTool;
-	std::shared_ptr<CWeenieObject> m_pCraftingTarget;
+	std::weak_ptr<CWeenieObject> m_pCraftingTool;
+	std::weak_ptr<CWeenieObject> m_pCraftingTarget;
 
 	virtual int UseEx(std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<CWeenieObject> pTarget);
 	virtual int UseEx(bool bConfirmed = false);
@@ -194,7 +194,7 @@ public:
 	virtual bool IsBusy() override;
 	virtual void OnTeleported() override;
 
-	std::shared_ptr<CCorpseWeenie> _pendingCorpse = NULL;
+	std::weak_ptr<CCorpseWeenie> _pendingCorpse = NULL;
 	DWORD GetAccountHouseId();
 	
 	TradeManager *GetTradeManager();

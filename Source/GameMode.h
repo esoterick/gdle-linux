@@ -32,5 +32,5 @@ protected:
 	void SelectPlayer(std::shared_ptr<CPlayerWeenie> pPlayer);
 	void UnselectPlayer();
 
-	std::shared_ptr<CPlayerWeenie> m_pSelectedPlayer;
+	std::weak_ptr<CPlayerWeenie> m_pSelectedPlayer;
 };

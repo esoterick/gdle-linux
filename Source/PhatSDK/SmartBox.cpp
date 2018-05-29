@@ -46,7 +46,6 @@ SmartBox::SmartBox(void *_in_queue)
 	num_cells = 0;
 	cells = 0;
 	num_objects = 0;
-	objects = 0;
 	m_renderingCallback = 0;
 	viewer_sphere = CSphere(Vector(0, 0, 0), 0.30000001f);
 

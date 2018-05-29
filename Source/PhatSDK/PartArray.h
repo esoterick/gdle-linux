@@ -62,7 +62,7 @@ public:
 	AnimSequenceNode* first_cyclic; // 0x0C
 	Vector velocity; // 0x10
 	Vector omega; // 0x1C
-	std::shared_ptr<CPhysicsObj> hook_obj; // 0x28
+	std::weak_ptr<CPhysicsObj> hook_obj; // 0x28
 	double frame_number; // 0x30
 	AnimSequenceNode *curr_anim; // 0x38
 	AnimFrame *placement_frame; // 0x3C
@@ -146,7 +146,7 @@ public:
 	void calc_cross_cells_static(CObjCell *cell, struct CELLARRAY *cell_array);
 
 	DWORD pa_state; // 0x00
-	std::shared_ptr<CPhysicsObj>  owner; // 0x04
+	std::weak_ptr<CPhysicsObj>  owner; // 0x04
 	CSequence sequence; // 0x08 -- size 0x48
 	MotionTableManager * motion_table_manager; // 0x50
 	CSetup* setup; // 0x54

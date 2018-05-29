@@ -87,8 +87,8 @@ public:
 	DWORD InqStyle() { return interpreted_state.current_style; }
 
 	DWORD initted; // 0x00
-	std::shared_ptr<CWeenieObject> weenie_obj; // 0x04
-	std::shared_ptr<CPhysicsObj> physics_obj; // 0x08
+	std::weak_ptr<CWeenieObject> weenie_obj; // 0x04
+	std::weak_ptr<CPhysicsObj> physics_obj; // 0x08
 	RawMotionState raw_state; // 0x0C
 	InterpretedMotionState interpreted_state; // 0x44
 
@@ -173,8 +173,8 @@ public:
 	int moving_away = 0; // 0x144
 	BOOL initialized = FALSE; // 0x148
 	std::list<MovementNode> pending_actions; // 0x14C
-	std::shared_ptr<CPhysicsObj>  physics_obj; // 0x154
-	std::shared_ptr<CWeenieObject>  weenie_obj; // 0x158
+	std::weak_ptr<CPhysicsObj>  physics_obj; // 0x154
+	std::weak_ptr<CWeenieObject>  weenie_obj; // 0x158
 };
 
 class MovementManager
@@ -208,7 +208,7 @@ public:
 
 	CMotionInterp *motion_interpreter; // 0x00
 	MoveToManager *moveto_manager; // 0x04
-	std::shared_ptr<CPhysicsObj>  physics_obj; // 0x08
-	std::shared_ptr<CWeenieObject> weenie_obj; // 0x0C
+	std::weak_ptr<CPhysicsObj>  physics_obj; // 0x08
+	std::weak_ptr<CWeenieObject> weenie_obj; // 0x0C
 };
 

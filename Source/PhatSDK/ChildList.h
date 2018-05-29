@@ -15,7 +15,7 @@ public:
 	BOOL FindChildIndex(std::shared_ptr<CPhysicsObj> pObj, WORD *Index);
 
 	WORD num_objects;
-	SArray<std::shared_ptr<CPhysicsObj> > objects;
+	SArray<std::weak_ptr<CPhysicsObj> > objects;
 	SArray<Frame> frames;
 	SArray<DWORD> part_numbers;
 	SArray<DWORD> location_ids;

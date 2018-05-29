@@ -19,8 +19,8 @@ public:
 	// Turbine_RefCount m_cTurbineRefCount;
 	// int is_active;
 	std::map<DWORD, class CLostCell *> lost_cell_table; // IntrusiveHashTable<unsigned long, CLostCell *, 0>
-	LongHash<std::shared_ptr<CPhysicsObj>> object_table;
-	LongHash<std::shared_ptr<CPhysicsObj>> null_object_table;
+	LongHash<std::weak_ptr<CPhysicsObj>> object_table;
+	LongHash<std::weak_ptr<CPhysicsObj>> null_object_table;
 	LongHash<CWeenieObject> weenie_object_table;
 	LongHash<CWeenieObject> null_weenie_object_table;
 	std::set<DWORD> visible_object_table; // HashSet<unsigned long>

@@ -58,13 +58,13 @@ public:
 	void *netblob_list; //NIList<NetBlob *> *netblob_list;
 	void *position_and_movement_file; //_iobuf *position_and_movement_file;
 	unsigned int player_id;
-	std::shared_ptr<CPhysicsObj> player;
+	std::weak_ptr<CPhysicsObj> player;
 	unsigned int target_object_id;
 	void (__cdecl *target_callback)(unsigned int, ObjectSelectStatus, tagRECT *, const float);
 	unsigned int num_cells;
 	CEnvCell **cells;
 	unsigned int num_objects;
-	std::shared_ptr<CPhysicsObj> *objects;
+	std::vector<std::shared_ptr<CPhysicsObj>> objects;
 	void(__cdecl *m_renderingCallback)();
 
 	static CSphere viewer_sphere;

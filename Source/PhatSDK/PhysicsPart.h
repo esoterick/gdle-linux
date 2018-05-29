@@ -84,7 +84,7 @@ public:
 
 	// missing some rendering related stuff here
 
-	std::shared_ptr<CPhysicsObj>  physobj; // 0xE0
+	std::weak_ptr<CPhysicsObj>  physobj; // 0xE0
 	long physobj_index; // 0xE4
 };
 

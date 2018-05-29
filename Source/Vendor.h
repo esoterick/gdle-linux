@@ -10,7 +10,7 @@ public:
 	CVendorItem();
 	~CVendorItem();
 
-	std::shared_ptr<CWeenieObject> weenie = NULL;
+	std::weak_ptr<CWeenieObject> weenie;
 	int amount = -1;
 };
 

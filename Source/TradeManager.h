@@ -29,8 +29,8 @@ private:
 
 	void Delete();
 
-	std::shared_ptr<CPlayerWeenie> _initiator;
-	std::shared_ptr<CPlayerWeenie> _partner;
+	std::weak_ptr<CPlayerWeenie> _initiator;
+	std::weak_ptr<CPlayerWeenie> _partner;
 
 	bool m_bInitiatorAccepted = false;
 	bool m_bPartnerAccepted = false;

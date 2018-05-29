@@ -13,12 +13,18 @@
 
 EmoteManager::EmoteManager(std::shared_ptr<CWeenieObject> weenie)
 {
-	_weenie = weenie;
+	pWeenie = weenie;
 }
 
 bool EmoteManager::ChanceExecuteEmoteSet(EmoteCategory category, std::string msg, DWORD target_id)
 {
-	PackableList<EmoteSet> *emoteCategory = _weenie->m_Qualities._emote_table->_emote_table.lookup(category);
+	std::shared_ptr<CWeenieObject> pWeenie = pWeenie;
+	if (!pWeenie)
+	{
+		return false;
+	}
+
+	PackableList<EmoteSet> *emoteCategory = pWeenie->m_Qualities._emote_table->_emote_table.lookup(category);
 
 	if (!emoteCategory)
 		return false;
@@ -38,7 +44,12 @@ bool EmoteManager::ChanceExecuteEmoteSet(EmoteCategory category, std::string msg
 
 bool EmoteManager::ChanceExecuteEmoteSet(EmoteCategory category, DWORD target_id)
 {
-	PackableList<EmoteSet> *emoteCategory = _weenie->m_Qualities._emote_table->_emote_table.lookup(category);
+	std::shared_ptr<CWeenieObject> pWeenie = pWeenie;
+	if (!pWeenie)
+	{
+		return false;
+	}
+	PackableList<EmoteSet> *emoteCategory =pWeenie->m_Qualities._emote_table->_emote_table.lookup(category);
 
 	if (!emoteCategory)
 		return false;
@@ -124,6 +135,12 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = pWeenie;
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	switch (emote.type)
 	{
 	default:
@@ -139,18 +156,18 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case Act_EmoteType:
 	{
-		std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+		std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 		if (!text.empty())
 		{
 			BinaryWriter *textMsg = ServerText(text.c_str(), LTT_EMOTE);
 
 			std::list<std::shared_ptr<CWeenieObject> > results;
-			g_pWorld->EnumNearbyPlayers(_weenie->GetPosition(), 30.0f, &results);
+			g_pWorld->EnumNearbyPlayers(pWeenie->GetPosition(), 30.0f, &results);
 
 			for (auto target : results)
 			{
-				if (target == _weenie)
+				if (target == pWeenie)
 					continue;
 
 				target->SendNetMessage(textMsg->GetData(), textMsg->GetSize(), PRIVATE_MSG, 0);
@@ -162,12 +179,12 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case LocalBroadcast_EmoteType:
 		{
-			std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+			std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 			if (!text.empty())
 			{
 				BinaryWriter *textMsg = ServerText(text.c_str(), LTT_DEFAULT);
-				g_pWorld->BroadcastPVS(_weenie, textMsg->GetData(), textMsg->GetSize(), PRIVATE_MSG, 0, false);
+				g_pWorld->BroadcastPVS(pWeenie, textMsg->GetData(), textMsg->GetSize(), PRIVATE_MSG, 0, false);
 				delete textMsg;
 			}
 
@@ -175,7 +192,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case WorldBroadcast_EmoteType:
 		{
-			std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+			std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 			if (!text.empty())
 			{
@@ -188,7 +205,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case AdminSpam_EmoteType:
 	{
-		std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+		std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 		if (!text.empty())
 		{
@@ -201,7 +218,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case Activate_EmoteType:
 		{
-			if (DWORD activation_target_id = _weenie->InqIIDQuality(ACTIVATION_TARGET_IID, 0))
+			if (DWORD activation_target_id = pWeenie->InqIIDQuality(ACTIVATION_TARGET_IID, 0))
 			{
 				std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(activation_target_id);
 				if (target)
@@ -213,15 +230,15 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	case CastSpellInstant_EmoteType:
 		{
 			if (target_id == 0)
-				target_id = _weenie->GetID();
-			_weenie->MakeSpellcastingManager()->CastSpellInstant(target_id, emote.spellid);
+				target_id = pWeenie->GetID();
+			pWeenie->MakeSpellcastingManager()->CastSpellInstant(target_id, emote.spellid);
 			break;
 		}
 	case CastSpell_EmoteType:
 		{
 			if (target_id == 0)
-				target_id = _weenie->GetID();
-			_weenie->MakeSpellcastingManager()->CreatureBeginCast(target_id, emote.spellid);
+				target_id = pWeenie->GetID();
+			pWeenie->MakeSpellcastingManager()->CreatureBeginCast(target_id, emote.spellid);
 			break;
 		}
 	case AwardXP_EmoteType:
@@ -334,17 +351,17 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (!target)
 				break;
 
-			_weenie->SimulateGiveObject(target, emote.cprof.wcid, emote.cprof.stack_size, emote.cprof.palette, emote.cprof.shade, emote.cprof.try_to_bond);
+			pWeenie->SimulateGiveObject(target, emote.cprof.wcid, emote.cprof.stack_size, emote.cprof.palette, emote.cprof.shade, emote.cprof.try_to_bond);
 			break;
 		}
 	case Motion_EmoteType:
 		{
-			_weenie->DoAutonomousMotion(OldToNewCommandID(emote.motion));
+			pWeenie->DoAutonomousMotion(OldToNewCommandID(emote.motion));
 			break;
 		}
 	case ForceMotion_EmoteType:
 		{
-			_weenie->DoForcedMotion(OldToNewCommandID(emote.motion));
+			pWeenie->DoForcedMotion(OldToNewCommandID(emote.motion));
 			break;
 		}
 	case PhysScript_EmoteType:
@@ -357,16 +374,16 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case Say_EmoteType:
 	{
-		std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+		std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 		if (!text.empty())
-			_weenie->SpeakLocal(text.c_str(), LTT_EMOTE);
+			pWeenie->SpeakLocal(text.c_str(), LTT_EMOTE);
 
 		break;
 	}
 	case Sound_EmoteType:
 	{
-		_weenie->EmitSound(emote.sound, 1.0);
+		pWeenie->EmitSound(emote.sound, 1.0);
 
 		break;
 	}
@@ -375,10 +392,10 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
-				std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+				std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 				if (!text.empty())
-					target->SendNetMessage(DirectChat(text.c_str(), _weenie->GetName().c_str(), _weenie->GetID(), target->GetID(), LTT_SPEECH_DIRECT), PRIVATE_MSG, TRUE);
+					target->SendNetMessage(DirectChat(text.c_str(), pWeenie->GetName().c_str(), pWeenie->GetID(), target->GetID(), LTT_SPEECH_DIRECT), PRIVATE_MSG, TRUE);
 			}
 
 			break;
@@ -400,7 +417,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
-				std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+				std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 				if (text.empty())
 					break;
@@ -409,7 +426,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 				if (!fellow)
 				{
-					target->SendNetMessage(DirectChat(text.c_str(), _weenie->GetName().c_str(), _weenie->GetID(), target->GetID(), LTT_SPEECH_DIRECT), PRIVATE_MSG, TRUE);
+					target->SendNetMessage(DirectChat(text.c_str(), pWeenie->GetName().c_str(), pWeenie->GetID(), target->GetID(), LTT_SPEECH_DIRECT), PRIVATE_MSG, TRUE);
 				}
 				else
 				{
@@ -417,7 +434,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 					{
 						if (std::shared_ptr<CWeenieObject> member = g_pWorld->FindPlayer(entry.first))
 						{
-							member->SendNetMessage(DirectChat(text.c_str(), _weenie->GetName().c_str(), _weenie->GetID(), target->GetID(), LTT_SPEECH_DIRECT), PRIVATE_MSG, TRUE);
+							member->SendNetMessage(DirectChat(text.c_str(), pWeenie->GetName().c_str(), pWeenie->GetID(), target->GetID(), LTT_SPEECH_DIRECT), PRIVATE_MSG, TRUE);
 						}
 					}
 				}
@@ -445,7 +462,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
-				std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+				std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 				if (!text.empty())
 					target->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
@@ -458,7 +475,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
-				std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+				std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 				if (!text.empty())
 					target->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
@@ -471,7 +488,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 		if (target)
 		{
-			std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+			std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 			if (!text.empty())
 				target->SendNetMessage(ServerText(text.c_str(), LTT_COMBAT), PRIVATE_MSG, TRUE);
@@ -484,7 +501,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(target_id);
 			if (target)
 			{
-				std::string text = ReplaceEmoteText(emote.msg, target_id, _weenie->GetID());
+				std::string text = ReplaceEmoteText(emote.msg, target_id, pWeenie->GetID());
 
 				if (text.empty())
 					break;
@@ -515,7 +532,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			if (target)
 			{
 				MovementParameters params;
-				_weenie->TurnToObject(target_id, &params);
+				pWeenie->TurnToObject(target_id, &params);
 			}
 			break;
 		}
@@ -524,12 +541,12 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			MovementParameters params;
 			params.desired_heading = emote.frame.get_heading();
 			params.speed = 1.0f;
-			params.action_stamp = ++_weenie->m_wAnimSequence;
+			params.action_stamp = ++pWeenie->m_wAnimSequence;
 			params.modify_interpreted_state = 0;
-			_weenie->last_move_was_autonomous = false;
+			pWeenie->last_move_was_autonomous = false;
 
-			_weenie->cancel_moveto();
-			_weenie->TurnToHeading(&params);
+			pWeenie->cancel_moveto();
+			pWeenie->TurnToHeading(&params);
 			break;
 		}
 	case TeachSpell_EmoteType:
@@ -563,7 +580,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 	case InqQuest_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -578,7 +595,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case InqFellowNum_EmoteType:
 		{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!pWeenie->m_Qualities._emote_table)
 		{
 			break;
 		}
@@ -607,7 +624,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case InqFellowQuest_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 			{
 				break;
 			}
@@ -642,7 +659,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case UpdateQuest_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -709,7 +726,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 						}
 					}
 
-					PackableList<EmoteSet> *emoteCategory = _weenie->m_Qualities._emote_table->_emote_table.lookup(success ? QuestSuccess_EmoteCategory : QuestFailure_EmoteCategory);
+					PackableList<EmoteSet> *emoteCategory = pWeenie->m_Qualities._emote_table->_emote_table.lookup(success ? QuestSuccess_EmoteCategory : QuestFailure_EmoteCategory);
 					if (!emoteCategory)
 						break;
 
@@ -734,7 +751,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case IncrementQuest_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -747,7 +764,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case DecrementQuest_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -760,7 +777,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case EraseQuest_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -777,7 +794,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case InqBoolStat_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!pWeenie->m_Qualities._emote_table)
 			break;
 
 		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -803,7 +820,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case InqIntStat_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -831,7 +848,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case InqFloatStat_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!pWeenie->m_Qualities._emote_table)
 			break;
 
 		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -857,7 +874,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case InqStringStat_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!pWeenie->m_Qualities._emote_table)
 			break;
 
 		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -883,7 +900,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case InqAttributeStat_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!pWeenie->m_Qualities._emote_table)
 			break;
 
 		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -909,7 +926,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case InqRawAttributeStat_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!pWeenie->m_Qualities._emote_table)
 			break;
 
 		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -935,7 +952,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case InqSecondaryAttributeStat_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!pWeenie->m_Qualities._emote_table)
 			break;
 
 		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -961,7 +978,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case InqRawSecondaryAttributeStat_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!pWeenie->m_Qualities._emote_table)
 			break;
 
 		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -987,7 +1004,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case InqSkillTrained_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -1010,7 +1027,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case InqSkillSpecialized_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -1033,7 +1050,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case InqSkillStat_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -1061,7 +1078,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case InqRawSkillStat_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -1089,7 +1106,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 	case InqQuestSolves_EmoteType:
 		{
-			if (!_weenie->m_Qualities._emote_table)
+			if (!pWeenie->m_Qualities._emote_table)
 				break;
 
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -1143,22 +1160,22 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case ResetHomePosition_EmoteType:
 	{
-		std::shared_ptr<CMonsterWeenie> monster = _weenie->AsMonster();
+		std::shared_ptr<CMonsterWeenie> monster = pWeenie->AsMonster();
 		if (monster && monster->m_MonsterAI)
 			monster->m_MonsterAI->SetHomePosition(monster->m_Position);
 
-		_weenie->SetInitialPosition(_weenie->m_Position);
+		pWeenie->SetInitialPosition(pWeenie->m_Position);
 		break;
 	}
 	case MoveHome_EmoteType:
 	{
-		std::shared_ptr<CMonsterWeenie> monster = _weenie->AsMonster();
+		std::shared_ptr<CMonsterWeenie> monster = pWeenie->AsMonster();
 		if (monster && monster->m_MonsterAI)
 			monster->m_MonsterAI->SwitchState(ReturningToSpawn);
 		else
 		{
 			//Position destination;
-			//_weenie->m_Qualities.InqPosition(INSTANTIATION_POSITION, destination);
+			//pWeenie->m_Qualities.InqPosition(INSTANTIATION_POSITION, destination);
 
 			//if (destination.objcell_id)
 			//{
@@ -1170,22 +1187,22 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			//	mvs.pos = destination;
 			//	mvs.params = &params;
 
-			//	_weenie->last_move_was_autonomous = false;
-			//	_weenie->movement_manager->PerformMovement(mvs);
+			//	pWeenie->last_move_was_autonomous = false;
+			//	pWeenie->movement_manager->PerformMovement(mvs);
 			//}
 
 			//todo: make creatures that do not normally have an AI(vendors/etc) move home.
 			//Position initialPos;
-			//if (_weenie->m_Qualities.InqPosition(INSTANTIATION_POSITION, initialPos) && initialPos.objcell_id)
+			//if (pWeenie->m_Qualities.InqPosition(INSTANTIATION_POSITION, initialPos) && initialPos.objcell_id)
 			//{
-			//	_weenie->Movement_Teleport(initialPos, false);
+			//	pWeenie->Movement_Teleport(initialPos, false);
 			//}
 		}
 		break;
 	}
 	case Move_EmoteType:
 	{
-		//Position destination = _weenie->m_Position.add_offset(emote.frame.m_origin);
+		//Position destination = pWeenie->m_Position.add_offset(emote.frame.m_origin);
 		//destination.frame.m_origin.z = CalcSurfaceZ(destination.objcell_id, destination.frame.m_origin.x, destination.frame.m_origin.y);
 
 		//MovementParameters params;
@@ -1196,8 +1213,8 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		//mvs.pos = destination;
 		//mvs.params = &params;
 
-		//_weenie->last_move_was_autonomous = false;
-		//_weenie->movement_manager->PerformMovement(mvs);
+		//pWeenie->last_move_was_autonomous = false;
+		//pWeenie->movement_manager->PerformMovement(mvs);
 
 		break;
 	}
@@ -1213,7 +1230,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case InqInt64Stat_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!pWeenie->m_Qualities._emote_table)
 			break;
 
 		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
@@ -1254,7 +1271,7 @@ void EmoteManager::Tick()
 
 	for (std::list<QueuedEmote>::iterator i = _emoteQueue.begin(); i != _emoteQueue.end();)
 	{
-		if (i->_executeTime > Timer::cur_time || _weenie->IsBusyOrInAction() || _weenie->IsMovingTo())
+		if (i->_executeTime > Timer::cur_time || pWeenie->IsBusyOrInAction() || pWeenie->IsMovingTo())
 			break;
 
 		ExecuteEmote(i->_data, i->_target_id);
@@ -1273,7 +1290,7 @@ void EmoteManager::OnDeath(DWORD killer_id)
 {
 	Cancel();
 
-	if (_weenie->m_Qualities._emote_table)
+	if (pWeenie->m_Qualities._emote_table)
 		ChanceExecuteEmoteSet(Death_EmoteCategory, killer_id);
 }
 

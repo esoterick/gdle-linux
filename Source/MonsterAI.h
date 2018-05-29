@@ -86,7 +86,7 @@ public:
 	void GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height, float *power, std::shared_ptr<CWeenieObject> weapon = NULL);
 	float GetChaseDistance() { return m_fChaseRange; }
 
-	std::shared_ptr<CMonsterWeenie> m_pWeenie = NULL;
+	std::weak_ptr<CMonsterWeenie> m_pWeenie;
 
 	Position m_HomePosition;
 	double m_fAwarenessRange = 40.0f;
@@ -98,11 +98,11 @@ public:
 	double m_fMeleeAttackRange = 3.0;
 	double m_fReturnTimeout = 30.0f;
 
-	std::shared_ptr<CWeenieObject> _currentWeapon = NULL;
-	std::shared_ptr<CWeenieObject> _currentShield = NULL;
-	std::shared_ptr<CWeenieObject> _shield = NULL;
-	std::shared_ptr<CWeenieObject> _meleeWeapon = NULL;
-	std::shared_ptr<CWeenieObject> _missileWeapon = NULL;
+	std::weak_ptr<CWeenieObject> _currentWeapon;
+	std::weak_ptr<CWeenieObject> _currentShield;
+	std::weak_ptr<CWeenieObject> _shield;
+	std::weak_ptr<CWeenieObject> _meleeWeapon;
+	std::weak_ptr<CWeenieObject> _missileWeapon;
 	bool _hasUnarmedSkill = false;
 	double _nextTaunt = -1.0;
 

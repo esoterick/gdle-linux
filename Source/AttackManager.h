@@ -40,7 +40,7 @@ public:
 	virtual class CMissileAttackEvent *AsMissileAttackEvent() { return NULL; }
 
 	class AttackManager *_manager = NULL;
-	class std::shared_ptr<CWeenieObject> _weenie = NULL;
+	class std::weak_ptr<CWeenieObject> _weenie;
 
 	DWORD _target_id = 0;
 	bool _move_to = false;
@@ -146,7 +146,7 @@ public:
 	void MarkForCleanup(CAttackEventData *data);
 
 private:
-	class std::shared_ptr<CWeenieObject> _weenie = NULL;
+	class std::weak_ptr<CWeenieObject> _weenie;
 
 	double _next_allowed_attack = 0.0;
 	CAttackEventData *_attackData = NULL;

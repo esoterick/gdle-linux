@@ -83,9 +83,9 @@ enum BODY_PART_ENUM
 
 struct DamageEventData
 {
-	std::shared_ptr<CWeenieObject> source = NULL;
-	std::shared_ptr<CWeenieObject> target = NULL;
-	std::shared_ptr<CWeenieObject> weapon = NULL;
+	std::weak_ptr<CWeenieObject> source;
+	std::weak_ptr<CWeenieObject> target;
+	std::weak_ptr<CWeenieObject> weapon;
 
 	DWORD attackSkill = 0;
 	DWORD attackSkillLevel = 0;
@@ -593,8 +593,8 @@ public:
 	DWORD m_LastUsedBy = 0;
 	double m_LastUsed = 0.0;
 
-	std::shared_ptr<CPhysicsObj> _phys_obj = NULL;
-	class std::shared_ptr<CPhysicsObj> GetPhysicsObj() { return _phys_obj; }
+	std::weak_ptr<CPhysicsObj> _phys_obj;
+	class std::shared_ptr<CPhysicsObj> GetPhysicsObj() { return _phys_obj.lock(); }
 
 	virtual void HandleAttackHook(const AttackCone &cone);
 

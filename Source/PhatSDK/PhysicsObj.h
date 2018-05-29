@@ -340,7 +340,7 @@ public:
 	class PhysicsScriptTable *physics_script_table = NULL; // 0x34
 	DWORD m_DefaultScript = 0; // 0x38
 	float m_DefaultScriptIntensity = 0.0f; // 0x3C
-	std::shared_ptr<CPhysicsObj> parent = NULL; // 0x40
+	std::weak_ptr<CPhysicsObj> parent; // 0x40
 	class CHILDLIST *children = NULL; // 0x44
 	Position m_Position; // 0x48
 	class CObjCell *cell = NULL; // 0x90
@@ -369,7 +369,7 @@ public:
 	class AttackManager * attack_manager = NULL; // 0x120
 	class TargetManager * target_manager = NULL; // 0x124
 	class ParticleManager * particle_manager = NULL;// 0x128
-	class std::shared_ptr<CWeenieObject> weenie_obj = NULL; // 0x12C
+	class std::weak_ptr<CWeenieObject> weenie_obj; // 0x12C
 	Plane contact_plane; // 0x130
 	DWORD contact_plane_cell_id = 0; // 0x140
 	Vector sliding_normal; // 0x144

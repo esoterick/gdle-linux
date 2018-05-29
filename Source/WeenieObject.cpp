@@ -72,7 +72,7 @@ CWeenieObject::~CWeenieObject()
 
 void CWeenieObject::InitPhysicsObj()
 {
-	if (_phys_obj)
+	if (_phys_obj.lock())
 	{
 		// already initialized
 		return;
@@ -82,12 +82,12 @@ void CWeenieObject::InitPhysicsObj()
 	m_Qualities.InqDataID(SETUP_DID, setupID);
 
 #if 0
-	_phys_obj = CPhysicsObj::makeObject(setupID, GetID(), TRUE);
+	_phys_obj.lock() = CPhysicsObj::makeObject(setupID, GetID(), TRUE);
 
-	if (!_phys_obj)
+	if (!_phys_obj.lock())
 		return;
 #else
-	_phys_obj = GetPointer<CWeenieObject>();
+	_phys_obj.lock() = GetPointer<CWeenieObject>();
 
 	int physicsState = 0;
 	if (m_Qualities.InqInt(PHYSICS_STATE_INT, physicsState))
@@ -155,14 +155,14 @@ void CWeenieObject::InitPhysicsObj()
 	DWORD motionTableDID = 0;
 	if (m_Qualities.InqDataID(MOTION_TABLE_DID, motionTableDID) && motionTableDID)
 	{
-		_phys_obj->SetMotionTableID(motionTableDID);
+		_phys_obj.lock()->SetMotionTableID(motionTableDID);
 	}
 
 	/*
 	int physicsState = 0;
 	if (m_Qualities.InqInt(PHYSICS_STATE_INT, physicsState))
 	{
-	_phys_obj->set_state(physicsState, FALSE);
+	_phys_obj.lock()->set_state(physicsState, FALSE);
 	CacheHasPhysicsBSP();
 	}
 	*/
@@ -182,31 +182,31 @@ void CWeenieObject::InitPhysicsObj()
 	double defaultScale = 1.0;
 	if (m_Qualities.InqFloat(DEFAULT_SCALE_FLOAT, defaultScale))
 	{
-		_phys_obj->SetScaleStatic(defaultScale);
+		_phys_obj.lock()->SetScaleStatic(defaultScale);
 	}
 
 	double fTranslucency = 1.0;
 	if (m_Qualities.InqFloat(TRANSLUCENCY_FLOAT, fTranslucency))
 	{
-		_phys_obj->SetTranslucencyInternal(fTranslucency);
+		_phys_obj.lock()->SetTranslucencyInternal(fTranslucency);
 	}
 
 	double fFriction = 0.95f;
 	if (m_Qualities.InqFloat(FRICTION_FLOAT, fFriction))
 	{
-		_phys_obj->m_fFriction = fFriction;
+		_phys_obj.lock()->m_fFriction = fFriction;
 	}
 
 	double fElasticity = 0.05f;
 	if (m_Qualities.InqFloat(ELASTICITY_FLOAT, fElasticity))
 	{
-		_phys_obj->m_fElasticity = fElasticity;
+		_phys_obj.lock()->m_fElasticity = fElasticity;
 	}
 
 	int placement_id = 0;
 	if (m_Qualities.InqInt(PLACEMENT_POSITION_INT, placement_id, TRUE))
 	{
-		_phys_obj->SetPlacementFrame(placement_id, FALSE);
+		_phys_obj.lock()->SetPlacementFrame(placement_id, FALSE);
 	}
 
 	if (DWORD combatTable = m_Qualities.GetDID(COMBAT_TABLE_DID, 0))
@@ -784,13 +784,13 @@ void CWeenieObject::Identify(std::shared_ptr<CWeenieObject> source, DWORD overri
 
 float CWeenieObject::DistanceTo(std::shared_ptr<CWeenieObject> other, bool bUseSpheres)
 {
-	if (!_phys_obj || !other || !other->_phys_obj)
+	if (!_phys_obj.lock() || !other || !other->_phys_obj.lock())
 		return FLT_MAX;
 
 	if (GetPointer<CWeenieObject>() == other)
 		return 0.0;
 
-	float dist = _phys_obj->DistanceTo(other->_phys_obj);
+	float dist = _phys_obj.lock()->DistanceTo(other->_phys_obj.lock());
 
 	if (bUseSpheres) // && InValidCell() && other->InValidCell())
 	{
@@ -804,13 +804,13 @@ float CWeenieObject::DistanceTo(std::shared_ptr<CWeenieObject> other, bool bUseS
 
 float CWeenieObject::DistanceSquared(std::shared_ptr<CWeenieObject> other)
 {
-	if (!_phys_obj || !other || !other->_phys_obj)
+	if (!_phys_obj.lock() || !other || !other->_phys_obj.lock())
 		return FLT_MAX;
 
 	if (GetPointer<CWeenieObject>() == other)
 		return 0.0;
 
-	return _phys_obj->DistanceSquared(other->_phys_obj);
+	return _phys_obj.lock()->DistanceSquared(other->_phys_obj.lock());
 }
 
 float CWeenieObject::HeadingTo(std::shared_ptr<CWeenieObject> target, bool relative)
@@ -865,7 +865,7 @@ float CWeenieObject::HeadingFrom(DWORD targetId, bool relative)
 
 DWORD CWeenieObject::GetLandcell()
 {
-	return m_Position.objcell_id; // return _phys_obj ? _phys_obj->m_Position.objcell_id : 0;
+	return m_Position.objcell_id; // return _phys_obj.lock() ? _phys_obj.lock()->m_Position.objcell_id : 0;
 }
 
 void CWeenieObject::EnsureLink(std::shared_ptr<CWeenieObject> source)
@@ -2021,8 +2021,8 @@ DWORD CWeenieObject::GiveAttributeXP(STypeAttribute key, DWORD amount)
 		DWORD newLevel;
 		if (m_Qualities.InqAttribute(key, newLevel, TRUE))
 		{
-			if (_phys_obj)
-				_phys_obj->EmitSound(Sound_RaiseTrait, 1.0, true);
+			if (_phys_obj.lock())
+				_phys_obj.lock()->EmitSound(Sound_RaiseTrait, 1.0, true);
 
 			SendText(csprintf("Your base %s is now %u!", Attribute::GetAttributeName(key), newLevel), LTT_ADVANCEMENT);
 		}
@@ -2071,8 +2071,8 @@ DWORD CWeenieObject::GiveAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 		DWORD newLevel;
 		if (m_Qualities.InqAttribute2nd(key, newLevel, TRUE))
 		{
-			if (_phys_obj)
-				_phys_obj->EmitSound(Sound_RaiseTrait, 1.0, true);
+			if (_phys_obj.lock())
+				_phys_obj.lock()->EmitSound(Sound_RaiseTrait, 1.0, true);
 
 			SendText(csprintf("Your base %s is now %u!", GetAttribute2ndName(key), newLevel), LTT_ADVANCEMENT);
 		}
@@ -2173,8 +2173,8 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 		DWORD newLevel;
 		if (m_Qualities.InqSkill(key, newLevel, TRUE))
 		{
-			if (_phys_obj)
-				_phys_obj->EmitSound(Sound_RaiseTrait, 1.0, true);
+			if (_phys_obj.lock())
+				_phys_obj.lock()->EmitSound(Sound_RaiseTrait, 1.0, true);
 
 			SendText(csprintf("Your base %s is now %u!", skillName.c_str(), newLevel), LTT_ADVANCEMENT);
 		}
@@ -2226,8 +2226,8 @@ DWORD CWeenieObject::GiveSkillPoints(STypeSkill key, DWORD amount)
 			}
 		}
 
-		if (_phys_obj)
-			_phys_obj->EmitSound(Sound_RaiseTrait, 1.0, true);
+		if (_phys_obj.lock())
+			_phys_obj.lock()->EmitSound(Sound_RaiseTrait, 1.0, true);
 
 		SendText(csprintf("Your base %s is now %u!", skillName.c_str(), newLevel), LTT_ADVANCEMENT);
 	}
@@ -2259,8 +2259,8 @@ void CWeenieObject::GiveSkillCredits(DWORD amount, bool showText)
 
 	if (showText)
 	{
-		if (_phys_obj)
-			_phys_obj->EmitSound(Sound_RaiseTrait, 1.0, true);
+		if (_phys_obj.lock())
+			_phys_obj.lock()->EmitSound(Sound_RaiseTrait, 1.0, true);
 
 		SendText(csprintf("You have earned %u skill %s!", amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
 	}
@@ -2347,8 +2347,8 @@ bool CWeenieObject::JumpStaminaCost(float extent, long &cost)
 
 void CWeenieObject::EmitEffect(DWORD effect, float mod)
 {
-	if (_phys_obj)
-		_phys_obj->EmitEffect(effect, mod);
+	if (_phys_obj.lock())
+		_phys_obj.lock()->EmitEffect(effect, mod);
 }
 
 bool CWeenieObject::TeleportToLifestone()
@@ -2499,13 +2499,13 @@ void CWeenieObject::ExecuteAttackEvent(CAttackEventData *attackEvent)
 const Position &CWeenieObject::GetPosition()
 {
 	/*
-	if (!_phys_obj)
+	if (!_phys_obj.lock())
 	{
 	static Position emptyPosition;
 	return emptyPosition;
 	}
 
-	return _phys_obj->m_Position;
+	return _phys_obj.lock()->m_Position;
 	*/
 
 	return m_Position;
@@ -3385,9 +3385,9 @@ bool CWeenieObject::IsCreature()
 
 BOOL CWeenieObject::DoCollision(const class EnvCollisionProfile &prof)
 {
-	if (_phys_obj && (_phys_obj->m_PhysicsState & SCRIPTED_COLLISION_PS))
+	if (_phys_obj.lock() && (_phys_obj.lock()->m_PhysicsState & SCRIPTED_COLLISION_PS))
 	{
-		_phys_obj->play_default_script();
+		_phys_obj.lock()->play_default_script();
 	}
 
 	if (_IsPlayer())
@@ -3424,9 +3424,9 @@ BOOL CWeenieObject::DoCollision(const class EnvCollisionProfile &prof)
 
 BOOL CWeenieObject::DoCollision(const class AtkCollisionProfile &prof)
 {
-	if (_phys_obj && (_phys_obj->m_PhysicsState & SCRIPTED_COLLISION_PS))
+	if (_phys_obj.lock() && (_phys_obj.lock()->m_PhysicsState & SCRIPTED_COLLISION_PS))
 	{
-		_phys_obj->play_default_script();
+		_phys_obj.lock()->play_default_script();
 	}
 
 	return 1;
@@ -3434,9 +3434,9 @@ BOOL CWeenieObject::DoCollision(const class AtkCollisionProfile &prof)
 
 BOOL CWeenieObject::DoCollision(const class ObjCollisionProfile &prof)
 {
-	if (_phys_obj && (_phys_obj->m_PhysicsState & SCRIPTED_COLLISION_PS))
+	if (_phys_obj.lock() && (_phys_obj.lock()->m_PhysicsState & SCRIPTED_COLLISION_PS))
 	{
-		_phys_obj->play_default_script();
+		_phys_obj.lock()->play_default_script();
 	}
 
 	return 1;
@@ -6327,6 +6327,7 @@ void CWeenieObject::Remove()
 	}
 	else
 		NotifyObjectRemoved();
+
 
 	//if (!sourceItem->HasOwner())
 	//{

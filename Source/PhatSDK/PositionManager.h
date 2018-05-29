@@ -50,7 +50,7 @@ public:
 	void UnConstrain();
 	void adjust_offset(Frame *offset, double quantum);
 
-	std::shared_ptr<CPhysicsObj> physics_obj;
+	std::weak_ptr<CPhysicsObj> physics_obj;
 	int is_constrained;
 	float constraint_pos_offset;
 	Position constraint_pos;
@@ -78,7 +78,7 @@ public:
 	unsigned int target_id;
 	float target_radius;
 	Position target_position;
-	std::shared_ptr<CPhysicsObj> physics_obj;
+	std::weak_ptr<CPhysicsObj> physics_obj;
 	int initialized;
 	long double sticky_timeout_time;
 };
@@ -117,7 +117,7 @@ public:
 	static BOOL fUseAdjustedSpeed_;
 
 	std::list<InterpolationNode> position_queue;
-	std::shared_ptr<CPhysicsObj> physics_obj;
+	std::weak_ptr<CPhysicsObj> physics_obj;
 	int keep_heading;
 	unsigned int frame_counter;
 	float original_distance;
@@ -156,5 +156,5 @@ public:
 	class InterpolationManager *interpolation_manager;
 	class StickyManager *sticky_manager;
 	class ConstraintManager *constraint_manager;
-	std::shared_ptr<CPhysicsObj> physics_obj;
+	std::weak_ptr<CPhysicsObj> physics_obj;
 };

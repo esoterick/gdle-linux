@@ -33,7 +33,7 @@ public:
 	virtual bool IsInventoryEvent() { return false; }
 
 	class UseManager *_manager = NULL;
-	class std::shared_ptr<CWeenieObject> _weenie = NULL;
+	class std::weak_ptr<CWeenieObject> _weenie;
 
 	DWORD _target_id = 0;
 	DWORD _tool_id = 0; // when using one item on another item
@@ -166,7 +166,7 @@ public:
 	void MarkForCleanup(CUseEventData *data);
 
 private:
-	class std::shared_ptr<CWeenieObject> _weenie = NULL;
+	class std::weak_ptr<CWeenieObject> _weenie;
 
 	double _next_allowed_use = 0.0;
 	CUseEventData *_useData = NULL;

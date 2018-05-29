@@ -811,6 +811,8 @@ void CWorldLandBlock::Destroy(std::shared_ptr<CWeenieObject> pEntity, bool bDoRe
 	if (pEntity->m_Qualities._generator_queue && !pEntity->m_Qualities._generator_queue->_queue.empty())
 		pEntity->m_Qualities._generator_queue->_queue.clear();
 
+	pEntity->Remove();
+
 	g_pWorld->EnsureRemoved(pEntity);
 
 #if FALSE
