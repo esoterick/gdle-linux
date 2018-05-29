@@ -38,9 +38,16 @@ void CBaseDoor::ResetToInitialState()
 
 void CBaseDoor::OpenDoor()
 {
-	// anim already in progress
-	if (_phys_obj->get_minterp()->interpreted_state.GetNumActions() > 0)
+	std::shared_ptr<CPhysicsObj> pPhysObj = _phys_obj.lock();
+	if (!pPhysObj)
+	{
 		return;
+	}
+	// anim already in progress
+	if (pPhysObj->get_minterp()->interpreted_state.GetNumActions() > 0)
+	{
+		return;
+	}
 
 	last_move_was_autonomous = false;
 
@@ -67,9 +74,17 @@ void CBaseDoor::OpenDoor()
 
 void CBaseDoor::CloseDoor()
 {
-	// anim already in progress
-	if (_phys_obj->get_minterp()->interpreted_state.GetNumActions() > 0)
+	std::shared_ptr<CPhysicsObj> pPhysObj = _phys_obj.lock();
+	if (!pPhysObj)
+	{
 		return;
+	}
+
+	// anim already in progress
+	if (pPhysObj->get_minterp()->interpreted_state.GetNumActions() > 0)
+	{
+		return;
+	}
 
 	last_move_was_autonomous = false;
 
@@ -82,7 +97,7 @@ void CBaseDoor::CloseDoor()
 	mvs.params = &params;
 	params.autonomous = 0;
 	params.action_stamp = ++m_wAnimSequence;
-	_phys_obj->movement_manager->PerformMovement(mvs);
+	pPhysObj->movement_manager->PerformMovement(mvs);
 	Animation_Update();
 
 	m_bOpen = false;

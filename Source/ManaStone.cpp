@@ -38,6 +38,13 @@ int CManaStoneWeenie::DoUseWithResponse(std::shared_ptr<CWeenieObject> player, s
 
 void CManaStoneUseEvent::OnReadyToUse()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		Cancel(WERROR_OBJECT_GONE);
+		return;
+	}
+
 	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target && _target_id)
 	{
@@ -56,7 +63,7 @@ void CManaStoneUseEvent::OnReadyToUse()
 
 	if (target)
 	{
-		error = tool->DoUseWithResponse(_weenie, target);
+		error = tool->DoUseWithResponse(pWeenie, target);
 	}
 
 	Done(error);

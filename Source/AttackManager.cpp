@@ -266,7 +266,7 @@ bool CAttackEventData::IsValidTarget()
 	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
 	if (!pWeenie)
 	{
-		return;
+		return false;
 	}
 	std::shared_ptr<CWeenieObject> target = GetTarget();
 
@@ -859,7 +859,7 @@ bool CMissileAttackEvent::CalculateSpawnPosition(float missileRadius)
 	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
 	if (!pWeenie)
 	{
-		return;
+		return false;
 	}
 
 	if (!pWeenie->InValidCell())
@@ -1239,7 +1239,7 @@ bool AttackManager::RepeatAttacks()
 	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
 	if (!pWeenie)
 	{
-		return;
+		return false;
 	}
 
 	if (std::shared_ptr<CPlayerWeenie> player = pWeenie->AsPlayer())

@@ -13,7 +13,7 @@
 
 EmoteManager::EmoteManager(std::shared_ptr<CWeenieObject> weenie)
 {
-	pWeenie = weenie;
+	_weenie = weenie;
 }
 
 bool EmoteManager::ChanceExecuteEmoteSet(EmoteCategory category, std::string msg, DWORD target_id)
@@ -1269,6 +1269,12 @@ void EmoteManager::Tick()
 	if (_emoteQueue.empty())
 		return;
 
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	for (std::list<QueuedEmote>::iterator i = _emoteQueue.begin(); i != _emoteQueue.end();)
 	{
 		if (i->_executeTime > Timer::cur_time || pWeenie->IsBusyOrInAction() || pWeenie->IsMovingTo())
@@ -1288,6 +1294,12 @@ void EmoteManager::Cancel()
 
 void EmoteManager::OnDeath(DWORD killer_id)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	Cancel();
 
 	if (pWeenie->m_Qualities._emote_table)

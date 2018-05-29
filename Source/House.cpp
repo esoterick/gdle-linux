@@ -1198,11 +1198,21 @@ void CHookWeenie::ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObject> i
 
 void CHookWeenie::UpdateHookedObject(std::shared_ptr<CWeenieObject> hookedItem, bool sendUpdate)
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = _phys_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+
 	if (!hookedItem && !m_Items.empty())
+	{
 		hookedItem = m_Items[0];
+	}
 	
 	if (!hookedItem)
+	{
 		return;
+	}
 
 	DWORD value;
 	if (hookedItem->m_Qualities.InqDataID(SETUP_DID, value))
@@ -1221,7 +1231,7 @@ void CHookWeenie::UpdateHookedObject(std::shared_ptr<CWeenieObject> hookedItem, 
 		m_Qualities.SetDataID(MOTION_TABLE_DID, value);
 		NotifyDIDStatUpdated(MOTION_TABLE_DID, false);
 
-		_phys_obj->SetMotionTableID(value);
+		pPhysObj->SetMotionTableID(value);
 	}
 	else
 	{
@@ -1265,14 +1275,14 @@ void CHookWeenie::UpdateHookedObject(std::shared_ptr<CWeenieObject> hookedItem, 
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, floatValue);
 		NotifyFloatStatUpdated(DEFAULT_SCALE_FLOAT, false);
 
-		_phys_obj->SetScaleStatic(floatValue);
+		pPhysObj->SetScaleStatic(floatValue);
 	}
 	else
 	{
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.0);
 		NotifyFloatStatUpdated(DEFAULT_SCALE_FLOAT, false);
 
-		_phys_obj->SetScaleStatic(1.0);
+		pPhysObj->SetScaleStatic(1.0);
 	}
 
 	if (hookedItem->m_Qualities.InqFloat(TRANSLUCENCY_FLOAT, floatValue))
@@ -1280,14 +1290,14 @@ void CHookWeenie::UpdateHookedObject(std::shared_ptr<CWeenieObject> hookedItem, 
 		m_Qualities.SetFloat(TRANSLUCENCY_FLOAT, floatValue);
 		NotifyFloatStatUpdated(TRANSLUCENCY_FLOAT, false);
 
-		_phys_obj->SetTranslucencyInternal(floatValue);
+		pPhysObj->SetTranslucencyInternal(floatValue);
 	}
 	else
 	{
 		m_Qualities.RemoveFloat(TRANSLUCENCY_FLOAT);
 		NotifyFloatStatUpdated(TRANSLUCENCY_FLOAT, false);
 
-		_phys_obj->SetTranslucencyInternal(0.0);
+		pPhysObj->SetTranslucencyInternal(0.0);
 	}
 
 	set_state(PhysicsState::LIGHTING_ON_PS | PhysicsState::REPORT_COLLISIONS_PS, TRUE);
@@ -1295,11 +1305,19 @@ void CHookWeenie::UpdateHookedObject(std::shared_ptr<CWeenieObject> hookedItem, 
 	m_bObjDescOverride = true;
 	hookedItem->GetObjDesc(m_ObjDescOverride);
 	if (sendUpdate && InqBoolQuality(VISIBILITY_BOOL, true))
+	{
 		NotifyObjectUpdated(false);
+	}
 }
 
 void CHookWeenie::ClearHookedObject(bool sendUpdate)
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = _phys_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+
 	CWeenieDefaults *defaults = g_pWeenieFactory->GetWeenieDefaults(m_Qualities.id);
 
 	DWORD value;
@@ -1319,7 +1337,7 @@ void CHookWeenie::ClearHookedObject(bool sendUpdate)
 		m_Qualities.SetDataID(MOTION_TABLE_DID, value);
 		NotifyDIDStatUpdated(MOTION_TABLE_DID, false);
 
-		_phys_obj->SetMotionTableID(value);
+		pPhysObj->SetMotionTableID(value);
 	}
 	else
 	{
@@ -1363,14 +1381,14 @@ void CHookWeenie::ClearHookedObject(bool sendUpdate)
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, floatValue);
 		NotifyFloatStatUpdated(DEFAULT_SCALE_FLOAT, false);
 
-		_phys_obj->SetScaleStatic(floatValue);
+		pPhysObj->SetScaleStatic(floatValue);
 	}
 	else
 	{
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.0);
 		NotifyFloatStatUpdated(DEFAULT_SCALE_FLOAT, false);
 
-		_phys_obj->SetScaleStatic(1.0);
+		pPhysObj->SetScaleStatic(1.0);
 	}
 
 	if (defaults->m_Qualities.InqFloat(TRANSLUCENCY_FLOAT, floatValue))
@@ -1378,14 +1396,14 @@ void CHookWeenie::ClearHookedObject(bool sendUpdate)
 		m_Qualities.SetFloat(TRANSLUCENCY_FLOAT, floatValue);
 		NotifyFloatStatUpdated(TRANSLUCENCY_FLOAT, false);
 
-		_phys_obj->SetTranslucencyInternal(floatValue);
+		pPhysObj->SetTranslucencyInternal(floatValue);
 	}
 	else
 	{
 		m_Qualities.RemoveFloat(TRANSLUCENCY_FLOAT);
 		NotifyFloatStatUpdated(TRANSLUCENCY_FLOAT, false);
 
-		_phys_obj->SetTranslucencyInternal(0.0);
+		pPhysObj->SetTranslucencyInternal(0.0);
 	}
 
 	set_state(ETHEREAL_PS | IGNORE_COLLISIONS_PS, TRUE);
@@ -1393,8 +1411,10 @@ void CHookWeenie::ClearHookedObject(bool sendUpdate)
 	m_bObjDescOverride = false;
 	m_ObjDescOverride.Clear();
 
-	if(sendUpdate && InqBoolQuality(VISIBILITY_BOOL, true))
+	if (sendUpdate && InqBoolQuality(VISIBILITY_BOOL, true))
+	{
 		NotifyObjectUpdated(false);
+	}
 }
 
 void CHookWeenie::SetHookVisibility(bool newSetting)

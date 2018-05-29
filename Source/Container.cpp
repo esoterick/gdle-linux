@@ -790,7 +790,7 @@ void CContainerWeenie::InitPhysicsObj()
 {
 	CWeenieObject::InitPhysicsObj();
 
-	if (!_phys_obj)
+	if (!_phys_obj.lock())
 		return;
 	
 	for (auto item : m_Wielded)

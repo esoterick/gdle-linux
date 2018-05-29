@@ -992,7 +992,12 @@ int ProcessList(PackableList<TreasureEntry> *treasureList, int index, SItemListC
 		{
 			if (std::shared_ptr<CWeenieObject> newItem = CreateFromEntry(entry, creationData.ptid, creationData.shade))
 			{
-				g_pWeenieFactory->AddWeenieToDestination(newItem, creationData.parent, creationData.destinationType, creationData.isRegenLocationType, creationData.profile);
+				std::shared_ptr<CWeenieObject> pParent = std::shared_ptr<CWeenieObject>(creationData.parent.lock());
+				if (!pParent)
+				{
+					continue;
+				}
+				g_pWeenieFactory->AddWeenieToDestination(newItem, pParent, creationData.destinationType, creationData.isRegenLocationType, creationData.profile);
 				creationData.amountCreated++;
 				alreadySpawnedInThisSet = true;
 

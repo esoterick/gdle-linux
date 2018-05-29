@@ -154,7 +154,7 @@ void Fellowship::GiveXP(std::shared_ptr<CWeenieObject> source, long long amount,
 			if (entry.first == source->GetID())
 				entry.second._cp_cache += amount;
 
-			std::shared_ptr<CWeenieObject> other = entry.second._cachedWeenie;
+			std::shared_ptr<CWeenieObject> other = entry.second._cachedWeenie.lock();
 			if (other)
 			{
 				double degradeMod = CalculateDegradeMod(source, other);

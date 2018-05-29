@@ -1220,7 +1220,7 @@ void CMonsterWeenie::FinishGiveItem(std::shared_ptr<CContainerWeenie> targetCont
 	}
 
 	// for now we won't support giving items that are currently equipped
-	if (sourceItem->IsEquipped() || sourceItem->parent)
+	if (sourceItem->IsEquipped() || sourceItem->parent.lock())
 	{
 		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_GIVE_NOT_ALLOWED);
 		return;
@@ -1359,9 +1359,11 @@ void CMonsterWeenie::OnTookDamage(DamageEventData &damageData)
 
 void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 {
-	if (damageData.source && damageData.outputDamageFinal > 0)
+	std::shared_ptr<CPhysicsObj> pSource = damageData.source.lock();
+	
+	if (pSource && damageData.outputDamageFinal > 0)
 	{
-		DWORD source = damageData.source->GetID();
+		DWORD source =pSource->GetID();
 
 		if (m_aDamageSources.find(source) == m_aDamageSources.end())
 		{

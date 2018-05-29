@@ -1476,7 +1476,7 @@ CLIENT_COMMAND(instakill, "<radius>", "Deals damage to all nearby creatures.", A
 			continue;
 
 		DamageEventData dmgEvent;
-		dmgEvent.weapon = NULL;
+		dmgEvent.weapon = std::shared_ptr<CWeenieObject>(NULL);
 		dmgEvent.source = pPlayer;
 		dmgEvent.target = entry;
 		dmgEvent.damage_form = DF_PHYSICAL;
@@ -4455,12 +4455,18 @@ bool CommandBase::Execute(char *command, CClient *client)
 	if (argc > 0)
 	{
 		std::shared_ptr<CPlayerWeenie> player_weenie = client ? client->GetEvents()->GetPlayer() : NULL;
-		std::shared_ptr<CPhysicsObj> player_physobj = player_weenie ? player_weenie->_phys_obj : NULL;
+		std::shared_ptr<CPhysicsObj> player_physobj = player_weenie ? player_weenie->_phys_obj.lock() : NULL;
 		int access_level = client ? client->GetAccessLevel() : BASIC_ACCESS;
+
 
 		char *command_name = argv[0];
 		if (!stricmp(command_name, "help"))
 		{
+			if (!player_weenie)
+			{
+				return true;
+			}
+
 			if (!client)
 				return true;
 

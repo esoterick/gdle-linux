@@ -30,35 +30,37 @@
 CClientEvents::CClientEvents(CClient *parent)
 {
 	m_pClient = parent;
-	m_pPlayer = NULL;
+	m_pPlayer = std::shared_ptr<CWeenieObject>(NULL);
 }
 
 CClientEvents::~CClientEvents()
 {
-	if (m_pPlayer)
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (pPlayer)
 	{
-		m_pPlayer->BeginLogout();
-		m_pPlayer->DetachClient();
-		m_pPlayer = NULL;
+		pPlayer->BeginLogout();
+		pPlayer->DetachClient();
 	}
 }
 
 void CClientEvents::DetachPlayer()
 {
-	m_pPlayer = NULL;
+	m_pPlayer = std::shared_ptr<CWeenieObject>(NULL);
 }
 
 DWORD CClientEvents::GetPlayerID()
 {
-	if (!m_pPlayer)
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+
+	if (!pPlayer)
 		return 0;
 
-	return m_pPlayer->GetID();
+	return pPlayer->GetID();
 }
 
 std::shared_ptr<CPlayerWeenie> CClientEvents::GetPlayer()
 {
-	return m_pPlayer;
+	return m_pPlayer.lock();
 }
 
 void CClientEvents::ExitWorld()
@@ -69,7 +71,8 @@ void CClientEvents::ExitWorld()
 
 void CClientEvents::Think()
 {
-	if (m_pPlayer)
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (pPlayer)
 	{
 		if (m_bSendAllegianceUpdates)
 		{
@@ -90,23 +93,25 @@ void CClientEvents::Think()
 
 void CClientEvents::BeginLogout()
 {
-	if (m_pPlayer && !m_pPlayer->IsLoggingOut())
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (pPlayer && !pPlayer->IsLoggingOut())
 	{
-		if (m_pPlayer->IsBusyOrInAction())
+		if (pPlayer->IsBusyOrInAction())
 		{
-			m_pPlayer->NotifyWeenieError(WERROR_ACTIONS_LOCKED);
+			pPlayer->NotifyWeenieError(WERROR_ACTIONS_LOCKED);
 			return;
 		}
 
-		m_pPlayer->BeginLogout();
+		pPlayer->BeginLogout();
 	}
 }
 
 void CClientEvents::ForceLogout()
 {
-	if (m_pPlayer && !m_pPlayer->IsLoggingOut())
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (pPlayer && !pPlayer->IsLoggingOut())
 	{
-		m_pPlayer->BeginLogout();
+		pPlayer->BeginLogout();
 	}
 }
 
@@ -127,6 +132,8 @@ void CClientEvents::LoginError(int iError)
 
 void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+
 	if (!m_pClient->HasCharacter(char_weenie_id))
 	{
 		LoginError(13); // update error codes
@@ -134,7 +141,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		return;
 	}
 
-	if (m_pPlayer || g_pWorld->FindPlayer(char_weenie_id))
+	if (pPlayer || g_pWorld->FindPlayer(char_weenie_id))
 	{
 		// LOG(Temp, Normal, "Character already logged in!\n");
 		LoginError(13); // update error codes
@@ -151,9 +158,10 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	}
 	*/
 	
-	m_pPlayer = std::shared_ptr<CPlayerWeenie>(new CPlayerWeenie(m_pClient, char_weenie_id, m_pClient->IncCharacterInstanceTS(char_weenie_id)));
-	
-	if (!m_pPlayer->Load())
+	pPlayer = std::shared_ptr<CPlayerWeenie>(new CPlayerWeenie(m_pClient, char_weenie_id, m_pClient->IncCharacterInstanceTS(char_weenie_id)));
+	m_pPlayer = pPlayer;
+
+	if (!pPlayer->Load())
 	{
 		LoginError(13); // update error codes
 		SERVER_WARN << szAccount << "Login request, but character failed to load!";
@@ -161,23 +169,23 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		return;
 	}
 
-	m_pPlayer->SetLoginPlayerQualities(); // overrides
-	m_pPlayer->RecalculateEncumbrance();
-	m_pPlayer->LoginCharacter();
+	pPlayer->SetLoginPlayerQualities(); // overrides
+	pPlayer->RecalculateEncumbrance();
+	pPlayer->LoginCharacter();
 
 	//temporarily send a purge all enchantments packet on login to wipe stacked characters.
-	if (m_pPlayer->m_Qualities._enchantment_reg)
+	if (pPlayer->m_Qualities._enchantment_reg)
 	{
 		PackableList<DWORD> removed;
 
-		if (m_pPlayer->m_Qualities._enchantment_reg->_add_list)
+		if (pPlayer->m_Qualities._enchantment_reg->_add_list)
 		{
-			for (auto it = m_pPlayer->m_Qualities._enchantment_reg->_add_list->begin(); it != m_pPlayer->m_Qualities._enchantment_reg->_add_list->end();)
+			for (auto it = pPlayer->m_Qualities._enchantment_reg->_add_list->begin(); it != pPlayer->m_Qualities._enchantment_reg->_add_list->end();)
 			{
 				if (it->_duration == -1.0)
 				{
 					removed.push_back(it->_id);
-					it = m_pPlayer->m_Qualities._enchantment_reg->_add_list->erase(it);
+					it = pPlayer->m_Qualities._enchantment_reg->_add_list->erase(it);
 				}
 				else
 				{
@@ -186,14 +194,14 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 			}
 		}
 
-		if (m_pPlayer->m_Qualities._enchantment_reg->_mult_list)
+		if (pPlayer->m_Qualities._enchantment_reg->_mult_list)
 		{
-			for (auto it = m_pPlayer->m_Qualities._enchantment_reg->_mult_list->begin(); it != m_pPlayer->m_Qualities._enchantment_reg->_mult_list->end();)
+			for (auto it = pPlayer->m_Qualities._enchantment_reg->_mult_list->begin(); it != pPlayer->m_Qualities._enchantment_reg->_mult_list->end();)
 			{
 				if (it->_duration == -1.0)
 				{
 					removed.push_back(it->_id);
-					it = m_pPlayer->m_Qualities._enchantment_reg->_mult_list->erase(it);
+					it = pPlayer->m_Qualities._enchantment_reg->_mult_list->erase(it);
 				}
 				else
 				{
@@ -214,7 +222,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
-	for (auto wielded : m_pPlayer->m_Wielded)
+	for (auto wielded : pPlayer->m_Wielded)
 	{
 	
 		// Updates shields to have SHIELD_VALUE_INT
@@ -233,7 +241,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 
 	}
 
-	for (auto item : m_pPlayer->m_Items)
+	for (auto item : pPlayer->m_Items)
 	{
 		// Updates shields to have SHIELD_VALUE_INT
 		if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
@@ -250,7 +258,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
-	for (auto pack : m_pPlayer->m_Packs)
+	for (auto pack : pPlayer->m_Packs)
 	{
 		
 		if (pack->m_Qualities.id != W_PACKCREATUREESSENCE_CLASS && pack->m_Qualities.id != W_PACKITEMESSENCE_CLASS && pack->m_Qualities.id != W_PACKLIFEESSENCE_CLASS &&
@@ -279,21 +287,21 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
-	m_pPlayer->SendText("GDLEnhanced " SERVER_VERSION_NUMBER_STRING " " SERVER_VERSION_STRING, LTT_DEFAULT);
-	m_pPlayer->SendText("Maintained by, ChosenOne, LikeableLime and Scribble, Contact us at https://discord.gg/WzGX348", LTT_DEFAULT);
-	m_pPlayer->SendText("Powered by GamesDeadLol. Not an official Asheron's Call server.", LTT_DEFAULT);
+	pPlayer->SendText("GDLEnhanced " SERVER_VERSION_NUMBER_STRING " " SERVER_VERSION_STRING, LTT_DEFAULT);
+	pPlayer->SendText("Maintained by, ChosenOne, LikeableLime and Scribble, Contact us at https://discord.gg/WzGX348", LTT_DEFAULT);
+	pPlayer->SendText("Powered by GamesDeadLol. Not an official Asheron's Call server.", LTT_DEFAULT);
 
 	/*
 	if (*g_pConfig->WelcomeMessage() != 0)
 	{
-		m_pPlayer->SendText(g_pConfig->WelcomeMessage(), LTT_DEFAULT);
+		pPlayer->SendText(g_pConfig->WelcomeMessage(), LTT_DEFAULT);
 	}
 	*/
 
-	g_pWorld->CreateEntity(m_pPlayer);
+	g_pWorld->CreateEntity(pPlayer);
 
 	//temporarily add all enchantments back from the character's wielded items
-	for (auto item : m_pPlayer->m_Wielded)
+	for (auto item : pPlayer->m_Wielded)
 	{
 		if (item->m_Qualities._spell_book)
 		{
@@ -306,7 +314,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 				{
 					bShouldCast = false;
 
-					m_pPlayer->NotifyWeenieErrorWithString(WERROR_ACTIVATION_NOT_CRAFTSMAN, name.c_str());
+					pPlayer->NotifyWeenieErrorWithString(WERROR_ACTIVATION_NOT_CRAFTSMAN, name.c_str());
 				}
 			}
 
@@ -315,11 +323,11 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 			if (item->m_Qualities.InqInt(ITEM_DIFFICULTY_INT, difficulty, TRUE, FALSE))
 			{
 				DWORD skillLevel = 0;
-				if (!m_pPlayer->m_Qualities.InqSkill(ARCANE_LORE_SKILL, skillLevel, FALSE) || (int)skillLevel < difficulty)
+				if (!pPlayer->m_Qualities.InqSkill(ARCANE_LORE_SKILL, skillLevel, FALSE) || (int)skillLevel < difficulty)
 				{
 					bShouldCast = false;
 
-					m_pPlayer->NotifyWeenieError(WERROR_ACTIVATION_ARCANE_LORE_TOO_LOW);
+					pPlayer->NotifyWeenieError(WERROR_ACTIVATION_ARCANE_LORE_TOO_LOW);
 				}
 			}
 
@@ -332,11 +340,11 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 					STypeSkill skillActivationType = SkillTable::OldToNewSkill((STypeSkill)skillActivationTypeDID);
 
 					DWORD skillLevel = 0;
-					if (!m_pPlayer->m_Qualities.InqSkill(skillActivationType, skillLevel, FALSE) || (int)skillLevel < difficulty)
+					if (!pPlayer->m_Qualities.InqSkill(skillActivationType, skillLevel, FALSE) || (int)skillLevel < difficulty)
 					{
 						bShouldCast = false;
 
-						m_pPlayer->NotifyWeenieErrorWithString(WERROR_ACTIVATION_SKILL_TOO_LOW, CachedSkillTable->GetSkillName(skillActivationType).c_str());
+						pPlayer->NotifyWeenieErrorWithString(WERROR_ACTIVATION_SKILL_TOO_LOW, CachedSkillTable->GetSkillName(skillActivationType).c_str());
 					}
 				}
 			}
@@ -344,7 +352,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 			if (bShouldCast && item->InqIntQuality(ITEM_ALLEGIANCE_RANK_LIMIT_INT, 0) > item->InqIntQuality(ALLEGIANCE_RANK_INT, 0))
 			{
 				bShouldCast = false;
-				m_pPlayer->NotifyInventoryFailedEvent(item->GetID(), WERROR_ACTIVATION_RANK_TOO_LOW);
+				pPlayer->NotifyInventoryFailedEvent(item->GetID(), WERROR_ACTIVATION_RANK_TOO_LOW);
 			}
 
 			if (bShouldCast)
@@ -354,7 +362,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 				{
 					bShouldCast = false;
 					std::string heritageString = item->InqStringQuality(ITEM_HERITAGE_GROUP_RESTRICTION_STRING, "of the correct heritage");
-					m_pPlayer->NotifyWeenieErrorWithString(WERROR_ACTIVATION_WRONG_RACE, heritageString.c_str());
+					pPlayer->NotifyWeenieErrorWithString(WERROR_ACTIVATION_WRONG_RACE, heritageString.c_str());
 				}
 			}
 
@@ -364,7 +372,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 				if (currentMana == 0)
 				{
 					bShouldCast = false;
-					m_pPlayer->NotifyWeenieError(WERROR_ACTIVATION_NOT_ENOUGH_MANA);
+					pPlayer->NotifyWeenieError(WERROR_ACTIVATION_NOT_ENOUGH_MANA);
 				}
 				else
 					item->_nextManaUse = Timer::cur_time;
@@ -373,17 +381,17 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 			if (bShouldCast)
 			{
 				DWORD serial = 0;
-				serial |= ((DWORD)m_pPlayer->GetEnchantmentSerialByteForMask(item->InqIntQuality(LOCATIONS_INT, 0, TRUE)) << (DWORD)0);
-				serial |= ((DWORD)m_pPlayer->GetEnchantmentSerialByteForMask(item->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE)) << (DWORD)8);
+				serial |= ((DWORD)pPlayer->GetEnchantmentSerialByteForMask(item->InqIntQuality(LOCATIONS_INT, 0, TRUE)) << (DWORD)0);
+				serial |= ((DWORD)pPlayer->GetEnchantmentSerialByteForMask(item->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE)) << (DWORD)8);
 
 				for (auto &spellPage : item->m_Qualities._spell_book->_spellbook)
 				{
-					item->MakeSpellcastingManager()->CastSpellEquipped(m_pPlayer->GetID(), spellPage.first, (WORD)serial);
+					item->MakeSpellcastingManager()->CastSpellEquipped(pPlayer->GetID(), spellPage.first, (WORD)serial);
 				}
 			}
 		}
 	}
-	m_pPlayer->DebugValidate();
+	pPlayer->DebugValidate();
 
 	return;
 }
@@ -395,40 +403,58 @@ void CClientEvents::SendText(const char *szText, long lColor)
 
 void CClientEvents::Attack(DWORD target, DWORD height, float power)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (height <= 0 || height >= ATTACK_HEIGHT::NUM_ATTACK_HEIGHTS)
 	{
-		SERVER_WARN << "Bad melee attack height" << height << "sent by player"<< m_pPlayer->GetID();
+		SERVER_WARN << "Bad melee attack height" << height << "sent by player"<< pPlayer->GetID();
 		return;
 	}
 
 	if (power < 0.0f || power > 1.0f)
 	{
-		SERVER_WARN << "Bad melee attack power" << power << "sent by player" << m_pPlayer->GetID();
+		SERVER_WARN << "Bad melee attack power" << power << "sent by player" << pPlayer->GetID();
 		return;
 	}
 
-	m_pPlayer->TryMeleeAttack(target, (ATTACK_HEIGHT) height, power);
+	pPlayer->TryMeleeAttack(target, (ATTACK_HEIGHT) height, power);
 }
 
 void CClientEvents::MissileAttack(DWORD target, DWORD height, float power)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (height <= 0 || height >= ATTACK_HEIGHT::NUM_ATTACK_HEIGHTS)
 	{
-		SERVER_WARN << "Bad missile attack height" << height << "sent by player" << m_pPlayer->GetID();
+		SERVER_WARN << "Bad missile attack height" << height << "sent by player" << pPlayer->GetID();
 		return;
 	}
 
 	if (power < 0.0f || power > 1.0f)
 	{
-		SERVER_WARN << "Bad missile attack power" << power << "sent by player" << m_pPlayer->GetID();
+		SERVER_WARN << "Bad missile attack power" << power << "sent by player" << pPlayer->GetID();
 		return;
 	}
 
-	m_pPlayer->TryMissileAttack(target, (ATTACK_HEIGHT)height, power);
+	pPlayer->TryMissileAttack(target, (ATTACK_HEIGHT)height, power);
 }
 
 void CClientEvents::SendTellByGUID(const char* szText, DWORD dwGUID)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (strlen(szText) > 300)
 		return;
 
@@ -440,9 +466,9 @@ void CClientEvents::SendTellByGUID(const char* szText, DWORD dwGUID)
 		return;
 
 	/*
-	if (dwGUID == m_pPlayer->GetID())
+	if (dwGUID == pPlayer->GetID())
 	{
-		m_pPlayer->SendNetMessage(ServerText("You really need some new friends..", 1), PRIVATE_MSG, FALSE);
+		pPlayer->SendNetMessage(ServerText("You really need some new friends..", 1), PRIVATE_MSG, FALSE);
 		return;
 	}
 	*/
@@ -452,18 +478,24 @@ void CClientEvents::SendTellByGUID(const char* szText, DWORD dwGUID)
 	if (!(pTarget = g_pWorld->FindPlayer(dwGUID)))
 		return;
 
-	if (pTarget->GetID() != m_pPlayer->GetID())
+	if (pTarget->GetID() != pPlayer->GetID())
 	{
 		char szResponse[300];
 		_snprintf(szResponse, 300, "You tell %s, \"%s\"", pTarget->GetName().c_str(), szText);
-		m_pPlayer->SendNetMessage(ServerText(szResponse, 4), PRIVATE_MSG, FALSE, TRUE);
+		pPlayer->SendNetMessage(ServerText(szResponse, 4), PRIVATE_MSG, FALSE, TRUE);
 	}
 
-	pTarget->SendNetMessage(DirectChat(szText, m_pPlayer->GetName().c_str(), m_pPlayer->GetID(), pTarget->GetID(), 3), PRIVATE_MSG, TRUE);
+	pTarget->SendNetMessage(DirectChat(szText, pPlayer->GetName().c_str(), pPlayer->GetID(), pTarget->GetID(), 3), PRIVATE_MSG, TRUE);
 }
 
 void CClientEvents::SendTellByName(const char* szText, const char* szName)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (strlen(szName) > 300)
 		return;
 	if (strlen(szText) > 300)
@@ -481,18 +513,24 @@ void CClientEvents::SendTellByName(const char* szText, const char* szName)
 	if (!(pTarget = g_pWorld->FindPlayer(szName)))
 		return;
 
-	if (pTarget->GetID() != m_pPlayer->GetID())
+	if (pTarget->GetID() != pPlayer->GetID())
 	{
 		char szResponse[300];
 		_snprintf(szResponse, 300, "You tell %s, \"%s\"", pTarget->GetName().c_str(), szText);
-		m_pPlayer->SendNetMessage(ServerText(szResponse, 4), PRIVATE_MSG, FALSE, TRUE);
+		pPlayer->SendNetMessage(ServerText(szResponse, 4), PRIVATE_MSG, FALSE, TRUE);
 	}
 
-	pTarget->SendNetMessage(DirectChat(szText, m_pPlayer->GetName().c_str(), m_pPlayer->GetID(), pTarget->GetID(), 3), PRIVATE_MSG, TRUE);
+	pTarget->SendNetMessage(DirectChat(szText, pPlayer->GetName().c_str(), pPlayer->GetID(), pTarget->GetID(), 3), PRIVATE_MSG, TRUE);
 }
 
 void CClientEvents::ClientText(const char *szText)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (strlen(szText) > 500)
 		return;
 
@@ -514,13 +552,19 @@ void CClientEvents::ClientText(const char *szText)
 	{
 		if (CheckForChatSpam())
 		{
-			m_pPlayer->SpeakLocal(szText);
+			pPlayer->SpeakLocal(szText);
 		}
 	}
 }
 
 void CClientEvents::EmoteText(const char* szText)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (strlen(szText) > 300)
 		return;
 
@@ -531,11 +575,17 @@ void CClientEvents::EmoteText(const char* szText)
 	if (szText[0] == '\0') //Make sure the text isn't blank
 		return;
 
-	m_pPlayer->EmoteLocal(szText);
+	pPlayer->EmoteLocal(szText);
 }
 
 void CClientEvents::ActionText(const char *text)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (strlen(text) > 300)
 		return;
 	
@@ -544,11 +594,17 @@ void CClientEvents::ActionText(const char *text)
 	if (text[0] == '\0') //Make sure the text isn't blank
 		return;
 
-	m_pPlayer->ActionLocal(text);
+	pPlayer->ActionLocal(text);
 }
 
 void CClientEvents::ChannelText(DWORD channel_id, const char *text)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (strlen(text) > 300)
 		return;
 
@@ -563,45 +619,51 @@ void CClientEvents::ChannelText(DWORD channel_id, const char *text)
 	case Fellow_ChannelID:
 		{
 			std::string fellowName;
-			if (!m_pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowName))
+			if (!pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowName))
 				return;
 
-			g_pFellowshipManager->Chat(fellowName, m_pPlayer->GetID(), text);
-			CHAT_LOG << m_pPlayer->GetName().c_str() << "says (fellowship)," << text;
+			g_pFellowshipManager->Chat(fellowName, pPlayer->GetID(), text);
+			CHAT_LOG << pPlayer->GetName().c_str() << "says (fellowship)," << text;
 			break;
 		}
 
 	case Patron_ChannelID:
-		g_pAllegianceManager->ChatPatron(m_pPlayer->GetID(), text);
-		CHAT_LOG << m_pPlayer->GetName().c_str() << "says (patron)," << text;
+		g_pAllegianceManager->ChatPatron(pPlayer->GetID(), text);
+		CHAT_LOG << pPlayer->GetName().c_str() << "says (patron)," << text;
 		break;
 
 	case Vassals_ChannelID:
-		g_pAllegianceManager->ChatVassals(m_pPlayer->GetID(), text);
-		CHAT_LOG << m_pPlayer->GetName().c_str() << "says (vassals)," << text;
+		g_pAllegianceManager->ChatVassals(pPlayer->GetID(), text);
+		CHAT_LOG << pPlayer->GetName().c_str() << "says (vassals)," << text;
 		break;
 
 	case Covassals_ChannelID:
-		g_pAllegianceManager->ChatCovassals(m_pPlayer->GetID(), text);
-		CHAT_LOG << m_pPlayer->GetName().c_str() << "says (covassals)," << text;
+		g_pAllegianceManager->ChatCovassals(pPlayer->GetID(), text);
+		CHAT_LOG << pPlayer->GetName().c_str() << "says (covassals)," << text;
 		break;
 
 	case Monarch_ChannelID:
-		g_pAllegianceManager->ChatMonarch(m_pPlayer->GetID(), text);
-		CHAT_LOG << m_pPlayer->GetName().c_str() << "says (monarch)," << text;
+		g_pAllegianceManager->ChatMonarch(pPlayer->GetID(), text);
+		CHAT_LOG << pPlayer->GetName().c_str() << "says (monarch)," << text;
 		break;
 	}
 }
 
 void CClientEvents::RequestHealthUpdate(DWORD dwGUID)
 {
-	std::shared_ptr<CWeenieObject> pEntity = g_pWorld->FindWithinPVS(m_pPlayer, dwGUID);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	std::shared_ptr<CWeenieObject> pEntity = g_pWorld->FindWithinPVS(pPlayer, dwGUID);
 
 	if (pEntity)
 	{
 		if (std::shared_ptr<CMonsterWeenie> pMonster = pEntity->AsMonster())
 		{
-			m_pPlayer->SetLastHealthRequest(pEntity->GetID());
+			pPlayer->SetLastHealthRequest(pEntity->GetID());
 
 			m_pClient->SendNetMessage(HealthUpdate(pMonster), PRIVATE_MSG, TRUE, TRUE);
 		}
@@ -610,13 +672,25 @@ void CClientEvents::RequestHealthUpdate(DWORD dwGUID)
 
 void CClientEvents::ChangeCombatStance(COMBAT_MODE mode)
 {
-	m_pPlayer->ChangeCombatMode(mode, true);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	pPlayer->ChangeCombatMode(mode, true);
 	// ActionComplete();
 }
 
 void CClientEvents::ExitPortal()
 {
-	m_pPlayer->ExitPortal();
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	pPlayer->ExitPortal();
 }
 
 void CClientEvents::Ping()
@@ -628,38 +702,50 @@ void CClientEvents::Ping()
 
 void CClientEvents::UseItemEx(DWORD dwSourceID, DWORD dwDestID)
 {
-	std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindWithinPVS(m_pPlayer, dwSourceID);
-	std::shared_ptr<CWeenieObject> pDest = g_pWorld->FindWithinPVS(m_pPlayer, dwDestID);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindWithinPVS(pPlayer, dwSourceID);
+	std::shared_ptr<CWeenieObject> pDest = g_pWorld->FindWithinPVS(pPlayer, dwDestID);
 
 	if (pSource && pSource->AsCaster())
-		m_pPlayer->ExecuteUseEvent(new CWandSpellUseEvent(dwSourceID, pDest ? dwDestID : dwSourceID));
+		pPlayer->ExecuteUseEvent(new CWandSpellUseEvent(dwSourceID, pDest ? dwDestID : dwSourceID));
 	else if (pSource && pDest)
-		pSource->UseWith(m_pPlayer, pDest);
+		pSource->UseWith(pPlayer, pDest);
 	else
 		ActionComplete();
 }
 
 void CClientEvents::UseObject(DWORD dwEID)
 {
-	if (m_pPlayer->IsBusyOrInAction())
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	if (pPlayer->IsBusyOrInAction())
 	{
 		ActionComplete(WERROR_ACTIONS_LOCKED);
 		return;
 	}
 
-	std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(m_pPlayer, dwEID);
+	std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(pPlayer, dwEID);
 
 	if (pTarget)
 	{
-		if (pTarget->AsContainer() && pTarget->AsContainer()->_openedById == m_pPlayer->GetID())
+		if (pTarget->AsContainer() && pTarget->AsContainer()->_openedById == pPlayer->GetID())
 		{
 			//we're closing a chest
-			pTarget->AsContainer()->OnContainerClosed(m_pPlayer);
+			pTarget->AsContainer()->OnContainerClosed(pPlayer);
 			ActionComplete();
 			return;
 		}
 
-		int error = pTarget->UseChecked(m_pPlayer);
+		int error = pTarget->UseChecked(pPlayer);
 
 		if (error != WERROR_NONE)
 			ActionComplete(error);
@@ -672,14 +758,23 @@ void CClientEvents::UseObject(DWORD dwEID)
 
 void CClientEvents::ActionComplete(int error)
 {
-	if (!m_pPlayer)
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
 		return;
+	}
 
-	m_pPlayer->NotifyUseDone(error);
+	pPlayer->NotifyUseDone(error);
 }
 
 void CClientEvents::Identify(DWORD target_id)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (_next_allowed_identify > Timer::cur_time)
 	{
 		// do not allow to ID too fast
@@ -687,7 +782,7 @@ void CClientEvents::Identify(DWORD target_id)
 	}
 
 	/*
-	std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(m_pPlayer, target_id);
+	std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(pPlayer, target_id);
 
 	if (!pTarget)
 	{
@@ -705,8 +800,8 @@ void CClientEvents::Identify(DWORD target_id)
 	if (pTarget && !pTarget->m_Qualities.InqBool(VISIBILITY_BOOL, vis))
 #endif
 	{
-		pTarget->TryIdentify(m_pPlayer);
-		m_pPlayer->SetLastAssessed(pTarget->GetID());
+		pTarget->TryIdentify(pPlayer);
+		pPlayer->SetLastAssessed(pTarget->GetID());
 	}	
 
 	_next_allowed_identify = Timer::cur_time + 0.5;
@@ -714,6 +809,12 @@ void CClientEvents::Identify(DWORD target_id)
 
 void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD amount)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	// TODO use attribute map
 	if (key < 1 || key > 6)
 		return;
@@ -721,22 +822,28 @@ void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD amount)
 	// TODO verify they are trying to spend the correct amount of XP
 
 	__int64 unassignedExp = 0;
-	m_pPlayer->m_Qualities.InqInt64(AVAILABLE_EXPERIENCE_INT64, unassignedExp);
+	pPlayer->m_Qualities.InqInt64(AVAILABLE_EXPERIENCE_INT64, unassignedExp);
 	if ((unsigned __int64)unassignedExp < (unsigned __int64)amount)
 	{
 		// Not enough experience
 		return;
 	}
 
-	m_pPlayer->GiveAttributeXP(key, amount);
-	m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)amount);
+	pPlayer->GiveAttributeXP(key, amount);
+	pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)amount);
 
-	m_pPlayer->NotifyAttributeStatUpdated(key);
-	m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	pPlayer->NotifyAttributeStatUpdated(key);
+	pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 }
 
 void CClientEvents::SpendAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	// TODO use vital map
 	if (key != 1 && key != 3 && key != 5)
 		return;
@@ -744,25 +851,31 @@ void CClientEvents::SpendAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 	// TODO verify they are trying to spend the correct amount of XP
 
 	__int64 unassignedExp = 0;
-	m_pPlayer->m_Qualities.InqInt64(AVAILABLE_EXPERIENCE_INT64, unassignedExp);
+	pPlayer->m_Qualities.InqInt64(AVAILABLE_EXPERIENCE_INT64, unassignedExp);
 	if ((unsigned __int64)unassignedExp < (unsigned __int64)amount)
 	{
 		// Not enough experience
 		return;
 	}
 
-	m_pPlayer->GiveAttribute2ndXP(key, amount);
+	pPlayer->GiveAttribute2ndXP(key, amount);
 
-	m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)amount);
-	m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)amount);
+	pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 }
 
 void CClientEvents::SpendSkillXP(STypeSkill key, DWORD exp)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	// TODO verify they are trying to spend the correct amount of XP
 
 	__int64 unassignedExp = 0;
-	m_pPlayer->m_Qualities.InqInt64(AVAILABLE_EXPERIENCE_INT64, unassignedExp);
+	pPlayer->m_Qualities.InqInt64(AVAILABLE_EXPERIENCE_INT64, unassignedExp);
 	if ((unsigned __int64)unassignedExp < (unsigned __int64)exp)
 	{
 		// Not enough experience
@@ -770,24 +883,30 @@ void CClientEvents::SpendSkillXP(STypeSkill key, DWORD exp)
 	}
 
 	Skill skill;
-	if (!m_pPlayer->m_Qualities.InqSkill(key, skill) || skill._sac < TRAINED_SKILL_ADVANCEMENT_CLASS)
+	if (!pPlayer->m_Qualities.InqSkill(key, skill) || skill._sac < TRAINED_SKILL_ADVANCEMENT_CLASS)
 	{
 		// Skill doesn't exist or isn't trained
 		return;
 	}
 
-	m_pPlayer->GiveSkillXP(key, exp);
+	pPlayer->GiveSkillXP(key, exp);
 
-	m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
-	m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
+	pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 }
 
 void CClientEvents::SpendSkillCredits(STypeSkill key, DWORD credits)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	// TODO verify they are trying to spend the correct amount of XP
 
 	DWORD unassignedCredits = 0;
-	m_pPlayer->m_Qualities.InqInt(AVAILABLE_SKILL_CREDITS_INT, *(int *)&unassignedCredits);
+	pPlayer->m_Qualities.InqInt(AVAILABLE_SKILL_CREDITS_INT, *(int *)&unassignedCredits);
 	if (unassignedCredits < credits)
 	{
 		// Not enough experience
@@ -795,42 +914,48 @@ void CClientEvents::SpendSkillCredits(STypeSkill key, DWORD credits)
 	}
 
 	Skill skill;
-	if (!m_pPlayer->m_Qualities.InqSkill(key, skill) || skill._sac >= TRAINED_SKILL_ADVANCEMENT_CLASS)
+	if (!pPlayer->m_Qualities.InqSkill(key, skill) || skill._sac >= TRAINED_SKILL_ADVANCEMENT_CLASS)
 	{
 		// Skill doesn't exist or already trained
 		return;
 	}
 
-	DWORD costToRaise = m_pPlayer->GetCostToRaiseSkill(key);
+	DWORD costToRaise = pPlayer->GetCostToRaiseSkill(key);
 
-	if (m_pPlayer->GetCostToRaiseSkill(key) != credits)
+	if (pPlayer->GetCostToRaiseSkill(key) != credits)
 	{
-		SERVER_WARN << m_pPlayer->GetName() << "- Credit cost to raise skill does not match what player is trying to spend.";
+		SERVER_WARN << pPlayer->GetName() << "- Credit cost to raise skill does not match what player is trying to spend.";
 		return;
 	}
 
-	m_pPlayer->GiveSkillAdvancementClass(key, TRAINED_SKILL_ADVANCEMENT_CLASS);
-	m_pPlayer->m_Qualities.SetSkillLevel(key, 5);
-	m_pPlayer->NotifySkillStatUpdated(key);
+	pPlayer->GiveSkillAdvancementClass(key, TRAINED_SKILL_ADVANCEMENT_CLASS);
+	pPlayer->m_Qualities.SetSkillLevel(key, 5);
+	pPlayer->NotifySkillStatUpdated(key);
 
-	m_pPlayer->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, unassignedCredits - costToRaise);
-	m_pPlayer->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
+	pPlayer->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, unassignedCredits - costToRaise);
+	pPlayer->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
 }
 
 void CClientEvents::LifestoneRecall()
 {
-	if ( m_pPlayer->CheckPKActivity())
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
 	{
-		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
+	if ( pPlayer->CheckPKActivity())
+	{
+		pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
 		return;
 	}
 
 	Position lifestone;
-	if (m_pPlayer->m_Qualities.InqPosition(SANCTUARY_POSITION, lifestone) && lifestone.objcell_id)
+	if (pPlayer->m_Qualities.InqPosition(SANCTUARY_POSITION, lifestone) && lifestone.objcell_id)
 	{
-		if (!m_pPlayer->IsBusyOrInAction())
+		if (!pPlayer->IsBusyOrInAction())
 		{
-			m_pPlayer->ExecuteUseEvent(new CLifestoneRecallUseEvent());
+			pPlayer->ExecuteUseEvent(new CLifestoneRecallUseEvent());
 		}
 	}
 	else
@@ -841,21 +966,33 @@ void CClientEvents::LifestoneRecall()
 
 void CClientEvents::MarketplaceRecall()
 {
-	if (m_pPlayer->CheckPKActivity())
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
 	{
-		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
 		return;
 	}
 
-	if (!m_pPlayer->IsBusyOrInAction())
+	if (pPlayer->CheckPKActivity())
 	{
-		m_pPlayer->ExecuteUseEvent(new CMarketplaceRecallUseEvent());
+		pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
+	if (!pPlayer->IsBusyOrInAction())
+	{
+		pPlayer->ExecuteUseEvent(new CMarketplaceRecallUseEvent());
 	}
 }
 
 void CClientEvents::TryInscribeItem(DWORD object_id, const std::string &text)
 {
-	std::shared_ptr<CWeenieObject> weenie = m_pPlayer->FindContainedItem(object_id);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	std::shared_ptr<CWeenieObject> weenie = pPlayer->FindContainedItem(object_id);
 
 	if (!weenie)
 	{
@@ -868,12 +1005,18 @@ void CClientEvents::TryInscribeItem(DWORD object_id, const std::string &text)
 	}
 
 	weenie->m_Qualities.SetString(INSCRIPTION_STRING, text.length() <= 800 ? text : text.substr(0, 800));
-	weenie->m_Qualities.SetString(SCRIBE_NAME_STRING, m_pPlayer->GetName());
+	weenie->m_Qualities.SetString(SCRIBE_NAME_STRING, pPlayer->GetName());
 }
 
 void CClientEvents::TryBuyItems(DWORD vendor_id, std::list<class ItemProfile *> &items)
 {
-	std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindWithinPVS(m_pPlayer, vendor_id);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindWithinPVS(pPlayer, vendor_id);
 
 	if (!weenie)
 	{
@@ -884,8 +1027,8 @@ void CClientEvents::TryBuyItems(DWORD vendor_id, std::list<class ItemProfile *> 
 	int error = WERROR_NO_OBJECT;
 	if (std::shared_ptr<CVendor> pVendor = weenie->AsVendor())
 	{
-		error = pVendor->TrySellItemsToPlayer(m_pPlayer, items);
-		pVendor->SendVendorInventory(m_pPlayer);
+		error = pVendor->TrySellItemsToPlayer(pPlayer, items);
+		pVendor->SendVendorInventory(pPlayer);
 	}
 
 	ActionComplete(error);
@@ -894,7 +1037,13 @@ void CClientEvents::TryBuyItems(DWORD vendor_id, std::list<class ItemProfile *> 
 
 void CClientEvents::TrySellItems(DWORD vendor_id, std::list<class ItemProfile *> &items)
 {
-	std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindWithinPVS(m_pPlayer, vendor_id);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindWithinPVS(pPlayer, vendor_id);
 
 	if (!weenie)
 	{
@@ -905,8 +1054,8 @@ void CClientEvents::TrySellItems(DWORD vendor_id, std::list<class ItemProfile *>
 	int error = WERROR_NO_OBJECT;
 	if (std::shared_ptr<CVendor> pVendor = weenie->AsVendor())
 	{
-		error = pVendor->TryBuyItemsFromPlayer(m_pPlayer, items);
-		pVendor->SendVendorInventory(m_pPlayer);
+		error = pVendor->TryBuyItemsFromPlayer(pPlayer, items);
+		pVendor->SendVendorInventory(pPlayer);
 	}
 
 	ActionComplete(error);
@@ -914,102 +1063,156 @@ void CClientEvents::TrySellItems(DWORD vendor_id, std::list<class ItemProfile *>
 
 void CClientEvents::TryFellowshipCreate(const std::string name, int shareXP)
 {
-	if (m_pPlayer->HasFellowship())
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	if (pPlayer->HasFellowship())
 		return;
 
-	int error = g_pFellowshipManager->Create(name, m_pPlayer->GetID(), shareXP);
+	int error = g_pFellowshipManager->Create(name, pPlayer->GetID(), shareXP);
 
 	if (error)
-		m_pPlayer->NotifyWeenieError(error);
+		pPlayer->NotifyWeenieError(error);
 }
 
 void CClientEvents::TryFellowshipQuit(int disband)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	std::string fellowshipName;
-	if (!m_pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
+	if (!pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
 		return;
 
 	int error = 0;
 	if (disband)
-		error = g_pFellowshipManager->Disband(fellowshipName, m_pPlayer->GetID());
+		error = g_pFellowshipManager->Disband(fellowshipName, pPlayer->GetID());
 	else
-		error = g_pFellowshipManager->Quit(fellowshipName, m_pPlayer->GetID());
+		error = g_pFellowshipManager->Quit(fellowshipName, pPlayer->GetID());
 
 	if (error)
-		m_pPlayer->NotifyWeenieError(error);
+		pPlayer->NotifyWeenieError(error);
 }
 
 void CClientEvents::TryFellowshipDismiss(DWORD dismissed)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	std::string fellowshipName;
-	if (!m_pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
+	if (!pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
 		return;
 
-	int error = g_pFellowshipManager->Dismiss(fellowshipName, m_pPlayer->GetID(), dismissed);
+	int error = g_pFellowshipManager->Dismiss(fellowshipName, pPlayer->GetID(), dismissed);
 
 	if (error)
-		m_pPlayer->NotifyWeenieError(error);
+		pPlayer->NotifyWeenieError(error);
 }
 
 void CClientEvents::TryFellowshipRecruit(DWORD target)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	std::string fellowshipName;
-	if (!m_pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
+	if (!pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
 		return;
 
-	int error = g_pFellowshipManager->Recruit(fellowshipName, m_pPlayer->GetID(), target);
+	int error = g_pFellowshipManager->Recruit(fellowshipName, pPlayer->GetID(), target);
 
 	if (error)
-		m_pPlayer->NotifyWeenieError(error);
+		pPlayer->NotifyWeenieError(error);
 }
 
 void CClientEvents::TryFellowshipUpdate(int on)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	std::string fellowshipName;
-	if (!m_pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
+	if (!pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
 		return;
 
-	int error = g_pFellowshipManager->RequestUpdates(fellowshipName, m_pPlayer->GetID(), on);
+	int error = g_pFellowshipManager->RequestUpdates(fellowshipName, pPlayer->GetID(), on);
 
 	if (error)
-		m_pPlayer->NotifyWeenieError(error);
+		pPlayer->NotifyWeenieError(error);
 }
 
 void CClientEvents::TryFellowshipAssignNewLeader(DWORD target)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	std::string fellowshipName;
-	if (!m_pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
+	if (!pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
 		return;
 
-	int error = g_pFellowshipManager->AssignNewLeader(fellowshipName, m_pPlayer->GetID(), target);
+	int error = g_pFellowshipManager->AssignNewLeader(fellowshipName, pPlayer->GetID(), target);
 
 	if (error)
-		m_pPlayer->NotifyWeenieError(error);
+		pPlayer->NotifyWeenieError(error);
 }
 
 void CClientEvents::TryFellowshipChangeOpenness(int open)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	std::string fellowshipName;
-	if (!m_pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
+	if (!pPlayer->m_Qualities.InqString(FELLOWSHIP_STRING, fellowshipName))
 		return;
 
-	int error = g_pFellowshipManager->ChangeOpen(fellowshipName, m_pPlayer->GetID(), open);
+	int error = g_pFellowshipManager->ChangeOpen(fellowshipName, pPlayer->GetID(), open);
 
 	if (error)
-		m_pPlayer->NotifyWeenieError(error);
+		pPlayer->NotifyWeenieError(error);
 }
 
 void CClientEvents::SendAllegianceUpdate()
 {
-	if (!m_pPlayer)
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	if (!pPlayer)
 		return;
 
-	g_pAllegianceManager->SendAllegianceProfile(m_pPlayer);
+	g_pAllegianceManager->SendAllegianceProfile(pPlayer);
 }
 
 void CClientEvents::SendAllegianceMOTD()
 {
-	AllegianceTreeNode *self = g_pAllegianceManager->GetTreeNode(m_pPlayer->GetID());
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	AllegianceTreeNode *self = g_pAllegianceManager->GetTreeNode(pPlayer->GetID());
 	if (!self)
 		return;
 
@@ -1017,7 +1220,7 @@ void CClientEvents::SendAllegianceMOTD()
 	if (!info)
 		return;
 
-	m_pPlayer->SendText(csprintf("\"%s\" -- %s", info->_info.m_motd.c_str(), info->_info.m_motdSetBy.c_str()), LTT_DEFAULT);
+	pPlayer->SendText(csprintf("\"%s\" -- %s", info->_info.m_motd.c_str(), info->_info.m_motdSetBy.c_str()), LTT_DEFAULT);
 }
 
 void CClientEvents::SetRequestAllegianceUpdate(int on)
@@ -1027,8 +1230,14 @@ void CClientEvents::SetRequestAllegianceUpdate(int on)
 
 void CClientEvents::TryBreakAllegiance(DWORD target)
 {
-	int error = g_pAllegianceManager->TryBreakAllegiance(m_pPlayer, target);
-	m_pPlayer->NotifyWeenieError(error);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	int error = g_pAllegianceManager->TryBreakAllegiance(pPlayer, target);
+	pPlayer->NotifyWeenieError(error);
 
 	if (error == WERROR_NONE)
 	{
@@ -1038,15 +1247,21 @@ void CClientEvents::TryBreakAllegiance(DWORD target)
 
 void CClientEvents::TrySwearAllegiance(DWORD target)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	std::shared_ptr<CPlayerWeenie> targetWeenie = g_pWorld->FindPlayer(target);
 	if (!targetWeenie)
 	{
-		m_pPlayer->NotifyWeenieError(WERROR_NO_OBJECT);
+		pPlayer->NotifyWeenieError(WERROR_NO_OBJECT);
 		return;
 	}
 	
-	int error = g_pAllegianceManager->TrySwearAllegiance(m_pPlayer, targetWeenie);	
-	m_pPlayer->NotifyWeenieError(error);
+	int error = g_pAllegianceManager->TrySwearAllegiance(pPlayer, targetWeenie);	
+	pPlayer->NotifyWeenieError(error);
 
 	if (error == WERROR_NONE)
 	{
@@ -1056,24 +1271,30 @@ void CClientEvents::TrySwearAllegiance(DWORD target)
 
 void CClientEvents::AllegianceInfoRequest(const std::string &target)
 {
-	AllegianceTreeNode *myNode = g_pAllegianceManager->GetTreeNode(m_pPlayer->GetID());
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	AllegianceTreeNode *myNode = g_pAllegianceManager->GetTreeNode(pPlayer->GetID());
 	if (!myNode)
 	{
-		m_pPlayer->SendText("You are not in an allegiance.", LTT_DEFAULT);
+		pPlayer->SendText("You are not in an allegiance.", LTT_DEFAULT);
 		return;
 	}
 
 	AllegianceTreeNode *myMonarchNode = g_pAllegianceManager->GetTreeNode(myNode->_monarchID);
 	if (!myMonarchNode)
 	{
-		m_pPlayer->SendText("There was an error processing your request.", LTT_DEFAULT);
+		pPlayer->SendText("There was an error processing your request.", LTT_DEFAULT);
 		return;
 	}
 
 	AllegianceTreeNode *myTargetNode = myMonarchNode->FindCharByNameRecursivelySlow(target);
 	if (!myTargetNode)
 	{
-		m_pPlayer->SendText("Could not find allegiance member.", LTT_DEFAULT);
+		pPlayer->SendText("Could not find allegiance member.", LTT_DEFAULT);
 		return;
 	}
 
@@ -1084,25 +1305,31 @@ void CClientEvents::AllegianceInfoRequest(const std::string &target)
 		allegianceUpdate.Write<DWORD>(0x27C);
 		allegianceUpdate.Write<DWORD>(myTargetNode->_charID);
 		profile->Pack(&allegianceUpdate);
-		m_pPlayer->SendNetMessage(&allegianceUpdate, PRIVATE_MSG, TRUE, FALSE);
+		pPlayer->SendNetMessage(&allegianceUpdate, PRIVATE_MSG, TRUE, FALSE);
 
 		delete profile;
 	}
 	else
 	{
-		m_pPlayer->SendText("Error retrieving allegiance member information.", LTT_DEFAULT);
+		pPlayer->SendText("Error retrieving allegiance member information.", LTT_DEFAULT);
 	}
 }
 
 void CClientEvents::TrySetAllegianceMOTD(const std::string &text)
 {
-	AllegianceTreeNode *self = g_pAllegianceManager->GetTreeNode(m_pPlayer->GetID());
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	AllegianceTreeNode *self = g_pAllegianceManager->GetTreeNode(pPlayer->GetID());
 	if (!self)
 		return;
 
 	if (self->_charID != self->_monarchID)
 	{
-		m_pPlayer->SendText("Only the monarch can set the Message of the Day.", LTT_DEFAULT);
+		pPlayer->SendText("Only the monarch can set the Message of the Day.", LTT_DEFAULT);
 		return;
 	}
 
@@ -1111,23 +1338,29 @@ void CClientEvents::TrySetAllegianceMOTD(const std::string &text)
 		return;
 
 	info->_info.m_motd = text;
-	info->_info.m_motdSetBy = m_pPlayer->GetName();
-	m_pPlayer->SendText(csprintf("MOTD changed to: \"%s\" -- %s", info->_info.m_motd.c_str(), info->_info.m_motdSetBy.c_str()), LTT_DEFAULT);
+	info->_info.m_motdSetBy = pPlayer->GetName();
+	pPlayer->SendText(csprintf("MOTD changed to: \"%s\" -- %s", info->_info.m_motd.c_str(), info->_info.m_motdSetBy.c_str()), LTT_DEFAULT);
 }
 
 void CClientEvents::AllegianceHometownRecall()
 {
-	if (m_pPlayer->CheckPKActivity())
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
 	{
-		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
 		return;
 	}
 
-	AllegianceTreeNode *allegianceNode = g_pAllegianceManager->GetTreeNode(m_pPlayer->GetID());
+	if (pPlayer->CheckPKActivity())
+	{
+		pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
+	AllegianceTreeNode *allegianceNode = g_pAllegianceManager->GetTreeNode(pPlayer->GetID());
 
 	if (!allegianceNode)
 	{
-		m_pPlayer->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
+		pPlayer->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
 		return;
 	}
 
@@ -1135,54 +1368,72 @@ void CClientEvents::AllegianceHometownRecall()
 
 	if (allegianceInfo && allegianceInfo->_info.m_BindPoint.objcell_id)
 	{
-		if (!m_pPlayer->IsBusyOrInAction())
-			m_pPlayer->ExecuteUseEvent(new CAllegianceHometownRecallUseEvent());
+		if (!pPlayer->IsBusyOrInAction())
+			pPlayer->ExecuteUseEvent(new CAllegianceHometownRecallUseEvent());
 	}
 	else
-		m_pPlayer->NotifyWeenieError(WERROR_ALLEGIANCE_HOMETOWN_NOT_SET);
+		pPlayer->NotifyWeenieError(WERROR_ALLEGIANCE_HOMETOWN_NOT_SET);
 }
 
 void CClientEvents::HouseBuy(DWORD slumlord, const PackableList<DWORD> &items)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (std::shared_ptr<CWeenieObject> slumlordObj = g_pWorld->FindObject(slumlord))
 	{
-		if (m_pPlayer->DistanceTo(slumlordObj, true) > 10.0)
+		if (pPlayer->DistanceTo(slumlordObj, true) > 10.0)
 			return;
 
 		if (std::shared_ptr<CSlumLordWeenie> slumlord = slumlordObj->AsSlumLord())
 		{
-			slumlord->BuyHouse(m_pPlayer, items);
+			slumlord->BuyHouse(pPlayer, items);
 		}
 	}
 }
 
 void CClientEvents::HouseRent(DWORD slumlord, const PackableList<DWORD> &items)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (std::shared_ptr<CWeenieObject> slumlordObj = g_pWorld->FindObject(slumlord))
 	{
-		if (m_pPlayer->DistanceTo(slumlordObj, true) > 10.0)
+		if (pPlayer->DistanceTo(slumlordObj, true) > 10.0)
 			return;
 
 		if (std::shared_ptr<CSlumLordWeenie> slumlord = slumlordObj->AsSlumLord())
 		{
-			slumlord->RentHouse(m_pPlayer, items);
+			slumlord->RentHouse(pPlayer, items);
 		}
 	}
 }
 
 void CClientEvents::HouseAbandon()
 {
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData && houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData && houseData->_ownerId == pPlayer->GetID())
 		{
 			houseData->AbandonHouse();
-			m_pPlayer->SendText("You've abandoned your house.", LTT_DEFAULT); //todo: made up message.
+			pPlayer->SendText("You've abandoned your house.", LTT_DEFAULT); //todo: made up message.
 		}
 		else
-			m_pPlayer->SendText("That house does not belong to you.", LTT_DEFAULT); //todo: made up message.
+			pPlayer->SendText("That house does not belong to you.", LTT_DEFAULT); //todo: made up message.
 	}
 	else
 		m_pClient->SendNetMessage(ServerText("You do not have a house!", 7), PRIVATE_MSG);
@@ -1190,23 +1441,29 @@ void CClientEvents::HouseAbandon()
 
 void CClientEvents::HouseRecall()
 {
-	if (m_pPlayer->CheckPKActivity())
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
 	{
-		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
 		return;
 	}
 
-	DWORD houseId = m_pPlayer->GetAccountHouseId();
+	if (pPlayer->CheckPKActivity())
+	{
+		pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
+	DWORD houseId = pPlayer->GetAccountHouseId();
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerAccount == m_pPlayer->GetClient()->GetAccountInfo().id)
+		if (houseData->_ownerAccount == pPlayer->GetClient()->GetAccountInfo().id)
 		{
-			if (!m_pPlayer->IsBusyOrInAction())
-				m_pPlayer->ExecuteUseEvent(new CHouseRecallUseEvent());
+			if (!pPlayer->IsBusyOrInAction())
+				pPlayer->ExecuteUseEvent(new CHouseRecallUseEvent());
 		}
 		else
-			m_pPlayer->SendText("That house does not belong to you.", LTT_DEFAULT); //todo: made up message.
+			pPlayer->SendText("That house does not belong to you.", LTT_DEFAULT); //todo: made up message.
 	}
 	else
 		m_pClient->SendNetMessage(ServerText("You do not have a house!", 7), PRIVATE_MSG);
@@ -1214,17 +1471,23 @@ void CClientEvents::HouseRecall()
 
 void CClientEvents::HouseMansionRecall()
 {
-	if (m_pPlayer->CheckPKActivity())
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
 	{
-		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
 		return;
 	}
 
-	AllegianceTreeNode *allegianceNode = g_pAllegianceManager->GetTreeNode(m_pPlayer->GetID());
+	if (pPlayer->CheckPKActivity())
+	{
+		pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
+	AllegianceTreeNode *allegianceNode = g_pAllegianceManager->GetTreeNode(pPlayer->GetID());
 
 	if (!allegianceNode)
 	{
-		m_pPlayer->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
+		pPlayer->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
 		return;
 	}
 
@@ -1246,8 +1509,8 @@ void CClientEvents::HouseMansionRecall()
 		CHouseData *houseData = g_pHouseManager->GetHouseData(allegianceHouseId);
 		if (houseData && houseData->_ownerId == allegianceNode->_monarchID && (houseData->_houseType == 2 || houseData->_houseType == 3)) //2 = villa, 3 = mansion
 		{
-			if (!m_pPlayer->IsBusyOrInAction())
-				m_pPlayer->ExecuteUseEvent(new CMansionRecallUseEvent());
+			if (!pPlayer->IsBusyOrInAction())
+				pPlayer->ExecuteUseEvent(new CMansionRecallUseEvent());
 			return;
 		}
 	}
@@ -1260,68 +1523,86 @@ void CClientEvents::HouseMansionRecall()
 
 void CClientEvents::HouseRequestData()
 {
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
-		g_pHouseManager->SendHouseData(m_pPlayer, houseId);
+		g_pHouseManager->SendHouseData(pPlayer, houseId);
 	else
 	{
 		//if we can't get the data send the "no house" packet
 		BinaryWriter noHouseData;
 		noHouseData.Write<DWORD>(0x0226);
 		noHouseData.Write<DWORD>(0);
-		m_pPlayer->SendNetMessage(&noHouseData, PRIVATE_MSG, TRUE, FALSE);
+		pPlayer->SendNetMessage(&noHouseData, PRIVATE_MSG, TRUE, FALSE);
 	}
 }
 
 void CClientEvents::HouseToggleHooks(bool newSetting)
 {
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
 			houseData->SetHookVisibility(newSetting);
 			if (newSetting)
-				m_pPlayer->SendText("Your dwelling's hooks are now visible.", LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText("Your dwelling's hooks are now visible.", LTT_DEFAULT); //todo: made up message.
 			else
-				m_pPlayer->SendText("Your dwelling's hooks are now hidden.", LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText("Your dwelling's hooks are now hidden.", LTT_DEFAULT); //todo: made up message.
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::HouseRequestAccessList()
 {
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
-			m_pPlayer->SendText("Access:", LTT_DEFAULT);
-			m_pPlayer->SendText(csprintf("   Public: %s", houseData->_everyoneAccess ? "Allow" : "Deny"), LTT_DEFAULT);
-			m_pPlayer->SendText(csprintf("   Allegiance: %s", houseData->_allegianceAccess ? "Allow" : "Deny"), LTT_DEFAULT);
+			pPlayer->SendText("Access:", LTT_DEFAULT);
+			pPlayer->SendText(csprintf("   Public: %s", houseData->_everyoneAccess ? "Allow" : "Deny"), LTT_DEFAULT);
+			pPlayer->SendText(csprintf("   Allegiance: %s", houseData->_allegianceAccess ? "Allow" : "Deny"), LTT_DEFAULT);
 
-			m_pPlayer->SendText("Storage:", LTT_DEFAULT);
-			m_pPlayer->SendText(csprintf("   Public: %s", houseData->_everyoneStorageAccess ? "Allow" : "Deny"), LTT_DEFAULT);
-			m_pPlayer->SendText(csprintf("   Allegiance: %s", houseData->_allegianceStorageAccess ? "Allow" : "Deny"), LTT_DEFAULT);
+			pPlayer->SendText("Storage:", LTT_DEFAULT);
+			pPlayer->SendText(csprintf("   Public: %s", houseData->_everyoneStorageAccess ? "Allow" : "Deny"), LTT_DEFAULT);
+			pPlayer->SendText(csprintf("   Allegiance: %s", houseData->_allegianceStorageAccess ? "Allow" : "Deny"), LTT_DEFAULT);
 
 			if (houseData->_accessList.empty())
-				m_pPlayer->SendText("Your dwelling's acess list is empty.", LTT_DEFAULT);
+				pPlayer->SendText("Your dwelling's acess list is empty.", LTT_DEFAULT);
 			else
 			{
-				m_pPlayer->SendText("Access List:", LTT_DEFAULT);
+				pPlayer->SendText("Access List:", LTT_DEFAULT);
 				std::list<DWORD>::iterator i = houseData->_accessList.begin();
 				while (i != houseData->_accessList.end())
 				{
 					std::string name = g_pWorld->GetPlayerName(*(i), true);
 					if (!name.empty())
 					{
-						m_pPlayer->SendText(csprintf("   %s", name.c_str()), LTT_DEFAULT);
+						pPlayer->SendText(csprintf("   %s", name.c_str()), LTT_DEFAULT);
 						i++;
 					}
 					else
@@ -1330,17 +1611,17 @@ void CClientEvents::HouseRequestAccessList()
 			}
 
 			if (houseData->_storageAccessList.empty())
-				m_pPlayer->SendText("Your dwelling's storage access list is empty.", LTT_DEFAULT);
+				pPlayer->SendText("Your dwelling's storage access list is empty.", LTT_DEFAULT);
 			else
 			{
-				m_pPlayer->SendText("Storage Access list:", LTT_DEFAULT);
+				pPlayer->SendText("Storage Access list:", LTT_DEFAULT);
 				std::list<DWORD>::iterator i = houseData->_storageAccessList.begin();
 				while (i != houseData->_storageAccessList.end())
 				{
 					std::string name = g_pWorld->GetPlayerName(*(i), true);
 					if (!name.empty())
 					{
-						m_pPlayer->SendText(csprintf("   %s", name.c_str()), LTT_DEFAULT);
+						pPlayer->SendText(csprintf("   %s", name.c_str()), LTT_DEFAULT);
 						i++;
 					}
 					else
@@ -1349,169 +1630,199 @@ void CClientEvents::HouseRequestAccessList()
 			}
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::HouseAddPersonToAccessList(std::string name)
 {
-	DWORD targetId = g_pWorld->GetPlayerId(name.c_str(), true);
-	if (!target)
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
 	{
-		m_pPlayer->SendText("Can't find a player by that name.", LTT_DEFAULT); //todo: made up message.
 		return;
 	}
 
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	DWORD targetId = g_pWorld->GetPlayerId(name.c_str(), true);
+	if (!target)
+	{
+		pPlayer->SendText("Can't find a player by that name.", LTT_DEFAULT); //todo: made up message.
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
 			if (houseData->_accessList.size() > 128)
 			{
-				m_pPlayer->SendText("The access list is full", LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText("The access list is full", LTT_DEFAULT); //todo: made up message.
 				return;
 			}
 			if (std::find(houseData->_accessList.begin(), houseData->_accessList.end(), targetId) != houseData->_accessList.end())
 			{
-				m_pPlayer->SendText(csprintf("%s is already in the access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText(csprintf("%s is already in the access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
 			}
 			else
 			{
-				m_pPlayer->SendText(csprintf("You add %s to your dwelling's access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText(csprintf("You add %s to your dwelling's access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
 				houseData->_accessList.push_back(targetId);
 			}
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::HouseRemovePersonFromAccessList(std::string name)
 {
-	DWORD targetId = g_pWorld->GetPlayerId(name.c_str(), true);
-	if (!target)
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
 	{
-		m_pPlayer->SendText("Can't find a player by that name.", LTT_DEFAULT); //todo: made up message.
 		return;
 	}
 
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	DWORD targetId = g_pWorld->GetPlayerId(name.c_str(), true);
+	if (!target)
+	{
+		pPlayer->SendText("Can't find a player by that name.", LTT_DEFAULT); //todo: made up message.
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
 			auto iter = std::find(houseData->_accessList.begin(), houseData->_accessList.end(), targetId);
 			if (iter != houseData->_accessList.end())
 			{
-				m_pPlayer->SendText(csprintf("You remove %s from your dwelling's access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText(csprintf("You remove %s from your dwelling's access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
 				houseData->_accessList.erase(iter);
 			}
 			else
 			{
-				m_pPlayer->SendText(csprintf("%s is not in the access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText(csprintf("%s is not in the access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
 			}
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::HouseToggleOpenAccess(bool newSetting)
 {
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
 			if (houseData->_everyoneAccess != newSetting)
 			{
 				houseData->_everyoneAccess = newSetting;
 				if (newSetting)
-					m_pPlayer->SendText("Your dwelling is now open to the public.", LTT_DEFAULT); //todo: made up message.
+					pPlayer->SendText("Your dwelling is now open to the public.", LTT_DEFAULT); //todo: made up message.
 				else
-					m_pPlayer->SendText("Your dwelling is now private.", LTT_DEFAULT); //todo: made up message.
+					pPlayer->SendText("Your dwelling is now private.", LTT_DEFAULT); //todo: made up message.
 			}
 			else
 			{
 				if (newSetting)
-					m_pPlayer->SendText("Your dwelling is already open to the public.", LTT_DEFAULT); //todo: made up message.
+					pPlayer->SendText("Your dwelling is already open to the public.", LTT_DEFAULT); //todo: made up message.
 				else
-					m_pPlayer->SendText("Your dwelling is already private.", LTT_DEFAULT); //todo: made up message.
+					pPlayer->SendText("Your dwelling is already private.", LTT_DEFAULT); //todo: made up message.
 			}
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::HouseToggleOpenStorageAccess()
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	//not sure how this worked? Is this a toggle? If not which command was used to disable it?
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
 			if (!houseData->_everyoneStorageAccess)
 			{
-				m_pPlayer->SendText("Your dwelling's storage is now open to the public.", LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText("Your dwelling's storage is now open to the public.", LTT_DEFAULT); //todo: made up message.
 				houseData->_everyoneStorageAccess = true;
 			}
 			else
 			{
-				m_pPlayer->SendText("Your dwelling's storage is now private.", LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText("Your dwelling's storage is now private.", LTT_DEFAULT); //todo: made up message.
 				houseData->_everyoneStorageAccess = false;
 			}
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::HouseAddOrRemovePersonToStorageList(std::string name, bool isAdd)
 {
-	DWORD targetId = g_pWorld->GetPlayerId(name.c_str(), true);
-	if (!target)
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
 	{
-		m_pPlayer->SendText("Can't find a player by that name.", LTT_DEFAULT); //todo: made up message.
 		return;
 	}
 
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	DWORD targetId = g_pWorld->GetPlayerId(name.c_str(), true);
+	if (!target)
+	{
+		pPlayer->SendText("Can't find a player by that name.", LTT_DEFAULT); //todo: made up message.
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
 			if (isAdd)
 			{
 				if (houseData->_accessList.size() > 128)
 				{
-					m_pPlayer->SendText("The storage access list is full", LTT_DEFAULT); //todo: made up message.
+					pPlayer->SendText("The storage access list is full", LTT_DEFAULT); //todo: made up message.
 					return;
 				}
 				if (std::find(houseData->_storageAccessList.begin(), houseData->_storageAccessList.end(), targetId) != houseData->_storageAccessList.end())
 				{
-					m_pPlayer->SendText(csprintf("%s is already in the storage access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
+					pPlayer->SendText(csprintf("%s is already in the storage access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
 				}
 				else
 				{
-					m_pPlayer->SendText(csprintf("You add %s to your dwelling's storage access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
+					pPlayer->SendText(csprintf("You add %s to your dwelling's storage access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
 					houseData->_storageAccessList.push_back(targetId);
 				}
 			}
@@ -1520,159 +1831,195 @@ void CClientEvents::HouseAddOrRemovePersonToStorageList(std::string name, bool i
 				auto iter = std::find(houseData->_storageAccessList.begin(), houseData->_storageAccessList.end(), targetId);
 				if (iter != houseData->_storageAccessList.end())
 				{
-					m_pPlayer->SendText(csprintf("You remove %s from your dwelling's storage access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
+					pPlayer->SendText(csprintf("You remove %s from your dwelling's storage access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
 					houseData->_storageAccessList.erase(iter);
 				}
 				else
 				{
-					m_pPlayer->SendText(csprintf("%s is not in the storage access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
+					pPlayer->SendText(csprintf("%s is not in the storage access list", name.c_str()), LTT_DEFAULT); //todo: made up message.
 				}
 			}
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::HouseAddOrRemoveAllegianceToAccessList(bool isAdd)
 {
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
 			if (houseData->_allegianceAccess != isAdd)
 			{
 				houseData->_allegianceAccess = isAdd;
 				if (isAdd)
-					m_pPlayer->SendText("You have granted your monarchy access to your dwelling.", LTT_DEFAULT);
+					pPlayer->SendText("You have granted your monarchy access to your dwelling.", LTT_DEFAULT);
 				else
-					m_pPlayer->SendText("You have revoked access to your dwelling to your monarchy.", LTT_DEFAULT);
+					pPlayer->SendText("You have revoked access to your dwelling to your monarchy.", LTT_DEFAULT);
 			}
 			else
 			{
 				if (isAdd)
-					m_pPlayer->SendText("The monarchy already has access to your dwelling.", LTT_DEFAULT);
+					pPlayer->SendText("The monarchy already has access to your dwelling.", LTT_DEFAULT);
 				else
-					m_pPlayer->SendText("The monarchy did not have access to your dwelling.", LTT_DEFAULT);
+					pPlayer->SendText("The monarchy did not have access to your dwelling.", LTT_DEFAULT);
 			}
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::HouseAddOrRemoveAllegianceToStorageList(bool isAdd)
 {
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
 			if (houseData->_allegianceStorageAccess != isAdd)
 			{
 				houseData->_allegianceStorageAccess = isAdd;
 				if (isAdd)
-					m_pPlayer->SendText("You have granted your monarchy access to your storage.", LTT_DEFAULT);
+					pPlayer->SendText("You have granted your monarchy access to your storage.", LTT_DEFAULT);
 				else
-					m_pPlayer->SendText("You have revoked storage access to your monarchy.", LTT_DEFAULT);
+					pPlayer->SendText("You have revoked storage access to your monarchy.", LTT_DEFAULT);
 			}
 			else
 			{
 				if (isAdd)
-					m_pPlayer->SendText("The monarchy already has storage access in your dwelling.", LTT_DEFAULT);
+					pPlayer->SendText("The monarchy already has storage access in your dwelling.", LTT_DEFAULT);
 				else
-					m_pPlayer->SendText("The monarchy did not have storage access in your dwelling.", LTT_DEFAULT);
+					pPlayer->SendText("The monarchy did not have storage access in your dwelling.", LTT_DEFAULT);
 			}
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::HouseClearAccessList()
 {
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
 			houseData->_everyoneAccess = false;
 			houseData->_allegianceAccess = false;
 			if (houseData->_accessList.empty())
 			{
 				houseData->_accessList.clear();
-				m_pPlayer->SendText("Your clear the dwelling's access list.", LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText("Your clear the dwelling's access list.", LTT_DEFAULT); //todo: made up message.
 			}
 			else
-				m_pPlayer->SendText("There's no one in the dwelling's access list.", LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText("There's no one in the dwelling's access list.", LTT_DEFAULT); //todo: made up message.
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::HouseClearStorageAccess()
 {
-	DWORD houseId = m_pPlayer->InqDIDQuality(HOUSEID_DID, 0);
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	DWORD houseId = pPlayer->InqDIDQuality(HOUSEID_DID, 0);
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerId == m_pPlayer->GetID())
+		if (houseData->_ownerId == pPlayer->GetID())
 		{
 			houseData->_everyoneStorageAccess = false;
 			houseData->_allegianceStorageAccess = false;
 			if (houseData->_storageAccessList.empty())
 			{
 				houseData->_storageAccessList.clear();
-				m_pPlayer->SendText("Your clear the dwelling's storage list.", LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText("Your clear the dwelling's storage list.", LTT_DEFAULT); //todo: made up message.
 			}
 			else
-				m_pPlayer->SendText("There's no one in the dwelling's storage list.", LTT_DEFAULT); //todo: made up message.
+				pPlayer->SendText("There's no one in the dwelling's storage list.", LTT_DEFAULT); //todo: made up message.
 		}
 		else
-			m_pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
+			pPlayer->SendText("Only the character who owns the house may use this command.", LTT_DEFAULT);
 	}
 	else
-		m_pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
+		pPlayer->SendText("You do not own a house.", LTT_DEFAULT);
 }
 
 void CClientEvents::NoLongerViewingContents(DWORD container_id)
-{	
+{
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	if (std::shared_ptr<CWeenieObject> remoteContainerObj = g_pWorld->FindObject(container_id))
 	{
 		if (std::shared_ptr<CContainerWeenie> remoteContainer = remoteContainerObj->AsContainer())
 		{
-			remoteContainer->HandleNoLongerViewing(m_pPlayer);
+			remoteContainer->HandleNoLongerViewing(pPlayer);
 		}
 	}
 }
 
 void CClientEvents::ChangePlayerOption(PlayerOptions option, bool value)
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return;
+	}
+
 	auto changeCharOption = [&](DWORD optionBit)
-		{
-			m_pPlayer->_playerModule.options_ &= ~optionBit;
-			if (value)
-				m_pPlayer->_playerModule.options_ |= optionBit;
-		};
+	{
+		pPlayer->_playerModule.options_ &= ~optionBit;
+		if (value)
+			pPlayer->_playerModule.options_ |= optionBit;
+	};
 
 	auto changeCharOption2 = [&](DWORD optionBit)
 	{
-		m_pPlayer->_playerModule.options2_ &= ~optionBit;
+		pPlayer->_playerModule.options2_ &= ~optionBit;
 		if (value)
-			m_pPlayer->_playerModule.options2_ |= optionBit;
+			pPlayer->_playerModule.options2_ |= optionBit;
 	};
 
 	switch (option)
@@ -1919,6 +2266,12 @@ void CClientEvents::ChangePlayerOption(PlayerOptions option, bool value)
 
 bool CClientEvents::CheckForChatSpam()
 {
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer)
+	{
+		return false;
+	}
+
 	if (_next_chat_allowed > Timer::cur_time)
 	{
 		return false;
@@ -1934,7 +2287,7 @@ bool CClientEvents::CheckForChatSpam()
 	if (_num_chat_sent > 8)
 	{
 		_next_chat_allowed = Timer::cur_time + 10.0;
-		m_pPlayer->SendText("You are sending too many messages and have been temporarily muted.", LTT_DEFAULT);
+		pPlayer->SendText("You are sending too many messages and have been temporarily muted.", LTT_DEFAULT);
 		return false;
 	}
 
@@ -1944,7 +2297,8 @@ bool CClientEvents::CheckForChatSpam()
 // This is it!
 void CClientEvents::ProcessEvent(BinaryReader *pReader)
 {
-	if (!m_pPlayer)
+	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
+	if (!pPlayer || !pReader)
 	{
 		return;
 	}
@@ -2004,7 +2358,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				DWORD dwSlot = pReader->ReadDWORD();
 				if (pReader->GetLastError()) break;
 
-				m_pPlayer->MoveItemToContainer(dwItemID, dwContainer, (char)dwSlot);
+				pPlayer->MoveItemToContainer(dwItemID, dwContainer, (char)dwSlot);
 				break;
 			}
 		case 0x001A: //Equip Item
@@ -2013,7 +2367,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				DWORD dwCoverage = pReader->ReadDWORD();
 				if (pReader->GetLastError()) break;
 
-				m_pPlayer->MoveItemToWield(dwItemID, dwCoverage);
+				pPlayer->MoveItemToWield(dwItemID, dwCoverage);
 				break;
 			}
 		case 0x001B: //Drop Item
@@ -2021,7 +2375,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				DWORD dwItemID = pReader->ReadDWORD();
 				if (pReader->GetLastError()) break;
 
-				m_pPlayer->MoveItemTo3D(dwItemID);
+				pPlayer->MoveItemTo3D(dwItemID);
 				break;
 			}
 		case 0x001D: // Swear Allegiance request
@@ -2060,7 +2414,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			case 0x05: // crafting
 				if (accepted)
 				{
-					m_pPlayer->UseEx(true);
+					pPlayer->UseEx(true);
 				}
 				break;
 			}
@@ -2078,7 +2432,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				break;
 
 			if (items.size() <= 300) //just some sanity checking: 102 items in main pack + (24 * 7) items in subpacks = 270 items. 300 just to be safe.
-				m_pPlayer->PerformSalvaging(toolId, items);
+				pPlayer->PerformSalvaging(toolId, items);
 			break;
 		}
 		case 0x0032: //Send Tell by GUID
@@ -2153,7 +2507,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				DWORD spell_id = pReader->ReadDWORD();
 				if (pReader->GetLastError()) break;
 
-				m_pPlayer->TryCastSpell(m_pPlayer->GetID() /*0*/, spell_id);
+				pPlayer->TryCastSpell(pPlayer->GetID() /*0*/, spell_id);
 				break;
 			}
 		case 0x004A: // cast targeted spell
@@ -2162,7 +2516,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				DWORD spell_id = pReader->ReadDWORD();
 				if (pReader->GetLastError()) break;
 
-				m_pPlayer->TryCastSpell(target, spell_id);
+				pPlayer->TryCastSpell(target, spell_id);
 				break;
 			}
 		case 0x0053: // Evt_Combat__ChangeCombatMode_ID "Change Combat Mode"
@@ -2182,7 +2536,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (pReader->GetLastError())
 					break;
 
-				m_pPlayer->MergeItem(merge_from_id, merge_to_id, amount);
+				pPlayer->MergeItem(merge_from_id, merge_to_id, amount);
 				break;
 			}
 		case 0x0055: // Evt_Inventory__StackableSplitToContainer
@@ -2195,7 +2549,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (pReader->GetLastError())
 					break;
 
-				m_pPlayer->SplitItemToContainer(stack_id, container_id, place, amount);
+				pPlayer->SplitItemToContainer(stack_id, container_id, place, amount);
 				break;
 			}
 		case 0x0056: // Evt_Inventory__StackableSplitTo3D
@@ -2206,7 +2560,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (pReader->GetLastError())
 					break;
 
-				m_pPlayer->SplitItemto3D(stack_id, amount);
+				pPlayer->SplitItemto3D(stack_id, amount);
 				break;
 			}
 		case 0x019B: // Evt_Inventory__StackableSplitToWield
@@ -2218,7 +2572,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (pReader->GetLastError())
 					break;
 
-				m_pPlayer->SplitItemToWield(stack_id, loc, amount);
+				pPlayer->SplitItemToWield(stack_id, loc, amount);
 				break;
 			}
 		case 0x005D: //Send Tell by Name
@@ -2368,7 +2722,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (pReader->GetLastError())
 					break;
 
-				m_pPlayer->GiveItem(target_id, object_id, amount);
+				pPlayer->GiveItem(target_id, object_id, amount);
 				break;
 			}		
 		case 0x00BF: // "Inscribe"
@@ -2394,7 +2748,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case 0x00D6: // Advocate teleport (triggered by having an admin flag set, clicking the mini-map)
 		{
-			if (m_pPlayer->GetAccessLevel() < ADVOCATE_ACCESS)
+			if (pPlayer->GetAccessLevel() < ADVOCATE_ACCESS)
 				break;
 
 			// Starts with string (was empty when I tested)
@@ -2407,7 +2761,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-			m_pPlayer->Movement_Teleport(position);
+			pPlayer->Movement_Teleport(position);
 			break;
 		}
 		case 0x0147: // Channel Text
@@ -2442,7 +2796,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (pReader->GetLastError())
 					break;
 
-				m_pPlayer->_playerModule.AddShortCut(data);
+				pPlayer->_playerModule.AddShortCut(data);
 				break;
 			}
 		case 0x019D: // Add item to shortcut bar
@@ -2451,7 +2805,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (pReader->GetLastError())
 					break;
 
-				m_pPlayer->_playerModule.RemoveShortCut(index);
+				pPlayer->_playerModule.RemoveShortCut(index);
 				break;
 			}
 		case 0x01A1:
@@ -2461,13 +2815,13 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 					break;
 
 				SendText("Updating character configuration.", LTT_SYSTEM_EVENT);
-				m_pPlayer->UpdateModuleFromClient(module);
+				pPlayer->UpdateModuleFromClient(module);
 				break;
 			}
 		case 0x01B7: // Cancel attack
 		{
 			// TODO
-			m_pPlayer->TryCancelAttack();
+			pPlayer->TryCancelAttack();
 			break;
 		}
 		case 0x01BF: // Request health update
@@ -2518,7 +2872,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (pReader->GetLastError())
 					break;
 
-				m_pPlayer->_playerModule.AddSpellFavorite(spellID, index, spellBar);
+				pPlayer->_playerModule.AddSpellFavorite(spellID, index, spellBar);
 				break;
 			}
 		case 0x01E4: // Remove item from spell bar
@@ -2528,7 +2882,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (pReader->GetLastError())
 					break;
 
-				m_pPlayer->_playerModule.RemoveSpellFavorite(spellID, spellBar);
+				pPlayer->_playerModule.RemoveSpellFavorite(spellID, spellBar);
 				break;
 			}
 		case 0x01E9: // Ping
@@ -2538,18 +2892,18 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case 0x1F6: // Open Trade Negotiations
 		{
-			if (m_pPlayer->GetTradeManager() != NULL)
+			if (pPlayer->GetTradeManager() != NULL)
 			{
 				//already trading
 				return;
 			}
 
-			std::shared_ptr<CPlayerWeenie> pOther = g_pWorld->FindWithinPVS(m_pPlayer, pReader->Read<DWORD>())->AsPlayer();
+			std::shared_ptr<CPlayerWeenie> pOther = g_pWorld->FindWithinPVS(pPlayer, pReader->Read<DWORD>())->AsPlayer();
 
 			if (!pOther)
 			{
 				// cannot open trade
-				m_pPlayer->SendText("Unable to open trade.", LTT_ERROR);
+				pPlayer->SendText("Unable to open trade.", LTT_ERROR);
 			}
 			else if (pOther->_playerModule.options_ & 0x20000)
 			{
@@ -2563,64 +2917,64 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			{
 				SendText((pOther->GetName() + " is already trading with someone else!").c_str(), LTT_ERROR);
 			}
-			else if (m_pPlayer->DistanceTo(pOther, true) > 1)
+			else if (pPlayer->DistanceTo(pOther, true) > 1)
 			{
 				SendText((pOther->GetName() + " is too far away!").c_str(), LTT_ERROR);
 			}
 			else
 			{
-				TradeManager *tm = TradeManager::RegisterTrade(m_pPlayer, pOther);
+				TradeManager *tm = TradeManager::RegisterTrade(pPlayer, pOther);
 
-				m_pPlayer->SetTradeManager(tm);
+				pPlayer->SetTradeManager(tm);
 				pOther->SetTradeManager(tm);
 			}
 			break;
 		}
 		case 0x1F7: // Close Trade Negotiations
 		{
-			TradeManager* tm = m_pPlayer->GetTradeManager();
+			TradeManager* tm = pPlayer->GetTradeManager();
 			if (tm)
 			{
-				tm->CloseTrade(m_pPlayer);
+				tm->CloseTrade(pPlayer);
 				return;
 			}
 			break;
 		}
 		case 0x1F8: // AddToTrade
 		{
-			TradeManager* tm = m_pPlayer->GetTradeManager();
+			TradeManager* tm = pPlayer->GetTradeManager();
 			if (tm)
 			{
 				DWORD item = pReader->Read<DWORD>();
 
-				tm->AddToTrade(m_pPlayer, item);
+				tm->AddToTrade(pPlayer, item);
 			}
 			break;
 		}
 		case 0x1FA: // Accept trade
 		{
-			TradeManager* tm = m_pPlayer->GetTradeManager();
+			TradeManager* tm = pPlayer->GetTradeManager();
 			if (tm)
 			{
-				tm->AcceptTrade(m_pPlayer);
+				tm->AcceptTrade(pPlayer);
 			}
 			break;
 		}
 		case 0x1FB: // Decline trade
 		{
-			TradeManager* tm = m_pPlayer->GetTradeManager();
+			TradeManager* tm = pPlayer->GetTradeManager();
 			if (tm)
 			{
-				tm->DeclineTrade(m_pPlayer);
+				tm->DeclineTrade(pPlayer);
 			}
 			break;
 		}
 		case 0x204: // Reset trade
 		{
-			TradeManager* tm = m_pPlayer->GetTradeManager();
+			TradeManager* tm = pPlayer->GetTradeManager();
 			if (tm)
 			{
-				tm->ResetTrade(m_pPlayer);
+				tm->ResetTrade(pPlayer);
 			}
 			break;
 		}
@@ -2740,7 +3094,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-			m_pPlayer->HandleItemManaRequest(itemId);
+			pPlayer->HandleItemManaRequest(itemId);
 			break;
 		}
 		case 0x0266: // House_SetHooksVisibility 
@@ -2780,11 +3134,11 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case 0x0279: // "/die" command
 		{
-			if (!m_pPlayer->IsDead() && !m_pPlayer->IsInPortalSpace() && !m_pPlayer->IsBusyOrInAction())
+			if (!pPlayer->IsDead() && !pPlayer->IsInPortalSpace() && !pPlayer->IsBusyOrInAction())
 			{
 				// this is a bad way of doing this...
-				m_pPlayer->SetHealth(0, true);
-				m_pPlayer->OnDeath(m_pPlayer->GetID());
+				pPlayer->SetHealth(0, true);
+				pPlayer->OnDeath(pPlayer->GetID());
 			}
 
 			break;
@@ -2804,7 +3158,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				if (pReader->GetLastError())
 					break;
 
-				m_pPlayer->_playerModule.spell_filters_ = filters;
+				pPlayer->_playerModule.spell_filters_ = filters;
 				break;
 			}
 		case 0x028D: // Marketplace Recall
@@ -2850,97 +3204,97 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-			// CTransition *transition = m_pPlayer->transition(&m_pPlayer->m_Position, &position, 0);
+			// CTransition *transition = pPlayer->transition(&pPlayer->m_Position, &position, 0);
 
 			/*
-			CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &position, 0);
+			CTransition *transit = pPlayer->transition(&pPlayer->m_Position, &position, 0);
 			if (transit)
 			{
-				m_pPlayer->SetPositionInternal(transit);
+				pPlayer->SetPositionInternal(transit);
 			}
 			*/
 			
 			/*
-			double dist = m_pPlayer->m_Position.distance(position);
+			double dist = pPlayer->m_Position.distance(position);
 			if (dist >= 5)
 			{
-				m_pPlayer->_force_position_timestamp++;
-				m_pPlayer->Movement_UpdatePos();
+				pPlayer->_force_position_timestamp++;
+				pPlayer->Movement_UpdatePos();
 
-				m_pPlayer->SendText(csprintf("Correcting position due to jump %f", dist), LTT_DEFAULT);
+				pPlayer->SendText(csprintf("Correcting position due to jump %f", dist), LTT_DEFAULT);
 			}
 			*/
 
-			double dist = m_pPlayer->m_Position.distance(position);
+			double dist = pPlayer->m_Position.distance(position);
 			if (dist >= 10)
 			{
 				// Snap them back to their previous position
-				m_pPlayer->_force_position_timestamp++;
+				pPlayer->_force_position_timestamp++;
 			}
 			else
 			{
-				m_pPlayer->SetPositionSimple(&position, TRUE);
+				pPlayer->SetPositionSimple(&position, TRUE);
 				
 				/*
-				CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &position, 0);
+				CTransition *transit = pPlayer->transition(&pPlayer->m_Position, &position, 0);
 				if (transit)
 				{
-					m_pPlayer->SetPositionInternal(transit);
+					pPlayer->SetPositionInternal(transit);
 				}
 				*/
 			}
 
-			// m_pPlayer->m_Position = position;
+			// pPlayer->m_Position = position;
 
 			/*
 			long stamina = 0;
-			m_pPlayer->get_minterp()->jump(extent, stamina);
+			pPlayer->get_minterp()->jump(extent, stamina);
 			if (stamina > 0)
 			{
-				unsigned int curStamina = m_pPlayer->GetStamina();
+				unsigned int curStamina = pPlayer->GetStamina();
 
 				if (stamina > curStamina)
 				{
 					// should maybe change the extent? idk
-					m_pPlayer->SetStamina(0);
+					pPlayer->SetStamina(0);
 				}
 				else
-					m_pPlayer->SetStamina(curStamina - stamina);
+					pPlayer->SetStamina(curStamina - stamina);
 			}
 
-			m_pPlayer->Animation_Jump(extent, jumpVelocity);
-			m_pPlayer->m_bAnimUpdate = TRUE;
+			pPlayer->Animation_Jump(extent, jumpVelocity);
+			pPlayer->m_bAnimUpdate = TRUE;
 			*/
 			long stamina = 0;
-			if (m_pPlayer->JumpStaminaCost(extent, stamina) && stamina > 0)
+			if (pPlayer->JumpStaminaCost(extent, stamina) && stamina > 0)
 			{
-				unsigned int curStamina = m_pPlayer->GetStamina();
+				unsigned int curStamina = pPlayer->GetStamina();
 
 				if (stamina > curStamina)
 				{
 					// should maybe change the extent? idk
-					m_pPlayer->SetStamina(0);
+					pPlayer->SetStamina(0);
 				}
 				else
-					m_pPlayer->SetStamina(curStamina - stamina);
+					pPlayer->SetStamina(curStamina - stamina);
 			}
 			
-			m_pPlayer->transient_state &= ~((DWORD)TransientState::CONTACT_TS);
-			m_pPlayer->transient_state &= ~((DWORD)WATER_CONTACT_TS);
-			m_pPlayer->calc_acceleration();
-			m_pPlayer->set_on_walkable(FALSE);
-			m_pPlayer->set_local_velocity(jumpVelocity, 0);
+			pPlayer->transient_state &= ~((DWORD)TransientState::CONTACT_TS);
+			pPlayer->transient_state &= ~((DWORD)WATER_CONTACT_TS);
+			pPlayer->calc_acceleration();
+			pPlayer->set_on_walkable(FALSE);
+			pPlayer->set_local_velocity(jumpVelocity, 0);
 
 			/*
-			Vector localVel = m_pPlayer->get_local_physics_velocity();
-			Vector vel = m_pPlayer->m_velocityVector;
-			m_pPlayer->EmoteLocal(csprintf("Received jump with velocity %.1f %.1f %.1f (my lv: %.1f %.1f %.1f my v: %.1f %.1f %.1f)",
+			Vector localVel = pPlayer->get_local_physics_velocity();
+			Vector vel = pPlayer->m_velocityVector;
+			pPlayer->EmoteLocal(csprintf("Received jump with velocity %.1f %.1f %.1f (my lv: %.1f %.1f %.1f my v: %.1f %.1f %.1f)",
 				jumpVelocity.x, jumpVelocity.y, jumpVelocity.z,
 				localVel.x, localVel.y, localVel.z,
 				vel.x, vel.y, vel.z));
 				*/
 
-			m_pPlayer->Movement_UpdateVector();
+			pPlayer->Movement_UpdateVector();
 
 			break;
 		}
@@ -2958,96 +3312,96 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				break;
 			}
 
-			//if (is_newer_event_stamp(moveToState.server_control_timestamp, m_pPlayer->_server_control_timestamp))
+			//if (is_newer_event_stamp(moveToState.server_control_timestamp, pPlayer->_server_control_timestamp))
 			//{
 				// LOG(Temp, Normal, "Old server control timestamp on 0xF61C. Ignoring.\n");
 			//	break;
 			//}
 
-			if (is_newer_event_stamp(moveToState.teleport_timestamp, m_pPlayer->_teleport_timestamp))
+			if (is_newer_event_stamp(moveToState.teleport_timestamp, pPlayer->_teleport_timestamp))
 			{
 				SERVER_WARN << "Old teleport timestamp on 0xF61C. Ignoring.";
 				break;
 			}
-			if (is_newer_event_stamp(moveToState.force_position_ts, m_pPlayer->_force_position_timestamp))
+			if (is_newer_event_stamp(moveToState.force_position_ts, pPlayer->_force_position_timestamp))
 			{
 				SERVER_WARN << "Old force position timestamp on 0xF61C. Ignoring.";
 				break;
 			}
 
-			if (m_pPlayer->IsDead())
+			if (pPlayer->IsDead())
 			{
 				SERVER_WARN << "Dead players can't move. Ignoring.";
 				break;
 			}
 
 			/*
-			CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &moveToState.position, 0);
+			CTransition *transit = pPlayer->transition(&pPlayer->m_Position, &moveToState.position, 0);
 			if (transit)
 			{
-				m_pPlayer->SetPositionInternal(transit);
+				pPlayer->SetPositionInternal(transit);
 			}
 			*/
 
 			/*
-			double dist = m_pPlayer->m_Position.distance(moveToState.position);
+			double dist = pPlayer->m_Position.distance(moveToState.position);
 			if (dist >= 5)
 			{
-				m_pPlayer->_force_position_timestamp++;
-				m_pPlayer->Movement_UpdatePos();
+				pPlayer->_force_position_timestamp++;
+				pPlayer->Movement_UpdatePos();
 
-				m_pPlayer->SendText(csprintf("Correcting position due to state %f", dist), LTT_DEFAULT);
+				pPlayer->SendText(csprintf("Correcting position due to state %f", dist), LTT_DEFAULT);
 			}
 			*/
 
 			/*
-			bool bHasCell = m_pPlayer->cell ? true : false;
-			m_pPlayer->SetPositionSimple(&moveToState.position, TRUE);
-			if (!m_pPlayer->cell && bHasCell)
+			bool bHasCell = pPlayer->cell ? true : false;
+			pPlayer->SetPositionSimple(&moveToState.position, TRUE);
+			if (!pPlayer->cell && bHasCell)
 			{
-				m_pPlayer->SendText("Damnet...", LTT_DEFAULT);
+				pPlayer->SendText("Damnet...", LTT_DEFAULT);
 			}
 			*/
 
-			double dist = m_pPlayer->m_Position.distance(moveToState.position);
+			double dist = pPlayer->m_Position.distance(moveToState.position);
 			if (dist >= 10)
 			{
 				// Snap them back to their previous position
-				m_pPlayer->_force_position_timestamp++;
+				pPlayer->_force_position_timestamp++;
 			}
 			else
 			{
-				m_pPlayer->SetPositionSimple(&moveToState.position, TRUE);
+				pPlayer->SetPositionSimple(&moveToState.position, TRUE);
 
 				/*
-				CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &moveToState.position, 0);
+				CTransition *transit = pPlayer->transition(&pPlayer->m_Position, &moveToState.position, 0);
 				if (transit)
 				{
-					m_pPlayer->SetPositionInternal(transit);
+					pPlayer->SetPositionInternal(transit);
 				}
 				*/
 			}
 
-			// m_pPlayer->m_Position = moveToState.position; // should interpolate to this, but oh well
+			// pPlayer->m_Position = moveToState.position; // should interpolate to this, but oh well
 
 			/*
 			if (moveToState.contact)
 			{
-				m_pPlayer->transient_state |= ((DWORD)TransientState::CONTACT_TS);
+				pPlayer->transient_state |= ((DWORD)TransientState::CONTACT_TS);
 			}
 			else
 			{
-				m_pPlayer->transient_state &= ~((DWORD)TransientState::CONTACT_TS);
-				m_pPlayer->transient_state &= ~((DWORD)WATER_CONTACT_TS);
+				pPlayer->transient_state &= ~((DWORD)TransientState::CONTACT_TS);
+				pPlayer->transient_state &= ~((DWORD)WATER_CONTACT_TS);
 			}
-			m_pPlayer->calc_acceleration();
-			m_pPlayer->set_on_walkable(moveToState.contact);
+			pPlayer->calc_acceleration();
+			pPlayer->set_on_walkable(moveToState.contact);
 
-			m_pPlayer->get_minterp()->standing_longjump = moveToState.longjump_mode ? TRUE : FALSE;
+			pPlayer->get_minterp()->standing_longjump = moveToState.longjump_mode ? TRUE : FALSE;
 			*/
 
-			m_pPlayer->last_move_was_autonomous = true;
-			m_pPlayer->cancel_moveto();
+			pPlayer->last_move_was_autonomous = true;
+			pPlayer->cancel_moveto();
 
 			if (!(moveToState.raw_motion_state.current_style & CM_Style) && moveToState.raw_motion_state.current_style)
 			{
@@ -3073,7 +3427,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				break;
 			}
 
-			CMotionInterp *minterp = m_pPlayer->get_minterp();
+			CMotionInterp *minterp = pPlayer->get_minterp();
 			minterp->raw_state = moveToState.raw_motion_state;
 			minterp->apply_raw_movement(TRUE, minterp->motion_allows_jump(minterp->interpreted_state.forward_command != 0));
 
@@ -3081,7 +3435,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			for (const auto &actionNew : moveToState.raw_motion_state.actions)
 			{
-				if (m_pPlayer->get_minterp()->interpreted_state.GetNumActions() >= MAX_EMOTE_QUEUE)
+				if (pPlayer->get_minterp()->interpreted_state.GetNumActions() >= MAX_EMOTE_QUEUE)
 					break;
 
 				if (is_newer_event_stamp(newestActionStamp, actionNew.stamp))
@@ -3095,25 +3449,25 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 					}
 
 					MovementParameters params;
-					params.action_stamp = ++m_pPlayer->m_wAnimSequence;
+					params.action_stamp = ++pPlayer->m_wAnimSequence;
 					params.autonomous = 1;
 					params.speed = actionNew.speed;
-					m_pPlayer->get_minterp()->DoMotion(commandID, &params);
+					pPlayer->get_minterp()->DoMotion(commandID, &params);
 
-					// minterp->interpreted_state.AddAction(ActionNode(actionNew.action, actionNew.speed, ++m_pPlayer->m_wAnimSequence, TRUE));
+					// minterp->interpreted_state.AddAction(ActionNode(actionNew.action, actionNew.speed, ++pPlayer->m_wAnimSequence, TRUE));
 
 					// newestActionStamp = actionNew.stamp;
-					// m_pPlayer->Animation_PlayEmote(actionNew.action, actionNew.speed);
+					// pPlayer->Animation_PlayEmote(actionNew.action, actionNew.speed);
 				}
 			}
 
 			m_MoveActionStamp = newestActionStamp;
 
-			// m_pPlayer->Movement_UpdatePos();
-			m_pPlayer->Animation_Update();
-			// m_pPlayer->m_bAnimUpdate = TRUE;
+			// pPlayer->Movement_UpdatePos();
+			pPlayer->Animation_Update();
+			// pPlayer->m_bAnimUpdate = TRUE;
 
-			// m_pPlayer->Movement_UpdatePos();
+			// pPlayer->Movement_UpdatePos();
 			break;
 		}
 		case 0xF753: // Update Exact Position
@@ -3126,7 +3480,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-			if (instance != m_pPlayer->_instance_timestamp)
+			if (instance != pPlayer->_instance_timestamp)
 			{
 				SERVER_WARN << "Bad instance.";
 				break;
@@ -3135,7 +3489,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			WORD server_control_timestamp = pReader->ReadWORD();
 			if (pReader->GetLastError())
 				break;
-			//if (is_newer_event_stamp(server_control_timestamp, m_pPlayer->_server_control_timestamp))
+			//if (is_newer_event_stamp(server_control_timestamp, pPlayer->_server_control_timestamp))
 			//{
 			//	LOG(Temp, Normal, "Old server control timestamp. Ignoring.\n");
 			//	break;
@@ -3144,7 +3498,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			WORD teleport_timestamp = pReader->ReadWORD();
 			if (pReader->GetLastError())
 				break;
-			if (is_newer_event_stamp(teleport_timestamp, m_pPlayer->_teleport_timestamp))
+			if (is_newer_event_stamp(teleport_timestamp, pPlayer->_teleport_timestamp))
 			{
 				SERVER_WARN << "Old teleport timestamp. Ignoring.";
 				break;
@@ -3153,7 +3507,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			WORD force_position_ts = pReader->ReadWORD();
 			if (pReader->GetLastError())
 				break;
-			if (is_newer_event_stamp(force_position_ts, m_pPlayer->_force_position_timestamp))
+			if (is_newer_event_stamp(force_position_ts, pPlayer->_force_position_timestamp))
 			{
 				SERVER_WARN << "Old force position timestamp. Ignoring.";
 				break;
@@ -3163,56 +3517,56 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 			
-			double dist =m_pPlayer->m_Position.distance(position);
+			double dist =pPlayer->m_Position.distance(position);
 			if (dist >= 10)
 			{
 				// Snap them back to their previous position
-				m_pPlayer->_force_position_timestamp++;
-				// m_pPlayer->SendText(csprintf("Correcting position due to position update %f", dist), LTT_DEFAULT);
+				pPlayer->_force_position_timestamp++;
+				// pPlayer->SendText(csprintf("Correcting position due to position update %f", dist), LTT_DEFAULT);
 			}
 			else
 			{
 				/*
-				CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &position, 0);
+				CTransition *transit = pPlayer->transition(&pPlayer->m_Position, &position, 0);
 				if (transit)
 				{
-					m_pPlayer->SetPositionInternal(transit);
+					pPlayer->SetPositionInternal(transit);
 					*/
 					/*
-					double distFromClient = m_pPlayer->m_Position.distance(position);
+					double distFromClient = pPlayer->m_Position.distance(position);
 
 					if (distFromClient >= 3.0)
 					{
-						m_pPlayer->_force_position_timestamp++;
+						pPlayer->_force_position_timestamp++;
 					}
 				}
 				*/
 
-				m_pPlayer->SetPositionSimple(&position, TRUE);
+				pPlayer->SetPositionSimple(&position, TRUE);
 
 				/*
-				if (!m_pPlayer->cell && bHasCell)
+				if (!pPlayer->cell && bHasCell)
 				{
-					m_pPlayer->SendText("Damnet...", LTT_DEFAULT);
+					pPlayer->SendText("Damnet...", LTT_DEFAULT);
 				}
 				*/
-				// m_pPlayer->m_Position = position; // should interpolate this, not set this directly, but oh well
+				// pPlayer->m_Position = position; // should interpolate this, not set this directly, but oh well
 			
 			}
 
 			if (bHasContact)
 			{
-				m_pPlayer->transient_state |= ((DWORD)TransientState::CONTACT_TS);
+				pPlayer->transient_state |= ((DWORD)TransientState::CONTACT_TS);
 			}
 			else
 			{
-				m_pPlayer->transient_state &= ~((DWORD)TransientState::CONTACT_TS);
-				m_pPlayer->transient_state &= ~((DWORD)WATER_CONTACT_TS);
+				pPlayer->transient_state &= ~((DWORD)TransientState::CONTACT_TS);
+				pPlayer->transient_state &= ~((DWORD)WATER_CONTACT_TS);
 			}
-			m_pPlayer->calc_acceleration();
-			m_pPlayer->set_on_walkable(bHasContact);
+			pPlayer->calc_acceleration();
+			pPlayer->set_on_walkable(bHasContact);
 
-			m_pPlayer->Movement_UpdatePos();
+			pPlayer->Movement_UpdatePos();
 			break;
 		}
 		default:

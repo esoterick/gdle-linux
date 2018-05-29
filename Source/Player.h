@@ -194,7 +194,7 @@ public:
 	virtual bool IsBusy() override;
 	virtual void OnTeleported() override;
 
-	std::weak_ptr<CCorpseWeenie> _pendingCorpse = NULL;
+	std::weak_ptr<CCorpseWeenie> _pendingCorpse;
 	DWORD GetAccountHouseId();
 	
 	TradeManager *GetTradeManager();

@@ -14,38 +14,43 @@ MonsterAIManager::MonsterAIManager(std::shared_ptr<CMonsterWeenie> pWeenie, cons
 	m_pWeenie = pWeenie;
 	_toleranceType = pWeenie->InqIntQuality(TOLERANCE_INT, 0, TRUE);
 	_aiOptions = pWeenie->InqIntQuality(AI_OPTIONS_INT, 0, TRUE);
-	_cachedVisualAwarenessRange = m_pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE);
+	_cachedVisualAwarenessRange = pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE);
 
-	if(!m_pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
-	_meleeWeapon = m_pWeenie->GetWieldedCombat(COMBAT_USE_MELEE);
+	if(!pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
+	_meleeWeapon = pWeenie->GetWieldedCombat(COMBAT_USE_MELEE);
 	else {
-		_meleeWeapon = m_pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+		_meleeWeapon = pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
 	}
-	_missileWeapon = m_pWeenie->GetWieldedCombat(COMBAT_USE_MISSILE);
-	_shield = m_pWeenie->GetWieldedCombat(COMBAT_USE_SHIELD);
+	_missileWeapon = pWeenie->GetWieldedCombat(COMBAT_USE_MISSILE);
+	_shield = pWeenie->GetWieldedCombat(COMBAT_USE_SHIELD);
 
 	SKILL_ADVANCEMENT_CLASS unarmedSkill;
-	m_pWeenie->m_Qualities.InqSkillAdvancementClass(LIGHT_WEAPONS_SKILL, unarmedSkill);
+	pWeenie->m_Qualities.InqSkillAdvancementClass(LIGHT_WEAPONS_SKILL, unarmedSkill);
 	_hasUnarmedSkill = (unarmedSkill > UNTRAINED_SKILL_ADVANCEMENT_CLASS);
 
-	if (_meleeWeapon != NULL && _missileWeapon != NULL) //if we have both melee and missile weapons, favor missile
+	// TODO these may need to be shared not weak
+	std::shared_ptr<CWeenieObject> pMeleeWeapon = _meleeWeapon.lock();
+	std::shared_ptr<CWeenieObject> pMissileWeapon = _meleeWeapon.lock();
+	std::shared_ptr<CWeenieObject> pShield = _shield.lock();
+
+	if ( pMeleeWeapon && pMissileWeapon ) //if we have both melee and missile weapons, favor missile
 	{
-		m_pWeenie->FinishMoveItemToContainer(_meleeWeapon, m_pWeenie, 0, true);
-		if (_shield && _missileWeapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle)
-			m_pWeenie->FinishMoveItemToContainer(_shield, m_pWeenie, 0, true);
+		pWeenie->FinishMoveItemToContainer(pMeleeWeapon, pWeenie, 0, true);
+		if (pShield && pMissileWeapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle)
+			pWeenie->FinishMoveItemToContainer(pShield, pWeenie, 0, true);
 		else
 			_currentShield = _shield;
 		_currentWeapon = _missileWeapon;
 	}
-	else if (_missileWeapon != NULL)
+	else if (pMissileWeapon)
 	{
 		_currentWeapon = _missileWeapon;
-		if (_shield && _missileWeapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle)
-			m_pWeenie->FinishMoveItemToContainer(_shield, m_pWeenie, 0, true);
+		if (pShield && pMissileWeapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle)
+			pWeenie->FinishMoveItemToContainer(pShield, pWeenie, 0, true);
 		else
 			_currentShield = _shield;
 	}
-	else if (_meleeWeapon != NULL)
+	else if (pMeleeWeapon)
 	{
 		_currentWeapon = _meleeWeapon;
 		_currentShield = _shield;
@@ -99,13 +104,19 @@ void MonsterAIManager::SetHomePosition(const Position &pos)
 
 void MonsterAIManager::Update()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	if (!m_HomePosition.objcell_id)
 	{
 		// make sure we set a home position
-		if (!(m_pWeenie->transient_state & ON_WALKABLE_TS))
+		if (!(pWeenie->transient_state & ON_WALKABLE_TS))
 			return;
 
-		SetHomePosition(m_pWeenie->m_Position);
+		SetHomePosition(pWeenie->m_Position);
 	}
 
 	switch (m_State)
@@ -193,8 +204,14 @@ void MonsterAIManager::EnterState(int state)
 
 void MonsterAIManager::BeginIdle()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	m_fNextPVSCheck = Timer::cur_time;
-	m_pWeenie->ChangeCombatMode(COMBAT_MODE::NONCOMBAT_COMBAT_MODE, false);
+	pWeenie->ChangeCombatMode(COMBAT_MODE::NONCOMBAT_COMBAT_MODE, false);
 }
 
 void MonsterAIManager::EndIdle()
@@ -211,12 +228,18 @@ void MonsterAIManager::UpdateIdle()
 
 bool MonsterAIManager::SeekTarget()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	if (m_fNextPVSCheck <= Timer::cur_time)
 	{
 		m_fNextPVSCheck = Timer::cur_time + 2.0f;
 
 		std::list<std::shared_ptr<CWeenieObject> > results;
-		g_pWorld->EnumNearbyPlayers(m_pWeenie, _cachedVisualAwarenessRange, &results); // m_HomePosition
+		g_pWorld->EnumNearbyPlayers(pWeenie, _cachedVisualAwarenessRange, &results); // m_HomePosition
 
 		std::list<std::shared_ptr<CWeenieObject> > validTargets;
 
@@ -225,7 +248,7 @@ bool MonsterAIManager::SeekTarget()
 
 		for (auto weenie : results)
 		{
-			if (weenie == m_pWeenie)
+			if (weenie == pWeenie)
 				continue;
 
 			if (!weenie->_IsPlayer()) // only attack players
@@ -234,13 +257,13 @@ bool MonsterAIManager::SeekTarget()
 			if (!weenie->IsAttackable())
 				continue;
 
-			if (weenie->ImmuneToDamage(m_pWeenie)) // only attackable players (not dead, not in portal space, etc.
+			if (weenie->ImmuneToDamage(pWeenie)) // only attackable players (not dead, not in portal space, etc.
 				continue;
 
 			validTargets.push_back(weenie);
 
 			/*
-			double fWeenieDist = m_pWeenie->DistanceTo(weenie);
+			double fWeenieDist = pWeenie->DistanceTo(weenie);
 			if (pClosestWeenie && fWeenieDist >= fClosestWeenieDist)
 			continue;
 
@@ -269,12 +292,18 @@ bool MonsterAIManager::SeekTarget()
 
 void MonsterAIManager::SetNewTarget(std::shared_ptr<CWeenieObject> pTarget)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie || !pTarget)
+	{
+		return;
+	}
+
 	m_TargetID = pTarget->GetID();
 
-	if (_missileWeapon != NULL)
+	if (_missileWeapon.lock() )
 	{
-		double fTargetDist = m_pWeenie->DistanceTo(pTarget, true);
-		if(fTargetDist > 5 || (_meleeWeapon == NULL && !_hasUnarmedSkill))
+		double fTargetDist = pWeenie->DistanceTo(pTarget, true);
+		if(fTargetDist > 5 || (!_meleeWeapon.lock() && !_hasUnarmedSkill))
 			SwitchState(MissileModeAttack);
 		else
 			SwitchState(MeleeModeAttack);
@@ -282,7 +311,7 @@ void MonsterAIManager::SetNewTarget(std::shared_ptr<CWeenieObject> pTarget)
 	else
 		SwitchState(MeleeModeAttack);
 
-	m_pWeenie->ChanceExecuteEmoteSet(pTarget->GetID(), NewEnemy_EmoteCategory);
+	pWeenie->ChanceExecuteEmoteSet(pTarget->GetID(), NewEnemy_EmoteCategory);
 }
 
 std::shared_ptr<CWeenieObject> MonsterAIManager::GetTargetWeenie()
@@ -292,10 +321,16 @@ std::shared_ptr<CWeenieObject> MonsterAIManager::GetTargetWeenie()
 
 float MonsterAIManager::DistanceToHome()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return FLT_MAX;
+	}
+
 	if (!m_HomePosition.objcell_id)
 		return FLT_MAX;
 
-	return m_HomePosition.distance(m_pWeenie->m_Position);
+	return m_HomePosition.distance(pWeenie->m_Position);
 }
 
 bool MonsterAIManager::ShouldSeekNewTarget()
@@ -308,19 +343,25 @@ bool MonsterAIManager::ShouldSeekNewTarget()
 
 bool MonsterAIManager::RollDiceCastSpell()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return false;
+	}
+
 	if (m_fNextCastTime > Timer::cur_time)
 	{
 		return false;
 	}
 
-	if (m_pWeenie->m_Qualities._spell_book)
+	if (pWeenie->m_Qualities._spell_book)
 	{
 		/* not correct, these must be independent events (look at wisps)
 		float dice = Random::RollDice(0.0f, 1.0f);
 
-		auto spellIterator = m_pWeenie->m_Qualities._spell_book->_spellbook.begin();
+		auto spellIterator = pWeenie->m_Qualities._spell_book->_spellbook.begin();
 
-		while (spellIterator != m_pWeenie->m_Qualities._spell_book->_spellbook.end())
+		while (spellIterator != pWeenie->m_Qualities._spell_book->_spellbook.end())
 		{
 			float likelihood = spellIterator->second._casting_likelihood;
 
@@ -334,16 +375,16 @@ bool MonsterAIManager::RollDiceCastSpell()
 		}
 		*/
 		
-		auto spellIterator = m_pWeenie->m_Qualities._spell_book->_spellbook.begin();
+		auto spellIterator = pWeenie->m_Qualities._spell_book->_spellbook.begin();
 
-		while (spellIterator != m_pWeenie->m_Qualities._spell_book->_spellbook.end())
+		while (spellIterator != pWeenie->m_Qualities._spell_book->_spellbook.end())
 		{
 			float dice = Random::RollDice(0.0f, 1.0f);
 			float likelihood = spellIterator->second._casting_likelihood;
 
 			if (dice <= likelihood)
 			{
-				m_fNextCastTime = Timer::cur_time + m_pWeenie->m_Qualities.GetFloat(AI_USE_MAGIC_DELAY_FLOAT, 0.0);
+				m_fNextCastTime = Timer::cur_time + pWeenie->m_Qualities.GetFloat(AI_USE_MAGIC_DELAY_FLOAT, 0.0);
 				return DoCastSpell(spellIterator->first);
 			}
 
@@ -355,14 +396,26 @@ bool MonsterAIManager::RollDiceCastSpell()
 }
 
 bool MonsterAIManager::DoCastSpell(DWORD spell_id)
-{	
+{
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return false;
+	}
+
 	std::shared_ptr<CWeenieObject> pTarget = GetTargetWeenie();
-	m_pWeenie->MakeSpellcastingManager()->CreatureBeginCast(pTarget ? pTarget->GetID() : 0, spell_id);
+	pWeenie->MakeSpellcastingManager()->CreatureBeginCast(pTarget ? pTarget->GetID() : 0, spell_id);
 	return true;
 }
 
 bool MonsterAIManager::DoMeleeAttack()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	DWORD motion = 0;
 	ATTACK_HEIGHT height = ATTACK_HEIGHT::UNDEF_ATTACK_HEIGHT;
 	float power = 0.0f;
@@ -378,7 +431,7 @@ bool MonsterAIManager::DoMeleeAttack()
 		return false;
 	}
 
-	m_pWeenie->TryMeleeAttack(pTarget->GetID(), height, power, motion);
+	pWeenie->TryMeleeAttack(pTarget->GetID(), height, power, motion);
 
 	m_fNextAttackTime = Timer::cur_time + 2.0f;
 	m_fNextChaseTime = Timer::cur_time; // chase again anytime
@@ -389,17 +442,23 @@ bool MonsterAIManager::DoMeleeAttack()
 
 void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height, float *power, std::shared_ptr<CWeenieObject> weapon)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	*motion = 0;
 	*height = ATTACK_HEIGHT::UNDEF_ATTACK_HEIGHT;
 	*power = Random::GenFloat(0, 1);
 
-	if (m_pWeenie->_combatTable)
+	if (pWeenie->_combatTable)
 	{
 		if(weapon == NULL)
-		if (!m_pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
-			weapon = m_pWeenie->GetWieldedCombat(COMBAT_USE_MELEE);
+		if (!pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
+			weapon = pWeenie->GetWieldedCombat(COMBAT_USE_MELEE);
 		else {
-			weapon = m_pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+			weapon = pWeenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED);
 		}
 		if (weapon)
 		{
@@ -416,24 +475,24 @@ void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height
 			CombatManeuver *combatManeuver;
 			
 			// some monster have undef'd attack heights (hollow?) which is index 0
-			combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(0, 3));
+			combatManeuver = pWeenie->_combatTable->TryGetCombatManuever(pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(0, 3));
 
 			if (!combatManeuver)
 			{
 				// and some don't
-				combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(1, 3));
+				combatManeuver = pWeenie->_combatTable->TryGetCombatManuever(pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(1, 3));
 
 				if (!combatManeuver)
 				{
-					combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::HIGH_ATTACK_HEIGHT);
+					combatManeuver = pWeenie->_combatTable->TryGetCombatManuever(pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::HIGH_ATTACK_HEIGHT);
 				
 					if (!combatManeuver)
 					{
-						combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::MEDIUM_ATTACK_HEIGHT);
+						combatManeuver = pWeenie->_combatTable->TryGetCombatManuever(pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::MEDIUM_ATTACK_HEIGHT);
 				
 						if (!combatManeuver)
 						{
-							combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::LOW_ATTACK_HEIGHT);
+							combatManeuver = pWeenie->_combatTable->TryGetCombatManuever(pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::LOW_ATTACK_HEIGHT);
 						}
 					}
 				}
@@ -461,24 +520,24 @@ void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height
 			CombatManeuver *combatManeuver;
 
 			// some monster have undef'd attack heights (hollow?) which is index 0
-			combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(0, 3));
+			combatManeuver = pWeenie->_combatTable->TryGetCombatManuever(pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(0, 3));
 
 			if (!combatManeuver)
 			{
 				// and some don't
-				combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(1, 3));
+				combatManeuver = pWeenie->_combatTable->TryGetCombatManuever(pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(1, 3));
 
 				if (!combatManeuver)
 				{
-					combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::HIGH_ATTACK_HEIGHT);
+					combatManeuver = pWeenie->_combatTable->TryGetCombatManuever(pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::HIGH_ATTACK_HEIGHT);
 
 					if (!combatManeuver)
 					{
-						combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::MEDIUM_ATTACK_HEIGHT);
+						combatManeuver = pWeenie->_combatTable->TryGetCombatManuever(pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::MEDIUM_ATTACK_HEIGHT);
 
 						if (!combatManeuver)
 						{
-							combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::LOW_ATTACK_HEIGHT);
+							combatManeuver = pWeenie->_combatTable->TryGetCombatManuever(pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::LOW_ATTACK_HEIGHT);
 						}
 					}
 				}
@@ -500,7 +559,13 @@ void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height
 
 void MonsterAIManager::BeginReturningToSpawn()
 {
-	// m_pWeenie->DoForcedStopCompletely();
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	// pWeenie->DoForcedStopCompletely();
 
 	MovementParameters params;
 	params.can_walk = 0;
@@ -510,11 +575,11 @@ void MonsterAIManager::BeginReturningToSpawn()
 	mvs.pos = m_HomePosition;
 	mvs.params = &params;
 
-	m_pWeenie->movement_manager->PerformMovement(mvs);
+	pWeenie->movement_manager->PerformMovement(mvs);
 
 	m_fReturnTimeoutTime = Timer::cur_time + m_fReturnTimeout;
 
-	m_pWeenie->ChanceExecuteEmoteSet(m_TargetID, Homesick_EmoteCategory);
+	pWeenie->ChanceExecuteEmoteSet(m_TargetID, Homesick_EmoteCategory);
 }
 
 void MonsterAIManager::EndReturningToSpawn()
@@ -523,7 +588,13 @@ void MonsterAIManager::EndReturningToSpawn()
 
 void MonsterAIManager::UpdateReturningToSpawn()
 {
-	float fDistToHome = m_HomePosition.distance(m_pWeenie->m_Position);
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	float fDistToHome = m_HomePosition.distance(pWeenie->m_Position);
 
 	if (fDistToHome < 5.0f)
 	{
@@ -534,7 +605,7 @@ void MonsterAIManager::UpdateReturningToSpawn()
 	if (m_fReturnTimeoutTime <= Timer::cur_time)
 	{
 		// teleport back to spawn
-		m_pWeenie->Movement_Teleport(m_HomePosition);
+		pWeenie->Movement_Teleport(m_HomePosition);
 
 		SwitchState(Idle);
 		return;
@@ -550,13 +621,13 @@ bool MonsterAIManager::IsValidTarget(std::shared_ptr<CWeenieObject> pWeenie)
 	if (!pWeenie)
 		return false;
 
-	if (pWeenie == m_pWeenie)
+	if (pWeenie == pWeenie)
 		return false;
 
 	if (!pWeenie->_IsPlayer()) // only attack players
 		return false;
 
-	if (pWeenie->ImmuneToDamage(m_pWeenie)) // only attackable players (not dead, not in portal space, etc.
+	if (pWeenie->ImmuneToDamage(pWeenie)) // only attackable players (not dead, not in portal space, etc.
 		return false;
 
 	return true;
@@ -564,15 +635,21 @@ bool MonsterAIManager::IsValidTarget(std::shared_ptr<CWeenieObject> pWeenie)
 
 void MonsterAIManager::AlertIdleFriendsToAggro(std::shared_ptr<CWeenieObject> pAttacker)
 {
-	std::list<std::shared_ptr<CWeenieObject> > results;
-	g_pWorld->EnumNearby(m_pWeenie, 20.0f, &results);
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
 
-	int ourType = m_pWeenie->InqIntQuality(CREATURE_TYPE_INT, 0);
-	int ourFriendType = m_pWeenie->InqIntQuality(FRIEND_TYPE_INT, 0);
+	std::list<std::shared_ptr<CWeenieObject> > results;
+	g_pWorld->EnumNearby(pWeenie, 20.0f, &results);
+
+	int ourType = pWeenie->InqIntQuality(CREATURE_TYPE_INT, 0);
+	int ourFriendType = pWeenie->InqIntQuality(FRIEND_TYPE_INT, 0);
 	
 	for (auto weenie : results)
 	{
-		if (weenie == m_pWeenie)
+		if (weenie == pWeenie)
 			continue;
 
 		if (!weenie->IsCreature())
@@ -619,8 +696,14 @@ void MonsterAIManager::AlertIdleFriendsToAggro(std::shared_ptr<CWeenieObject> pA
 
 void MonsterAIManager::OnResistSpell(std::shared_ptr<CWeenieObject> attacker)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	if(attacker)
-		m_pWeenie->ChanceExecuteEmoteSet(attacker->GetID(), ResistSpell_EmoteCategory);
+		pWeenie->ChanceExecuteEmoteSet(attacker->GetID(), ResistSpell_EmoteCategory);
 }
 
 void MonsterAIManager::OnEvadeAttack(std::shared_ptr<CWeenieObject> attacker)
@@ -630,34 +713,51 @@ void MonsterAIManager::OnEvadeAttack(std::shared_ptr<CWeenieObject> attacker)
 
 void MonsterAIManager::OnDealtDamage(DamageEventData &damageData)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	if (_nextTaunt > 0 && _nextTaunt <= Timer::cur_time)
 	{
-		if (damageData.target)
-			m_pWeenie->ChanceExecuteEmoteSet(damageData.target->GetID(), Taunt_EmoteCategory);
+
+		std::shared_ptr<CWeenieObject> pTarget = damageData.target.lock();
+
+		if (pTarget)
+			pWeenie->ChanceExecuteEmoteSet(pTarget->GetID(), Taunt_EmoteCategory);
 		_nextTaunt = Timer::cur_time + Random::GenUInt(10, 30);
 	}
 }
 
 void MonsterAIManager::OnTookDamage(DamageEventData &damageData)
 {
-	std::shared_ptr<CWeenieObject> source = damageData.source;
-	unsigned int damage = damageData.outputDamageFinal;
-
-	if (!source)
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
 		return;
+	}
+
+	std::shared_ptr<CWeenieObject> source = damageData.source.lock();
+	if (!source)
+	{
+		return;
+	}
+
+	unsigned int damage = damageData.outputDamageFinal;
 
 	HandleAggro(source);
 
 	if(damageData.wasCrit)
-		m_pWeenie->ChanceExecuteEmoteSet(source->GetID(), ReceiveCritical_EmoteCategory);
+		pWeenie->ChanceExecuteEmoteSet(source->GetID(), ReceiveCritical_EmoteCategory);
 
-	if (m_pWeenie->m_Qualities._emote_table && !m_pWeenie->IsExecutingEmote())
+	if (pWeenie->m_Qualities._emote_table && !pWeenie->IsExecutingEmote())
 	{
-		PackableList<EmoteSet> *emoteSetList = m_pWeenie->m_Qualities._emote_table->_emote_table.lookup(WoundedTaunt_EmoteCategory);
+		PackableList<EmoteSet> *emoteSetList = pWeenie->m_Qualities._emote_table->_emote_table.lookup(WoundedTaunt_EmoteCategory);
 
 		if (emoteSetList)
 		{
-			double healthPercent = m_pWeenie->GetHealthPercent();
+			double healthPercent = pWeenie->GetHealthPercent();
 			if (m_fLastWoundedTauntHP > healthPercent)
 			{
 				double dice = Random::GenFloat(0.0, 1.0);
@@ -669,7 +769,7 @@ void MonsterAIManager::OnTookDamage(DamageEventData &damageData)
 					{
 						m_fLastWoundedTauntHP = healthPercent;
 
-						m_pWeenie->MakeEmoteManager()->ExecuteEmoteSet(emoteSet, source->GetID());
+						pWeenie->MakeEmoteManager()->ExecuteEmoteSet(emoteSet, source->GetID());
 					}
 				}
 			}
@@ -679,12 +779,18 @@ void MonsterAIManager::OnTookDamage(DamageEventData &damageData)
 
 void MonsterAIManager::OnIdentifyAttempted(std::shared_ptr<CWeenieObject> other)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	if (_toleranceType != TolerateUnlessBothered)
 	{
 		return;
 	}
 
-	if (m_pWeenie->DistanceTo(other, true) >= 60.0)
+	if (pWeenie->DistanceTo(other, true) >= 60.0)
 	{
 		return;
 	}
@@ -694,12 +800,18 @@ void MonsterAIManager::OnIdentifyAttempted(std::shared_ptr<CWeenieObject> other)
 
 void MonsterAIManager::HandleAggro(std::shared_ptr<CWeenieObject> pAttacker)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	if (_toleranceType == TolerateEverything)
 	{
 		return;
 	}
 
-	if (!m_pWeenie->IsDead())
+	if (!pWeenie->IsDead())
 	{
 		switch (m_State)
 		{
@@ -709,12 +821,12 @@ void MonsterAIManager::HandleAggro(std::shared_ptr<CWeenieObject> pAttacker)
 			{
 				if (IsValidTarget(pAttacker))
 				{
-					//if (m_pWeenie->DistanceTo(pAttacker, true) <= m_pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE))
+					//if (pWeenie->DistanceTo(pAttacker, true) <= pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE))
 					//{
 					SetNewTarget(pAttacker);
 					//}
 
-					m_pWeenie->ChanceExecuteEmoteSet(pAttacker->GetID(), Scream_EmoteCategory);
+					pWeenie->ChanceExecuteEmoteSet(pAttacker->GetID(), Scream_EmoteCategory);
 					m_fAggroTime = Timer::cur_time + 10.0;
 				}
 
@@ -745,26 +857,47 @@ void MonsterAIManager::EndSeekNewTarget()
 
 void MonsterAIManager::BeginMeleeModeAttack()
 {
-	if (_shield != NULL && _currentShield == NULL)
+	std::shared_ptr<CMonsterWeenie> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
 	{
-		if (m_pWeenie->FinishMoveItemToWield(_shield, SHIELD_LOC)) //make sure our shield is equipped
+		return;
+	}
+
+
+	std::shared_ptr<CWeenieObject> pShield = _shield.lock();
+	std::shared_ptr<CWeenieObject> pCurrentShield = _currentShield.lock();
+
+
+	if (pShield && !pCurrentShield)
+	{
+		if (pWeenie->FinishMoveItemToWield(pShield, SHIELD_LOC)) //make sure our shield is equipped
 			_currentShield = _shield;
 	}
 
-	if (_currentWeapon != _meleeWeapon)
+
+	std::shared_ptr<CWeenieObject> pMeleeWeapon = _meleeWeapon.lock();
+	std::shared_ptr<CWeenieObject> pCurrentWeapon = _currentWeapon.lock();
+
+	if (pCurrentWeapon != pMeleeWeapon)
 	{
-		if (_currentWeapon)
-			m_pWeenie->FinishMoveItemToContainer(_currentWeapon, m_pWeenie, 0, true);
-		if (_meleeWeapon)
+		if (pCurrentWeapon)
 		{
-			if (m_pWeenie->FinishMoveItemToWield(_meleeWeapon, MELEE_WEAPON_LOC))
-				_currentWeapon = _meleeWeapon;
+			pWeenie->FinishMoveItemToContainer(pCurrentWeapon, pWeenie, 0, true);
+		}
+		if (pMeleeWeapon)
+		{
+			if (pWeenie->FinishMoveItemToWield(pMeleeWeapon, MELEE_WEAPON_LOC))
+			{
+				_currentWeapon = pMeleeWeapon;
+			}
 			else
-				_currentWeapon = 0;
+			{
+				_currentWeapon = std::shared_ptr<CWeenieObject>(NULL);
+			}
 		}
 	}
 
-	m_pWeenie->ChangeCombatMode(COMBAT_MODE::MELEE_COMBAT_MODE, false);
+	pWeenie->ChangeCombatMode(COMBAT_MODE::MELEE_COMBAT_MODE, false);
 
 	m_fChaseTimeoutTime = Timer::cur_time + m_fChaseTimeoutDuration;
 	m_fNextAttackTime = Timer::cur_time;
@@ -775,12 +908,18 @@ void MonsterAIManager::BeginMeleeModeAttack()
 
 void MonsterAIManager::EndMeleeModeAttack()
 {
-	m_pWeenie->unstick_from_object();
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+	pWeenie->unstick_from_object();
 }
 
 void MonsterAIManager::UpdateMeleeModeAttack()
 {
-	if (m_pWeenie->IsBusyOrInAction())
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+	if (!pWeenie || pWeenie->IsBusyOrInAction())
 	{
 		// still animating or busy (attacking, etc.)
 		return;
@@ -792,7 +931,7 @@ void MonsterAIManager::UpdateMeleeModeAttack()
 	// dont chase any new target, even if attacked, outside home range
 
 	std::shared_ptr<CWeenieObject> pTarget = GetTargetWeenie();
-	if (!pTarget || pTarget->IsDead() || !pTarget->IsAttackable() || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
+	if (!pTarget || pTarget->IsDead() || !pTarget->IsAttackable() || pTarget->ImmuneToDamage(pWeenie) || pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
 	{
 		if (ShouldSeekNewTarget())
 		{
@@ -811,8 +950,8 @@ void MonsterAIManager::UpdateMeleeModeAttack()
 		return;
 	}
 
-	double fTargetDist = m_pWeenie->DistanceTo(pTarget, true);
-	if (fTargetDist >= m_pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE) && m_fAggroTime <= Timer::cur_time)
+	double fTargetDist = pWeenie->DistanceTo(pTarget, true);
+	if (fTargetDist >= pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE) && m_fAggroTime <= Timer::cur_time)
 	{
 		SwitchState(ReturningToSpawn);
 		return;
@@ -823,14 +962,14 @@ void MonsterAIManager::UpdateMeleeModeAttack()
 		return;
 	}
 
-	if (!RollDiceCastSpell() && m_pWeenie->DistanceTo(pTarget) < m_fChaseRange)
+	if (!RollDiceCastSpell() && pWeenie->DistanceTo(pTarget) < m_fChaseRange)
 	{
 		// do physics attack
 		DWORD motion = 0;
 		ATTACK_HEIGHT height = ATTACK_HEIGHT::UNDEF_ATTACK_HEIGHT;
 		float power = 0.0f;
 		GenerateRandomAttack(&motion, &height, &power);
-		m_pWeenie->TryMeleeAttack(pTarget->GetID(), height, power, motion);
+		pWeenie->TryMeleeAttack(pTarget->GetID(), height, power, motion);
 
 		m_fNextAttackTime = Timer::cur_time + 2.0f;
 		m_fNextChaseTime = Timer::cur_time; // chase again anytime
@@ -840,53 +979,64 @@ void MonsterAIManager::UpdateMeleeModeAttack()
 
 void MonsterAIManager::BeginMissileModeAttack()
 {
-	if (_missileWeapon == 0)
+	std::shared_ptr<CMonsterWeenie> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	std::shared_ptr<CWeenieObject> pMissileWeapon = _missileWeapon.lock();
+
+	if (!pMissileWeapon)
 	{
 		SwitchState(MeleeModeAttack);
 		return;
 	}
 	else
 	{
-		if (_missileWeapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle)
+		std::shared_ptr<CWeenieObject> pShield = _shield.lock();
+		std::shared_ptr<CWeenieObject> pCurrentShield = _currentShield.lock();
+
+		if (pMissileWeapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle)
 		{
-			std::shared_ptr<CWeenieObject> equippedAmmo = m_pWeenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_AMMO);
+			std::shared_ptr<CWeenieObject> equippedAmmo = pWeenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_AMMO);
 			if (!equippedAmmo)
 			{
 				//we don't have ammo, disable missile mode and switch to melee.
-				_missileWeapon = 0;
+				_missileWeapon = std::shared_ptr<CWeenieObject>(NULL);
 				SwitchState(MeleeModeAttack);
 				return;
 			}
 
-			if (_currentShield != NULL)
+			if (pCurrentShield)
 			{
-				m_pWeenie->FinishMoveItemToContainer(_currentShield, m_pWeenie, 0, true); //get rid of the shield.
-				_currentShield = NULL;
+				pWeenie->FinishMoveItemToContainer(pCurrentShield, pWeenie, 0, true); //get rid of the shield.
+				_currentShield = std::shared_ptr<CWeenieObject>(NULL);
 			}
 		}
-		else if (_shield != NULL && _currentShield == NULL)
+		else if (pShield && !pCurrentShield)
 		{
-			if(m_pWeenie->FinishMoveItemToWield(_shield, SHIELD_LOC)) //shields can be wielded with thrown weapons.
-				_currentShield = _shield;
+			if (pWeenie->FinishMoveItemToWield(pShield, SHIELD_LOC)) //shields can be wielded with thrown weapons.
+			{
+				_currentShield = pShield;
+			}
 		}
 	}
+	std::shared_ptr<CWeenieObject> pCurrentWeapon = _currentWeapon.lock();
 
-	if (_currentWeapon != _missileWeapon)
+	if (pCurrentWeapon && pCurrentWeapon != pMissileWeapon)
 	{
-		if (_currentWeapon)
+		pWeenie->FinishMoveItemToContainer(pCurrentWeapon, pWeenie, 0, true);
+		if (pWeenie->FinishMoveItemToWield(pMissileWeapon, MISSILE_WEAPON_LOC))
+			_currentWeapon = _missileWeapon;
+		else
 		{
-			m_pWeenie->FinishMoveItemToContainer(_currentWeapon, m_pWeenie, 0, true);
-			if (m_pWeenie->FinishMoveItemToWield(_missileWeapon, MISSILE_WEAPON_LOC))
-				_currentWeapon = _missileWeapon;
-			else
-			{
-				_currentWeapon = 0;
-				SwitchState(MeleeModeAttack);
-			}
+			_currentWeapon = std::shared_ptr<CWeenieObject>(NULL);
+			SwitchState(MeleeModeAttack);
 		}
 	}
 
-	m_pWeenie->ChangeCombatMode(COMBAT_MODE::MISSILE_COMBAT_MODE, false);
+	pWeenie->ChangeCombatMode(COMBAT_MODE::MISSILE_COMBAT_MODE, false);
 
 	m_fChaseTimeoutTime = Timer::cur_time + m_fChaseTimeoutDuration;
 	m_fNextAttackTime = Timer::cur_time;
@@ -901,7 +1051,13 @@ void MonsterAIManager::EndMissileModeAttack()
 
 void MonsterAIManager::UpdateMissileModeAttack()
 {
-	if (m_pWeenie->IsBusyOrInAction() || m_pWeenie->motions_pending())
+	std::shared_ptr<CMonsterWeenie> pWeenie = m_pWeenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	if (pWeenie->IsBusyOrInAction() || pWeenie->motions_pending())
 	{
 		// still animating or busy (attacking, etc.)
 		return;
@@ -913,7 +1069,7 @@ void MonsterAIManager::UpdateMissileModeAttack()
 	// dont chase any new target, even if attacked, outside home range
 
 	std::shared_ptr<CWeenieObject> pTarget = GetTargetWeenie();
-	if (!pTarget || pTarget->IsDead() || !pTarget->IsAttackable() || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
+	if (!pTarget || pTarget->IsDead() || !pTarget->IsAttackable() || pTarget->ImmuneToDamage(pWeenie) || pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
 	{
 		if (ShouldSeekNewTarget())
 		{
@@ -935,8 +1091,8 @@ void MonsterAIManager::UpdateMissileModeAttack()
 	float weaponMinRange = 1;
 	float weaponMaxRange = 60; //todo: get the value from the weapon? Players currently have 60 as a fixed max value.
 
-	double fTargetDist = m_pWeenie->DistanceTo(pTarget, true);
-	if (fTargetDist >= max(m_pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE), weaponMaxRange) && m_fAggroTime <= Timer::cur_time)
+	double fTargetDist = pWeenie->DistanceTo(pTarget, true);
+	if (fTargetDist >= max(pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE), weaponMaxRange) && m_fAggroTime <= Timer::cur_time)
 	{
 		SwitchState(ReturningToSpawn);
 		return;
@@ -947,7 +1103,10 @@ void MonsterAIManager::UpdateMissileModeAttack()
 		return;
 	}
 
-	if (_meleeWeapon != NULL || _hasUnarmedSkill) //we also have a melee weapon(or know how to fight without one)
+
+	std::shared_ptr<CWeenieObject> pMeleeWeapon = _meleeWeapon.lock();
+
+	if (pMeleeWeapon || _hasUnarmedSkill) //we also have a melee weapon(or know how to fight without one)
 	{
 		double roll = Random::GenFloat(0.0, 1.0);
 		if (fTargetDist < weaponMinRange && roll < 0.3) //the target is too close, let's go melee
@@ -965,14 +1124,14 @@ void MonsterAIManager::UpdateMissileModeAttack()
 
 	if (!RollDiceCastSpell())
 	{
-		if (m_pWeenie->DistanceTo(pTarget) < weaponMaxRange)
+		if (pWeenie->DistanceTo(pTarget) < weaponMaxRange)
 		{
 			// do physics attack
 			DWORD motion = 0;
 			ATTACK_HEIGHT height = (ATTACK_HEIGHT)Random::GenUInt(1, 3);
 			float power = Random::GenFloat(0, 1);
 
-			m_pWeenie->TryMissileAttack(pTarget->GetID(), height, power);
+			pWeenie->TryMissileAttack(pTarget->GetID(), height, power);
 
 			m_fNextAttackTime = Timer::cur_time + 2.0f;
 			m_fNextChaseTime = Timer::cur_time; // chase again anytime
