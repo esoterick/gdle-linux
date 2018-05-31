@@ -323,7 +323,7 @@ void CPhysicsObj::UpdateChildrenInternal()
 	{
 		for (DWORD i = 0; i < children->num_objects; i++)
 		{
-			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i].lock())
+			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i])
 			{
 				UpdateChild(pChild, children->part_numbers.array_data[i], &children->frames.array_data[i]);
 			}
@@ -1165,7 +1165,7 @@ void CPhysicsObj::leave_cell(BOOL is_changing_cell)
 	{
 		for (DWORD i = 0; i < children->num_objects; i++)
 		{
-			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i].lock())
+			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i])
 			{
 				pChild->leave_cell(is_changing_cell);
 			}
@@ -1192,7 +1192,7 @@ void CPhysicsObj::enter_cell(CObjCell *pCell)
 	{
 		for (DWORD i = 0; i < children->num_objects; i++)
 		{
-			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i].lock())
+			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i])
 			{
 				pChild->enter_cell(pCell);
 			}
@@ -1981,7 +1981,7 @@ void CPhysicsObj::add_shadows_to_cells(CELLARRAY *cell_array)
 	{
 		for (DWORD i = 0; i < children->num_objects; i++)
 		{
-			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i].lock())
+			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i])
 			{
 				pChild->add_shadows_to_cells(cell_array);
 			}
@@ -2008,7 +2008,7 @@ void CPhysicsObj::remove_shadows_from_cells()
 
 	for (DWORD i = 0; i < num_children; i++)
 	{
-		if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i].lock())
+		if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i])
 		{
 			pChild->remove_shadows_from_cells();
 		}
@@ -2037,7 +2037,7 @@ int CPhysicsObj::prepare_to_leave_visibility()
 	{
 		for (DWORD i = 0; i < children->num_objects; i++)
 		{
-			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i].lock())
+			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i])
 			{
 				obj_maint->AddObjectToBeDestroyed(pChild->id);
 			}
@@ -2058,7 +2058,7 @@ void CPhysicsObj::prepare_to_enter_world()
 	{
 		for (DWORD i = 0; i < children->num_objects; i++)
 		{
-			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i].lock())
+			if (std::shared_ptr<CPhysicsObj> pChild = children->objects.array_data[i])
 			{
 				obj_maint->RemoveObjectToBeDestroyed(pChild->id);
 			}
@@ -2510,7 +2510,7 @@ int CPhysicsObj::SetPositionInternal(CTransition *transit)
 			{
 				for (DWORD i = 0; i < children->num_objects; i++)
 				{
-					std::shared_ptr<CPhysicsObj> pChild = children->objects.data[i].lock();
+					std::shared_ptr<CPhysicsObj> pChild = children->objects.data[i];
 
 					if (pChild)
 					{
@@ -2908,7 +2908,7 @@ void CPhysicsObj::unparent_children()
 {
 	while (children && children->num_objects)
 	{
-		if (std::shared_ptr<CPhysicsObj> pChild = children->objects.data[0].lock())
+		if (std::shared_ptr<CPhysicsObj> pChild = children->objects.data[0])
 		{
 			pChild->unset_parent();
 		}
@@ -3044,7 +3044,7 @@ void CPhysicsObj::recalc_cross_cells()
 		{
 			for (DWORD i = 0; i < children->num_objects; i++)
 			{
-				if (std::shared_ptr<CPhysicsObj> pChild = children->objects.data[i].lock())
+				if (std::shared_ptr<CPhysicsObj> pChild = children->objects.data[i])
 				{
 					pChild->recalc_cross_cells();
 				}

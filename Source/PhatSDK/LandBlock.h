@@ -53,7 +53,7 @@ public:
 	BoundingType in_view; // 0xC8 / 0xD4
 	class CLandBlockInfo *lbi; // 0xCC / 0xD8
 	DWORD num_static_objects; // 0xD0 / 0xDC
-	std::vector<std::shared_ptr<CPhysicsObj> > static_objects; // 0xD4 / 0xE0
+	DArray<std::shared_ptr<CPhysicsObj> > static_objects; // 0xD4 / 0xE0
 	DWORD num_buildings; // 0xE4 / 0xF0
 	class CBuildingObj **buildings; // 0xE8 / 0xF4
 	DWORD stab_num; // 0xEC / 0xF8

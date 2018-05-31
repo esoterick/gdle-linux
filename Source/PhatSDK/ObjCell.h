@@ -92,14 +92,14 @@ public:
 	Position pos; // 0x54
 
 	DWORD num_objects = 0; // 0x9C
-	std::vector<std::shared_ptr<CPhysicsObj> > object_list; // 0xA0
+	DArray<std::shared_ptr<CPhysicsObj> > object_list; // 0xA0
 
 	// Light Information
 	DWORD num_lights = 0; // 0xB0
-	std::vector<const LIGHTOBJ *> light_list; // 0xB4
+	DArray<const LIGHTOBJ *> light_list; // 0xB4
 
 	DWORD num_shadow_objects = 0;
-	std::vector<CShadowObj *> shadow_object_list; 
+	DArray<CShadowObj *> shadow_object_list; 
 
 	DWORD restriction_obj = 0;
 	ClipPlaneList **clip_planes = 0;

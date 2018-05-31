@@ -103,7 +103,7 @@ public:
 
 	void AdjustToNewCombatMode();
 
-	std::vector<std::shared_ptr<CWeenieObject>> m_WieldedCombat;
+	std::shared_ptr<CWeenieObject> m_WieldedCombat[MAX_WIELDED_COMBAT];
 	std::vector<std::shared_ptr<CWeenieObject> > m_Wielded;
 	std::vector<std::shared_ptr<CWeenieObject> > m_Items;
 	std::vector<std::shared_ptr<CWeenieObject> > m_Packs;

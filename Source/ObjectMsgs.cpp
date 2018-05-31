@@ -222,7 +222,7 @@ BinaryWriter *GetPhysicsObjData(std::shared_ptr<CWeenieObject> pEntity)
 
 		for (DWORD i = 0; i < pEntity->children->num_objects; i++)
 		{
-			if (std::shared_ptr<CPhysicsObj> pChild = pEntity->children->objects.array_data[i].lock())
+			if (std::shared_ptr<CPhysicsObj> pChild = pEntity->children->objects.array_data[i])
 			{
 				OptionalPhysicsObjData.Write<DWORD>(pChild->id);
 				OptionalPhysicsObjData.Write<DWORD>(pEntity->children->location_ids.array_data[i]);
