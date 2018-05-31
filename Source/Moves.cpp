@@ -17,7 +17,7 @@ void CPhysicsObj::Movement_Shutdown()
 
 void CPhysicsObj::Movement_Think()
 {
-	if (parent)
+	if (parent.lock())
 		return;
 
 	if ((m_fMoveThink + 1.0f) < Timer::cur_time)
@@ -48,7 +48,7 @@ void CPhysicsObj::Movement_SendUpdate(DWORD dwCell)
 
 void CPhysicsObj::Movement_UpdatePos()
 {
-	if (parent)
+	if (parent.lock())
 		return;
 
 	//QUICKFIX: Broadcast to the old landblock that we've moved from.
@@ -79,7 +79,7 @@ void CPhysicsObj::Movement_UpdatePos()
 
 void CPhysicsObj::Movement_UpdateVector()
 {
-	if (parent)
+	if (parent.lock())
 		return;
 
 	BinaryWriter moveMsg;

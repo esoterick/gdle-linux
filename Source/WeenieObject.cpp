@@ -388,6 +388,8 @@ void CWeenieObject::OnMotionDone(DWORD motion, BOOL success)
 	if (m_AttackManager)
 		m_AttackManager->OnMotionDone(motion, success);
 
+	std::shared_ptr<CWeenieObject> pParent;
+
 	if (motion == Motion_Reload)
 	{
 		switch (get_minterp()->InqStyle())
@@ -405,7 +407,7 @@ void CWeenieObject::OnMotionDone(DWORD motion, BOOL success)
 
 			if (ammo)
 			{
-				if (ammo->parent != GetPointer<CWeenieObject>())
+				if (ammo->parent.lock() != GetPointer<CWeenieObject>())
 				{
 					ammo->m_Qualities.SetInt(PARENT_LOCATION_INT, PARENT_ENUM::PARENT_RIGHT_HAND);
 					ammo->set_parent(GetPointer<CWeenieObject>(), PARENT_ENUM::PARENT_RIGHT_HAND);
@@ -466,7 +468,7 @@ void CWeenieObject::OnMotionDone(DWORD motion, BOOL success)
 			case Motion_SwordShieldCombat:
 			case Motion_Magic:
 			{
-				if (ammo->parent == GetPointer<CWeenieObject>())
+				if (ammo->parent.lock() == GetPointer<CWeenieObject>())
 				{
 					if (m_bWorldIsAware)
 					{
@@ -493,7 +495,7 @@ void CWeenieObject::OnMotionDone(DWORD motion, BOOL success)
 			case Motion_CrossbowCombat:
 			case Motion_BowCombat:
 			{
-				if (ammo->parent != GetPointer<CWeenieObject>())
+				if (ammo->parent.lock() != GetPointer<CWeenieObject>())
 				{
 					MovementParameters params;
 					get_minterp()->DoMotion(Motion_Reload, &params);
@@ -3163,7 +3165,7 @@ void CWeenieObject::RemovePreviousInstance()
 
 void CWeenieObject::UpdateModel()
 {
-	if (parent)
+	if (parent.lock())
 		return;
 
 	BinaryWriter MU;
@@ -3393,7 +3395,13 @@ BOOL CWeenieObject::DoCollision(const class EnvCollisionProfile &prof)
 	if (_IsPlayer())
 	{
 		float jumpVelocity = 0.0f;
-		weenie_obj->InqJumpVelocity(1.0, jumpVelocity);
+
+		std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+		if (pWeenie)
+		{
+			pWeenie->InqJumpVelocity(1.0, jumpVelocity);
+		}
+
 		float overSpeed = (jumpVelocity + prof.velocity.z) + 4.5; // a little leeway
 
 		double overSpeedRatio = -(overSpeed / jumpVelocity);
@@ -3811,21 +3819,29 @@ BODY_PART_ENUM GetRandomBodyPartByDamageQuadrant(DAMAGE_QUADRANT dq)
 
 void CWeenieObject::TryToDealDamage(DamageEventData &data)
 {
-	if (!data.target)
+	std::shared_ptr<CWeenieObject> pTarget = data.target.lock();
+	if (!pTarget)
+	{
 		return;
+	}
 
-	data.target->HandleAggro(GetPointer<CWeenieObject>());
+	pTarget->HandleAggro(GetPointer<CWeenieObject>());
 
 	if (data.damageBeforeMitigation >= 0)
 	{
-		if (data.target->ImmuneToDamage(data.source))
-			return;
+		if (std::shared_ptr<CWeenieObject> pSource = data.source.lock())
+		{
+			if (pTarget->ImmuneToDamage(pSource))
+			{
+				return;
+			}
+		}
 	}
 
 	if (data.damage_form & DF_PHYSICAL)
 	{
 		std::list<long> bodyParts;
-		if (data.target->m_Qualities._body)
+		if (pTarget->m_Qualities._body)
 		{
 			int hitHeight;
 			if (data.hit_quadrant & DQ_HIGH)
@@ -3839,7 +3855,7 @@ void CWeenieObject::TryToDealDamage(DamageEventData &data)
 
 			//todo: taking into account the rest of the quadrant data(front/sides/etc)
 
-			for (auto &bp : data.target->m_Qualities._body->_body_part_table)
+			for (auto &bp : pTarget->m_Qualities._body->_body_part_table)
 			{
 				if (bp.second._bh == hitHeight)
 					bodyParts.push_back(bp.first);
@@ -3856,7 +3872,7 @@ void CWeenieObject::TryToDealDamage(DamageEventData &data)
 			data.hitPart = GetRandomBodyPartByDamageQuadrant(data.hit_quadrant);
 	}
 
-	data.target->TakeDamage(data);
+	pTarget->TakeDamage(data);
 }
 
 
@@ -4074,13 +4090,21 @@ float CWeenieObject::GetArmorModForDamageType(DAMAGE_TYPE dt)
 
 float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bIgnoreMagicArmor)
 {
+	std::shared_ptr<CWeenieObject> pTarget = damageData.target.lock();
+	if (!pTarget)
+	{
+		return 0;
+	}
+	std::shared_ptr<CWeenieObject> pSource = damageData.source.lock();
+
+
 	float armorLevel = 0.0f;
 
 	bool isShield = InqIntQuality(COMBAT_USE_INT, 0, TRUE) == COMBAT_USE::COMBAT_USE_SHIELD &&
 		InqIntQuality(SHIELD_VALUE_INT, 0, false) > 0;
 	bool isShieldSpeced = false;
 	SKILL_ADVANCEMENT_CLASS sac = SKILL_ADVANCEMENT_CLASS::UNTRAINED_SKILL_ADVANCEMENT_CLASS;
-	if (damageData.target->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac))
+	if (pTarget->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac))
 		isShieldSpeced = sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS;
 
 	if (isShield && (damageData.hit_quadrant & DQ_FRONT) == 0)
@@ -4100,7 +4124,7 @@ float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bI
 	if (isShield)
 	{
 		unsigned long shieldSkill;
-		damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
+		pTarget->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
 
 		if (!isShieldSpeced)
 		{
@@ -4130,8 +4154,8 @@ float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bI
 	if (isShield)
 	{
 		double ignoreShieldMod = 0.0f;
-		if (damageData.source)
-			damageData.source->m_Qualities.InqFloat(IGNORE_SHIELD_FLOAT, ignoreShieldMod, FALSE);
+		if (pSource)
+			pSource->m_Qualities.InqFloat(IGNORE_SHIELD_FLOAT, ignoreShieldMod, FALSE);
 
 		armorLevel *= (1.0 - ignoreShieldMod);
 	}
@@ -4141,6 +4165,13 @@ float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bI
 
 void CWeenieObject::TakeDamage(DamageEventData &damageData)
 {
+	std::shared_ptr<CWeenieObject> pTarget = damageData.target.lock();
+	if (!pTarget)
+	{
+		return;
+	}
+	std::shared_ptr<CWeenieObject> pSource = damageData.source.lock();
+
 	EnchantedQualityDetails buffDetails;
 	bool isEnchanted = false;
 
@@ -4277,12 +4308,12 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		if (shield)
 		{
 			SKILL_ADVANCEMENT_CLASS sac = SKILL_ADVANCEMENT_CLASS::UNTRAINED_SKILL_ADVANCEMENT_CLASS;
-			damageData.target->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac);
+			pTarget->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac);
 			float cap = shield->InqFloatQuality(ABSORB_MAGIC_DAMAGE_FLOAT, 0.0);
 			float st = sac != SPECIALIZED_SKILL_ADVANCEMENT_CLASS ? .8 : 1;
 
 			unsigned long shieldSkill;
-			damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
+			pTarget->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
 
 			float capPercent = (shieldSkill / 433) * cap * st;
 			float reduction = 0;
@@ -4352,7 +4383,7 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 			if (vitalNewValue <= 0)
 			{
 				damageData.killingBlow = true;
-				OnDeath(damageData.source ? damageData.source->GetID() : 0);
+				OnDeath(pSource ? pSource->GetID() : 0);
 			}
 			else
 			{
@@ -4392,7 +4423,7 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		}
 	}
 
-	if (damageData.killingBlow && (damageData.source && damageData.source->IsCreature()))
+	if (damageData.killingBlow && (pSource && pSource->IsCreature()))
 	{
 		std::string kmsg, vmsg, omsg;
 		GetDeathMessage(
@@ -4414,13 +4445,13 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 	OnTookDamage(damageData);
 
 	// notify the atttacker they did damage
-	if (damageData.source)
+	if (pSource)
 	{
-		damageData.source->OnDealtDamage(damageData);
+		pSource->OnDealtDamage(damageData);
 
 		if (damageData.killingBlow)
 		{
-			damageData.source->GivePerksForKill(GetPointer<CWeenieObject>());
+			pSource->GivePerksForKill(GetPointer<CWeenieObject>());
 		}
 	}
 }
@@ -4467,12 +4498,16 @@ const char *damageTypeString(DAMAGE_TYPE dt)
 
 std::string DamageEventData::GetSourceName()
 {
-	return source ? source->GetName() : "A mysterious source";
+	std::shared_ptr<CWeenieObject> pSource = source.lock();
+
+	return pSource ? pSource->GetName() : "A mysterious source";
 }
 
 std::string DamageEventData::GetTargetName()
 {
-	return target ? target->GetName() : "A mysterious victim";
+	std::shared_ptr<CWeenieObject> pTarget = target.lock();
+
+	return pTarget ? pTarget->GetName() : "A mysterious victim";
 }
 
 void CWeenieObject::NotifyDeathMessage(DWORD killer_id, const char *message)
@@ -4495,6 +4530,8 @@ void CWeenieObject::NotifyDeathMessage(DWORD killer_id, const char *message)
 
 void CWeenieObject::OnTookDamage(DamageEventData &data)
 {
+	std::shared_ptr<CWeenieObject> pSource = data.source.lock();
+
 	if (data.damage_form & DF_PHYSICAL && data.outputDamageFinal >= 0)
 	{
 		if (data.hit_quadrant & DQ_LOW)
@@ -4509,12 +4546,12 @@ void CWeenieObject::OnTookDamage(DamageEventData &data)
 
 	if (data.killingBlow)
 	{
-		if (data.source)
+		if (pSource)
 		{
 			NotifyVictimEvent(data.victim_msg.c_str());
 
 			if (_IsPlayer())
-				NotifyDeathMessage(data.source->GetID(), data.other_msg.c_str());
+				NotifyDeathMessage(pSource->GetID(), data.other_msg.c_str());
 		}
 		else
 		{
@@ -4587,10 +4624,10 @@ void CWeenieObject::OnTookDamage(DamageEventData &data)
 		}
 		else if (data.damage_form & DF_HOTSPOT)
 		{
-			if (data.source)
+			if (pSource)
 			{
 				std::string activationTalkString;
-				if (data.source->m_Qualities.InqString(ACTIVATION_TALK_STRING, activationTalkString))
+				if (pSource->m_Qualities.InqString(ACTIVATION_TALK_STRING, activationTalkString))
 				{
 					char damageNumText[32];
 					_itoa(abs(data.outputDamageFinal), damageNumText, 10);
@@ -4604,12 +4641,15 @@ void CWeenieObject::OnTookDamage(DamageEventData &data)
 
 void CWeenieObject::OnDealtDamage(DamageEventData &data)
 {
-	if (!data.target)
+	std::shared_ptr<CWeenieObject> pTarget = data.target.lock();
+	if (!pTarget)
+	{
 		return;
+	}
 
 	if (data.killingBlow)
 	{
-		if (data.target)
+		if (pTarget)
 		{
 			NotifyKillerEvent(data.killer_msg.c_str());
 		}
@@ -4659,7 +4699,7 @@ void CWeenieObject::OnDealtDamage(DamageEventData &data)
 						break;
 					}
 					bool isRestore = (data.outputDamageFinal < 0);
-					if (data.target == data.source)
+					if (pTarget == data.source.lock())
 						SendText(csprintf("%sYou cast %s and %s %d points of your %s.", data.wasCrit ? "Critical hit! " : "", data.spell_name.c_str(), isRestore ? "restore" : "drain", abs(data.outputDamageFinal), vitalName.c_str()), LTT_MAGIC);
 					else
 						SendText(csprintf("%sWith %s you %s %d points of %s %s %s.", data.wasCrit ? "Critical hit! " : "", data.spell_name.c_str(), isRestore ? "restore" : "drain", abs(data.outputDamageFinal), vitalName.c_str(), isRestore ? "to" : "from", data.GetTargetName().c_str()), LTT_MAGIC);
@@ -6120,7 +6160,9 @@ void CWeenieObject::Movement_Teleport(const Position &position, bool bWasDeath)
 
 	DWORD dwOldLastCell = GetLandcell();
 
-	if (weenie_obj && weenie_obj->_IsPlayer())
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
+	if (pWeenie && pWeenie->_IsPlayer())
 		EnterPortal(dwOldLastCell);
 
 	SetPositionStruct sps;

@@ -107,14 +107,18 @@ void CPhysicsObj::ExitPortal()
 
 void CPhysicsObj::SendNetMessage(void *_data, DWORD _len, WORD _group, BOOL _event)
 {
-	if (weenie_obj)
-		weenie_obj->SendNetMessage(_data, _len, _group, _event);
+	if ( std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock())
+	{
+		pWeenie->SendNetMessage(_data, _len, _group, _event);
+	}
 }
 
 void CPhysicsObj::SendNetMessage(BinaryWriter *_food, WORD _group, BOOL _event, BOOL del)
 {
-	if (weenie_obj)
-		weenie_obj->SendNetMessage(_food, _group, _event, del);
+	if (std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock())
+	{
+		pWeenie->SendNetMessage(_food, _group, _event, del);
+	}
 }
 
 void CPhysicsObj::Tick()
@@ -123,7 +127,7 @@ void CPhysicsObj::Tick()
 
 std::shared_ptr<CWeenieObject> CPhysicsObj::GetWeenie()
 {
-	return weenie_obj;
+	return weenie_obj.lock();
 }
 
 DWORD CPhysicsObj::GetLandcell()

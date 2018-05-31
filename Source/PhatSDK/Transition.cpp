@@ -64,7 +64,7 @@ void COLLISIONINFO::init()
 	sliding_normal_valid = 0;
 	collision_normal_valid = 0;
 	num_collide_object = 0;
-	last_collided_object = 0;
+	last_collided_object = std::shared_ptr<CPhysicsObj>(NULL);
 	collided_with_environment = 0;
 	contact_plane_cell_id = 0;
 	frames_stationary_fall = 0;
@@ -74,12 +74,11 @@ void COLLISIONINFO::add_object(std::shared_ptr<CPhysicsObj> object, TransitionSt
 {
 	for (DWORD i = 0; i < num_collide_object; i++)
 	{
-		if (object == collide_object.data[i])
+		if (object == collide_object[i].lock())
 			return;
 	}
 
-	collide_object.ensure_space(num_collide_object + 1, 10);
-	collide_object.data[num_collide_object++] = object;
+	collide_object[num_collide_object++] = object;
 
 	if (ts != OK_TS)
 		last_collided_object = object;
@@ -131,7 +130,7 @@ void CTransition::cleanupTransition(CTransition *)
 
 CTransition::CTransition()
 {
-	object_info.object = NULL;
+	object_info.object = std::shared_ptr<CPhysicsObj>(NULL);
 	object_info.state = 0;
 	object_info.targetID = 0;
 
@@ -140,7 +139,7 @@ CTransition::CTransition()
 
 void CTransition::init()
 {
-	object_info.object = NULL;
+	object_info.object = std::shared_ptr<CPhysicsObj>(NULL);
 	object_info.state = 0;
 	object_info.targetID = 0;
 
@@ -151,7 +150,7 @@ void CTransition::init()
 	collision_info.sliding_normal_valid = 0;
 	collision_info.collision_normal_valid = 0;
 	collision_info.num_collide_object = 0;
-	collision_info.last_collided_object = NULL;
+	collision_info.last_collided_object = std::shared_ptr<CPhysicsObj>(NULL);
 	collision_info.collided_with_environment = 0;
 	collision_info.contact_plane_cell_id = 0;
 	collision_info.frames_stationary_fall = 0;
@@ -170,13 +169,15 @@ int OBJECTINFO::missile_ignore(std::shared_ptr<CPhysicsObj> collideobject)
 	}
 	else
 	{
+		std::shared_ptr<CPhysicsObj> pPhysObj = object.lock();
 		result = 0;
-		if (object->m_PhysicsState & MISSILE_PS)
+
+		if (pPhysObj && pPhysObj->m_PhysicsState & MISSILE_PS)
 		{
+			std::shared_ptr<CWeenieObject> pWeenie = collideobject->weenie_obj.lock();
 			if (collideobject->id != targetID)
 			{
-				if ((collideobject->m_PhysicsState & ETHEREAL_PS) && collideobject->weenie_obj
-					|| targetID && collideobject->weenie_obj && collideobject->weenie_obj->IsCreature())
+				if (pWeenie && (collideobject->m_PhysicsState & ETHEREAL_PS || targetID && pWeenie->IsCreature()))
 				{
 					result = 1;
 				}
@@ -193,9 +194,9 @@ void OBJECTINFO::init(std::shared_ptr<CPhysicsObj> _object, int object_state)
 	scale = _object->m_scale;
 	step_up_height = _object->GetStepUpHeight();
 	step_down_height = _object->GetStepDownHeight();
-	ethereal = object->m_PhysicsState & ETHEREAL_PS;
-	step_down = ~(unsigned __int8)(object->m_PhysicsState >> 6) & 1; // if not a missile MISSILE_PS
-	std::shared_ptr<CWeenieObject> pWeenie = object->weenie_obj;
+	ethereal = _object->m_PhysicsState & ETHEREAL_PS;
+	step_down = ~(unsigned __int8)(_object->m_PhysicsState >> 6) & 1; // if not a missile MISSILE_PS
+	std::shared_ptr<CWeenieObject> pWeenie = _object->weenie_obj.lock();
 	if (pWeenie)
 	{
 		if (pWeenie->IsImpenetrable()) // 28 IsImpenetrable
@@ -405,7 +406,8 @@ TransitionState SPHEREPATH::step_up_slide(OBJECTINFO *object, COLLISIONINFO *col
 
 float OBJECTINFO::get_walkable_z()
 {
-	return object->get_walkable_z();
+	std::shared_ptr<CPhysicsObj> pObj = object.lock();
+	return pObj ? pObj->get_walkable_z() : FLT_MAX;
 }
 
 const float z_for_landing = 0.0871557f;
@@ -718,7 +720,11 @@ TransitionState CTransition::transitional_insert(int num_insertion_attempts)
 
 void OBJECTINFO::kill_velocity()
 {
-	object->set_velocity(Vector(0, 0, 0), 0);
+	std::shared_ptr<CPhysicsObj> pObj = object.lock();
+	if (pObj)
+	{
+		pObj->set_velocity(Vector(0, 0, 0), 0);
+	}
 }
 
 void SPHEREPATH::save_check_pos()
@@ -806,7 +812,8 @@ void CTransition::build_cell_array(CObjCell **new_cell_p)
 
 BOOL OBJECTINFO::is_valid_walkable(Vector *normal)
 {
-	return object->is_valid_walkable(normal);
+	std::shared_ptr<CPhysicsObj> pObj = object.lock();
+	return pObj ? pObj->is_valid_walkable(normal) : false;
 }
 
 TransitionState OBJECTINFO::validate_walkable(CSphere *check_pos, Plane *contact_plane, const int is_water, const float water_depth, SPHEREPATH *path, COLLISIONINFO *collisions, unsigned int land_cell_id)
@@ -961,7 +968,8 @@ TransitionState CTransition::validate_transition(TransitionState ts, int *redo)
 	
 	if (!(object_info.state & OBJECTINFO::IS_VIEWER_OI))
 	{
-		if (object_info.object->m_PhysicsState & GRAVITY_PS)
+		std::shared_ptr<CPhysicsObj> pObj = object_info.object.lock();
+		if (pObj && pObj->m_PhysicsState & GRAVITY_PS)
 		{
 			if (redoa)
 			{

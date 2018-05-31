@@ -92,21 +92,28 @@ void CScrollUseEvent::OnReadyToUse()
 
 void CScrollUseEvent::OnUseAnimSuccess(DWORD motion)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	std::shared_ptr<CWeenieObject> target = GetTarget();
 
 	if (target)
 	{
-		if (_weenie->LearnSpell(target->InqDIDQuality(SPELL_DID, 0), true))
+		if (pWeenie->LearnSpell(target->InqDIDQuality(SPELL_DID, 0), true))
 		{
 			// destroy it if the spell was learned
-			target->ReleaseFromAnyWeenieParent();
-			_weenie->NotifyContainedItemRemoved(target->GetID());
+			pWeenie->ReleaseFromAnyWeenieParent();
+			pWeenie->NotifyContainedItemRemoved(target->GetID());
 
 			target->MarkForDestroy();
 		}
 	}
 
-	_weenie->DoForcedStopCompletely();
+	pWeenie->DoForcedStopCompletely();
 
 	Done();
 }

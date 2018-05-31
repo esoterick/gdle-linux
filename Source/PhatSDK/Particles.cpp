@@ -335,7 +335,7 @@ BOOL ParticleEmitter::SetParenting(DWORD b, Frame *c)
 	if (!m_EmitterObj)
 		return FALSE;
 
-	if (!m_EmitterObj->set_parent(m_Owner, b, c))
+	if (!m_EmitterObj->set_parent(m_Owner.lock(), b, c))
 		return FALSE;
 
 	m_08 = b;
@@ -456,13 +456,22 @@ BOOL ParticleEmitter::UpdateParticles()
 
 				if (m_EmitterInfo->m_30)
 				{
-					if (m_08 == (DWORD)-1)
-						pFrame = &m_Owner->m_Position.frame;
-					else
-						pFrame = &m_Owner->part_array->parts[m_08]->pos.frame;
+					if (std::shared_ptr<CPhysicsObj> pOwner = m_Owner.lock())
+					{
+						if (m_08 == (DWORD)-1)
+						{
+							pFrame = &pOwner->m_Position.frame;
+						}
+						else
+						{
+							pFrame = &pOwner->part_array->parts[m_08]->pos.frame;
+						}
+					}
 				}
 				else
+				{
 					pFrame = &m_Particles[i].m_Frame;
+				}
 
 				m_Particles[i].Update(
 					m_EmitterInfo->m_2C, m_EmitterInfo->IsPersistant(),
@@ -569,6 +578,12 @@ BOOL ParticleEmitter::InitEnd()
 
 void ParticleEmitter::EmitParticle()
 {
+	std::shared_ptr<CPhysicsObj> pOwner = m_Owner.lock();
+	if (!pOwner)
+	{
+		return;
+	}
+
 	long i;
 	for (i = 0; i < m_EmitterInfo->m_48; i++)
 	{
@@ -592,7 +607,7 @@ void ParticleEmitter::EmitParticle()
 	BOOL Persistant = m_EmitterInfo->IsPersistant();
 
 	m_Particles[i].Init(
-		m_Owner, m_08, &m_Frame, m_Parts5C[i],
+		pOwner, m_08, &m_Frame, m_Parts5C[i],
 		m_EmitterInfo->GetRandomOffset(&RandomOffset),
 		m_EmitterInfo->m_2C,
 		Persistant, // This was inlined

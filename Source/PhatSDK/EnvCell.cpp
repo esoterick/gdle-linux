@@ -25,7 +25,6 @@ CEnvCell::CEnvCell()
 	num_static_objects = 0;
 	static_object_ids = NULL;
 	static_object_frames = NULL;
-	static_objects = NULL;
 	incell_timestamp = 0;
 	light_array = NULL;
 }
@@ -103,7 +102,7 @@ void CEnvCell::Destroy()
 		static_object_frames = NULL;
 	}
 
-	if (static_objects)
+	if (static_objects.size())
 	{
 		for (DWORD i = 0; i < num_static_objects; i++)
 		{
@@ -114,7 +113,7 @@ void CEnvCell::Destroy()
 			}
 		}
 
-		static_objects = NULL;
+		static_objects.clear();
 	}
 	num_static_objects = 0;
 

@@ -17,7 +17,7 @@
 CObjCell::CObjCell() : 
 	num_objects(0), object_list(128),
 	num_lights(0), light_list(128),
-	num_shadow_objects(0), shadow_object_list(4, 128)
+	num_shadow_objects(0), shadow_object_list()
 {
 	restriction_obj = 0;
 	clip_planes = 0;
@@ -50,7 +50,7 @@ std::shared_ptr<CPhysicsObj> CObjCell::get_object(DWORD iid)
 {
 	for (DWORD i = 0; i < num_objects; i++)
 	{
-		std::shared_ptr<CPhysicsObj> pObject = object_list.array_data[i];
+		std::shared_ptr<CPhysicsObj> pObject = object_list[i];
 
 		if (pObject && pObject->GetID() == iid)
 			return pObject;
@@ -61,12 +61,9 @@ std::shared_ptr<CPhysicsObj> CObjCell::get_object(DWORD iid)
 
 void CObjCell::add_object(std::shared_ptr<CPhysicsObj> pObject)
 {
-	if (num_objects >= object_list.alloc_size)
-		object_list.grow(object_list.alloc_size + 5);
+	object_list[num_objects++] = pObject;
 
-	object_list.array_data[num_objects++] = pObject;
-
-	if (pObject->id && !pObject->parent)
+	if (pObject->id && !pObject->parent.lock())
 	{
 		if (!(pObject->m_PhysicsState & HIDDEN_PS))
 		{
@@ -80,7 +77,7 @@ void CObjCell::add_object(std::shared_ptr<CPhysicsObj> pObject)
 					{
 						DWORD voyeur_id = it.GetCurrent()->id;
 
-						if (voyeur_id != pObject->id && voyeur_id && !pObject->parent)
+						if (voyeur_id != pObject->id && voyeur_id)
 						{
 							std::shared_ptr<CPhysicsObj> pVoyeur = CPhysicsObj::GetObjectA(voyeur_id);
 
@@ -109,16 +106,9 @@ void CObjCell::remove_object(std::shared_ptr<CPhysicsObj> pObject)
 {
 	for (DWORD i = 0; i < num_objects; i++)
 	{
-		if (pObject == object_list.array_data[i])
+		if (pObject == object_list[i])
 		{
-			// DEBUGOUT("Removing index %u object (total was %u)\r\n", i, m_ObjectCount);
-			object_list.array_data[i] = object_list.array_data[--num_objects];
-
-			// MISSING CODE HERE
-			// update_all_voyeur
-
-			if ((num_objects + 10) < object_list.alloc_size)
-				object_list.shrink(num_objects + 5);
+			object_list[i] = object_list[--num_objects];
 
 			break;
 		}
@@ -127,8 +117,7 @@ void CObjCell::remove_object(std::shared_ptr<CPhysicsObj> pObject)
 
 void CObjCell::add_shadow_object(CShadowObj *_object, unsigned int num_shadow_cells)
 {
-	shadow_object_list.ensure_space(num_shadow_objects + 1, 5);
-	shadow_object_list.data[num_shadow_objects] = _object;
+	shadow_object_list[num_shadow_objects] = _object;
 	num_shadow_objects++;
 	_object->cell = this;
 }
@@ -137,15 +126,10 @@ void CObjCell::remove_shadow_object(CShadowObj *_object)
 {
 	for (DWORD i = 0; i < num_shadow_objects; i++)
 	{
-		if (_object == shadow_object_list.array_data[i])
+		if (_object == shadow_object_list[i])
 		{
 			_object->cell = NULL;
-			shadow_object_list.array_data[i] = shadow_object_list.array_data[--num_shadow_objects];
-
-			if ((num_shadow_objects + 10) < shadow_object_list.alloc_size)
-			{
-				shadow_object_list.shrink(num_shadow_objects + 5);
-			}
+			shadow_object_list[i] = shadow_object_list[--num_shadow_objects];
 		}
 	}
 }
@@ -189,7 +173,6 @@ void CObjCell::remove_light(LIGHTOBJ *Light)
 
 CShadowObj::CShadowObj()
 {
-	physobj = NULL;
 	m_CellID = 0;
 	cell = NULL;
 }
@@ -217,9 +200,9 @@ TransitionState CObjCell::find_obj_collisions(CTransition *transition)
 	{
 		for (DWORD i = 0; i < num_shadow_objects; i++)
 		{
-			std::shared_ptr<CPhysicsObj> pobj = shadow_object_list.array_data[i]->physobj;
+			std::shared_ptr<CPhysicsObj> pobj = shadow_object_list[i]->physobj.lock();
 
-			if (!pobj->parent && pobj != transition->object_info.object)
+			if (pobj && !pobj->parent.lock() && pobj != transition->object_info.object.lock())
 			{
 				ts = pobj->FindObjCollisions(transition);
 				if (ts != OK_TS)
@@ -238,7 +221,7 @@ TransitionState CObjCell::find_env_collisions(CTransition *transition)
 
 TransitionState CObjCell::check_entry_restrictions(CTransition *transition)
 {
-	if (!transition->object_info.object)
+	if (!transition->object_info.object.lock())
 		return COLLIDED_TS;
 
 	/*
@@ -427,8 +410,8 @@ int CObjCell::check_collisions(std::shared_ptr<CPhysicsObj> object)
 {
 	for (DWORD i = 0; i < num_shadow_objects; i++)
 	{
-		std::shared_ptr<CPhysicsObj> pobj = shadow_object_list.data[i]->physobj;
-		if (!pobj->parent && pobj != object && pobj->check_collision(object))
+		std::shared_ptr<CPhysicsObj> pobj = shadow_object_list[i]->physobj.lock();
+		if (!pobj->parent.lock() && pobj != object && pobj->check_collision(object))
 			return 1;
 	}
 
@@ -439,10 +422,13 @@ void CObjCell::release_objects()
 {
 	while (num_shadow_objects)
 	{
-		CShadowObj *obj = shadow_object_list.data[0];
+		CShadowObj *obj = shadow_object_list[0];
 		remove_shadow_object(obj);
 
-		obj->physobj->remove_parts(this);
+		if (std::shared_ptr<CPhysicsObj> pPhysObj = obj->physobj.lock())
+		{
+			pPhysObj->remove_parts(this);
+		}
 	}
 	
 	if (num_objects)
@@ -456,7 +442,7 @@ void CObjCell::release_objects()
 
 		for (DWORD i = 0; i < num_objects; i++)
 		{
-			objs_to_leave.push_back(object_list.data[i]);
+			objs_to_leave.push_back(object_list[i]);
 		}
 
 		for (auto toLeave : objs_to_leave)

@@ -33,8 +33,15 @@ CSpellcastingManager::~CSpellcastingManager()
 
 void CSpellcastingManager::EndCast(int error)
 {
-	m_pWeenie->DoForcedStopCompletely();
-	m_pWeenie->NotifyUseDone(error);
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->DoForcedStopCompletely();
+	pWeenie->NotifyUseDone(error);
 	m_bCasting = false;
 	m_SpellCastData = SpellCastData();
 	m_PendingMotions.clear();
@@ -132,6 +139,13 @@ std::string appendSpellText(std::string text, std::string newText, SpellComponen
 
 bool CSpellcastingManager::AddMotionsForSpell()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return false;
+	}
+
 	SpellComponentTable *pSpellComponents = MagicSystem::GetSpellComponentTable();
 	if (!pSpellComponents)
 		return false;
@@ -160,7 +174,7 @@ bool CSpellcastingManager::AddMotionsForSpell()
 			if (gesture == 0x1000012F)
 				gesture = 0x13000132; // level 7's are wrong for some reason
 
-			// m_pWeenie->SendText(csprintf("Component \"%s\": %s %f %f 0x%08X (%u)", pSpellComponent->_name.c_str(), pSpellComponent->_text.c_str(), pSpellComponent->_time, pSpellComponent->_CDM, pSpellComponent->_gesture, pSpellComponent->_gesture & 0xFFFF), 1);
+			// pWeenie->SendText(csprintf("Component \"%s\": %s %f %f 0x%08X (%u)", pSpellComponent->_name.c_str(), pSpellComponent->_text.c_str(), pSpellComponent->_time, pSpellComponent->_CDM, pSpellComponent->_gesture, pSpellComponent->_gesture & 0xFFFF), 1);
 			m_PendingMotions.push_back(SpellCastingMotion(gesture, 2.0f, firstMotion, firstMotion, pSpellComponent->_time));
 			firstMotion = false;
 		}
@@ -174,7 +188,7 @@ bool CSpellcastingManager::AddMotionsForSpell()
 
 	if (!spellWords.empty())
 	{
-		m_pWeenie->SpeakLocal(spellWords.c_str(), LTT_MAGIC_CASTING_CHANNEL);
+		pWeenie->SpeakLocal(spellWords.c_str(), LTT_MAGIC_CASTING_CHANNEL);
 	}
 
 	m_SpellCastData.power_level_of_power_component = m_SpellCastData.spell_formula.GetPowerLevelOfPowerComponent();
@@ -213,6 +227,13 @@ std::shared_ptr<CWeenieObject> CSpellcastingManager::GetCastSource()
 
 float CSpellcastingManager::HeadingToTarget()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return 0;
+	}
+
 	if (!m_SpellCastData.target_id)
 	{
 		// Untargeted spell
@@ -227,7 +248,7 @@ float CSpellcastingManager::HeadingToTarget()
 		return 0.0;
 	}
 
-	if (pTarget->parent)
+	if (pTarget->parent.lock())
 	{
 		// Target has a parent (in inventory?)
 		// This needs additional logic
@@ -235,7 +256,7 @@ float CSpellcastingManager::HeadingToTarget()
 	}
 
 	// Return difference in heading.
-	float fHeadingToTarget = m_pWeenie->m_Position.heading_diff(pTarget->m_Position);
+	float fHeadingToTarget = pWeenie->m_Position.heading_diff(pTarget->m_Position);
 
 	fHeadingToTarget = fabs(fHeadingToTarget);
 
@@ -267,7 +288,14 @@ bool CSpellcastingManager::MotionRequiresHeading()
 
 void CSpellcastingManager::BeginNextMotion()
 {
-	if (m_pWeenie->IsDead())
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	if (pWeenie->IsDead())
 	{
 		EndCast(0);
 		return;
@@ -292,12 +320,12 @@ void CSpellcastingManager::BeginNextMotion()
 
 		MovementParameters params;
 		params.speed = 1.0f;
-		params.action_stamp = ++m_pWeenie->m_wAnimSequence;
+		params.action_stamp = ++pWeenie->m_wAnimSequence;
 		params.modify_interpreted_state = 0;
-		m_pWeenie->last_move_was_autonomous = false;
+		pWeenie->last_move_was_autonomous = false;
 
-		m_pWeenie->cancel_moveto();
-		m_pWeenie->TurnToObject(m_SpellCastData.target_id, &params);
+		pWeenie->cancel_moveto();
+		pWeenie->TurnToObject(m_SpellCastData.target_id, &params);
 
 		m_SpellCastData.cast_timeout = Timer::cur_time + MAX_TURN_TIME_FOR_CAST;
 	}
@@ -314,12 +342,12 @@ void CSpellcastingManager::BeginNextMotion()
 		{
 			m_SpellCastData.cast_timeout = Timer::cur_time + MAX_MOTION_TIME_FOR_CAST;
 
-			m_pWeenie->StopCompletely(0);
+			pWeenie->StopCompletely(0);
 
 			SpellCastingMotion &cast_motion = *m_PendingMotions.begin();
 
 			MovementParameters params;
-			params.action_stamp = ++m_pWeenie->m_wAnimSequence;
+			params.action_stamp = ++pWeenie->m_wAnimSequence;
 			params.speed = cast_motion.speed;
 
 			MovementStruct mvs;
@@ -327,18 +355,18 @@ void CSpellcastingManager::BeginNextMotion()
 			mvs.motion = cast_motion.motion;
 			mvs.params = &params;
 
-			m_pWeenie->last_move_was_autonomous = false;
+			pWeenie->last_move_was_autonomous = false;
 
 			int errorCode;
-			if (!(errorCode = m_pWeenie->PerformMovement(mvs)))
+			if (!(errorCode = pWeenie->PerformMovement(mvs)))
 			{
 				m_fNextCastTime = Timer::cur_time + (cast_motion.min_time * 0.5f);
-				m_pWeenie->_server_control_timestamp++;
-				m_pWeenie->Animation_Update();
+				pWeenie->_server_control_timestamp++;
+				pWeenie->Animation_Update();
 			}
 			else
 			{
-				// m_pWeenie->PerformMovement(mvs);
+				// pWeenie->PerformMovement(mvs);
 				EndCast(WERROR_MAGIC_GENERAL_FAILURE);
 			}
 		}
@@ -760,7 +788,14 @@ void CSpellcastingManager::PerformFellowCastParticleEffects(Fellowship *fellow)
 
 void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 {
-	if (std::shared_ptr<CPlayerWeenie> player = m_pWeenie->AsPlayer())
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	if (std::shared_ptr<CPlayerWeenie> player = pWeenie->AsPlayer())
 	{
 		if (!player->IsRecalling())
 		{
@@ -769,12 +804,19 @@ void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 	}
 	else
 	{
-		m_pWeenie->Movement_Teleport(targetPos, false);
+		pWeenie->Movement_Teleport(targetPos, false);
 	}
 }
 
 int CSpellcastingManager::LaunchSpellEffect()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return WERROR_NONE;
+	}
+
 	int targetError = CheckTargetValidity();
 	if (targetError && m_SpellCastData.range_check)
 	{
@@ -784,9 +826,9 @@ int CSpellcastingManager::LaunchSpellEffect()
 		{
 			std::shared_ptr<CWeenieObject> pTarget = GetCastTarget();
 			if (pTarget)
-				pTarget->SendText(csprintf("%s tried to cast a spell on you, but was too far away!", m_pWeenie->GetName().c_str()), LTT_MAGIC);
+				pTarget->SendText(csprintf("%s tried to cast a spell on you, but was too far away!", pWeenie->GetName().c_str()), LTT_MAGIC);
 
-			m_pWeenie->SendText("That target is too far away!", LTT_MAGIC);
+			pWeenie->SendText("That target is too far away!", LTT_MAGIC);
 			break;
 		}
 		}
@@ -796,24 +838,24 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 	// cast source is assumed to be valid at this point
 
-	if (m_pWeenie->AsPlayer() && m_SpellCastData.uses_mana)
+	if (pWeenie->AsPlayer() && m_SpellCastData.uses_mana)
 	{
 		bool fizzled = false;
 		double chance = GetMagicSkillChance(m_SpellCastData.current_skill, m_SpellCastData.spell->_power);
 		if (chance < Random::RollDice(0.0, 1.0))
 		{
 			// fizzle
-			m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
-			m_pWeenie->AdjustMana(-5);
+			pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
+			pWeenie->AdjustMana(-5);
 
 			fizzled = true;
 		}
-		else if (m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
+		else if (pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
 		{
 			// fizzle
-			m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
-			m_pWeenie->AdjustMana(-5);
-			m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
+			pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
+			pWeenie->AdjustMana(-5);
+			pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
 
 			fizzled = true;
 		}
@@ -858,14 +900,14 @@ int CSpellcastingManager::LaunchSpellEffect()
 				m_UsedComponents.clear();
 
 				if (componentsConsumedString.length() > 0)
-					m_pWeenie->SendText(csprintf("The spell consumed the following components: %s", componentsConsumedString.c_str()), LTT_MAGIC);
+					pWeenie->SendText(csprintf("The spell consumed the following components: %s", componentsConsumedString.c_str()), LTT_MAGIC);
 			}
 		}
 
 		if (fizzled)
 			return WERROR_MAGIC_FIZZLE;
 
-		m_pWeenie->AdjustMana(-GenerateManaCost());
+		pWeenie->AdjustMana(-GenerateManaCost());
 	}
 
 	bool bSpellPerformed = false;
@@ -932,7 +974,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 			{
 				if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
 				{
-					if (pTarget->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
+					if (pTarget->GetWorldTopLevelOwner()->ImmuneToDamage(pWeenie))
 					{
 						break;
 					}
@@ -1085,14 +1127,14 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 				if (listToDispel.size() > 0)
 				{
-					if (pTarget == m_pWeenie)
+					if (pTarget == pWeenie)
 					{
-						m_pWeenie->SendText(csprintf("You cast %s on yourself and dispel: %s", m_SpellCastData.spell->_name.c_str(), spellNames.c_str()), LTT_MAGIC);
+						pWeenie->SendText(csprintf("You cast %s on yourself and dispel: %s", m_SpellCastData.spell->_name.c_str(), spellNames.c_str()), LTT_MAGIC);
 					}
 					else
 					{
-						m_pWeenie->SendText(csprintf("You cast %s on %s and dispel: %s", m_SpellCastData.spell->_name.c_str(), pTarget->GetName().c_str(), spellNames.c_str()), LTT_MAGIC);
-						pTarget->SendText(csprintf("%s casts %s on you and dispels: %s", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), spellNames.c_str()), LTT_MAGIC);
+						pWeenie->SendText(csprintf("You cast %s on %s and dispel: %s", m_SpellCastData.spell->_name.c_str(), pTarget->GetName().c_str(), spellNames.c_str()), LTT_MAGIC);
+						pTarget->SendText(csprintf("%s casts %s on you and dispels: %s", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), spellNames.c_str()), LTT_MAGIC);
 					}
 
 					if (pTarget->m_Qualities._enchantment_reg)
@@ -1107,14 +1149,14 @@ int CSpellcastingManager::LaunchSpellEffect()
 				}
 				else
 				{
-					if (pTarget == m_pWeenie)
+					if (pTarget == pWeenie)
 					{
-						m_pWeenie->SendText(csprintf("You cast %s on yourself, but the dispel fails.", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+						pWeenie->SendText(csprintf("You cast %s on yourself, but the dispel fails.", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 					}
 					else
 					{
-						m_pWeenie->SendText(csprintf("You cast %s on %s, but the dispel fails.", m_SpellCastData.spell->_name.c_str(), pTarget->GetName().c_str()), LTT_MAGIC);
-						pTarget->SendText(csprintf("%s casts %s on you, but the dispel fails.", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+						pWeenie->SendText(csprintf("You cast %s on %s, but the dispel fails.", m_SpellCastData.spell->_name.c_str(), pTarget->GetName().c_str()), LTT_MAGIC);
+						pTarget->SendText(csprintf("%s casts %s on you, but the dispel fails.", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 					}
 				}
 
@@ -1153,7 +1195,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 							{
 								if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
 								{
-									if (member->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
+									if (member->GetWorldTopLevelOwner()->ImmuneToDamage(pWeenie))
 									{
 										break;
 									}
@@ -1306,14 +1348,14 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 								if (listToDispel.size() > 0)
 								{
-									if (member == m_pWeenie)
+									if (member == pWeenie)
 									{
-										m_pWeenie->SendText(csprintf("You cast %s on yourself and dispel: %s", m_SpellCastData.spell->_name.c_str(), spellNames.c_str()), LTT_MAGIC);
+										pWeenie->SendText(csprintf("You cast %s on yourself and dispel: %s", m_SpellCastData.spell->_name.c_str(), spellNames.c_str()), LTT_MAGIC);
 									}
 									else
 									{
-										m_pWeenie->SendText(csprintf("You cast %s on %s and dispel: %s", m_SpellCastData.spell->_name.c_str(), member->GetName().c_str(), spellNames.c_str()), LTT_MAGIC);
-										member->SendText(csprintf("%s casts %s on you and dispels: %s", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), spellNames.c_str()), LTT_MAGIC);
+										pWeenie->SendText(csprintf("You cast %s on %s and dispel: %s", m_SpellCastData.spell->_name.c_str(), member->GetName().c_str(), spellNames.c_str()), LTT_MAGIC);
+										member->SendText(csprintf("%s casts %s on you and dispels: %s", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), spellNames.c_str()), LTT_MAGIC);
 									}
 
 									if (member->m_Qualities._enchantment_reg)
@@ -1328,14 +1370,14 @@ int CSpellcastingManager::LaunchSpellEffect()
 								}
 								else
 								{
-									if (member == m_pWeenie)
+									if (member == pWeenie)
 									{
-										m_pWeenie->SendText(csprintf("You cast %s on yourself, but the dispel fails.", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+										pWeenie->SendText(csprintf("You cast %s on yourself, but the dispel fails.", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 									}
 									else
 									{
-										m_pWeenie->SendText(csprintf("You cast %s on %s, but the dispel fails.", m_SpellCastData.spell->_name.c_str(), member->GetName().c_str()), LTT_MAGIC);
-										member->SendText(csprintf("%s casts %s on you, but the dispel fails.", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+										pWeenie->SendText(csprintf("You cast %s on %s, but the dispel fails.", m_SpellCastData.spell->_name.c_str(), member->GetName().c_str()), LTT_MAGIC);
+										member->SendText(csprintf("%s casts %s on you, but the dispel fails.", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 									}
 								}
 
@@ -1351,7 +1393,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 		case SpellType::PortalLink_SpellType:
 		{
-			if (m_pWeenie->HasOwner())
+			if (pWeenie->HasOwner())
 				break;
 
 			PortalLinkSpellEx *meta = (PortalLinkSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
@@ -1365,16 +1407,16 @@ int CSpellcastingManager::LaunchSpellEffect()
 				int minLevel = pTarget->InqIntQuality(MIN_LEVEL_INT, 0);
 				int maxLevel = pTarget->InqIntQuality(MAX_LEVEL_INT, 0);
 
-				int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
+				int currentLevel = pWeenie->InqIntQuality(LEVEL_INT, 1);
 
 				if (minLevel && currentLevel < minLevel)
 				{
-					m_pWeenie->SendText("You are not powerful enough to tie to this portal yet.", LTT_MAGIC);
+					pWeenie->SendText("You are not powerful enough to tie to this portal yet.", LTT_MAGIC);
 					break;
 				}
 				else if (maxLevel && currentLevel > maxLevel)
 				{
-					m_pWeenie->SendText("You are too powerful to tie to this portal.", LTT_MAGIC);
+					pWeenie->SendText("You are too powerful to tie to this portal.", LTT_MAGIC);
 					break;
 				}
 
@@ -1383,12 +1425,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 				case 1:
 					if (pTarget->m_Qualities.m_WeenieType == LifeStone_WeenieType)
 					{
-						m_pWeenie->m_Qualities.SetPosition(LINKED_LIFESTONE_POSITION, m_pWeenie->m_Position);
+						pWeenie->m_Qualities.SetPosition(LINKED_LIFESTONE_POSITION, pWeenie->m_Position);
 						bSpellPerformed = true;
 					}
 					else
 					{
-						m_pWeenie->SendText("You cannot link that.", LTT_MAGIC);
+						pWeenie->SendText("You cannot link that.", LTT_MAGIC);
 					}
 					break;
 
@@ -1396,12 +1438,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 					if (pTarget->m_Qualities.m_WeenieType == Portal_WeenieType &&
 						!(pTarget->m_Qualities.GetInt(PORTAL_BITMASK_INT, 0) & 0x20))
 					{
-						m_pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_ONE_DID, pTarget->m_Qualities.id);
+						pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_ONE_DID, pTarget->m_Qualities.id);
 						bSpellPerformed = true;
 					}
 					else
 					{
-						m_pWeenie->SendText("You cannot link that portal.", LTT_MAGIC);
+						pWeenie->SendText("You cannot link that portal.", LTT_MAGIC);
 					}
 
 					break;
@@ -1410,24 +1452,24 @@ int CSpellcastingManager::LaunchSpellEffect()
 					if (pTarget->m_Qualities.m_WeenieType == Portal_WeenieType &&
 						!(pTarget->m_Qualities.GetInt(PORTAL_BITMASK_INT, 0) & 0x20))
 					{
-						m_pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_TWO_DID, pTarget->m_Qualities.id);
+						pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_TWO_DID, pTarget->m_Qualities.id);
 						bSpellPerformed = true;
 					}
 					else
 					{
-						m_pWeenie->SendText("You cannot link that portal.", LTT_MAGIC);
+						pWeenie->SendText("You cannot link that portal.", LTT_MAGIC);
 					}
 
 					break;
 				}
 			}
 
-			if (m_pWeenie->IsAdmin())
+			if (pWeenie->IsAdmin())
 			{
 				// lifestone tie = 1
 				// primary portal tie = 2
 				// secondary portal tie = 3
-				// m_pWeenie->SendText(csprintf("Index: %d", meta->_index), LTT_DEFAULT);
+				// pWeenie->SendText(csprintf("Index: %d", meta->_index), LTT_DEFAULT);
 			}
 
 			break;
@@ -1435,12 +1477,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 		case SpellType::PortalRecall_SpellType:
 		{
-			if (m_pWeenie->HasOwner())
+			if (pWeenie->HasOwner())
 				break;
 
-			if (m_pWeenie->AsPlayer() && m_pWeenie->AsPlayer()->CheckPKActivity())
+			if (pWeenie->AsPlayer() && pWeenie->AsPlayer()->CheckPKActivity())
 			{
-				m_pWeenie->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+				pWeenie->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
 				break;
 			}
 
@@ -1451,13 +1493,13 @@ int CSpellcastingManager::LaunchSpellEffect()
 			case 2: // lifestone recall
 			{
 				Position lifestone;
-				if (m_pWeenie->m_Qualities.InqPosition(LINKED_LIFESTONE_POSITION, lifestone) && lifestone.objcell_id != 0)
+				if (pWeenie->m_Qualities.InqPosition(LINKED_LIFESTONE_POSITION, lifestone) && lifestone.objcell_id != 0)
 				{
 					BeginPortalSend(lifestone);
 				}
 				else
 				{
-					m_pWeenie->SendText("You have no lifestone tied.", LTT_MAGIC);
+					pWeenie->SendText("You have no lifestone tied.", LTT_MAGIC);
 				}
 
 				bSpellPerformed = true;
@@ -1467,13 +1509,13 @@ int CSpellcastingManager::LaunchSpellEffect()
 			case 3: // portal recall
 			{
 				Position lastPortalPos;
-				if (m_pWeenie->m_Qualities.InqPosition(LAST_PORTAL_POSITION, lastPortalPos) && lastPortalPos.objcell_id != 0)
+				if (pWeenie->m_Qualities.InqPosition(LAST_PORTAL_POSITION, lastPortalPos) && lastPortalPos.objcell_id != 0)
 				{
 					BeginPortalSend(lastPortalPos);
 				}
 				else
 				{
-					m_pWeenie->SendText("You have not used a recallable portal yet.", LTT_MAGIC);
+					pWeenie->SendText("You have not used a recallable portal yet.", LTT_MAGIC);
 				}
 
 				bSpellPerformed = true;
@@ -1483,7 +1525,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 			case 4: // primary portal recall
 			{
 				DWORD portalDID = 0;
-				if (m_pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_ONE_DID, portalDID) && portalDID != 0)
+				if (pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_ONE_DID, portalDID) && portalDID != 0)
 				{
 					CWeenieDefaults *portalDefaults = NULL;
 
@@ -1497,27 +1539,27 @@ int CSpellcastingManager::LaunchSpellEffect()
 					portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
 					portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
 
-					int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
+					int currentLevel = pWeenie->InqIntQuality(LEVEL_INT, 1);
 
 					if (minLevel && currentLevel < minLevel)
 					{
-						m_pWeenie->SendText("You are not powerful enough to recall this portal yet.", LTT_MAGIC);
+						pWeenie->SendText("You are not powerful enough to recall this portal yet.", LTT_MAGIC);
 						break;
 					}
 					else if (maxLevel && currentLevel > maxLevel)
 					{
-						m_pWeenie->SendText("You are too powerful to recall this portal.", LTT_MAGIC);
+						pWeenie->SendText("You are too powerful to recall this portal.", LTT_MAGIC);
 						break;
 					}
 
 					std::string restriction;
 					if (portalDefaults->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction))
 					{
-						if (std::shared_ptr<CPlayerWeenie> player = m_pWeenie->AsPlayer())
+						if (std::shared_ptr<CPlayerWeenie> player = pWeenie->AsPlayer())
 						{
 							if (!player->InqQuest(restriction.c_str()))
 							{
-								m_pWeenie->SendText("You try to recall the portal but there is no effect.", LTT_MAGIC);
+								pWeenie->SendText("You try to recall the portal but there is no effect.", LTT_MAGIC);
 								break;
 							}
 						}
@@ -1530,12 +1572,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 					}
 					else
 					{
-						m_pWeenie->SendText("The primary portal you have tied has no destination set.", LTT_MAGIC);
+						pWeenie->SendText("The primary portal you have tied has no destination set.", LTT_MAGIC);
 					}
 				}
 				else
 				{
-					m_pWeenie->SendText("You have no primary portal tied.", LTT_MAGIC);
+					pWeenie->SendText("You have no primary portal tied.", LTT_MAGIC);
 				}
 
 				bSpellPerformed = true;
@@ -1547,7 +1589,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 			case 5: // secondary portal recall
 			{
 				DWORD portalDID = 0;
-				if (m_pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_TWO_DID, portalDID) && portalDID != 0)
+				if (pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_TWO_DID, portalDID) && portalDID != 0)
 				{
 					CWeenieDefaults *portalDefaults = NULL;
 
@@ -1561,27 +1603,27 @@ int CSpellcastingManager::LaunchSpellEffect()
 					portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
 					portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
 
-					int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
+					int currentLevel = pWeenie->InqIntQuality(LEVEL_INT, 1);
 
 					if (minLevel && currentLevel < minLevel)
 					{
-						m_pWeenie->SendText("You are not powerful enough to recall this portal yet.", LTT_MAGIC);
+						pWeenie->SendText("You are not powerful enough to recall this portal yet.", LTT_MAGIC);
 						break;
 					}
 					else if (maxLevel && currentLevel > maxLevel)
 					{
-						m_pWeenie->SendText("You are too powerful to recall this portal.", LTT_MAGIC);
+						pWeenie->SendText("You are too powerful to recall this portal.", LTT_MAGIC);
 						break;
 					}
 
 					std::string restriction;
 					if (portalDefaults->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction))
 					{
-						if (std::shared_ptr<CPlayerWeenie> player = m_pWeenie->AsPlayer())
+						if (std::shared_ptr<CPlayerWeenie> player = pWeenie->AsPlayer())
 						{
 							if (!player->InqQuest(restriction.c_str()))
 							{
-								m_pWeenie->SendText("You try to recall the portal but there is no effect.", LTT_MAGIC);
+								pWeenie->SendText("You try to recall the portal but there is no effect.", LTT_MAGIC);
 								break;
 							}
 						}
@@ -1594,12 +1636,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 					}
 					else
 					{
-						m_pWeenie->SendText("The secondary portal you have tied has no destination set.", LTT_MAGIC);
+						pWeenie->SendText("The secondary portal you have tied has no destination set.", LTT_MAGIC);
 					}
 				}
 				else
 				{
-					m_pWeenie->SendText("You have no secondary portal tied.", LTT_MAGIC);
+					pWeenie->SendText("You have no secondary portal tied.", LTT_MAGIC);
 				}
 
 				bSpellPerformed = true;
@@ -1609,13 +1651,13 @@ int CSpellcastingManager::LaunchSpellEffect()
 			break;
 			}
 
-			if (m_pWeenie->IsAdmin())
+			if (pWeenie->IsAdmin())
 			{
 				// lifestone recall = 2
 				// portal recall = 3
 				// primary portal recall = 4
 				// secondary portal recall = 5
-				// m_pWeenie->SendText(csprintf("Index: %d", meta->_index), LTT_DEFAULT);
+				// pWeenie->SendText(csprintf("Index: %d", meta->_index), LTT_DEFAULT);
 			}
 
 			bSpellPerformed = true;
@@ -1627,14 +1669,14 @@ int CSpellcastingManager::LaunchSpellEffect()
 			EnchantmentSpellEx *meta = (EnchantmentSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 
 			Enchantment enchant;
-			int buffDuration = m_pWeenie->InqIntQuality(AUGMENTATION_INCREASED_SPELL_DURATION_INT, 0);
+			int buffDuration = pWeenie->InqIntQuality(AUGMENTATION_INCREASED_SPELL_DURATION_INT, 0);
 			enchant._id = meta->_spell_id | ((DWORD)m_SpellCastData.serial << (DWORD)16);
 			enchant.m_SpellSetID = 0; // ???
 			enchant._spell_category = m_SpellCastData.spell->_category; // meta->_spellCategory;
 			enchant._power_level = m_SpellCastData.spell->_power;
 			enchant._start_time = Timer::cur_time;
 			enchant._duration = m_SpellCastData.equipped ? -1.0 : meta->_duration * (buffDuration*0.2 + 1);
-			enchant._caster = m_pWeenie->GetID();
+			enchant._caster = pWeenie->GetID();
 			enchant._degrade_modifier = meta->_degrade_modifier;
 			enchant._degrade_limit = meta->_degrade_limit;
 			enchant._last_time_degraded = -1.0;
@@ -1663,7 +1705,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 						{
 							if (wielded->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
 							{
-								if (castTarget == m_pWeenie || wielded->parent) // for other targets, only physically wielded allowed
+								if (castTarget == pWeenie || wielded->parent.lock()) // for other targets, only physically wielded allowed
 								{
 									targets.push_back(wielded);
 								}
@@ -1674,7 +1716,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					{
 						if (castTarget->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
 						{
-							if (castTarget == m_pWeenie || castTarget->parent || !castTarget->HasOwner() || castTarget->GetWorldTopLevelOwner() == m_pWeenie) // for other targets, only physically wielded allowed
+							if (castTarget == pWeenie || castTarget->parent.lock() || !castTarget->HasOwner() || castTarget->GetWorldTopLevelOwner() == pWeenie) // for other targets, only physically wielded allowed
 							{
 								targets.push_back(castTarget);
 							}
@@ -1691,7 +1733,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 					if (target->InqIntQuality(MAX_STACK_SIZE_INT, 1) > 1) //do not allow enchanting stackable items(ammunition)
 					{
-						m_pWeenie->SendText(csprintf("The %s can't be enchanted.", target->GetName().c_str()), LTT_MAGIC);
+						pWeenie->SendText(csprintf("The %s can't be enchanted.", target->GetName().c_str()), LTT_MAGIC);
 						continue;
 					}
 
@@ -1699,17 +1741,17 @@ int CSpellcastingManager::LaunchSpellEffect()
 					if (target->m_Qualities._enchantment_reg && target->m_Qualities._enchantment_reg->IsEnchanted(enchant._id))
 						bAlreadyExisted = true;
 
-					if (m_pWeenie != target)
+					if (pWeenie != target)
 					{
 						if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
 						{
-							if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+							if (pWeenie && target && pWeenie->AsPlayer() && target->AsPlayer())
 							{
-								m_pWeenie->AsPlayer()->UpdatePKActivity();
+								pWeenie->AsPlayer()->UpdatePKActivity();
 								target->AsPlayer()->UpdatePKActivity();
 							}
 
-							if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
+							if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(pWeenie))
 							{
 								continue;
 							}
@@ -1720,9 +1762,9 @@ int CSpellcastingManager::LaunchSpellEffect()
 							if (topLevelOwner->TryMagicResist(m_SpellCastData.current_skill))
 							{
 								topLevelOwner->EmitSound(Sound_ResistSpell, 1.0f, false);
-								topLevelOwner->SendText(csprintf("You resist the spell cast by %s", m_pWeenie->GetName().c_str()), LTT_MAGIC);
-								m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-								topLevelOwner->OnResistSpell(m_pWeenie);
+								topLevelOwner->SendText(csprintf("You resist the spell cast by %s", pWeenie->GetName().c_str()), LTT_MAGIC);
+								pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+								topLevelOwner->OnResistSpell(pWeenie);
 								continue;
 							}
 						}
@@ -1733,13 +1775,13 @@ int CSpellcastingManager::LaunchSpellEffect()
 							{
 								target->EmitSound(Sound_ResistSpell, 1.0f, false);
 
-								if (m_pWeenie != topLevelOwner)
+								if (pWeenie != topLevelOwner)
 								{
-									topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+									topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", pWeenie->GetName().c_str(), pWeenie->GetName().c_str()), LTT_MAGIC);
 								}
 
-								m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-								target->OnResistSpell(m_pWeenie);
+								pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+								target->OnResistSpell(pWeenie);
 								continue;
 							}
 						}
@@ -1749,13 +1791,13 @@ int CSpellcastingManager::LaunchSpellEffect()
 							{
 								target->EmitSound(Sound_ResistSpell, 1.0f, false);
 
-								if (m_pWeenie != topLevelOwner)
+								if (pWeenie != topLevelOwner)
 								{
-									topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+									topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", pWeenie->GetName().c_str(), pWeenie->GetName().c_str()), LTT_MAGIC);
 								}
 
-								m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-								target->OnResistSpell(m_pWeenie);
+								pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+								target->OnResistSpell(pWeenie);
 								continue;
 							}
 						}
@@ -1765,39 +1807,39 @@ int CSpellcastingManager::LaunchSpellEffect()
 							{
 								target->EmitSound(Sound_ResistSpell, 1.0f, false);
 
-								if (m_pWeenie != topLevelOwner)
+								if (pWeenie != topLevelOwner)
 								{
-									topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+									topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", pWeenie->GetName().c_str(), pWeenie->GetName().c_str()), LTT_MAGIC);
 								}
 
-								m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-								target->OnResistSpell(m_pWeenie);
+								pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+								target->OnResistSpell(pWeenie);
 								continue;
 							}
 						}
 					}
 
-					topLevelOwner->HandleAggro(m_pWeenie);
+					topLevelOwner->HandleAggro(pWeenie);
 
 					target->m_Qualities.UpdateEnchantment(&enchant);
 					target->NotifyEnchantmentUpdated(&enchant);
 
 					target->CheckVitalRanges();
 
-					if (m_pWeenie == target)
+					if (pWeenie == target)
 					{
-						m_pWeenie->SendText(csprintf("You cast %s on yourself", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+						pWeenie->SendText(csprintf("You cast %s on yourself", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 					}
 					else
 					{
-						m_pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+						pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 
-						if (m_pWeenie != topLevelOwner)
+						if (pWeenie != topLevelOwner)
 						{
 							if (target == topLevelOwner)
-								target->SendText(csprintf("%s cast %s on you", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+								target->SendText(csprintf("%s cast %s on you", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 							else
-								topLevelOwner->SendText(csprintf("%s cast %s on %s", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+								topLevelOwner->SendText(csprintf("%s cast %s on %s", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 						}
 					}
 
@@ -1819,7 +1861,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 			enchant._power_level = m_SpellCastData.spell->_power;
 			enchant._start_time = Timer::cur_time;
 			enchant._duration = m_SpellCastData.equipped ? -1.0 : meta->_duration;
-			enchant._caster = m_pWeenie->GetID();
+			enchant._caster = pWeenie->GetID();
 			enchant._degrade_modifier = meta->_degrade_modifier;
 			enchant._degrade_limit = meta->_degrade_limit;
 			enchant._last_time_degraded = -1.0;
@@ -1864,7 +1906,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 										{
 											if (wielded->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
 											{
-												if (member == m_pWeenie || wielded->parent) // for other targets, only physically wielded allowed
+												if (member == pWeenie || wielded->parent.lock()) // for other targets, only physically wielded allowed
 												{
 													targets.push_back(wielded);
 												}
@@ -1875,7 +1917,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 									{
 										if (member->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
 										{
-											if (member == m_pWeenie || member->parent || !member->HasOwner() || member->GetWorldTopLevelOwner() == m_pWeenie) // for other targets, only physically wielded allowed
+											if (member == pWeenie || member->parent.lock() || !member->HasOwner() || member->GetWorldTopLevelOwner() == pWeenie) // for other targets, only physically wielded allowed
 											{
 												targets.push_back(member);
 											}
@@ -1892,7 +1934,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 									if (target->InqIntQuality(MAX_STACK_SIZE_INT, 1) > 1) //do not allow enchanting stackable items(ammunition)
 									{
-										m_pWeenie->SendText(csprintf("The %s can't be enchanted.", target->GetName().c_str()), LTT_MAGIC);
+										pWeenie->SendText(csprintf("The %s can't be enchanted.", target->GetName().c_str()), LTT_MAGIC);
 										continue;
 									}
 
@@ -1900,11 +1942,11 @@ int CSpellcastingManager::LaunchSpellEffect()
 									if (target->m_Qualities._enchantment_reg && target->m_Qualities._enchantment_reg->IsEnchanted(enchant._id))
 										bAlreadyExisted = true;
 
-									if (m_pWeenie != target)
+									if (pWeenie != target)
 									{
 										if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
 										{
-											if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
+											if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(pWeenie))
 											{
 												continue;
 											}
@@ -1915,9 +1957,9 @@ int CSpellcastingManager::LaunchSpellEffect()
 											if (topLevelOwner->TryMagicResist(m_SpellCastData.current_skill))
 											{
 												topLevelOwner->EmitSound(Sound_ResistSpell, 1.0f, false);
-												topLevelOwner->SendText(csprintf("You resist the spell cast by %s", m_pWeenie->GetName().c_str()), LTT_MAGIC);
-												m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-												topLevelOwner->OnResistSpell(m_pWeenie);
+												topLevelOwner->SendText(csprintf("You resist the spell cast by %s", pWeenie->GetName().c_str()), LTT_MAGIC);
+												pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+												topLevelOwner->OnResistSpell(pWeenie);
 												continue;
 											}
 										}
@@ -1928,13 +1970,13 @@ int CSpellcastingManager::LaunchSpellEffect()
 											{
 												target->EmitSound(Sound_ResistSpell, 1.0f, false);
 
-												if (m_pWeenie != topLevelOwner)
+												if (pWeenie != topLevelOwner)
 												{
-													topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+													topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", pWeenie->GetName().c_str(), pWeenie->GetName().c_str()), LTT_MAGIC);
 												}
 
-												m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-												target->OnResistSpell(m_pWeenie);
+												pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+												target->OnResistSpell(pWeenie);
 												continue;
 											}
 										}
@@ -1944,13 +1986,13 @@ int CSpellcastingManager::LaunchSpellEffect()
 											{
 												target->EmitSound(Sound_ResistSpell, 1.0f, false);
 
-												if (m_pWeenie != topLevelOwner)
+												if (pWeenie != topLevelOwner)
 												{
-													topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+													topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", pWeenie->GetName().c_str(), pWeenie->GetName().c_str()), LTT_MAGIC);
 												}
 
-												m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-												target->OnResistSpell(m_pWeenie);
+												pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+												target->OnResistSpell(pWeenie);
 												continue;
 											}
 										}
@@ -1960,39 +2002,39 @@ int CSpellcastingManager::LaunchSpellEffect()
 											{
 												target->EmitSound(Sound_ResistSpell, 1.0f, false);
 
-												if (m_pWeenie != topLevelOwner)
+												if (pWeenie != topLevelOwner)
 												{
-													topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", m_pWeenie->GetName().c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+													topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", pWeenie->GetName().c_str(), pWeenie->GetName().c_str()), LTT_MAGIC);
 												}
 
-												m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-												target->OnResistSpell(m_pWeenie);
+												pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+												target->OnResistSpell(pWeenie);
 												continue;
 											}
 										}
 									}
 
-									topLevelOwner->HandleAggro(m_pWeenie);
+									topLevelOwner->HandleAggro(pWeenie);
 
 									target->m_Qualities.UpdateEnchantment(&enchant);
 									target->NotifyEnchantmentUpdated(&enchant);
 
 									target->CheckVitalRanges();
 
-									if (m_pWeenie == target)
+									if (pWeenie == target)
 									{
-										m_pWeenie->SendText(csprintf("You cast %s on yourself", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+										pWeenie->SendText(csprintf("You cast %s on yourself", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 									}
 									else
 									{
-										m_pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+										pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 
-										if (m_pWeenie != topLevelOwner)
+										if (pWeenie != topLevelOwner)
 										{
 											if (target == topLevelOwner)
-												target->SendText(csprintf("%s cast %s on you", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+												target->SendText(csprintf("%s cast %s on you", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 											else
-												topLevelOwner->SendText(csprintf("%s cast %s on %s", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+												topLevelOwner->SendText(csprintf("%s cast %s on %s", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 										}
 									}
 
@@ -2012,9 +2054,9 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 		case SpellType::PortalSummon_SpellType:
 		{
-			if (m_pWeenie && m_pWeenie->AsPlayer() && m_pWeenie->AsPlayer()->CheckPKActivity())
+			if (pWeenie && pWeenie->AsPlayer() && pWeenie->AsPlayer()->CheckPKActivity())
 			{
-				m_pWeenie->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+				pWeenie->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
 				break;
 			}
 
@@ -2023,7 +2065,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 				break;
 
 			Position spawnPos;
-			if (!m_pWeenie->m_Qualities.InqPosition(PORTAL_SUMMON_LOC_POSITION, spawnPos))
+			if (!pWeenie->m_Qualities.InqPosition(PORTAL_SUMMON_LOC_POSITION, spawnPos))
 			{
 				spawnPos = GetCastSource()->m_Position;
 				spawnPos.frame.m_origin += spawnPos.localtoglobalvec(Vector(0, 7, 0));
@@ -2037,22 +2079,22 @@ int CSpellcastingManager::LaunchSpellEffect()
 			switch (meta->_link)
 			{
 			case 1:
-				portalDID = m_pWeenie->InqDIDQuality(LINKED_PORTAL_ONE_DID, 0);
+				portalDID = pWeenie->InqDIDQuality(LINKED_PORTAL_ONE_DID, 0);
 
-				if (!portalDID && !m_pWeenie->m_Qualities.InqPosition(LINKED_PORTAL_ONE_POSITION, dummyPos))
+				if (!portalDID && !pWeenie->m_Qualities.InqPosition(LINKED_PORTAL_ONE_POSITION, dummyPos))
 				{
-					m_pWeenie->SendText("You do not have a primary portal tied.", LTT_MAGIC);
+					pWeenie->SendText("You do not have a primary portal tied.", LTT_MAGIC);
 					bNoLink = true;
 				}
 
 				break;
 
 			case 2:
-				portalDID = m_pWeenie->InqDIDQuality(LINKED_PORTAL_TWO_DID, 0);
+				portalDID = pWeenie->InqDIDQuality(LINKED_PORTAL_TWO_DID, 0);
 
-				if (!portalDID && !m_pWeenie->m_Qualities.InqPosition(LINKED_PORTAL_TWO_POSITION, dummyPos))
+				if (!portalDID && !pWeenie->m_Qualities.InqPosition(LINKED_PORTAL_TWO_POSITION, dummyPos))
 				{
-					m_pWeenie->SendText("You do not have a secondary portal tied.", LTT_MAGIC);
+					pWeenie->SendText("You do not have a secondary portal tied.", LTT_MAGIC);
 					bNoLink = true;
 				}
 
@@ -2076,23 +2118,23 @@ int CSpellcastingManager::LaunchSpellEffect()
 				portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
 				portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
 
-				if (m_pWeenie->AsPlayer())
+				if (pWeenie->AsPlayer())
 				{
-					int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
+					int currentLevel = pWeenie->InqIntQuality(LEVEL_INT, 1);
 					if (minLevel && currentLevel < minLevel)
 					{
-						m_pWeenie->SendText("You are not powerful enough to summon this portal yet.", LTT_MAGIC);
+						pWeenie->SendText("You are not powerful enough to summon this portal yet.", LTT_MAGIC);
 						break;
 					}
 					else if (maxLevel && currentLevel > maxLevel)
 					{
-						m_pWeenie->SendText("You are too powerful to summon this portal.", LTT_MAGIC);
+						pWeenie->SendText("You are too powerful to summon this portal.", LTT_MAGIC);
 						break;
 					}
 
 					if ((portalDefaults->m_Qualities.GetInt(PORTAL_BITMASK_INT, 0) & 0x10))
 					{
-						m_pWeenie->SendText("That portal may not be summoned.", LTT_MAGIC);
+						pWeenie->SendText("That portal may not be summoned.", LTT_MAGIC);
 						break;
 					}
 				}
@@ -2125,11 +2167,11 @@ int CSpellcastingManager::LaunchSpellEffect()
 					switch (meta->_link)
 					{
 					case 1:
-						weenie->m_Qualities.SetPosition(DESTINATION_POSITION, m_pWeenie->InqPositionQuality(LINKED_PORTAL_ONE_POSITION, Position()));
+						weenie->m_Qualities.SetPosition(DESTINATION_POSITION, pWeenie->InqPositionQuality(LINKED_PORTAL_ONE_POSITION, Position()));
 						break;
 
 					case 2:
-						weenie->m_Qualities.SetPosition(DESTINATION_POSITION, m_pWeenie->InqPositionQuality(LINKED_PORTAL_TWO_POSITION, Position()));
+						weenie->m_Qualities.SetPosition(DESTINATION_POSITION, pWeenie->InqPositionQuality(LINKED_PORTAL_TWO_POSITION, Position()));
 						break;
 					}
 				}
@@ -2212,6 +2254,13 @@ int CSpellcastingManager::LaunchSpellEffect()
 // You gain 37 points of health due to casting Drain Health Other I on Gelidite Lord
 void CSpellcastingManager::TransferVitalPercent(std::shared_ptr<CWeenieObject> target, float drainPercent, float infusePercent, STypeAttribute2nd attribute)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	if (!target || target->IsDead())
 		return;
 
@@ -2232,11 +2281,11 @@ void CSpellcastingManager::TransferVitalPercent(std::shared_ptr<CWeenieObject> t
 	else
 	{
 		// draining self, infusing target
-		selfAdjust = -(int)ceil(m_pWeenie->GetHealth() * drainPercent);
+		selfAdjust = -(int)ceil(pWeenie->GetHealth() * drainPercent);
 		targetAdjust = (int)floor(-selfAdjust * infusePercent);
 	}
 
-	if (targetAdjust < 0 && target->ImmuneToDamage(m_pWeenie))
+	if (targetAdjust < 0 && target->ImmuneToDamage(pWeenie))
 	{
 		// send notice they are immune?
 		return;
@@ -2247,21 +2296,21 @@ void CSpellcastingManager::TransferVitalPercent(std::shared_ptr<CWeenieObject> t
 	{
 	case HEALTH_ATTRIBUTE_2ND:
 	{
-		selfAdjust = m_pWeenie->AdjustHealth(selfAdjust);
+		selfAdjust = pWeenie->AdjustHealth(selfAdjust);
 		targetAdjust = target->AdjustHealth(targetAdjust);
 		vitalName = "health";
 		break;
 	}
 	case STAMINA_ATTRIBUTE_2ND:
 	{
-		selfAdjust = m_pWeenie->AdjustStamina(selfAdjust);
+		selfAdjust = pWeenie->AdjustStamina(selfAdjust);
 		targetAdjust = target->AdjustStamina(targetAdjust);
 		vitalName = "stamina";
 		break;
 	}
 	case MANA_ATTRIBUTE_2ND:
 	{
-		selfAdjust = m_pWeenie->AdjustMana(selfAdjust);
+		selfAdjust = pWeenie->AdjustMana(selfAdjust);
 		targetAdjust = target->AdjustMana(targetAdjust);
 		vitalName = "mana";
 		break;
@@ -2274,53 +2323,60 @@ void CSpellcastingManager::TransferVitalPercent(std::shared_ptr<CWeenieObject> t
 
 	if (target->IsDead())
 	{
-		if (m_pWeenie == target)
+		if (pWeenie == target)
 		{
 			target->NotifyVictimEvent("You died!");
 
 			if (target->_IsPlayer())
 			{
-				target->NotifyDeathMessage(m_pWeenie->GetID(), csprintf("%s died!", target->GetName().c_str()));
+				target->NotifyDeathMessage(pWeenie->GetID(), csprintf("%s died!", target->GetName().c_str()));
 			}
 		}
 		else
 		{
-			target->NotifyVictimEvent(csprintf("You were killed by %s!", m_pWeenie->GetName().c_str()));
-			m_pWeenie->NotifyKillerEvent(csprintf("You killed %s!", target->GetName().c_str()));
+			target->NotifyVictimEvent(csprintf("You were killed by %s!", pWeenie->GetName().c_str()));
+			pWeenie->NotifyKillerEvent(csprintf("You killed %s!", target->GetName().c_str()));
 
 			if (target->_IsPlayer())
 			{
-				target->NotifyDeathMessage(m_pWeenie->GetID(), csprintf("%s killed %s!", m_pWeenie->GetName().c_str(), target->GetName().c_str()));
+				target->NotifyDeathMessage(pWeenie->GetID(), csprintf("%s killed %s!", pWeenie->GetName().c_str(), target->GetName().c_str()));
 			}
 		}
 
-		target->OnDeath(m_pWeenie->GetID());
+		target->OnDeath(pWeenie->GetID());
 	}
 
-	if (m_pWeenie != target && m_pWeenie->IsDead())
+	if (pWeenie != target && pWeenie->IsDead())
 	{
-		m_pWeenie->NotifyVictimEvent("You died!");
+		pWeenie->NotifyVictimEvent("You died!");
 
-		if (m_pWeenie->_IsPlayer())
+		if (pWeenie->_IsPlayer())
 		{
-			m_pWeenie->NotifyDeathMessage(m_pWeenie->GetID(), csprintf("%s died!", m_pWeenie->GetName().c_str()));
+			pWeenie->NotifyDeathMessage(pWeenie->GetID(), csprintf("%s died!", pWeenie->GetName().c_str()));
 		}
 
-		m_pWeenie->OnDeath(m_pWeenie->GetID());
+		pWeenie->OnDeath(pWeenie->GetID());
 	}
 }
 
 void CSpellcastingManager::SendTransferVitalPercentText(std::shared_ptr<CWeenieObject> target, int drained, int infused, bool reversed, const char *vitalName)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	// You gain 37 points of health due to casting Drain Health Other I on Gelidite Lord
 
-	m_pWeenie->SendText(csprintf("You %s %d points of %s due to casting %s on %s",
+	pWeenie->SendText(csprintf("You %s %d points of %s due to casting %s on %s",
 		reversed ? "gain" : "lose", reversed ? infused : -drained, vitalName, m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 
-	if (target != m_pWeenie)
+	if (target != pWeenie)
 	{
 		target->SendText(csprintf("You %s %d points of %s due to %s casting %s on you",
-			!reversed ? "gain" : "lose", !reversed ? infused : -drained, vitalName, m_SpellCastData.spell->_name.c_str(), m_pWeenie->GetName().c_str()), LTT_MAGIC);
+			!reversed ? "gain" : "lose", !reversed ? infused : -drained, vitalName, m_SpellCastData.spell->_name.c_str(), pWeenie->GetName().c_str()), LTT_MAGIC);
 	}
 }
 
@@ -2347,6 +2403,13 @@ std::string GetAttribute2ndName(STypeAttribute2nd attribute2nd)
 
 bool CSpellcastingManager::DoTransferSpell(std::shared_ptr<CWeenieObject> other, const TransferSpellEx *meta)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return false;
+	}
+
 	// Calculate source amount
 	std::shared_ptr<CWeenieObject> source = NULL;
 	if (meta->_bitfield & TransferSpellEx::SourceSelf)
@@ -2366,10 +2429,10 @@ bool CSpellcastingManager::DoTransferSpell(std::shared_ptr<CWeenieObject> other,
 	double drainResistMod = 1.0;
 	double boostResistMod = 1.0;
 
-	if (m_pWeenie != source)
+	if (pWeenie != source)
 	{
 		// negative spell
-		if (source->ImmuneToDamage(m_pWeenie))
+		if (source->ImmuneToDamage(pWeenie))
 		{
 			return false;
 		}
@@ -2380,14 +2443,14 @@ bool CSpellcastingManager::DoTransferSpell(std::shared_ptr<CWeenieObject> other,
 			if (source->TryMagicResist(m_SpellCastData.current_skill))
 			{
 				source->EmitSound(Sound_ResistSpell, 1.0f, false);
-				source->SendText(csprintf("You resist the spell cast by %s", m_pWeenie->GetName().c_str()), LTT_MAGIC);
-				m_pWeenie->SendText(csprintf("%s resists your spell", source->GetName().c_str()), LTT_MAGIC);
-				source->OnResistSpell(m_pWeenie);
+				source->SendText(csprintf("You resist the spell cast by %s", pWeenie->GetName().c_str()), LTT_MAGIC);
+				pWeenie->SendText(csprintf("%s resists your spell", source->GetName().c_str()), LTT_MAGIC);
+				source->OnResistSpell(pWeenie);
 				return false;
 			}
 		}
 
-		source->HandleAggro(m_pWeenie);
+		source->HandleAggro(pWeenie);
 
 		switch (meta->_src)
 		{
@@ -2428,7 +2491,7 @@ bool CSpellcastingManager::DoTransferSpell(std::shared_ptr<CWeenieObject> other,
 		}
 	}
 
-	if (m_pWeenie != dest)
+	if (pWeenie != dest)
 	{
 		switch (meta->_src)
 		{
@@ -2488,7 +2551,7 @@ bool CSpellcastingManager::DoTransferSpell(std::shared_ptr<CWeenieObject> other,
 	if (source == dest)
 	{
 		// You cast Stamina to Mana Self III on yourself and lose 78 points of stamina and also gain 86 points of mana
-		if (m_pWeenie == source)
+		if (pWeenie == source)
 		{
 			source->SendText(csprintf(
 				"You cast %s on yourself and lose %d points of %s and also gain %d points of %s",
@@ -2499,25 +2562,25 @@ bool CSpellcastingManager::DoTransferSpell(std::shared_ptr<CWeenieObject> other,
 		{
 			source->SendText(csprintf(
 				"You lose %d points of %s and also gain %d points of %s due to %s casting %s on you",
-				sourceTakeAmount, GetAttribute2ndName(meta->_src).c_str(), destGiveAmount, GetAttribute2ndName(meta->_dest).c_str(), m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()
+				sourceTakeAmount, GetAttribute2ndName(meta->_src).c_str(), destGiveAmount, GetAttribute2ndName(meta->_dest).c_str(), pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()
 			), LTT_MAGIC);
 		}
 	}
 	else
 	{
-		if (m_pWeenie == source)
+		if (pWeenie == source)
 		{
 			source->SendText(csprintf("You lose %d points of %s due to casting %s on %s",
 				sourceTakeAmount, GetAttribute2ndName(meta->_src).c_str(), m_SpellCastData.spell->_name.c_str(), dest->GetName().c_str()), LTT_MAGIC);
 			dest->SendText(csprintf("You gain %d points of %s due to %s casting %s on you",
-				destGiveAmount, GetAttribute2ndName(meta->_dest).c_str(), m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+				destGiveAmount, GetAttribute2ndName(meta->_dest).c_str(), pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 		}
-		else if (m_pWeenie == dest)
+		else if (pWeenie == dest)
 		{
 			dest->SendText(csprintf("You gain %d points of %s due to casting %s on %s",
 				destGiveAmount, GetAttribute2ndName(meta->_dest).c_str(), m_SpellCastData.spell->_name.c_str(), source->GetName().c_str()), LTT_MAGIC);
 			source->SendText(csprintf("You lose %d points of %s due to %s casting %s on you",
-				sourceTakeAmount, GetAttribute2ndName(meta->_src).c_str(), m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+				sourceTakeAmount, GetAttribute2ndName(meta->_src).c_str(), pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 
 			if (std::shared_ptr<CPlayerWeenie> pDestPlayer = dest->AsPlayer())
 			{
@@ -2537,13 +2600,20 @@ bool CSpellcastingManager::DoTransferSpell(std::shared_ptr<CWeenieObject> other,
 	}
 
 	if (meta->_src == HEALTH_ATTRIBUTE_2ND)
-		source->CheckDeath(m_pWeenie, DAMAGE_TYPE::HEALTH_DAMAGE_TYPE);
+		source->CheckDeath(pWeenie, DAMAGE_TYPE::HEALTH_DAMAGE_TYPE);
 
 	return true;
 }
 
 bool CSpellcastingManager::AdjustVital(std::shared_ptr<CWeenieObject> target)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return false;
+	}
+
 	if (!target || target->IsDead())
 		return false;
 
@@ -2560,7 +2630,7 @@ bool CSpellcastingManager::AdjustVital(std::shared_ptr<CWeenieObject> target)
 	if (wand)
 	{
 		double elementalDamageMod = wand->InqDamageType() == meta->_dt ? wand->InqFloatQuality(ELEMENTAL_DAMAGE_MOD_FLOAT, 1.0) : 1.0;
-		if (m_pWeenie->AsPlayer() && target->AsPlayer()) //pvp
+		if (pWeenie->AsPlayer() && target->AsPlayer()) //pvp
 			elementalDamageMod = ((elementalDamageMod - 1.0) / 2.0) + 1.0;
 		damageOrHealAmount *= elementalDamageMod;
 	}
@@ -2568,26 +2638,26 @@ bool CSpellcastingManager::AdjustVital(std::shared_ptr<CWeenieObject> target)
 	// negative spell
 	if (isDamage)
 	{
-		if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+		if (pWeenie && target && pWeenie->AsPlayer() && target->AsPlayer())
 		{
-			m_pWeenie->AsPlayer()->UpdatePKActivity();
+			pWeenie->AsPlayer()->UpdatePKActivity();
 			target->AsPlayer()->UpdatePKActivity();
 		}
 
 		// try to resist
 		if (m_SpellCastData.spell->_bitfield & Resistable_SpellIndex)
 		{
-			if (m_pWeenie != target)
+			if (pWeenie != target)
 			{
 				if (target->TryMagicResist(m_SpellCastData.current_skill))
 				{
 					target->EmitSound(Sound_ResistSpell, 1.0f, false);
 
-					if (m_pWeenie)
+					if (pWeenie)
 					{
-						target->SendText(csprintf("You resist the spell cast by %s", m_pWeenie->GetName().c_str()), LTT_MAGIC);
-						m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-						target->OnResistSpell(m_pWeenie);
+						target->SendText(csprintf("You resist the spell cast by %s", pWeenie->GetName().c_str()), LTT_MAGIC);
+						pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+						target->OnResistSpell(pWeenie);
 					}
 					return false;
 				}
@@ -2595,7 +2665,7 @@ bool CSpellcastingManager::AdjustVital(std::shared_ptr<CWeenieObject> target)
 		}
 
 		DamageEventData dmgEvent;
-		dmgEvent.source = m_pWeenie;
+		dmgEvent.source = pWeenie;
 		dmgEvent.target = target;
 		dmgEvent.weapon = wand;
 		dmgEvent.damage_form = DF_MAGIC;
@@ -2611,7 +2681,7 @@ bool CSpellcastingManager::AdjustVital(std::shared_ptr<CWeenieObject> target)
 
 		CalculateDamage(&dmgEvent, &m_SpellCastData);
 
-		m_pWeenie->TryToDealDamage(dmgEvent);
+		pWeenie->TryToDealDamage(dmgEvent);
 
 		return true;
 	}
@@ -2653,6 +2723,13 @@ bool CSpellcastingManager::AdjustVital(std::shared_ptr<CWeenieObject> target)
 
 void CSpellcastingManager::SendAdjustVitalText(std::shared_ptr<CWeenieObject> target, int amount, const char *vitalName)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	bool bRestore = true;
 	if (amount < 0 || (amount == 0 && !(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex)))
 	{
@@ -2660,17 +2737,17 @@ void CSpellcastingManager::SendAdjustVitalText(std::shared_ptr<CWeenieObject> ta
 		amount = -amount;
 	}
 
-	if (m_pWeenie != target)
+	if (pWeenie != target)
 	{
-		m_pWeenie->SendText(csprintf("With %s you %s %d points of %s %s %s.",
+		pWeenie->SendText(csprintf("With %s you %s %d points of %s %s %s.",
 			m_SpellCastData.spell->_name.c_str(), bRestore ? "restore" : "drain", amount, vitalName, bRestore ? "to" : "from", target->GetName().c_str()), LTT_MAGIC);
 
 		target->SendText(csprintf("%s casts %s and %s %d points of your %s.",
-			m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), bRestore ? "restores" : "drains", amount, vitalName), LTT_MAGIC);
+			pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), bRestore ? "restores" : "drains", amount, vitalName), LTT_MAGIC);
 
 		if (vitalName == "health")
 		{
-			if (std::shared_ptr<CPlayerWeenie> pPlayer = m_pWeenie->AsPlayer())
+			if (std::shared_ptr<CPlayerWeenie> pPlayer = pWeenie->AsPlayer())
 			{
 				// update the target's health on the casting player asap
 				pPlayer->RefreshTargetHealth();
@@ -2679,25 +2756,32 @@ void CSpellcastingManager::SendAdjustVitalText(std::shared_ptr<CWeenieObject> ta
 	}
 	else
 	{
-		m_pWeenie->SendText(csprintf("You cast %s and %s %d points of your %s.",
+		pWeenie->SendText(csprintf("You cast %s and %s %d points of your %s.",
 			m_SpellCastData.spell->_name.c_str(), bRestore ? "restore" : "drain", amount, vitalName), LTT_MAGIC);
 	}
 }
 
 int CSpellcastingManager::CreatureBeginCast(DWORD target_id, DWORD spell_id)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return false;
+	}
+
 	if (m_bCasting)
 		return WERROR_ACTIONS_LOCKED;
 
 	m_SpellCastData = SpellCastData();
-	m_SpellCastData.caster_id = m_pWeenie->GetID();
-	m_SpellCastData.source_id = m_pWeenie->GetTopLevelID();
+	m_SpellCastData.caster_id = pWeenie->GetID();
+	m_SpellCastData.source_id = pWeenie->GetTopLevelID();
 	m_SpellCastData.target_id = target_id;
 	m_SpellCastData.spell_id = spell_id;
-	m_SpellCastData.wand_id = m_pWeenie->GetWieldedCasterID();
+	m_SpellCastData.wand_id = pWeenie->GetWieldedCasterID();
 
 	m_SpellCastData.cast_timeout = Timer::cur_time + 10.0f;
-	m_SpellCastData.initial_cast_position = m_pWeenie->m_Position;
+	m_SpellCastData.initial_cast_position = pWeenie->m_Position;
 
 	if (!ResolveSpellBeingCasted())
 	{
@@ -2720,6 +2804,13 @@ int CSpellcastingManager::CreatureBeginCast(DWORD target_id, DWORD spell_id)
 
 int CSpellcastingManager::CastSpellInstant(DWORD target_id, DWORD spell_id)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return WERROR_NONE;
+	}
+
 	int error = WERROR_NONE;
 
 	// incase we are interrupting a cast
@@ -2728,14 +2819,14 @@ int CSpellcastingManager::CastSpellInstant(DWORD target_id, DWORD spell_id)
 
 	m_bCasting = true;
 	m_SpellCastData = SpellCastData();
-	m_SpellCastData.caster_id = m_pWeenie->GetID();
-	m_SpellCastData.source_id = m_pWeenie->GetTopLevelID();
+	m_SpellCastData.caster_id = pWeenie->GetID();
+	m_SpellCastData.source_id = pWeenie->GetTopLevelID();
 	m_SpellCastData.target_id = target_id;
 	m_SpellCastData.spell_id = spell_id;
-	m_SpellCastData.wand_id = m_pWeenie->GetWieldedCasterID();
+	m_SpellCastData.wand_id = pWeenie->GetWieldedCasterID();
 	m_SpellCastData.cast_timeout = Timer::cur_time + 10.0f;
 	m_SpellCastData.power_level_of_power_component = m_SpellCastData.spell_formula.GetPowerLevelOfPowerComponent();
-	m_SpellCastData.initial_cast_position = m_pWeenie->m_Position;
+	m_SpellCastData.initial_cast_position = pWeenie->m_Position;
 	m_SpellCastData.uses_mana = false;
 
 	if (ResolveSpellBeingCasted())
@@ -2756,6 +2847,13 @@ int CSpellcastingManager::CastSpellInstant(DWORD target_id, DWORD spell_id)
 
 int CSpellcastingManager::CastSpellEquipped(DWORD target_id, DWORD spell_id, WORD serial)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return WERROR_NONE;
+	}
+
 	int error = WERROR_NONE;
 
 	// incase we are interrupting a cast
@@ -2764,14 +2862,14 @@ int CSpellcastingManager::CastSpellEquipped(DWORD target_id, DWORD spell_id, WOR
 
 	m_bCasting = true;
 	m_SpellCastData = SpellCastData();
-	m_SpellCastData.caster_id = m_pWeenie->GetID();
-	m_SpellCastData.source_id = m_pWeenie->GetTopLevelID();
+	m_SpellCastData.caster_id = pWeenie->GetID();
+	m_SpellCastData.source_id = pWeenie->GetTopLevelID();
 	m_SpellCastData.target_id = target_id;
 	m_SpellCastData.spell_id = spell_id;
-	m_SpellCastData.wand_id = m_pWeenie->GetWieldedCasterID();
+	m_SpellCastData.wand_id = pWeenie->GetWieldedCasterID();
 	m_SpellCastData.cast_timeout = Timer::cur_time + 10.0f;
 	m_SpellCastData.power_level_of_power_component = m_SpellCastData.spell_formula.GetPowerLevelOfPowerComponent();
-	m_SpellCastData.initial_cast_position = m_pWeenie->m_Position;
+	m_SpellCastData.initial_cast_position = pWeenie->m_Position;
 	m_SpellCastData.uses_mana = false;
 	m_SpellCastData.equipped = true;
 	m_SpellCastData.serial = serial;
@@ -2793,8 +2891,15 @@ int CSpellcastingManager::CastSpellEquipped(DWORD target_id, DWORD spell_id, WOR
 
 DWORD CSpellcastingManager::DetermineSkillLevelForSpell()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return 0;
+	}
+
 	int spellcraft = 0;
-	if (m_pWeenie->m_Qualities.InqInt(ITEM_SPELLCRAFT_INT, spellcraft, FALSE, FALSE))
+	if (pWeenie->m_Qualities.InqInt(ITEM_SPELLCRAFT_INT, spellcraft, FALSE, FALSE))
 		return (DWORD)spellcraft;
 
 	if (!m_SpellCastData.spell)
@@ -2805,16 +2910,16 @@ DWORD CSpellcastingManager::DetermineSkillLevelForSpell()
 
 	if (skill)
 	{
-		m_pWeenie->InqSkill(skill, skillLevel, FALSE);
+		pWeenie->InqSkill(skill, skillLevel, FALSE);
 	}
 	else
 	{
 		DWORD creatureEnch = 0, itemEnch = 0, life = 0, war = 0, voidMagic = 0;
-		m_pWeenie->InqSkill(CREATURE_ENCHANTMENT_SKILL, creatureEnch, FALSE);
-		m_pWeenie->InqSkill(ITEM_ENCHANTMENT_SKILL, itemEnch, FALSE);
-		m_pWeenie->InqSkill(LIFE_MAGIC_SKILL, life, FALSE);
-		m_pWeenie->InqSkill(WAR_MAGIC_SKILL, war, FALSE);
-		m_pWeenie->InqSkill(VOID_MAGIC_SKILL, voidMagic, FALSE);
+		pWeenie->InqSkill(CREATURE_ENCHANTMENT_SKILL, creatureEnch, FALSE);
+		pWeenie->InqSkill(ITEM_ENCHANTMENT_SKILL, itemEnch, FALSE);
+		pWeenie->InqSkill(LIFE_MAGIC_SKILL, life, FALSE);
+		pWeenie->InqSkill(WAR_MAGIC_SKILL, war, FALSE);
+		pWeenie->InqSkill(VOID_MAGIC_SKILL, voidMagic, FALSE);
 
 		DWORD highestSkill = 0;
 
@@ -2903,7 +3008,14 @@ int CSpellcastingManager::CheckTargetValidity()
 
 int CSpellcastingManager::GenerateManaCost()
 {
-	DWORD manaConvSkill = m_pWeenie->GetEffectiveManaConversionSkill();
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return 0;
+	}
+
+	DWORD manaConvSkill = pWeenie->GetEffectiveManaConversionSkill();
 
 	int spellLevel = 0;
 	int scarab = m_SpellCastData.spell_formula._comps[0];
@@ -2934,44 +3046,51 @@ int CSpellcastingManager::GenerateManaCost()
 
 int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return WERROR_ACTIONS_LOCKED;
+	}
+
 	if (m_bCasting)
 	{
-		// m_pWeenie->SendText(csprintf("DEBUG: Actions Locked, Casting = true, Turning = %s", m_bTurningToObject ? "true" : "false"), LTT_ALL_CHANNELS);
+		// pWeenie->SendText(csprintf("DEBUG: Actions Locked, Casting = true, Turning = %s", m_bTurningToObject ? "true" : "false"), LTT_ALL_CHANNELS);
 		return WERROR_ACTIONS_LOCKED;
 	}
 
-	if (m_pWeenie->get_minterp()->interpreted_state.actions.size())
+	if (pWeenie->get_minterp()->interpreted_state.actions.size())
 	{
-		// m_pWeenie->SendText(csprintf("DEBUG: Actions Locked, Interp state has %d actions.", m_pWeenie->get_minterp()->interpreted_state.actions.size()), LTT_ALL_CHANNELS);
+		// pWeenie->SendText(csprintf("DEBUG: Actions Locked, Interp state has %d actions.", pWeenie->get_minterp()->interpreted_state.actions.size()), LTT_ALL_CHANNELS);
 		return WERROR_ACTIONS_LOCKED;
 	}
 
-	if (m_pWeenie->get_minterp()->interpreted_state.forward_command != 0x41000003)
+	if (pWeenie->get_minterp()->interpreted_state.forward_command != 0x41000003)
 	{
-		// m_pWeenie->SendText(csprintf("DEBUG: Unprepared, Interp state forward command is 0x%08X, not idle.", m_pWeenie->get_minterp()->interpreted_state.forward_command), LTT_ALL_CHANNELS);
+		// pWeenie->SendText(csprintf("DEBUG: Unprepared, Interp state forward command is 0x%08X, not idle.", pWeenie->get_minterp()->interpreted_state.forward_command), LTT_ALL_CHANNELS);
 		return WERROR_MAGIC_UNPREPARED;
 	}
 
-	if (!m_pWeenie->m_Qualities.IsSpellKnown(spell_id))
+	if (!pWeenie->m_Qualities.IsSpellKnown(spell_id))
 	{
-		// m_pWeenie->SendText(csprintf("DEBUG: Unlearned spell %d.", spell_id), LTT_ALL_CHANNELS);
+		// pWeenie->SendText(csprintf("DEBUG: Unlearned spell %d.", spell_id), LTT_ALL_CHANNELS);
 		return WERROR_MAGIC_UNLEARNED_SPELL;
 	}
 
 	if (Timer::cur_time < m_fNextCastTime)
 	{
-		// m_pWeenie->SendText(csprintf("DEBUG: Actions Locked, Can't cast for %.3f more seconds.", Timer::cur_time - m_fNextCastTime), LTT_ALL_CHANNELS);
+		// pWeenie->SendText(csprintf("DEBUG: Actions Locked, Can't cast for %.3f more seconds.", Timer::cur_time - m_fNextCastTime), LTT_ALL_CHANNELS);
 		return WERROR_ACTIONS_LOCKED;
 	}
 
 	m_SpellCastData = SpellCastData(); // reset
-	m_SpellCastData.caster_id = m_pWeenie->GetID();
-	m_SpellCastData.source_id = m_pWeenie->GetTopLevelID();
+	m_SpellCastData.caster_id = pWeenie->GetID();
+	m_SpellCastData.source_id = pWeenie->GetTopLevelID();
 	m_SpellCastData.target_id = target_id;
 	m_SpellCastData.spell_id = spell_id;
-	m_SpellCastData.wand_id = m_pWeenie->GetWieldedCasterID();
+	m_SpellCastData.wand_id = pWeenie->GetWieldedCasterID();
 	m_SpellCastData.cast_timeout = Timer::cur_time + 10.0f;
-	m_SpellCastData.initial_cast_position = m_pWeenie->m_Position;
+	m_SpellCastData.initial_cast_position = pWeenie->m_Position;
 
 	if (!ResolveSpellBeingCasted())
 	{
@@ -2981,17 +3100,17 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 
 	if (!m_SpellCastData.current_skill)
 	{
-		m_pWeenie->SendText("You are not trained in that skill!", LTT_MAGIC);
+		pWeenie->SendText("You are not trained in that skill!", LTT_MAGIC);
 		return WERROR_MAGIC_INVALID_SPELL_TYPE;
 	}
 
-	// m_pWeenie->SendText(csprintf("Casting %d", m_SpellCastData.spell_id), LTT_DEFAULT);
+	// pWeenie->SendText(csprintf("Casting %d", m_SpellCastData.spell_id), LTT_DEFAULT);
 
 	if (int targetError = CheckTargetValidity())
 		return targetError;
 
 	//Components
-	std::shared_ptr<CContainerWeenie> caster = m_pWeenie->AsContainer();
+	std::shared_ptr<CContainerWeenie> caster = pWeenie->AsContainer();
 	if (caster != NULL && caster->InqBoolQuality(SPELL_COMPONENTS_REQUIRED_BOOL, FALSE) == TRUE)
 	{
 		bool foci;
@@ -3010,7 +3129,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		SpellFormula randomizedComponents;
 		randomizedComponents.CopyFrom(m_SpellCastData.spell->InqSpellFormula());
 
-		std::shared_ptr<CPlayerWeenie> player = m_pWeenie->AsPlayer();
+		std::shared_ptr<CPlayerWeenie> player = pWeenie->AsPlayer();
 		if (player)
 			randomizedComponents.RandomizeForName(player->GetClient()->GetAccount(), m_SpellCastData.spell->_formula_version);
 
@@ -3059,7 +3178,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		}
 	}
 
-	if (m_pWeenie->GetMana() < GenerateManaCost())
+	if (pWeenie->GetMana() < GenerateManaCost())
 		return WERROR_MAGIC_INSUFFICIENT_MANA;
 
 	BeginCast();
@@ -3133,6 +3252,13 @@ std::shared_ptr<CWeenieObject> CSpellcastingManager::FindFociInContainer(std::sh
 
 void CSpellcastingManager::Update()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
+
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	if (!m_bCasting)
 	{
 		return;
@@ -3146,24 +3272,24 @@ void CSpellcastingManager::Update()
 
 	if (m_bTurningToObject)
 	{
-		if (m_pWeenie->movement_manager->moveto_manager->movement_type != MovementTypes::TurnToObject)
+		if (pWeenie->movement_manager->moveto_manager->movement_type != MovementTypes::TurnToObject)
 		{
 			if (HeadingToTarget() <= MAX_HEADING_TO_TARGET_FOR_CAST)
 			{
-				// if (!m_pWeenie->get_minterp()->interpreted_state.turn_command)
+				// if (!pWeenie->get_minterp()->interpreted_state.turn_command)
 				{
 					BeginNextMotion();
 				}
 			}
 			else
 			{
-				if (!m_pWeenie->get_minterp()->interpreted_state.turn_command)
+				if (!pWeenie->get_minterp()->interpreted_state.turn_command)
 				{
 					MovementParameters params;
 					params.speed = 1.0f;
-					params.action_stamp = ++m_pWeenie->m_wAnimSequence;
-					m_pWeenie->last_move_was_autonomous = false;
-					m_pWeenie->TurnToObject(m_SpellCastData.target_id, &params);
+					params.action_stamp = ++pWeenie->m_wAnimSequence;
+					pWeenie->last_move_was_autonomous = false;
+					pWeenie->TurnToObject(m_SpellCastData.target_id, &params);
 					//m_bTurningToObject = true;
 					//m_fCastTimeout = Timer::cur_time + MAX_TURN_TIME_FOR_CAST;
 				}
@@ -3172,17 +3298,17 @@ void CSpellcastingManager::Update()
 		else
 		{
 			/*
-			std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(m_pWeenie, m_TargetID);
+			std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(pWeenie, m_TargetID);
 			if (pTarget)
 			{
 				LOG(Temp, Normal, "%f (%f %f) %08X %f %f %f\n",
 					HeadingToTarget(),
-					m_pWeenie->m_Position.heading(pTarget->m_Position),
-					m_pWeenie->m_Position.frame.get_heading(),
-					m_pWeenie->get_minterp()->interpreted_state.turn_command,
-					m_pWeenie->movement_manager->moveto_manager->sought_position.frame.get_heading(),
-					m_pWeenie->get_heading(),
-					m_pWeenie->get_heading() - m_pWeenie->movement_manager->moveto_manager->sought_position.frame.get_heading());
+					pWeenie->m_Position.heading(pTarget->m_Position),
+					pWeenie->m_Position.frame.get_heading(),
+					pWeenie->get_minterp()->interpreted_state.turn_command,
+					pWeenie->movement_manager->moveto_manager->sought_position.frame.get_heading(),
+					pWeenie->get_heading(),
+					pWeenie->get_heading() - pWeenie->movement_manager->moveto_manager->sought_position.frame.get_heading());
 			}
 			*/
 		}

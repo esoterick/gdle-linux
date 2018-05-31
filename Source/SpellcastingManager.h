@@ -107,7 +107,7 @@ public:
 	void HandleMotionDone(DWORD motion, BOOL success);
 
 	std::map<DWORD, DWORD> FindComponentInContainer(std::shared_ptr<CContainerWeenie> container, unsigned int componentId, int amountNeeded);
-	std::weak_ptr<CWeenieObject> FindFociInContainer(std::shared_ptr<CContainerWeenie> container, DWORD fociWcid);
+	std::shared_ptr<CWeenieObject> FindFociInContainer(std::shared_ptr<CContainerWeenie> container, DWORD fociWcid);
 
 	std::weak_ptr<CWeenieObject> m_pWeenie;
 	bool m_bCasting = false;

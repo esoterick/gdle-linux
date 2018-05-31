@@ -190,7 +190,15 @@ void CPortalUseEvent::OnReadyToUse()
 	}
 
 	// TODO is this safe? mwnciau
-	target->AsPortal()->CheckedTeleport(_weenie);
+	std::shared_ptr<CPortal> pPortal = target->AsPortal();
+	if (pPortal)
+	{
+		if (std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock())
+		{
+			target->AsPortal()->CheckedTeleport(pWeenie);
+		}
+	}
+
 	Done();
 }
 

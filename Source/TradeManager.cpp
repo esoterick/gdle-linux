@@ -32,7 +32,7 @@ TradeManager::TradeManager(std::shared_ptr<CPlayerWeenie> initiator, std::shared
 	ResetTrade(initiator);
 }
 
-void TradeManager::CloseTrade(std::shared_ptr<CPlayerWeenie> playerFrom, DWORD reason)
+void TradeManager::CloseTrade(std::weak_ptr<CPlayerWeenie> playerFrom, DWORD reason)
 {
 	OnCloseTrade(_initiator, reason);
 	OnCloseTrade(_partner, reason);
@@ -40,14 +40,15 @@ void TradeManager::CloseTrade(std::shared_ptr<CPlayerWeenie> playerFrom, DWORD r
 	Delete();
 }
 
-void TradeManager::OnCloseTrade(std::shared_ptr<CPlayerWeenie> player, DWORD reason)
+void TradeManager::OnCloseTrade(std::weak_ptr<CPlayerWeenie> player, DWORD reason)
 {
-	if (player)
+	std::shared_ptr<CWeenieObject> pPlayer = player.lock();
+	if (pPlayer)
 	{
 		BinaryWriter closeTrade;
 		closeTrade.Write<DWORD>(0x1FF);
 		closeTrade.Write<DWORD>(reason);
-		player->SendNetMessage(&closeTrade, PRIVATE_MSG, TRUE, FALSE);
+		pPlayer->SendNetMessage(&closeTrade, PRIVATE_MSG, TRUE, FALSE);
 	}
 }
 
@@ -71,7 +72,7 @@ void TradeManager::AddToTrade(std::shared_ptr<CPlayerWeenie> playerFrom, DWORD i
 
 	std::list<DWORD> *itemList;
 
-	if (playerFrom == _initiator)
+	if (playerFrom == _initiator.lock())
 	{
 		itemList = &m_lInitiatorItems;
 	}
@@ -109,7 +110,7 @@ void TradeManager::AcceptTrade(std::shared_ptr<CPlayerWeenie> playerFrom)
 	if (!CheckTrade())
 		return;
 
-	if (playerFrom == _initiator)
+	if (playerFrom == _initiator.lock())
 		m_bInitiatorAccepted = true;
 	else
 		m_bPartnerAccepted = true;
@@ -130,17 +131,28 @@ void TradeManager::AcceptTrade(std::shared_ptr<CPlayerWeenie> playerFrom)
 
 bool TradeManager::OnTradeAccepted()
 {
-	bool bError = false;
-	if (m_lPartnerItems.size() > _initiator->Container_GetNumFreeMainPackSlots())
+	std::shared_ptr<CPlayerWeenie> pInitiator = _initiator.lock();
+	if (!pInitiator)
 	{
-		_initiator->SendText("You do not have enough pack space to complete this trade!", LTT_ERROR);
-		_partner->SendText((_initiator->GetName() = " does not have enough pack space to complete this trade!").c_str(), LTT_ERROR);
+		return false;
+	}
+	std::shared_ptr<CPlayerWeenie> pPartner = _partner.lock();
+	if (!pPartner)
+	{
+		return false;
+	}
+
+	bool bError = false;
+	if (m_lPartnerItems.size() > pInitiator->Container_GetNumFreeMainPackSlots())
+	{
+		pInitiator->SendText("You do not have enough pack space to complete this trade!", LTT_ERROR);
+		pPartner->SendText((pInitiator->GetName() = " does not have enough pack space to complete this trade!").c_str(), LTT_ERROR);
 		bError = true;
 	}
-	if (m_lInitiatorItems.size() > _partner->Container_GetNumFreeMainPackSlots())
+	if (m_lInitiatorItems.size() > pPartner->Container_GetNumFreeMainPackSlots())
 	{
-		_partner->SendText("You do not have enough pack space to complete this trade!", LTT_ERROR);
-		_initiator->SendText((_partner->GetName() = " does not have enough pack space to complete this trade!").c_str(), LTT_ERROR);
+		pPartner->SendText("You do not have enough pack space to complete this trade!", LTT_ERROR);
+		pInitiator->SendText((pPartner->GetName() = " does not have enough pack space to complete this trade!").c_str(), LTT_ERROR);
 		bError = true;
 	}
 
@@ -149,20 +161,20 @@ bool TradeManager::OnTradeAccepted()
 	std::list<std::shared_ptr<CWeenieObject>> lpInitiatorItems;
 	for (auto it = m_lInitiatorItems.begin(); it != m_lInitiatorItems.end(); ++it)
 	{
-		std::shared_ptr<CWeenieObject> pItem = g_pWorld->FindWithinPVS(_initiator, *it);
+		std::shared_ptr<CWeenieObject> pItem = g_pWorld->FindWithinPVS(pInitiator, *it);
 		lpInitiatorItems.push_back(pItem);
 
 		if (!pItem)
 		{
-			_initiator->SendText("Invalid item in trade!", LTT_ERROR);
-			_partner->SendText("Invalid item in trade!", LTT_ERROR);
+			pInitiator->SendText("Invalid item in trade!", LTT_ERROR);
+			pPartner->SendText("Invalid item in trade!", LTT_ERROR);
 			bError = true;
 			break;
 		}
-		else if (pItem->GetWorldTopLevelOwner() != _initiator || pItem->IsWielded() || pItem->IsAttunedOrContainsAttuned())
+		else if (pItem->GetWorldTopLevelOwner() != pInitiator || pItem->IsWielded() || pItem->IsAttunedOrContainsAttuned())
 		{
-			_initiator->SendText(("You cannot trade " + pItem->GetName() + "!").c_str(), LTT_ERROR);
-			_partner->SendText((_initiator->GetName() + " put invalid items in the trade!").c_str(), LTT_ERROR);
+			pInitiator->SendText(("You cannot trade " + pItem->GetName() + "!").c_str(), LTT_ERROR);
+			pPartner->SendText((pInitiator->GetName() + " put invalid items in the trade!").c_str(), LTT_ERROR);
 			bError = true;
 			break;
 		}
@@ -171,20 +183,20 @@ bool TradeManager::OnTradeAccepted()
 	std::list<std::shared_ptr<CWeenieObject>> lpPartnerItems;
 	for (auto it = m_lPartnerItems.begin(); it != m_lPartnerItems.end(); ++it)
 	{
-		std::shared_ptr<CWeenieObject> pItem = g_pWorld->FindWithinPVS(_partner, *it);
+		std::shared_ptr<CWeenieObject> pItem = g_pWorld->FindWithinPVS(pPartner, *it);
 		lpPartnerItems.push_back(pItem);
 
 		if (!pItem)
 		{
-			_initiator->SendText("Invalid item in trade!", LTT_ERROR);
-			_partner->SendText("Invalid item in trade!", LTT_ERROR);
+			pInitiator->SendText("Invalid item in trade!", LTT_ERROR);
+			pPartner->SendText("Invalid item in trade!", LTT_ERROR);
 			bError = true;
 			break;
 		}
-		else if (pItem->GetWorldTopLevelOwner() != _partner || pItem->IsWielded() || pItem->IsAttunedOrContainsAttuned())
+		else if (pItem->GetWorldTopLevelOwner() != pPartner || pItem->IsWielded() || pItem->IsAttunedOrContainsAttuned())
 		{
-			_partner->SendText(("You cannot trade " + pItem->GetName() + "!").c_str(), LTT_ERROR);
-			_initiator->SendText((_partner->GetName() + " put invalid items in the trade!").c_str(), LTT_ERROR);
+			pPartner->SendText(("You cannot trade " + pItem->GetName() + "!").c_str(), LTT_ERROR);
+			pInitiator->SendText((pPartner->GetName() + " put invalid items in the trade!").c_str(), LTT_ERROR);
 			bError = true;
 			break;
 		}
@@ -195,38 +207,38 @@ bool TradeManager::OnTradeAccepted()
 		// Swap items
 		for (auto it = lpInitiatorItems.begin(); it != lpInitiatorItems.end(); ++it)
 		{
-			_partner->OnReceiveInventoryItem(_initiator, *it, 0);
+			pPartner->OnReceiveInventoryItem(pInitiator, *it, 0);
 
 
 			BinaryWriter removeItem;
 			removeItem.Write<DWORD>(0x24);
 			removeItem.Write<DWORD>((*it)->GetID());
-			_initiator->SendNetMessage(&removeItem, PRIVATE_MSG, TRUE, FALSE);
+			pInitiator->SendNetMessage(&removeItem, PRIVATE_MSG, TRUE, FALSE);
 		}
 		for (auto it = lpPartnerItems.begin(); it != lpPartnerItems.end(); ++it)
 		{
-			_initiator->OnReceiveInventoryItem(_partner, *it, 0);
+			pInitiator->OnReceiveInventoryItem(pPartner, *it, 0);
 
 			BinaryWriter removeItem;
 			removeItem.Write<DWORD>(0x24);
 			removeItem.Write<DWORD>((*it)->GetID());
-			_partner->SendNetMessage(&removeItem, PRIVATE_MSG, TRUE, FALSE);
+			pPartner->SendNetMessage(&removeItem, PRIVATE_MSG, TRUE, FALSE);
 		}
 
 
 		// Trade Complete!
-		_initiator->NotifyWeenieError(0x529);
-		_partner->NotifyWeenieError(0x529);
+		pInitiator->NotifyWeenieError(0x529);
+		pPartner->NotifyWeenieError(0x529);
 
 		// reset the trade to continue trading
-		ResetTrade(_initiator);
+		ResetTrade(pInitiator);
 
 		return true;
 	}
 	
 
 	// Unfortunately, you cannot un-accept a completed trade as the accepting client bugs out
-	CloseTrade(_initiator, 0);
+	CloseTrade(pInitiator, 0);
 
 	return false;
 }
@@ -236,7 +248,7 @@ void TradeManager::DeclineTrade(std::shared_ptr<CPlayerWeenie> playerFrom)
 	if (!CheckTrade())
 		return;
 
-	if (playerFrom == _initiator)
+	if (playerFrom == _initiator.lock())
 		m_bInitiatorAccepted = false;
 	else
 		m_bPartnerAccepted = false;
@@ -268,17 +280,22 @@ void TradeManager::ResetTrade(std::shared_ptr<CPlayerWeenie> playerFrom)
 
 std::shared_ptr<CPlayerWeenie> TradeManager::GetOtherPlayer(std::shared_ptr<CPlayerWeenie> player)
 {
-	if (player == _initiator)
-		return _partner;
+	std::shared_ptr<CPlayerWeenie> pInitiator = _initiator.lock();
+	std::shared_ptr<CPlayerWeenie> pPartner = _partner.lock();
 
-	return _initiator;
+	if (player == pInitiator)
+		return pPartner;
+
+	return pInitiator;
 };
 
 // Checks whether trade is still legit. True is so.
 bool TradeManager::CheckTrade()
 {
+	std::shared_ptr<CPlayerWeenie> pInitiator = _initiator.lock();
+	std::shared_ptr<CPlayerWeenie> pPartner = _partner.lock();
 	// not currently trading
-	if (!_initiator || !_partner)
+	if (!pInitiator || !pPartner)
 	{
 		OnCloseTrade(_initiator);
 		OnCloseTrade(_partner);
@@ -292,14 +309,17 @@ bool TradeManager::CheckTrade()
 // Removes references and then removes this from memory
 void TradeManager::Delete()
 {
+	std::shared_ptr<CPlayerWeenie> pInitiator = _initiator.lock();
+	std::shared_ptr<CPlayerWeenie> pPartner = _partner.lock();
+
 	// Delete all references to this
-	if (_initiator != NULL)
+	if (pInitiator)
 	{
-		_initiator->SetTradeManager(NULL);
+		pInitiator->SetTradeManager(NULL);
 	}
-	if (_partner != NULL)
+	if (pPartner)
 	{
-		_partner->SetTradeManager(NULL);
+		pPartner->SetTradeManager(NULL);
 	}
 
 	// MUST be the final thing done in this class
@@ -311,10 +331,13 @@ void TradeManager::CheckDistance()
 	if (!CheckTrade())
 		return;
 
-	if ( _initiator->DistanceTo(_partner, true) >= 1 )
+	std::shared_ptr<CPlayerWeenie> pInitiator = _initiator.lock();
+	std::shared_ptr<CPlayerWeenie> pPartner = _partner.lock();
+
+	if (pInitiator->DistanceTo(pPartner, true) >= 1 )
 	{
-		_initiator->SendText((_partner->GetName() + " is too far away to trade!").c_str(), LTT_ERROR);
-		_partner->SendText((_initiator->GetName() + " is too far away to trade!").c_str(), LTT_ERROR);
+		pInitiator->SendText((pPartner->GetName() + " is too far away to trade!").c_str(), LTT_ERROR);
+		pPartner->SendText((pInitiator->GetName() + " is too far away to trade!").c_str(), LTT_ERROR);
 
 		CloseTrade(_initiator, 1);
 	}

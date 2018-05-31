@@ -729,9 +729,15 @@ void CWorld::SendNetMessage(CNetDeliveryTargets *target, void *data, DWORD len, 
 void CWorld::BroadcastPVS(std::shared_ptr<CPhysicsObj> physobj, void *_data, DWORD _len, WORD _group, DWORD ignore_ent, BOOL _game_event)
 {
 	if (!physobj)
+	{
 		return;
+	}
 
-	std::shared_ptr<CPhysicsObj> topLevel = physobj->parent ? physobj->parent : physobj;
+	std::shared_ptr<CPhysicsObj> topLevel = physobj->parent.lock();
+	if (!topLevel)
+	{
+		topLevel = physobj;
+	}
 
 	DWORD cell_id;
 

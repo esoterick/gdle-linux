@@ -301,6 +301,11 @@ void CPlayerWeenie::FlushMadeAwareof()
 
 void CPlayerWeenie::MakeAware(std::shared_ptr<CWeenieObject> pEntity, bool bForceUpdate)
 {
+	if (!pEntity)
+	{
+		return;
+	}
+
 #ifndef PUBLIC_BUILD
 	int vis;
 	if (pEntity->m_Qualities.InqBool(VISIBILITY_BOOL, vis) && !m_bAdminVision)
@@ -328,10 +333,16 @@ void CPlayerWeenie::MakeAware(std::shared_ptr<CWeenieObject> pEntity, bool bForc
 	{
 		for (DWORD i = 0; i < pEntity->children->num_objects; i++)
 		{
-			// TODO is this safe? mwnciau
-			BinaryWriter *CM = std::dynamic_pointer_cast<CWeenieObject>(pEntity->children->objects.array_data[i])->CreateMessage();
-			if (CM)
-				SendNetMessage(CM, OBJECT_MSG);
+			if (std::shared_ptr<CPhysicsObj> pChild = pEntity->children->objects.array_data[i].lock())
+			{
+				if (std::shared_ptr<CWeenieObject> pChildWeenie = pChild->GetPointer<CWeenieObject>())
+				{
+					if (BinaryWriter *CM = std::dynamic_pointer_cast<CWeenieObject>(pEntity)->CreateMessage())
+					{
+						SendNetMessage(CM, OBJECT_MSG);
+					}
+				}
+			}
 		}
 	}
 
@@ -381,8 +392,10 @@ void CPlayerWeenie::ExitPortal()
 		_isFirstPortalInSession = false;
 	}
 
-	if (_phys_obj)
-		_phys_obj->ExitPortal();
+	if (std::shared_ptr<CPhysicsObj> pPhysObj = _phys_obj.lock())
+	{
+		pPhysObj->ExitPortal();
+	}
 }
 
 void CPlayerWeenie::SetLastHealthRequest(DWORD guid)
@@ -689,7 +702,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 	}
 
 	// cap the amount of items to drop to the number of items we can drop so the message properly ends with " and "
-	amountOfItemsToDrop = min(amountOfItemsToDrop, itemValueList.size());
+	amountOfItemsToDrop = min(amountOfItemsToDrop, static_cast<int>(itemValueList.size()));
 	int itemsLost = 0;
 
 	std::string itemsLostText;
@@ -742,14 +755,14 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 	if (coinConsumed || itemsLost)
 		SendText(itemsLostText.c_str(), LTT_DEFAULT);
 
-	if (_pendingCorpse)
+	if (std::shared_ptr<CCorpseWeenie> pCorpse = _pendingCorpse.lock())
 	{
 		//make the player corpse visible.
-		_pendingCorpse->m_Qualities.RemoveBool(VISIBILITY_BOOL);
-		_pendingCorpse->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
-		_pendingCorpse->NotifyObjectCreated(false);
-		_pendingCorpse->Save();
-		_pendingCorpse = NULL;
+		pCorpse->m_Qualities.RemoveBool(VISIBILITY_BOOL);
+		pCorpse->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
+		pCorpse->NotifyObjectCreated(false);
+		pCorpse->Save();
+		_pendingCorpse = std::shared_ptr<CCorpseWeenie>(NULL);
 	}
 }
 
@@ -794,8 +807,10 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 	// create corpse but make it invisible.
 	_pendingCorpse = CreateCorpse(false);
 
-	if (_pendingCorpse)
-		CalculateAndDropDeathItems(_pendingCorpse, killer_id);
+	if (std::shared_ptr<CCorpseWeenie> pCorpse = _pendingCorpse.lock())
+	{
+		CalculateAndDropDeathItems(pCorpse, killer_id);
+	}
 
 	if (g_pConfig->HardcoreMode())
 	{
@@ -1122,10 +1137,10 @@ int CPlayerWeenie::UseEx(std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<C
 int CPlayerWeenie::UseEx(bool bConfirmed)
 {
 	// Load the saved crafting targets
-	std::shared_ptr<CWeenieObject> pTool = m_pCraftingTool;
-	std::shared_ptr<CWeenieObject> pTarget = m_pCraftingTarget;
+	std::shared_ptr<CWeenieObject> pTool = m_pCraftingTool.lock();
+	std::shared_ptr<CWeenieObject> pTarget = m_pCraftingTarget.lock();
 
-	if (pTool == NULL || pTarget == NULL)
+	if (!pTool || !pTarget )
 	{
 		// no queued crafting op
 		return WERROR_NONE;
@@ -1214,7 +1229,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 					{
 						if (deficit * itemsNeedingMana.size() >= manaToDistribute) {
 							// applying smallest deficit to all items would require more mana than available for distribution
-							manaToApplyToEach = manaToDistribute / itemsNeedingMana.size();
+							manaToApplyToEach = manaToDistribute / static_cast<unsigned int>(itemsNeedingMana.size());
 						}
 						else {
 							manaToApplyToEach = deficit;
@@ -1656,8 +1671,8 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 		}
 
 		// We don't need these anymore
-		m_pCraftingTool = NULL;
-		m_pCraftingTarget = NULL;
+		m_pCraftingTool = std::shared_ptr<CWeenieObject>(NULL);
+		m_pCraftingTarget = std::shared_ptr<CWeenieObject>(NULL);
 
 		RecalculateEncumbrance();
 		break;
@@ -3573,6 +3588,12 @@ CWandSpellUseEvent::CWandSpellUseEvent(DWORD wandId, DWORD targetId)
 
 void CWandSpellUseEvent::OnReadyToUse()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	std::shared_ptr<CWeenieObject> wand = g_pWorld->FindObject(_wandId);
 	if (!wand)
 	{
@@ -3589,14 +3610,14 @@ void CWandSpellUseEvent::OnReadyToUse()
 
 	STypeSkill skill = (STypeSkill)wand->InqDIDQuality(ITEM_SKILL_LIMIT_DID, 0);
 	DWORD skillValue;
-	if (skill != 0 && _weenie->InqSkill(skill, skillValue, false))
+	if (skill != 0 && pWeenie->InqSkill(skill, skillValue, false))
 	{
 		if (skillValue < wand->InqIntQuality(ITEM_SKILL_LEVEL_LIMIT_INT, 0))
 		{
 			SkillTable *pSkillTable = SkillSystem::GetSkillTable();
 			const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skill);
 			if (pSkillBase != NULL)
-				_weenie->NotifyWeenieErrorWithString(WERROR_ACTIVATION_SKILL_TOO_LOW, pSkillBase->_name.c_str());
+				pWeenie->NotifyWeenieErrorWithString(WERROR_ACTIVATION_SKILL_TOO_LOW, pSkillBase->_name.c_str());
 			Cancel();
 			return;
 		}
@@ -3621,7 +3642,7 @@ void CWandSpellUseEvent::OnReadyToUse()
 			return;
 		}
 
-		DWORD manaConvSkill = _weenie->GetEffectiveManaConversionSkill();
+		DWORD manaConvSkill = pWeenie->GetEffectiveManaConversionSkill();
 		int spellCraft = wand->InqIntQuality(ITEM_SPELLCRAFT_INT, 0);
 		manaCost = GetManaCost(spellCraft, spell->_power, manaCost, manaConvSkill);
 
@@ -3635,7 +3656,7 @@ void CWandSpellUseEvent::OnReadyToUse()
 		_newManaValue = itemCurrentMana - manaCost;
 	}
 
-	_weenie->MakeSpellcastingManager()->m_bCasting = true;
+	pWeenie->MakeSpellcastingManager()->m_bCasting = true;
 
 	if (motion)
 		ExecuteUseAnimation(motion);
@@ -3645,6 +3666,12 @@ void CWandSpellUseEvent::OnReadyToUse()
 
 void CWandSpellUseEvent::OnUseAnimSuccess(DWORD motion)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	if (_newManaValue != -1)
 	{
 		std::shared_ptr<CWeenieObject> wand = g_pWorld->FindObject(_wandId);
@@ -3657,21 +3684,33 @@ void CWandSpellUseEvent::OnUseAnimSuccess(DWORD motion)
 		wand->NotifyIntStatUpdated(ITEM_CUR_MANA_INT, false);
 	}
 
-	_weenie->MakeSpellcastingManager()->CastSpellInstant(_targetId, _spellId);
-	_weenie->DoForcedStopCompletely();
+	pWeenie->MakeSpellcastingManager()->CastSpellInstant(_targetId, _spellId);
+	pWeenie->DoForcedStopCompletely();
 	Done();
 }
 
 void CWandSpellUseEvent::Cancel(DWORD error)
 {
-	_weenie->MakeSpellcastingManager()->m_bCasting = false;
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->MakeSpellcastingManager()->m_bCasting = false;
 
 	CUseEventData::Cancel(error);
 }
 
 void CWandSpellUseEvent::Done(DWORD error)
 {
-	_weenie->MakeSpellcastingManager()->m_bCasting = false;
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->MakeSpellcastingManager()->m_bCasting = false;
 
 	CUseEventData::Done(error);
 }
@@ -3679,72 +3718,132 @@ void CWandSpellUseEvent::Done(DWORD error)
 
 void CLifestoneRecallUseEvent::OnReadyToUse()
 {
-	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_LifestoneRecall);
-	_weenie->SendText(csprintf("%s is recalling to the lifestone.", _weenie->GetName().c_str()), LTT_RECALL);
+	pWeenie->SendText(csprintf("%s is recalling to the lifestone.", pWeenie->GetName().c_str()), LTT_RECALL);
 }
 
 void CLifestoneRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	_weenie->TeleportToLifestone();
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->TeleportToLifestone();
 	Done();
 }
 
 void CHouseRecallUseEvent::OnReadyToUse()
 {
-	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_HouseRecall);
-	_weenie->SendText(csprintf("%s is recalling home.", _weenie->GetName().c_str()), LTT_RECALL);
+	pWeenie->SendText(csprintf("%s is recalling home.", pWeenie->GetName().c_str()), LTT_RECALL);
 }
 
 void CHouseRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	_weenie->TeleportToHouse();
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->TeleportToHouse();
 	Done();
 }
 
 void CMansionRecallUseEvent::OnReadyToUse()
 {
-	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_HouseRecall);
-	_weenie->SendText(csprintf("%s is recalling to the Allegiance housing.", _weenie->GetName().c_str()), LTT_RECALL);
+	pWeenie->SendText(csprintf("%s is recalling to the Allegiance housing.", pWeenie->GetName().c_str()), LTT_RECALL);
 }
 
 void CMansionRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	_weenie->TeleportToMansion();
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->TeleportToMansion();
 	Done();
 }
 
 void CMarketplaceRecallUseEvent::OnReadyToUse()
 {
-	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_MarketplaceRecall);
-	_weenie->SendText(csprintf("%s is going to the Marketplace.", _weenie->GetName().c_str()), LTT_RECALL);
+	pWeenie->SendText(csprintf("%s is going to the Marketplace.", pWeenie->GetName().c_str()), LTT_RECALL);
 }
 
 void CMarketplaceRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	if (_weenie->IsDead() || _weenie->IsInPortalSpace())
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	if (pWeenie->IsDead() || pWeenie->IsInPortalSpace())
 	{
 		Cancel();
 		return;
 	}
 
-	_weenie->Movement_Teleport(Position(0x016C01BC, Vector(49.11f, -31.22f, 0.005f), Quaternion(0.7009f, 0, 0, -0.7132f)));
+	pWeenie->Movement_Teleport(Position(0x016C01BC, Vector(49.11f, -31.22f, 0.005f), Quaternion(0.7009f, 0, 0, -0.7132f)));
 	Done();
 }
 
 void CAllegianceHometownRecallUseEvent::OnReadyToUse()
 {
-	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_AllegianceHometownRecall);
-	_weenie->SendText(csprintf("%s is going to the Allegiance hometown.", _weenie->GetName().c_str()), LTT_RECALL);
+	pWeenie->SendText(csprintf("%s is going to the Allegiance hometown.", pWeenie->GetName().c_str()), LTT_RECALL);
 }
 
 void CAllegianceHometownRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	_weenie->TeleportToAllegianceHometown();
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	pWeenie->TeleportToAllegianceHometown();
 	Done();
 }
 

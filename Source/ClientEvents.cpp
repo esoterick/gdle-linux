@@ -30,7 +30,7 @@
 CClientEvents::CClientEvents(CClient *parent)
 {
 	m_pClient = parent;
-	m_pPlayer = std::shared_ptr<CWeenieObject>(NULL);
+	m_pPlayer = std::shared_ptr<CPlayerWeenie>(NULL);
 }
 
 CClientEvents::~CClientEvents()
@@ -45,7 +45,7 @@ CClientEvents::~CClientEvents()
 
 void CClientEvents::DetachPlayer()
 {
-	m_pPlayer = std::shared_ptr<CWeenieObject>(NULL);
+	m_pPlayer = std::shared_ptr<CPlayerWeenie>(NULL);
 }
 
 DWORD CClientEvents::GetPlayerID()

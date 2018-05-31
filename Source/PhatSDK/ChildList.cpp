@@ -16,7 +16,7 @@ BOOL CHILDLIST::FindChildIndex(std::shared_ptr<CPhysicsObj> pObj, WORD *Index)
 {
 	for (DWORD i = 0; i < num_objects; i++)
 	{
-		if (objects.array_data[i] == pObj)
+		if (objects.array_data[i].lock() == pObj)
 		{
 			*Index = (WORD) i;
 			return TRUE;
@@ -51,7 +51,7 @@ void CHILDLIST::remove_child(std::shared_ptr<CPhysicsObj> pChild)
 	DWORD i;
 	for (i = 0; i < num_objects; i++)
 	{
-		if (objects.array_data[i] == pChild)
+		if (objects.array_data[i].lock() == pChild)
 			break;
 	}
 

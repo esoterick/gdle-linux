@@ -231,7 +231,7 @@ bool MonsterAIManager::SeekTarget()
 	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
 	if (!pWeenie)
 	{
-		return;
+		return false;
 	}
 
 	if (m_fNextPVSCheck <= Timer::cur_time)
@@ -413,7 +413,7 @@ bool MonsterAIManager::DoMeleeAttack()
 	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
 	if (!pWeenie)
 	{
-		return;
+		return false;
 	}
 
 	DWORD motion = 0;

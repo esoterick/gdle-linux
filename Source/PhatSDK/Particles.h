@@ -77,7 +77,7 @@ public:
 
 	Frame m_Frame; // 0x0C (size: 0x40)
 
-	std::weak_ptr<CPhysicsObj> m_EmitterObj; // 0x4C
+	std::shared_ptr<CPhysicsObj> m_EmitterObj; // 0x4C
 	ParticleEmitterInfo *m_EmitterInfo; // 0x50
 	Particle *m_Particles; // 0x54
 	CPhysicsPart **m_Parts58; // 0x58

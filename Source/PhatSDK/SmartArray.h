@@ -219,6 +219,14 @@ void SmartArray<T>::add(T *pdata)
     num_used++;
 }
 
+namespace std
+{
+	template <class T>
+	bool weak_ptr<t>::operator==(const std::weak_ptr<T>& t, const std::weak_ptr<U>& u)
+	{
+	}
+}
+
 template<class T>
 BOOL SmartArray<T>::RemoveUnOrdered(T *pdata)
 {
@@ -234,6 +242,23 @@ BOOL SmartArray<T>::RemoveUnOrdered(T *pdata)
 
     return FALSE;
 }
+class CPhysicsObj;
+
+/*template<>
+BOOL SmartArray<std::weak_ptr<CPhysicsObj>>::RemoveUnOrdered(std::weak_ptr<CPhysicsObj> *pdata)
+{
+	for (long i = 0; i < num_used; i++)
+	{
+		if (array_data[i].lock() == pdata->lock())
+		{
+			array_data[i] = array_data[num_used - 1];
+			num_used--;
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}*/
 
 template<class T>
 class OldSmartArray

@@ -208,10 +208,10 @@ BinaryWriter *GetPhysicsObjData(std::shared_ptr<CWeenieObject> pEntity)
 		OptionalPhysicsObjData.Write<DWORD>(setup_id);
 	}
 
-	if (pEntity->parent)
+	if (std::shared_ptr<CPhysicsObj> pParent = pEntity->parent.lock())
 	{
 		dwSections |= PhysicsDescInfo::PARENT;
-		OptionalPhysicsObjData.Write<DWORD>(pEntity->parent->id);
+		OptionalPhysicsObjData.Write<DWORD>(pParent->id);
 		OptionalPhysicsObjData.Write<DWORD>(pEntity->InqIntQuality(PARENT_LOCATION_INT, 0));
 	}
 
@@ -222,8 +222,11 @@ BinaryWriter *GetPhysicsObjData(std::shared_ptr<CWeenieObject> pEntity)
 
 		for (DWORD i = 0; i < pEntity->children->num_objects; i++)
 		{
-			OptionalPhysicsObjData.Write<DWORD>(pEntity->children->objects.array_data[i]->id);
-			OptionalPhysicsObjData.Write<DWORD>(pEntity->children->location_ids.array_data[i]);
+			if (std::shared_ptr<CPhysicsObj> pChild = pEntity->children->objects.array_data[i].lock())
+			{
+				OptionalPhysicsObjData.Write<DWORD>(pChild->id);
+				OptionalPhysicsObjData.Write<DWORD>(pEntity->children->location_ids.array_data[i]);
+			}
 		}
 	}
 

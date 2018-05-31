@@ -40,7 +40,6 @@ SmartBox::SmartBox(void *_in_queue)
 	netblob_list = 0;
 	position_and_movement_file = 0;
 	player_id = 0;
-	player = 0;
 	target_object_id = 0;
 	target_callback = 0;
 	num_cells = 0;

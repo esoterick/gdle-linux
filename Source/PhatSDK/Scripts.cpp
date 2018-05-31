@@ -147,8 +147,13 @@ void ScriptManager::UpdateScripts()
     {
         CAnimHook *pNextHook = NextHook();
 
-        if (pNextHook)
-            pNextHook->Execute(m_pOwner);
+		if (pNextHook)
+		{
+			if (std::shared_ptr<CPhysicsObj> pOwner = m_pOwner.lock())
+			{
+				pNextHook->Execute(pOwner);
+			}
+		}
         else
         {
             ScriptManagerNode *pOldNode = m_pScriptsBegin;

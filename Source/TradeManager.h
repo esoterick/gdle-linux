@@ -7,8 +7,8 @@ class TradeManager
 public:
 	static TradeManager* RegisterTrade(std::shared_ptr<CPlayerWeenie> initiator, std::shared_ptr<CPlayerWeenie> partner);
 
-	void CloseTrade(std::shared_ptr<CPlayerWeenie> playerFrom, DWORD reason = 0x51);
-	void OnCloseTrade(std::shared_ptr<CPlayerWeenie> player, DWORD reason = 0);
+	void CloseTrade(std::weak_ptr<CPlayerWeenie> playerFrom, DWORD reason = 0x51);
+	void OnCloseTrade(std::weak_ptr<CPlayerWeenie> player, DWORD reason = 0);
 
 	void AddToTrade(std::shared_ptr<CPlayerWeenie> playerFrom, DWORD item);
 	//void RemoveFromTrade(std::shared_ptr<CPlayerWeenie> playerFrom, DWORD item);
