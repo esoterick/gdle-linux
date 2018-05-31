@@ -462,6 +462,7 @@
     <ClCompile Include="Source\easylogging++.cpp" />
     <ClCompile Include="Source\EnumUtil.cpp" />
     <ClCompile Include="Source\ManaStone.cpp" />
+    <ClCompile Include="Source\PhatSDK\SmartArray.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\CombatFormulas.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\Random.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\RandomRange.cpp" />
