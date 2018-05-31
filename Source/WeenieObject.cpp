@@ -6152,7 +6152,7 @@ void CWeenieObject::OnTeleported()
 void CWeenieObject::Movement_Teleport(const Position &position, bool bWasDeath)
 {
 	assert(position.objcell_id);
-	assert(!parent);
+	assert(!parent.lock());
 
 	OnTeleported();
 
@@ -6433,14 +6433,14 @@ void CWeenieObject::DebugValidate()
 	}
 	else
 	{
-		assert(!parent);
+		assert(!parent.lock());
 	}
 
 	int placement = InqIntQuality(PLACEMENT_POSITION_INT, 0);
 
 	if (!placement)
 	{
-		assert(!parent);
+		assert(!parent.lock());
 	}
 
 #endif
