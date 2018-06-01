@@ -109,7 +109,7 @@ void CEnvCell::Destroy()
 			if (static_objects[i])
 			{
 				static_objects[i]->leave_world();
-				static_objects[i] = NULL;
+				static_objects[i] = std::shared_ptr<CPhysicsObj>(NULL);
 			}
 		}
 
@@ -309,12 +309,14 @@ void CEnvCell::init_static_objects()
 	{
 		if (num_static_objects > 0)
 		{
+			static_objects.resize(num_static_objects);
+
 			for (DWORD i = 0; i < num_static_objects; i++)
 			{
 				if (static_object_ids[i])
 					static_objects[i] = CPhysicsObj::makeObject(static_object_ids[i], 0, FALSE);
 				else
-					static_objects[i] = NULL;
+					static_objects[i] = std::shared_ptr<CPhysicsObj>(NULL);
 
 				if (static_objects[i])
 					static_objects[i]->add_obj_to_cell(this, &static_object_frames[i]);

@@ -61,6 +61,10 @@ std::shared_ptr<CPhysicsObj> CObjCell::get_object(DWORD iid)
 
 void CObjCell::add_object(std::shared_ptr<CPhysicsObj> pObject)
 {
+	if (!pObject)
+	{
+		return;
+	}
 	if (num_objects >= object_list.alloc_size)
 		object_list.grow(object_list.alloc_size + 5);
 
