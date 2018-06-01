@@ -1325,7 +1325,7 @@ void MoveToManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> pPhysicsObj)
 
 void MoveToManager::SetWeenieObject(std::shared_ptr<CWeenieObject> pWeenieObj)
 {
-	physics_obj = pWeenieObj;
+	weenie_obj = pWeenieObj;
 }
 
 DWORD MoveToManager::_StopMotion(DWORD motion, MovementParameters *Params)

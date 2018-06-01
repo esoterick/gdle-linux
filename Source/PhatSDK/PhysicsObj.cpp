@@ -931,7 +931,7 @@ void CPhysicsObj::MotionDone(DWORD motion, BOOL success)
 
 std::shared_ptr<CPhysicsObj> CPhysicsObj::makeObject(DWORD data_did, DWORD object_iid, BOOL bDynamic)
 {
-	std::shared_ptr<CPhysicsObj> pObject = std::shared_ptr<CPhysicsObj>((new CPhysicsObj())->GetPointer<CPhysicsObj>());
+	std::shared_ptr<CPhysicsObj> pObject = std::shared_ptr<CPhysicsObj>((new CPhysicsObj())->GetPointer<CPhysicsObj>(true));
 
 	if (!pObject)
 		return NULL;
@@ -3096,7 +3096,7 @@ void CPhysicsObj::AddPartToShadowCells(CPhysicsPart *part)
 
 std::shared_ptr<CPhysicsObj> CPhysicsObj::makeParticleObject(unsigned int num_parts, CSphere *sorting_sphere)
 {
-	std::shared_ptr<CPhysicsObj> obj = std::shared_ptr<CPhysicsObj>((new CPhysicsObj())->GetPointer<CPhysicsObj>());
+	std::shared_ptr<CPhysicsObj> obj = std::shared_ptr<CPhysicsObj>((new CPhysicsObj())->GetPointer<CPhysicsObj>(true));
 
 	obj->id = 0;
 	obj->m_PhysicsState |= PARTICLE_EMITTER_PS| STATIC_PS;

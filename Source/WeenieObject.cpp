@@ -82,12 +82,12 @@ void CWeenieObject::InitPhysicsObj()
 	m_Qualities.InqDataID(SETUP_DID, setupID);
 
 #if 0
-	_phys_obj.lock() = CPhysicsObj::makeObject(setupID, GetID(), TRUE);
+	_phys_obj = CPhysicsObj::makeObject(setupID, GetID(), TRUE);
 
 	if (!_phys_obj.lock())
 		return;
 #else
-	_phys_obj.lock() = GetPointer<CWeenieObject>();
+	_phys_obj = GetPointer<CWeenieObject>();
 
 	int physicsState = 0;
 	if (m_Qualities.InqInt(PHYSICS_STATE_INT, physicsState))

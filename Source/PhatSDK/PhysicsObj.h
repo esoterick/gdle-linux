@@ -104,23 +104,41 @@ public:
 class CPhysicsObj : public LongHashData
 {
 protected:
-	std::weak_ptr<CPhysicsObj> m_spThis;
+	std::weak_ptr<CPhysicsObj> m_wpThis;
+	std::shared_ptr<CPhysicsObj> m_spThis = std::shared_ptr<CPhysicsObj>(NULL);
 public:
 	CPhysicsObj();
 	virtual ~CPhysicsObj();
 
 	template <class T>
-	std::shared_ptr<T> GetPointer()
+	std::shared_ptr<T> GetPointer(bool bTakeOwnership = false)
 	{
-		std::shared_ptr<CPhysicsObj> pThis = m_spThis.lock();
+		if (m_spThis)
+		{
+			std::shared_ptr<CPhysicsObj> pThis = m_spThis;
+			if (bTakeOwnership)
+			{
+				m_wpThis = m_spThis;
+				m_spThis = std::shared_ptr<CPhysicsObj>(NULL);
+			}
+			return std::dynamic_pointer_cast<T>(pThis);
+		}
+
+		std::shared_ptr<CPhysicsObj> pThis = m_wpThis.lock();
 		if (!pThis)
 		{
 			pThis = std::shared_ptr<CPhysicsObj>(this);
 
-			m_spThis = pThis;
+			if (bTakeOwnership)
+			{
+				m_wpThis = pThis;
+			}
+			else
+			{
+				m_spThis = pThis;
+			}
 		}
-		std::shared_ptr<T> pReturn = std::dynamic_pointer_cast<T>(pThis);
-		return pReturn;
+		return std::dynamic_pointer_cast<T>(pThis);
 	}
 
 	void Destroy();
