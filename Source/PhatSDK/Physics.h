@@ -14,7 +14,7 @@ public:
     static SmartArray<std::weak_ptr<CPhysicsObj> > static_animating_objects;
 
     static void AddStaticAnimatingObject(std::shared_ptr<CPhysicsObj> pObject);
-    static void RemoveStaticAnimatingObject(std::shared_ptr<CPhysicsObj> pObject);
+    static void RemoveStaticAnimatingObject(std::weak_ptr<CPhysicsObj> pObject);
 
     CPhysics(SmartBox *_SmartBox);
     ~CPhysics();

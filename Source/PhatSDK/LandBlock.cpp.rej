@@ -1,0 +1,10 @@
+diff a/Source/PhatSDK/LandBlock.cpp b/Source/PhatSDK/LandBlock.cpp	(rejected hunks)
+@@ -62,7 +62,7 @@
+ 
+ void CLandBlock::add_static_object(std::shared_ptr<CPhysicsObj> pObject)
+ {
+-	static_objects.array_data[num_static_objects++] = pObject;
++	static_objects[num_static_objects++] = pObject;
+ }
+ 
+ void CLandBlock::destroy_static_objects(void)

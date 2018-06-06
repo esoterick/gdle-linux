@@ -892,7 +892,7 @@ void MonsterAIManager::BeginMeleeModeAttack()
 			}
 			else
 			{
-				_currentWeapon = std::shared_ptr<CWeenieObject>(NULL);
+				_currentWeapon = std::weak_ptr<CWeenieObject>();
 			}
 		}
 	}
@@ -1003,7 +1003,7 @@ void MonsterAIManager::BeginMissileModeAttack()
 			if (!equippedAmmo)
 			{
 				//we don't have ammo, disable missile mode and switch to melee.
-				_missileWeapon = std::shared_ptr<CWeenieObject>(NULL);
+				_missileWeapon = std::weak_ptr<CWeenieObject>();
 				SwitchState(MeleeModeAttack);
 				return;
 			}
@@ -1011,7 +1011,7 @@ void MonsterAIManager::BeginMissileModeAttack()
 			if (pCurrentShield)
 			{
 				pWeenie->FinishMoveItemToContainer(pCurrentShield, pWeenie, 0, true); //get rid of the shield.
-				_currentShield = std::shared_ptr<CWeenieObject>(NULL);
+				_currentShield = std::weak_ptr<CWeenieObject>();
 			}
 		}
 		else if (pShield && !pCurrentShield)
@@ -1031,7 +1031,7 @@ void MonsterAIManager::BeginMissileModeAttack()
 			_currentWeapon = _missileWeapon;
 		else
 		{
-			_currentWeapon = std::shared_ptr<CWeenieObject>(NULL);
+			_currentWeapon = std::weak_ptr<CWeenieObject>();
 			SwitchState(MeleeModeAttack);
 		}
 	}

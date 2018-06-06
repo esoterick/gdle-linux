@@ -762,7 +762,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 		pCorpse->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
 		pCorpse->NotifyObjectCreated(false);
 		pCorpse->Save();
-		_pendingCorpse = std::shared_ptr<CCorpseWeenie>(NULL);
+		_pendingCorpse = std::weak_ptr<CCorpseWeenie>();
 	}
 }
 
@@ -1671,8 +1671,8 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 		}
 
 		// We don't need these anymore
-		m_pCraftingTool = std::shared_ptr<CWeenieObject>(NULL);
-		m_pCraftingTarget = std::shared_ptr<CWeenieObject>(NULL);
+		m_pCraftingTool = std::weak_ptr<CWeenieObject>();
+		m_pCraftingTarget = std::weak_ptr<CWeenieObject>();
 
 		RecalculateEncumbrance();
 		break;

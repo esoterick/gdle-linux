@@ -618,7 +618,7 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 					target = 0;
 				}
 
-				std::shared_ptr<CSpellProjectile> pProjectile = std::shared_ptr<CSpellProjectile>(new CSpellProjectile(m_SpellCastData, target));
+				std::shared_ptr<CSpellProjectile> pProjectile = (new CSpellProjectile(m_SpellCastData, target))->GetPointer<CSpellProjectile>(true);
 
 				// create the initial object
 				float distToTarget;

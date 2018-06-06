@@ -75,7 +75,7 @@ void CLandBlock::destroy_static_objects(void)
 		if (static_objects.array_data[i])
 		{
 			static_objects.array_data[i]->leave_world();
-			static_objects.array_data[i] = std::shared_ptr<CPhysicsObj>(NULL);
+			static_objects.array_data[i] = nullptr;
 		}
 	}
 

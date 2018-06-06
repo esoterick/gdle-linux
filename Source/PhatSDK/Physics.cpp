@@ -33,9 +33,9 @@ void CPhysics::AddStaticAnimatingObject(std::shared_ptr<CPhysicsObj> pObject)
     static_animating_objects.add(&std::weak_ptr<CPhysicsObj>(pObject));
 }
 
-void CPhysics::RemoveStaticAnimatingObject(std::shared_ptr<CPhysicsObj> pObject)
+void CPhysics::RemoveStaticAnimatingObject(std::weak_ptr<CPhysicsObj> pObject)
 {
-    static_animating_objects.RemoveUnOrdered(&std::weak_ptr<CPhysicsObj>(pObject));
+    static_animating_objects.RemoveUnOrdered(&pObject);
 }
 
 void CPhysics::SetPlayer(std::shared_ptr<CPhysicsObj> Player)

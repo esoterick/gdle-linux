@@ -101,7 +101,8 @@ void CGameMode_Tag::OnRemoveEntity(std::shared_ptr<CWeenieObject> pEntity)
 		if (pEntity == m_pSelectedPlayer.lock())
 		{
 			UnselectPlayer();
-			m_pSelectedPlayer = std::shared_ptr<CPlayerWeenie>(NULL);
+			m_pSelectedPlayer = std::weak_ptr<CPlayerWeenie>();
+			;
 		}
 	}
 }

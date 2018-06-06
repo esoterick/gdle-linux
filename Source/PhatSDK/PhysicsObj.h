@@ -105,7 +105,8 @@ class CPhysicsObj : public LongHashData
 {
 protected:
 	std::weak_ptr<CPhysicsObj> m_wpThis;
-	std::shared_ptr<CPhysicsObj> m_spThis = std::shared_ptr<CPhysicsObj>(NULL);
+	std::shared_ptr<CPhysicsObj> m_spThis = nullptr;
+	bool m_bPointerInitialised = false;
 public:
 	CPhysicsObj();
 	virtual ~CPhysicsObj();
@@ -119,7 +120,7 @@ public:
 			if (bTakeOwnership)
 			{
 				m_wpThis = m_spThis;
-				m_spThis = std::shared_ptr<CPhysicsObj>(NULL);
+				m_spThis = nullptr;
 			}
 			return std::dynamic_pointer_cast<T>(pThis);
 		}
@@ -127,7 +128,12 @@ public:
 		std::shared_ptr<CPhysicsObj> pThis = m_wpThis.lock();
 		if (!pThis)
 		{
+			if (m_bPointerInitialised)
+			{
+				throw "Pointer attempted to be initialised as a shared pointer a second time";
+			}
 			pThis = std::shared_ptr<CPhysicsObj>(this);
+			m_bPointerInitialised = true;
 
 			if (bTakeOwnership)
 			{

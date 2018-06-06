@@ -697,7 +697,7 @@ void ConstraintManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> new_physob
 	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
 	if (pPhysObj)
 	{
-		physics_obj = std::shared_ptr<CPhysicsObj>(NULL);
+		physics_obj = std::weak_ptr<CPhysicsObj>();
 		is_constrained = 0;
 		constraint_pos_offset = 0;
 		physics_obj = new_physobj;

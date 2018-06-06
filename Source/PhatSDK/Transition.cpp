@@ -64,7 +64,7 @@ void COLLISIONINFO::init()
 	sliding_normal_valid = 0;
 	collision_normal_valid = 0;
 	num_collide_object = 0;
-	last_collided_object = std::shared_ptr<CPhysicsObj>(NULL);
+	last_collided_object = std::weak_ptr<CPhysicsObj>();
 	collided_with_environment = 0;
 	contact_plane_cell_id = 0;
 	frames_stationary_fall = 0;
@@ -130,7 +130,7 @@ void CTransition::cleanupTransition(CTransition *)
 
 CTransition::CTransition()
 {
-	object_info.object = std::shared_ptr<CPhysicsObj>(NULL);
+	object_info.object = std::weak_ptr<CPhysicsObj>();
 	object_info.state = 0;
 	object_info.targetID = 0;
 
@@ -139,7 +139,7 @@ CTransition::CTransition()
 
 void CTransition::init()
 {
-	object_info.object = std::shared_ptr<CPhysicsObj>(NULL);
+	object_info.object = std::weak_ptr<CPhysicsObj>();
 	object_info.state = 0;
 	object_info.targetID = 0;
 
@@ -150,7 +150,7 @@ void CTransition::init()
 	collision_info.sliding_normal_valid = 0;
 	collision_info.collision_normal_valid = 0;
 	collision_info.num_collide_object = 0;
-	collision_info.last_collided_object = std::shared_ptr<CPhysicsObj>(NULL);
+	collision_info.last_collided_object = std::weak_ptr<CPhysicsObj>();
 	collision_info.collided_with_environment = 0;
 	collision_info.contact_plane_cell_id = 0;
 	collision_info.frames_stationary_fall = 0;

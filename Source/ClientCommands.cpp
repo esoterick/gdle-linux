@@ -1476,7 +1476,7 @@ CLIENT_COMMAND(instakill, "<radius>", "Deals damage to all nearby creatures.", A
 			continue;
 
 		DamageEventData dmgEvent;
-		dmgEvent.weapon = std::shared_ptr<CWeenieObject>(NULL);
+		dmgEvent.weapon = std::weak_ptr<CWeenieObject>();
 		dmgEvent.source = pPlayer;
 		dmgEvent.target = entry;
 		dmgEvent.damage_form = DF_PHYSICAL;

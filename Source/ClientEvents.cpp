@@ -30,7 +30,7 @@
 CClientEvents::CClientEvents(CClient *parent)
 {
 	m_pClient = parent;
-	m_pPlayer = std::shared_ptr<CPlayerWeenie>(NULL);
+	m_pPlayer = nullptr;
 }
 
 CClientEvents::~CClientEvents()
@@ -40,13 +40,13 @@ CClientEvents::~CClientEvents()
 		m_pPlayer->BeginLogout();
 		m_pPlayer->DetachClient();
 
-		m_pPlayer = std::shared_ptr<CPlayerWeenie>(NULL);
+		m_pPlayer = nullptr;
 	}
 }
 
 void CClientEvents::DetachPlayer()
 {
-	m_pPlayer = std::shared_ptr<CPlayerWeenie>(NULL);
+	m_pPlayer = nullptr;
 }
 
 DWORD CClientEvents::GetPlayerID()

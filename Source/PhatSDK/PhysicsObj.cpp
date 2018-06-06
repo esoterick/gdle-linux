@@ -94,7 +94,7 @@ CPhysicsObj::CPhysicsObj() : shadow_objects(4)
 	colliding_with_environment = 0;
 	memset(update_times, 0, sizeof(update_times));
 
-	// GetPointer<CPhysicsObj>() part is custom
+	// this part is custom
 	_position_timestamp = 0; // 0x164
 	_movement_timestamp = 0; // 0x166
 	_state_timestamp = 0; // 0x168
@@ -149,7 +149,7 @@ void CPhysicsObj::Destroy()
 	hooks = NULL;
 
 	if ((m_PhysicsState & STATIC_PS) && (m_PhysicsState & 0xC0000))
-		CPhysics::RemoveStaticAnimatingObject(GetPointer<CPhysicsObj>());
+		CPhysics::RemoveStaticAnimatingObject(m_wpThis);
 
 	if (physics_script_table)
 	{
@@ -2898,7 +2898,7 @@ void CPhysicsObj::unset_parent()
 			part_array->SetNoDrawInternal(0);
 	}
 
-	parent = std::shared_ptr<CPhysicsObj>(NULL);
+	parent = std::weak_ptr<CWeenieObject>();
 	update_time = Timer::cur_time;
 
 	clear_transient_states();

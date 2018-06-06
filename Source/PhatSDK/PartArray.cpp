@@ -480,7 +480,7 @@ void CPartArray::Destroy()
 	sequence.set_object(NULL);
 
 	pa_state = 0;
-	owner = std::shared_ptr<CPhysicsObj>(NULL);
+	owner = std::weak_ptr<CWeenieObject>();
 }
 
 CPartArray *CPartArray::CreateMesh(std::shared_ptr<CPhysicsObj> pPhysicsObj, DWORD ID)
