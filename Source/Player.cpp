@@ -147,7 +147,7 @@ void CPlayerWeenie::BeginLogout()
 	if (IsLoggingOut())
 		return;
 
-	_beginLogoutTime = max(Timer::cur_time, m_iPKActivity-30);
+	_beginLogoutTime = max(Timer::cur_time, m_iPKActivity);
 	_logoutTime = _beginLogoutTime + 5.0;
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
@@ -773,6 +773,7 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 	UpdateVitaePool(0);
 	ReduceVitae(0.05f);
 	UpdateVitaeEnchantment();
+	ClearPKActivity();
 
 	if (killer_id != GetID())
 	{

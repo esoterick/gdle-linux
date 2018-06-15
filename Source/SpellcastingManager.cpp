@@ -2154,6 +2154,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 			CWeenieObject *target = GetCastTarget();
 
+			if (m_pWeenie->AsPlayer() && m_pWeenie->AsPlayer()->CheckPKActivity() || m_pWeenie->HasOwner() && target->AsPlayer() && target->AsPlayer()->CheckPKActivity())
+			{
+				m_pWeenie->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+				break;
+			}
+
 			if (target)
 			{
 				PerformCastParticleEffects(); // perform particle effects early because teleporting will cancel it

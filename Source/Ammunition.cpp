@@ -138,6 +138,12 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 				{
 					EmitSound(Sound_Collision, 1.0f);
 
+					if (pSource && pHit && pSource->AsPlayer() && pHit->AsPlayer())
+					{
+						pSource->AsPlayer()->UpdatePKActivity();
+						pHit->AsPlayer()->UpdatePKActivity();
+					}
+
 					// todo: do this in a better way?
 					// 50% medium, 30% low, 20% high
 					DAMAGE_QUADRANT hitQuadrant = DAMAGE_QUADRANT::DQ_UNDEF;
