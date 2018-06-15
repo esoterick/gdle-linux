@@ -4395,6 +4395,30 @@ CLIENT_COMMAND(givexpother, "[value]", "Gives you some XP for testing.", ADMIN_A
 	return false;
 }
 
+CLIENT_COMMAND(hover, "<on / off>", "Turns hovering on or off.", BASIC_ACCESS)
+{
+	if (pPlayer->InqIntQuality(HERITAGE_GROUP_INT, 0, true) != 9)
+	{
+		pPlayer->SendText("Command only available for Empyrean characters.", LTT_DEFAULT);
+		return false;
+	}
+
+	if (!_stricmp(argv[0], "on") || !_stricmp(argv[0], "1"))
+	{
+
+		pPlayer->SendText("Hovering on. You must relog for the change to take effect.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x9000207);
+	}
+	else if (!_stricmp(argv[0], "off") || !_stricmp(argv[0], "0"))
+	{
+		pPlayer->SendText("Hovering off. You must relog for the change to take effect.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x9000001);
+	}
+
+	return false;
+}
+
+
 const char* CommandBase::Info(CommandEntry* pCommand)
 {
 	const char* szName = pCommand->name;
