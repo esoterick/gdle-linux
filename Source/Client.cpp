@@ -641,7 +641,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 					if (!startPos.objcell_id)
 					{
-						startPos = Position(0xA9B00015, Vector(53.780079f, 105.814995f, 64.005005f), Quaternion(-0.933116f, 0, 0, -0.359575f));
+						startPos = Position(0x870301AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0, 0, 0.948985f));
 						//startPos = Position(0xA9B00006, Vector(24.258204f, 123.777000f, 63.060749f), Quaternion(1, 0, 0, 0));
 					}
 
@@ -653,7 +653,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 					if (!startPos.objcell_id)
 					{
-						startPos = Position(0xDE51001D, Vector(87.350517f, 114.857246f, 16.004999f), Quaternion(0.843159f, 0.0, 0.0, 0.537665f));
+						startPos = Position(0x800401AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0.0, 0.0, 0.948985f));
 						//startPos = Position(0xDE51000C, Vector(26.712753f, 89.279999f, 17.778936f), Quaternion(0.931082f, 0.0, 0.0, -0.364811f));
 					}
 
@@ -665,7 +665,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 					if (!startPos.objcell_id)
 					{
-						startPos = Position(0x7D680012, Vector(56.949219f, 29.860384f, 14.981730f), Quaternion(0.475755f, 0.0, 0.0, -0.879578f));
+						startPos = Position(0x8C0401AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0.0, 0.0, 0.948985f));
 						//startPos = Position(0x7D680019, Vector(79.102280f, 19.573767f, 12.821287f), Quaternion(-0.656578f, 0.0, 0.0, 0.754258f));
 					}
 
@@ -677,8 +677,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 					if (!startPos.objcell_id)
 					{
-						//redirect to Holtburg as Sanamar is post-ToD and so incomplete.
-						startPos = Position(0xA9B00015, Vector(53.780079f, 105.814995f, 64.005005f), Quaternion(-0.933116f, 0, 0, -0.359575f));
+						startPos = Position(0x720301AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0, 0, 0.948985f));
 						//startPos = Position(0xA9B00006, Vector(24.258204f, 123.777000f, 63.060749f), Quaternion(1, 0, 0, 0));
 					}
 
