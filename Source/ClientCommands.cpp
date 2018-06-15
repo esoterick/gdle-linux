@@ -3049,6 +3049,36 @@ CLIENT_COMMAND(spawntreasure2, "<tier> <num>", "Spawn treasure of a specific tie
 	return false;
 }
 
+CLIENT_COMMAND(spawntreasure3, "<tier> <num> <cat>", "Spawn treasure of a specific tier & category", ADMIN_ACCESS)
+{
+	if (argc < 3)
+		return true;
+
+	int tier = atoi(argv[0]);
+	int num = atoi(argv[1]);
+	int cat = atoi(argv[2]);
+	for (int i = 0; i < num; i++)
+	{
+		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure((tier), (eTreasureCategory)cat);
+		//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Armor);
+
+		if (treasure)
+		{
+			treasure->SetInitialPosition(pPlayer->m_Position.add_offset(Vector(Random::GenFloat(-2.0, 2.0), Random::GenFloat(-2.0, 2.0), 1.0)));
+
+			if (!g_pWorld->CreateEntity(treasure))
+			{
+				delete treasure;
+				return false;
+			}
+		}
+		else
+			continue;
+	}
+	return false;
+}
+
+
 CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid into inventory.", ADMIN_ACCESS)
 {
 	if (g_pConfig->GetValue("weapons_testing", "0") == 0)
