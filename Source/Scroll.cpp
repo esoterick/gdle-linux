@@ -58,7 +58,7 @@ int CScrollWeenie::Use(CPlayerWeenie *player)
 	DWORD magicSkill = 0;
 	if (!alwaysSucceed)
 	{
-		if (!player->InqSkill(spell->InqSkillForSpell(), magicSkill, TRUE) || !magicSkill)
+		if (!player->InqSkill(spell->InqSkillForSpell(), magicSkill, FALSE) || !magicSkill)
 		{
 			player->SendText(csprintf("You are not trained in %s!", CachedSkillTable->GetSkillName(spell->InqSkillForSpell()).c_str()), LTT_DEFAULT);
 			player->NotifyInventoryFailedEvent(GetID(), WERROR_SKILL_TOO_LOW);
