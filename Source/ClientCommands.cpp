@@ -3161,7 +3161,7 @@ CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid in
 	return false;
 }
 
-CLIENT_COMMAND(spawnwcidinvfresh, "<name> [amount] [ptid] [shade]", "Spawn by wcid into inventory.", ADMIN_ACCESS)
+CLIENT_COMMAND(spawnwcidinvfresh, "<name> [amount] [ptid] [shade]", "Reload weenie and spawn by wcid into inventory.", ADMIN_ACCESS)
 {
 	if (g_pConfig->GetValue("weapons_testing", "0") == 0)
 	{
