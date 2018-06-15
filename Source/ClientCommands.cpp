@@ -80,6 +80,38 @@ bool SpawningEnabled(CPlayerWeenie *pPlayer, bool item = false)
 }
 
 #ifndef PUBLIC_BUILD
+CLIENT_COMMAND(skillspendexp, "<skillID> <exp>", "Attempts to spend the input exp to the given skill.", ADMIN_ACCESS)
+{
+
+	if (argc < 2)
+	{
+		pPlayer->SendText("An arg is missing", LTT_DEFAULT);
+		return true;
+	}
+
+	DWORD seq = 1;
+	DWORD eventNum = 0x0046;
+	DWORD dwSkill = (unsigned)atoi(argv[0]);
+	DWORD dwXP = (unsigned)atoi(argv[1]);
+
+	std::vector<DWORD> data;
+	data.push_back(seq);
+	data.push_back(eventNum);
+	data.push_back(dwSkill);
+	data.push_back(dwXP);
+
+	BinaryReader reader(data.data(), data.size() * sizeof(DWORD));
+
+	player_client->GetEvents()->ProcessEvent(&reader);
+
+	pPlayer->SendText(csprintf("Attempted to add %i exp to the skill", dwXP), LTT_DEFAULT);
+
+	return false;
+}
+#endif
+
+
+#ifndef PUBLIC_BUILD
 CLIENT_COMMAND(simulateaccess, "<level>", "Simulate access level.", ADMIN_ACCESS)
 {
 	if (argc < 1)

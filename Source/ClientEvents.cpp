@@ -717,7 +717,7 @@ void CClientEvents::Identify(DWORD target_id)
 	_next_allowed_identify = Timer::cur_time + 0.5;
 }
 
-void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD amount)
+void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD exp)
 {
 	// TODO use attribute map
 	if (key < 1 || key > 6)
@@ -727,20 +727,35 @@ void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD amount)
 
 	__int64 unassignedExp = 0;
 	m_pPlayer->m_Qualities.InqInt64(AVAILABLE_EXPERIENCE_INT64, unassignedExp);
-	if ((unsigned __int64)unassignedExp < (unsigned __int64)amount)
+	if ((unsigned __int64)unassignedExp < (unsigned __int64)exp)
 	{
 		// Not enough experience
 		return;
 	}
 
-	m_pPlayer->GiveAttributeXP(key, amount);
-	m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)amount);
+	Attribute attr;
+	if (!m_pPlayer->m_Qualities.InqAttribute(key, attr))
+	{
+		// Doesn't have the attribute
+		return;
+	}
 
-	m_pPlayer->NotifyAttributeStatUpdated(key);
-	m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	const DWORD amountNeededForMaxXp = attr.GetXpNeededForMaxXp();
+
+	exp = min(exp, amountNeededForMaxXp);
+
+	if (exp > 0)
+	{
+		m_pPlayer->GiveAttributeXP(key, exp);
+		m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
+
+		m_pPlayer->NotifyAttributeStatUpdated(key);
+		m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	}
+
 }
 
-void CClientEvents::SpendAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
+void CClientEvents::SpendAttribute2ndXP(STypeAttribute2nd key, DWORD exp)
 {
 	// TODO use vital map
 	if (key != 1 && key != 3 && key != 5)
@@ -750,16 +765,32 @@ void CClientEvents::SpendAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 
 	__int64 unassignedExp = 0;
 	m_pPlayer->m_Qualities.InqInt64(AVAILABLE_EXPERIENCE_INT64, unassignedExp);
-	if ((unsigned __int64)unassignedExp < (unsigned __int64)amount)
+	if ((unsigned __int64)unassignedExp < (unsigned __int64)exp)
 	{
 		// Not enough experience
 		return;
 	}
 
-	m_pPlayer->GiveAttribute2ndXP(key, amount);
+	SecondaryAttribute attr;
+	if (!m_pPlayer->m_Qualities.InqAttribute2nd(key, attr))
+	{
+		// Doesn't have the secondary attribute
+		return;
+	}
 
-	m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)amount);
-	m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	const DWORD amountNeededForMaxXp = attr.GetXpNeededForMaxXp();
+
+	// If the exp is more than is needed to reach max, it is limited to the amount needed to reach max
+	// This is done as the client may send more than the amount needed if it is desynced
+	exp = min(exp, amountNeededForMaxXp);
+
+	if (exp > 0)
+	{
+		m_pPlayer->GiveAttribute2ndXP(key, exp);
+		m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
+		m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	}
+
 }
 
 void CClientEvents::SpendSkillXP(STypeSkill key, DWORD exp)
@@ -781,10 +812,22 @@ void CClientEvents::SpendSkillXP(STypeSkill key, DWORD exp)
 		return;
 	}
 
-	m_pPlayer->GiveSkillXP(key, exp);
+	const DWORD amountNeededForMaxXp = skill.GetXpNeededForMaxXp();
 
-	m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
-	m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	// If the exp is more than is needed to reach max, it is limited to the amount needed to reach max
+	// This is done as the client may send more than the amount needed if it is desynced
+	exp = min(exp, amountNeededForMaxXp);
+
+
+	if (exp > 0)
+	{
+		// Only give the skill exp if it's not maxed
+		m_pPlayer->GiveSkillXP(key, exp);
+
+		m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
+		m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	}
+
 }
 
 void CClientEvents::SpendSkillCredits(STypeSkill key, DWORD credits)

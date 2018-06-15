@@ -3053,6 +3053,28 @@ const char *Attribute::GetAttributeName(STypeAttribute key) // custom
 	}
 }
 
+DWORD Attribute::GetMaxXp()
+{
+	return ExperienceSystem::ExperienceToAttributeLevel(ExperienceSystem::GetMaxAttributeLevel());
+}
+
+DWORD Attribute::GetXpNeededForMaxXp()
+{
+	const DWORD currentAttrXp = _cp_spent;
+
+	// This uses the virtual method, so this method works for both Attribute and SecondaryAttribute
+	const DWORD maxAttrXp = GetMaxXp();
+
+	const DWORD amountNeededForMaxXp = maxAttrXp - currentAttrXp;
+
+	return amountNeededForMaxXp;
+}
+
+DWORD SecondaryAttribute::GetMaxXp()
+{
+	return ExperienceSystem::ExperienceToAttribute2ndLevel(ExperienceSystem::GetMaxAttribute2ndLevel());
+}
+
 SecondaryAttribute::SecondaryAttribute()
 {
 	_current = 0;
@@ -3771,6 +3793,56 @@ void Skill::SetSkillAdvancementClass(SKILL_ADVANCEMENT_CLASS val)
 	_sac = val;
 	_level_from_pp = ExperienceSystem::SkillLevelFromExperience(val, _pp);
 }
+
+bool Skill::IsMaxed()
+{
+	// Skill is trained and at max level for trained skills. >= is just in case something (like a bug) could make _level_from_pp above expected max.
+	if (_sac == TRAINED_SKILL_ADVANCEMENT_CLASS && _level_from_pp >= ExperienceSystem::GetMaxTrainedSkillLevel())
+	{
+		return true;
+	}
+
+	// Skill is specialized and at max level for specialized skills
+	if (_sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && _level_from_pp >= ExperienceSystem::GetMaxSpecializedSkillLevel())
+	{
+		return true;
+	}
+
+	// Is untrained/undef, or otherwise not maxed in level
+	return false;
+}
+
+DWORD Skill::GetMaxXP()
+{
+	DWORD maxSkillLevel = 0;
+
+	if (_sac == TRAINED_SKILL_ADVANCEMENT_CLASS)
+	{
+		maxSkillLevel = ExperienceSystem::GetMaxTrainedSkillLevel();
+	}
+	else if (_sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+	{
+		maxSkillLevel = ExperienceSystem::GetMaxSpecializedSkillLevel();
+	}
+	else
+	{
+		return UINT_MAX;
+	}
+
+	return ExperienceSystem::ExperienceToSkillLevel(_sac, maxSkillLevel);
+}
+
+DWORD Skill::GetXpNeededForMaxXp()
+{
+	const DWORD currentSkillXp = _pp;
+
+	const DWORD maxSkillXp = GetMaxXP();
+
+	const DWORD amountNeededForMaxXp = maxSkillXp - currentSkillXp;
+
+	return amountNeededForMaxXp;
+}
+
 
 DEFINE_UNPACK(SpellBookPage)
 {
