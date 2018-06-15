@@ -3131,6 +3131,91 @@ CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid in
 	return false;
 }
 
+CLIENT_COMMAND(spawnwcidinvfresh, "<name> [amount] [ptid] [shade]", "Spawn by wcid into inventory.", ADMIN_ACCESS)
+{
+	if (g_pConfig->GetValue("weapons_testing", "0") == 0)
+	{
+		if (pPlayer->GetAccessLevel() < SENTINEL_ACCESS)
+		{
+			pPlayer->SendText("You do not have access to this command.", LTT_DEFAULT);
+			return false;
+		}
+	}
+
+	if (!SpawningEnabled(pPlayer))
+	{
+		return false;
+	}
+
+	if (argc < 1)
+		return true;
+
+	g_pWeenieFactory->RefreshLocalStorage();
+
+	CWeenieObject *weenieTemplate;
+
+	if (IsNumeric(argv[0]))
+	{
+		weenieTemplate = g_pWeenieFactory->CreateWeenieByClassID(atoi(argv[0]), NULL, false);
+	}
+	else if (IsHexNumeric(argv[0]))
+	{
+		weenieTemplate = g_pWeenieFactory->CreateWeenieByClassID(strtoul(argv[0] + 2, NULL, 16), NULL, false);
+	}
+	else
+	{
+		weenieTemplate = g_pWeenieFactory->CreateWeenieByName(argv[0], NULL, false);
+	}
+
+	if (!weenieTemplate)
+	{
+		pPlayer->SendText("Couldn't find that to spawn!", LTT_DEFAULT);
+		return false;
+	}
+
+	if (!pPlayer->IsAdmin() && atoi(g_pConfig->GetValue("weapons_testing", "0")) != 0)
+	{
+		if (weenieTemplate->m_Qualities.m_WeenieType != MeleeWeapon_WeenieType)
+		{
+			pPlayer->SendText("Only weapon spawning is enabled.", LTT_DEFAULT);
+			delete weenieTemplate;
+
+			return false;
+		}
+	}
+
+	int amount = 1;
+	if (argc >= 2)
+		amount = atoi(argv[1]);
+	if (argc >= 3)
+		weenieTemplate->m_Qualities.SetInt(PALETTE_TEMPLATE_INT, atoi(argv[1]));
+	if (argc >= 4)
+		weenieTemplate->m_Qualities.SetFloat(SHADE_FLOAT, atof(argv[2]));
+
+	if (!weenieTemplate->CanPickup())
+	{
+		pPlayer->SendText("That can't be spawned in a container.", LTT_DEFAULT);
+		delete weenieTemplate;
+
+		return false;
+	}
+
+	int maxStackSize = weenieTemplate->InqIntQuality(MAX_STACK_SIZE_INT, 1);
+	if (amount > maxStackSize * 100)
+	{
+		pPlayer->SendText("The amount requested is too large.", LTT_DEFAULT);
+		delete weenieTemplate;
+
+		return false;
+	}
+
+	pPlayer->SpawnCloneInContainer(weenieTemplate, amount);
+	delete weenieTemplate;
+
+	return false;
+}
+
+
 CLIENT_COMMAND(spawnjewelerytoinvbymatid, "<tier> <num> <mat>", "Spawn treasure by material", ADMIN_ACCESS)
 {
 	if (argc < 2)
