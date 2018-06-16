@@ -728,8 +728,12 @@ void CSpellcastingManager::PerformCastParticleEffects()
 	// target effect
 	if (m_SpellCastData.spell->_target_effect)
 	{
-		if (CWeenieObject *pTarget = GetCastTarget())
-			pTarget->EmitEffect(m_SpellCastData.spell->_target_effect, max(0.0, min(1.0, (m_SpellCastData.power_level_of_power_component - 1.0) / 7.0)));
+		if ((m_SpellCastData.spell->_school == 3) && (GetCastSource() == GetCastTarget()))
+			return;
+		else {
+			if (CWeenieObject *pTarget = GetCastTarget())
+				pTarget->EmitEffect(m_SpellCastData.spell->_target_effect, max(0.0, min(1.0, (m_SpellCastData.power_level_of_power_component - 1.0) / 7.0)));
+		}
 	}
 }
 
@@ -1385,6 +1389,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					{
 						m_pWeenie->m_Qualities.SetPosition(LINKED_LIFESTONE_POSITION, m_pWeenie->m_Position);
 						bSpellPerformed = true;
+						m_pWeenie->SendText("You have successfully linked with the life stone.", LTT_MAGIC);
 					}
 					else
 					{
@@ -1398,6 +1403,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					{
 						m_pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_ONE_DID, pTarget->m_Qualities.id);
 						bSpellPerformed = true;
+						m_pWeenie->SendText("You have successfully linked with the portal.", LTT_MAGIC);
 					}
 					else
 					{
@@ -1412,6 +1418,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					{
 						m_pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_TWO_DID, pTarget->m_Qualities.id);
 						bSpellPerformed = true;
+						m_pWeenie->SendText("You have successfully linked with the portal.", LTT_MAGIC);
 					}
 					else
 					{
