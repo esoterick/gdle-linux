@@ -183,7 +183,14 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 					dmgEvent.target = pHit;
 					dmgEvent.weapon = weapon;
 					dmgEvent.damage_form = DF_MISSILE;
-					dmgEvent.damage_type = InqDamageType();
+
+					if (InqDamageType() != BASE_DAMAGE_TYPE)
+						dmgEvent.damage_type = InqDamageType();
+					else if (!weapon->InqDamageType())
+						dmgEvent.damage_type = PIERCE_DAMAGE_TYPE;
+					else
+						dmgEvent.damage_type = weapon->InqDamageType();
+
 					dmgEvent.hit_quadrant = hitQuadrant;
 					dmgEvent.attackSkill = _weaponSkill;
 					dmgEvent.attackSkillLevel = _weaponSkillLevel;
