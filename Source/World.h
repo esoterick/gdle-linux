@@ -52,7 +52,7 @@ public:
 	CWorld();
 	~CWorld();
 
-	bool CreateEntity(std::shared_ptr<CWeenieObject> , bool bMakeAware = true);
+	bool CreateEntity(std::shared_ptr<CWeenieObject> , bool bMakeAware = true, bool bForceTakeControl = false);
 
 	void InsertTeleportLocation(TeleTownList_s l);
 	std::string GetTeleportList();

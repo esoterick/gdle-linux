@@ -55,6 +55,7 @@ CWeenieObject::CWeenieObject()
 CWeenieObject::~CWeenieObject()
 {
 	DEBUG_DATA << "Deleted object: " << GetName();
+	WINLOG(Data, Normal, (std::string("Deleted object: ") + GetName() + "\n").c_str());
 
 	CleanupPhysicsTemporary();
 

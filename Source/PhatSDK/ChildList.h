@@ -16,7 +16,7 @@ public:
 
 	WORD num_objects;
 	// TODO shared_ptr? mwnciau
-	SArray<std::shared_ptr<CPhysicsObj> > objects;
+	SArray<std::weak_ptr<CPhysicsObj> > objects;
 	SArray<Frame> frames;
 	SArray<DWORD> part_numbers;
 	SArray<DWORD> location_ids;

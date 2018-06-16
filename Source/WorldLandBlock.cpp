@@ -315,7 +315,7 @@ void CWorldLandBlock::SpawnDynamics()
 					weenie->SetID(iid);
 				}
 
-				g_pWorld->CreateEntity(weenie);
+				g_pWorld->CreateEntity(weenie, true, true);
 
 				if (bDynamicID)
 				{

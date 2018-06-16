@@ -324,7 +324,7 @@ CWorldLandBlock *CWorld::ActivateBlock(WORD wHeader)
 	return pBlock;
 }
 
-bool CWorld::CreateEntity(std::shared_ptr<CWeenieObject> pEntity, bool bMakeAware)
+bool CWorld::CreateEntity(std::shared_ptr<CWeenieObject> pEntity, bool bMakeAware, bool bForceTakeControl)
 {
 	if (!pEntity)
 		return false;
@@ -339,35 +339,45 @@ bool CWorld::CreateEntity(std::shared_ptr<CWeenieObject> pEntity, bool bMakeAwar
 		}
 		else
 		{
-			LOG_PRIVATE(World, Warning, "Trying to spawn second (different) weenie with existing ID 0x%08X! Deleting instead.\n", pEntity->GetID());
-
-			if (pExistingWeenie->IsContained())
+			// the caller wants to take control so remove all previous owners
+			if (bForceTakeControl)
 			{
-				std::shared_ptr<CWeenieObject> pObj = FindObject(pExistingWeenie->GetContainerID());
+				LOG_PRIVATE(World, Warning, csprintf("Trying to spawn second (different) weenie with existing ID 0x%08X! Deleting OLD instead (%d, %d refs).\n", pEntity->id, pExistingWeenie.use_count()));
+				pExistingWeenie->Destroy();
+				pExistingWeenie = nullptr;
+			}
+			else
+			{
+				LOG_PRIVATE(World, Warning, "Trying to spawn second (different) weenie with existing ID 0x%08X! Deleting instead.\n", pEntity->GetID());
 
-				if (pObj && pObj->AsCorpse())
+				if (pExistingWeenie->IsContained())
 				{
-					// if it can be a corpse, it must be a container
-					std::shared_ptr<CContainerWeenie> pContainer = pObj->AsContainer();
-					// The dupe is in a corpse!
-					// Let's assume the corpse was already recovered.
+					std::shared_ptr<CWeenieObject> pObj = FindObject(pExistingWeenie->GetContainerID());
 
-					while (pContainer->m_Items.size() > 0)
+					if (pObj && pObj->AsCorpse())
 					{
-						pContainer->m_Items[0]->Remove();
-					}
+						// if it can be a corpse, it must be a container
+						std::shared_ptr<CContainerWeenie> pContainer = pObj->AsContainer();
+						// The dupe is in a corpse!
+						// Let's assume the corpse was already recovered.
 
-					// Corpse is now empty. We can get rid of it.
-					pContainer->Remove();
+						while (pContainer->m_Items.size() > 0)
+						{
+							pContainer->m_Items[0]->Remove();
+						}
+
+						// Corpse is now empty. We can get rid of it.
+						pContainer->Remove();
+					}
+					else
+					{
+						return false;
+					}
 				}
 				else
 				{
 					return false;
 				}
-			}
-			else
-			{
-				return false;
 			}
 		}
 
