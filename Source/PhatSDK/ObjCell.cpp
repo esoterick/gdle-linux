@@ -410,12 +410,12 @@ void CObjCell::find_cell_list(CELLARRAY *cell_array, CObjCell **check_cell, SPHE
 	CObjCell::find_cell_list(&path->check_pos, path->num_sphere, path->global_sphere, cell_array, check_cell, path);
 }
 
-CObjCell *CObjCell::GetVisible(DWORD cell_id)
+CObjCell *CObjCell::GetVisible(DWORD cell_id, bool bDoPostLoad)
 {
 	if (cell_id)
 	{
 		if ((WORD)cell_id >= 0x100)
-			return CEnvCell::GetVisible(cell_id);
+			return CEnvCell::GetVisible(cell_id, bDoPostLoad);
 		else
 			return CLandCell::Get(cell_id);
 	}
