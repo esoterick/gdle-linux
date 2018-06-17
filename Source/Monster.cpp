@@ -1777,7 +1777,17 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 	m_DeathKillerIDForCorpse = mostDamageSource;
 	if (!g_pWorld->FindObjectName(mostDamageSource, m_DeathKillerNameForCorpse))
-		m_DeathKillerNameForCorpse.clear();
+		m_DeathKillerNameForCorpse = "fate";
+
+	if (m_Qualities._generator_registry)
+	{
+		for each(auto entry in m_Qualities._generator_registry->_registry)
+		{
+			CWeenieObject *weenie = g_pWorld->FindObject(entry.second.m_objectId);
+			weenie->AsMonster()->OnDeath(0);
+		}
+
+	}
 
 	MakeMovementManager(TRUE);
 	StopCompletely(0);
