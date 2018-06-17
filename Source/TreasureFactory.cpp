@@ -1441,7 +1441,7 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 
 			if (itemType == TYPE_CASTER)
 			{
-				for (int i = 0; i < category->wieldTiers.size() - 1; i++)
+				for (int i = 0; i < 2; i++)
 				{
 					//increase chance of no weapon skill casters as that is only used for war magic.
 					possibleWieldTiers.push_back(zeroReqWieldTier);
@@ -1450,7 +1450,7 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 
 			if (possibleWieldTiers.size() == 0)
 				return false;
-			wieldTier = &possibleWieldTiers[(int)getRandomNumberExclusive((int)possibleWieldTiers.size(), eRandomFormula::favorMid, 2, 0)];
+			wieldTier = &possibleWieldTiers[(int)getRandomNumberExclusive((int)possibleWieldTiers.size(), eRandomFormula::equalDistribution, 2, 0)];
 
 			MutateWeapon(newItem, wieldTier, creationInfo, tier, category, entry);
 			if (itemType == TYPE_MELEE_WEAPON)
@@ -1497,7 +1497,7 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 
 			if (possibleWieldTiers.size() == 0)
 				return false;
-			wieldTier = &possibleWieldTiers[getRandomNumberExclusive((int)possibleWieldTiers.size(), eRandomFormula::favorMid, 2, 0)];
+			wieldTier = &possibleWieldTiers[getRandomNumberExclusive((int)possibleWieldTiers.size(), eRandomFormula::equalDistribution, 2, 0)];
 			MutateArmor(newItem, wieldTier, creationInfo, tier, category, entry);
 		}
 	}
