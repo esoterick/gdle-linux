@@ -925,7 +925,8 @@ void CWeenieObject::OnGeneratedDeath(CWeenieObject *weenie)
 				{
 					//we're the child of a generator and all our children have been destroyed/picked up.
 					//so we're done and should cease to exist.
-					MarkForDestroy();
+					if(!IsCreature())
+						MarkForDestroy();
 
 					//make the leftovers rot.
 					for each (auto entry in rotList)
