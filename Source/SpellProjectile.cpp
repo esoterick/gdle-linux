@@ -172,6 +172,10 @@ BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 				dmgEvent.isProjectileSpell = true;
 				dmgEvent.spell_name = m_CachedSpellCastData.spell->_name;
 
+				CalculateCriticalHitData(&dmgEvent, &m_CachedSpellCastData);
+				dmgEvent.wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent.critChance) ? true : false;
+
+
 				CalculateDamage(&dmgEvent, &m_CachedSpellCastData);
 
 				pHit->TryToDealDamage(dmgEvent);

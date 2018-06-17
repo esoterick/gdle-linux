@@ -2628,6 +2628,9 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 		dmgEvent.isProjectileSpell = false;
 		dmgEvent.spell_name = m_SpellCastData.spell->_name;
 
+		CalculateCriticalHitData(&dmgEvent, &m_SpellCastData);
+		dmgEvent.wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent.critChance) ? true : false;
+
 		CalculateDamage(&dmgEvent, &m_SpellCastData);
 
 		m_pWeenie->TryToDealDamage(dmgEvent);

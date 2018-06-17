@@ -26,7 +26,6 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 	CalculateRendingAndMiscData(dmgEvent);
 	CalculateAttributeDamageBonus(dmgEvent);
 	CalculateSkillDamageBonus(dmgEvent, spellData);
-	CalculateCriticalHitData(dmgEvent, spellData);
 	CalculateSlayerData(dmgEvent);
 
 
@@ -35,7 +34,6 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 		damageCalc += dmgEvent->skillDamageBonus;
 		damageCalc += dmgEvent->slayerDamageBonus;
 
-		dmgEvent->wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent->critChance) ? true : false;
 		if (dmgEvent->wasCrit)
 		{
 			damageCalc += damageCalc * dmgEvent->critMultiplier; //Leave the old formula for Melee/Missile crits.
@@ -79,9 +77,9 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 		else
 			attribDamageMod = 6.75*(1.0 - exp(-0.005*((int)attrib - 55)));
 		if (attribDamageMod < 0 || dmgEvent->ignoreMagicArmor || dmgEvent->ignoreMagicResist) //half attribute bonus for hollow weapons.
-			dmgEvent->attributeDamageBonus = dmgEvent->baseDamage * (attribDamageMod / 2.0);
+			dmgEvent->attributeDamageBonus = dmgEvent->preVarianceDamage * (attribDamageMod / 2.0);
 		else
-			dmgEvent->attributeDamageBonus = dmgEvent->baseDamage * (attribDamageMod - 1.0);
+			dmgEvent->attributeDamageBonus = dmgEvent->preVarianceDamage * (attribDamageMod - 1.0);
 		break;
 	}
 	case DF_MAGIC:

@@ -197,6 +197,14 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 					dmgEvent.preVarianceDamage = preVarianceDamage;
 					dmgEvent.baseDamage = preVarianceDamage * (1.0f - Random::GenFloat(0.0f, variance));
 
+					CalculateCriticalHitData(&dmgEvent, NULL);
+					dmgEvent.wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent.critChance) ? true : false;
+					if (dmgEvent.wasCrit)
+					{
+						dmgEvent.baseDamage = dmgEvent.preVarianceDamage;//Recalculate baseDamage with no variance (uses max dmg on weapon)
+					}
+
+
 					CalculateDamage(&dmgEvent);
 
 					pSource->TryToDealDamage(dmgEvent);
