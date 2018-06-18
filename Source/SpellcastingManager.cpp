@@ -2541,12 +2541,14 @@ bool CSpellcastingManager::DoTransferSpell(CWeenieObject *other, const TransferS
 			if (dest->AsPlayer())
 			{
 				// update the target's health on the casting player asap
-				((CPlayerWeenie*)source)->RefreshTargetHealth();
+				if(source->AsPlayer())
+					((CPlayerWeenie*)source)->RefreshTargetHealth();
 			}
 			if (source->AsPlayer())
 			{
 				// update the target's health on the casting player asap
-				((CPlayerWeenie*)dest)->RefreshTargetHealth();
+				if(dest->AsPlayer())
+					((CPlayerWeenie*)dest)->RefreshTargetHealth();
 			}
 		}
 		else
