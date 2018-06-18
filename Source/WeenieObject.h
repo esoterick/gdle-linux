@@ -277,6 +277,7 @@ public:
 	virtual bool InqRunRate(float &rate); // 0x34
 	virtual bool CanJump(float extent);
 	virtual bool JumpStaminaCost(float, long &); // 0x40
+	virtual float CalculateDefenseImpact();
 
 	virtual int DoCollision(const class EnvCollisionProfile &prof);
 	virtual int DoCollision(const class ObjCollisionProfile &prof);

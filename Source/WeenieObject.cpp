@@ -5961,9 +5961,8 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 			break;
 		}
 	}
-
-	defenseSkill = (int)round((double)defenseSkill * defenseMod);
-
+	
+	defenseSkill = (int)round((double)defenseSkill * defenseMod * CalculateDefenseImpact());
 	bool success = ::TryMeleeEvade(attackSkill, defenseSkill);
 
 	if (inCombatMode)
@@ -5999,6 +5998,18 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 	}
 
 	return success;
+}
+
+float CWeenieObject::CalculateDefenseImpact()
+{
+	float burden = 0.0f;
+	m_Qualities.InqLoad(burden);
+	if (burden >= 2.0)
+		return 0;
+	if (burden <= 1.0)
+		return 1;
+	float returnv = 1 - std::abs(1.0 - burden);
+	return returnv;
 }
 
 bool CWeenieObject::TryMissileEvade(DWORD attackSkill)
@@ -6039,9 +6050,7 @@ bool CWeenieObject::TryMissileEvade(DWORD attackSkill)
 			break;
 		}
 	}
-
-	defenseSkill = (int)round((double)defenseSkill * defenseMod);
-
+	defenseSkill = (int)round((double)defenseSkill * defenseMod * CalculateDefenseImpact());
 	bool success = ::TryMissileEvade(attackSkill, defenseSkill);
 
 	if (inCombatMode)

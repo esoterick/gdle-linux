@@ -2594,7 +2594,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 
 			DWORD target = pReader->Read<DWORD>();
-			if (pReader->GetLastError)
+			if (pReader->GetLastError())
 				return;
 
 			CWeenieObject *pOther = g_pWorld->FindWithinPVS(m_pPlayer, target);
