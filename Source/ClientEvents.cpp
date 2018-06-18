@@ -2593,35 +2593,42 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				return;
 			}
 
-			CPlayerWeenie *pOther = g_pWorld->FindWithinPVS(m_pPlayer, pReader->Read<DWORD>())->AsPlayer();
+			DWORD target = pReader->Read<DWORD>();
+			if (pReader->GetLastError)
+				return;
+
+			CWeenieObject *pOther = g_pWorld->FindWithinPVS(m_pPlayer, target);
+			CPlayerWeenie *pTarget;
+			if (pOther)
+				pTarget = pOther->AsPlayer();
 
 			if (!pOther)
 			{
 				// cannot open trade
 				m_pPlayer->SendText("Unable to open trade.", LTT_ERROR);
 			}
-			else if (pOther->_playerModule.options_ & 0x20000)
+			else if (pTarget->_playerModule.options_ & 0x20000)
 			{
-				SendText((pOther->GetName() + " has disabled trading.").c_str(), LTT_ERROR);
+				SendText((pTarget->GetName() + " has disabled trading.").c_str(), LTT_ERROR);
 			}
-			else if (pOther->IsBusyOrInAction())
+			else if (pTarget->IsBusyOrInAction())
 			{
-				SendText((pOther->GetName() + " is busy.").c_str(), LTT_ERROR);
+				SendText((pTarget->GetName() + " is busy.").c_str(), LTT_ERROR);
 			}
-			else if (pOther->GetTradeManager() != NULL)
+			else if (pTarget->GetTradeManager() != NULL)
 			{
-				SendText((pOther->GetName() + " is already trading with someone else!").c_str(), LTT_ERROR);
+				SendText((pTarget->GetName() + " is already trading with someone else!").c_str(), LTT_ERROR);
 			}
 			else if (m_pPlayer->DistanceTo(pOther, true) > 1)
 			{
-				SendText((pOther->GetName() + " is too far away!").c_str(), LTT_ERROR);
+				SendText((pTarget->GetName() + " is too far away!").c_str(), LTT_ERROR);
 			}
 			else
 			{
-				TradeManager *tm = TradeManager::RegisterTrade(m_pPlayer, pOther);
+				TradeManager *tm = TradeManager::RegisterTrade(m_pPlayer, pTarget);
 
 				m_pPlayer->SetTradeManager(tm);
-				pOther->SetTradeManager(tm);
+				pTarget->SetTradeManager(tm);
 			}
 			break;
 		}
