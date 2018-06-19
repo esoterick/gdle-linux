@@ -1393,11 +1393,11 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				return WERROR_STAMINA_TOO_LOW;
 			}
 		}
-		else if (GetStamina() < 5) //I can't find a source but I'm pretty sure use actions always consumed some amount of stamina.
-		{
-			//SendText("You don't have enough stamina to do that.", LTT_CRAFT);
-			return WERROR_STAMINA_TOO_LOW;
-		}
+		//else if (GetStamina() < 5) //I can't find a source but I'm pretty sure use actions always consumed some amount of stamina.
+		//{
+		//	//SendText("You don't have enough stamina to do that.", LTT_CRAFT);
+		//	return WERROR_STAMINA_TOO_LOW;
+		//}
 
 		if (GetMana() < requiredMana)
 		{
