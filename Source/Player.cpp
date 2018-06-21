@@ -351,19 +351,21 @@ void CPlayerWeenie::MakeAware(std::shared_ptr<CWeenieObject> pEntity, bool bForc
 		// make aware of inventory too
 		for (auto item : m_Wielded)
 		{
-			MakeAware(item);
+			MakeAware(item.lock());
 		}
 
 		for (auto item : m_Items)
 		{
-			MakeAware(item);
+			MakeAware(item.lock());
 		}
 
 		for (auto item : m_Packs)
 		{
-			MakeAware(item);
+			std::shared_ptr<CWeenieObject> pItem = item.lock();
 
-			if (std::shared_ptr<CContainerWeenie> container = item->AsContainer())
+			MakeAware(pItem);
+
+			if (std::shared_ptr<CContainerWeenie> container = pItem->AsContainer())
 			{
 				container->MakeAwareViewContent(GetPointer<CWeenieObject>());
 			}
@@ -431,7 +433,7 @@ std::string CPlayerWeenie::RemoveLastAssessed()
 
 		if (pObject && !pObject->AsPlayer() && !pObject->m_bDontClear) {
 			std::string name = pObject->GetName();
-			pObject->MarkForDestroy();
+			g_pWorld->RemoveEntity(pObject);
 			m_LastAssessed = 0;
 			return name;
 		}
@@ -570,18 +572,25 @@ void CPlayerWeenie::OnGivenXP(long long amount, bool allegianceXP)
 	}
 }
 
-void addItemsToDropLists(PhysObjVector items, std::vector<std::shared_ptr<CWeenieObject> > &removeList, std::vector<std::shared_ptr<CWeenieObject> > &alwaysDropList, std::vector<std::shared_ptr<CWeenieObject> > &allValidItems)
+void addItemsToDropLists(std::vector<std::weak_ptr<CWeenieObject>> items, std::vector<std::shared_ptr<CWeenieObject> > &removeList, std::vector<std::shared_ptr<CWeenieObject> > &alwaysDropList, std::vector<std::shared_ptr<CWeenieObject> > &allValidItems)
 {
 	for (auto item : items)
 	{
-		if (item->m_Qualities.id == W_COINSTACK_CLASS)
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
 			continue;
-		else if (item->IsDestroyedOnDeath())
-			removeList.push_back(item);
-		else if (item->IsDroppedOnDeath())
-			alwaysDropList.push_back(item);
-		else if (!item->IsBonded())
-			allValidItems.push_back(item);
+		}
+
+		if (pItem->m_Qualities.id == W_COINSTACK_CLASS)
+			continue;
+		else if (pItem->IsDestroyedOnDeath())
+			removeList.push_back(pItem);
+		else if (pItem->IsDroppedOnDeath())
+			alwaysDropList.push_back(pItem);
+		else if (!pItem->IsBonded())
+			allValidItems.push_back(pItem);
 	}
 }
 
@@ -635,7 +644,14 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 
 	for (auto packAsWeenie : m_Packs)
 	{
-		std::shared_ptr<CContainerWeenie> pack = packAsWeenie->AsContainer();
+		std::shared_ptr<CWeenieObject> pItem = packAsWeenie.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		std::shared_ptr<CContainerWeenie> pack = pItem->AsContainer();
 		if (pack)
 		{
 			addItemsToDropLists(pack->m_Items, removeList, alwaysDropList, allValidItems);
@@ -1205,11 +1221,18 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				priority_queue<std::shared_ptr<CWeenieObject>, vector<std::shared_ptr<CWeenieObject>>, CompareManaNeeds > itemsNeedingMana, itemsStillNeedingMana; // MIN heaps sorted by mana deficit
 				for (auto wielded : m_Wielded)
 				{
-					int curMana = wielded->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
-					int maxMana = wielded->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
+					std::shared_ptr<CWeenieObject> pItem = wielded.lock();
+
+					if (!pItem)
+					{
+						continue;
+					}
+
+					int curMana = pItem->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
+					int maxMana = pItem->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
 					int deficit = maxMana - curMana;
 					if (deficit > 0) {
-						itemsNeedingMana.push(wielded);
+						itemsNeedingMana.push(pItem);
 					}
 				}
 				if (itemsNeedingMana.empty()) {
@@ -3449,11 +3472,18 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 
 	for (auto wielded : m_Wielded)
 	{
-		if (wielded->InqIntQuality(ITEM_CUR_MANA_INT, 0, true) > 0)
+		std::shared_ptr<CWeenieObject> pItem = wielded.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->InqIntQuality(ITEM_CUR_MANA_INT, 0, true) > 0)
 		{
 			double manaRate = 0.0f;
-			if (wielded->m_Qualities.InqFloat(MANA_RATE_FLOAT, manaRate, TRUE) && manaRate != 0.0)
-				wielded->_nextManaUse = Timer::cur_time + (-manaRate * 1000);
+			if (pItem->m_Qualities.InqFloat(MANA_RATE_FLOAT, manaRate, TRUE) && manaRate != 0.0)
+				pItem->_nextManaUse = Timer::cur_time + (-manaRate * 1000);
 		}
 	}
 
@@ -3461,9 +3491,16 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	{
 		for (auto item : m_Items)
 		{
-			if (item->m_Qualities.id == W_TUTORIALBOOK_CLASS)
+			std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+			if (!pItem)
 			{
-				item->Use(AsPlayer());
+				continue;
+			}
+
+			if (pItem->m_Qualities.id == W_TUTORIALBOOK_CLASS)
+			{
+				pItem->Use(AsPlayer());
 				break;
 			}
 		}
@@ -3907,4 +3944,9 @@ void CPlayerWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 	{
 		m_pTradeManager->CloseTrade(AsPlayer(), 2); // EnteredCombat
 	}
+}
+
+void CPlayerWeenie::MarkForDestroy()
+{
+	m_dDestroyTime = Timer::cur_time + 2; // give some time to wrap up
 }

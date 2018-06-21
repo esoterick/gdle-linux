@@ -1053,16 +1053,28 @@ BinaryWriter *LoginCharacter(std::shared_ptr<CPlayerWeenie> pPlayer)
 	PackableList<ContentProfile> inventoryList;
 	for (auto item : pPlayer->m_Items)
 	{
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
 		ContentProfile prof;
-		prof.m_iid = item->GetID();
+		prof.m_iid = pItem->GetID();
 		prof.m_uContainerProperties = 0;
 		inventoryList.push_back(prof);
 	}
 	for (auto item : pPlayer->m_Packs)
 	{
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
 		ContentProfile prof;
-		prof.m_iid = item->GetID();
-		prof.m_uContainerProperties = item->AsContainer() ? 1 : 2;
+		prof.m_iid = pItem->GetID();
+		prof.m_uContainerProperties = pItem->AsContainer() ? 1 : 2;
 		inventoryList.push_back(prof);
 	}
 	inventoryList.Pack(LC);
@@ -1070,10 +1082,16 @@ BinaryWriter *LoginCharacter(std::shared_ptr<CPlayerWeenie> pPlayer)
 	PackableList<InventoryPlacement> wieldedList;
 	for (auto wielded : pPlayer->m_Wielded)
 	{
+		std::shared_ptr<CWeenieObject> pItem = wielded.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
 		InventoryPlacement place;
-		place.iid_ = wielded->GetID();
-		place.loc_ = wielded->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0);
-		place.priority_ = wielded->InqIntQuality(CLOTHING_PRIORITY_INT, 0);
+		place.iid_ = pItem->GetID();
+		place.loc_ = pItem->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0);
+		place.priority_ = pItem->InqIntQuality(CLOTHING_PRIORITY_INT, 0);
 		wieldedList.push_back(place);
 	}
 	wieldedList.Pack(LC);

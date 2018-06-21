@@ -1139,7 +1139,7 @@ int CHookWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 			if (m_Items.empty())
 				return WERROR_OBJECT_GONE;
 
-			hookedItem = m_Items[0];
+			hookedItem = m_Items[0].lock();
 
 			if (!hookedItem)
 				return WERROR_OBJECT_GONE;
@@ -1173,7 +1173,7 @@ void CHookWeenie::Identify(std::shared_ptr<CWeenieObject> other, DWORD overrideI
 		if (m_Items.empty())
 			return;
 
-		hookedItem = m_Items[0];
+		hookedItem = m_Items[0].lock();
 
 		if (!hookedItem)
 			return;
@@ -1206,7 +1206,7 @@ void CHookWeenie::UpdateHookedObject(std::shared_ptr<CWeenieObject> hookedItem, 
 
 	if (!hookedItem && !m_Items.empty())
 	{
-		hookedItem = m_Items[0];
+		hookedItem = m_Items[0].lock();
 	}
 	
 	if (!hookedItem)
@@ -1426,7 +1426,7 @@ void CHookWeenie::SetHookVisibility(bool newSetting)
 
 	if (!m_Items.empty())
 	{
-		std::shared_ptr<CWeenieObject> hookedItem = m_Items[0];
+		std::shared_ptr<CWeenieObject> hookedItem = m_Items[0].lock();
 
 		if (!hookedItem)
 			return;
@@ -1464,7 +1464,7 @@ void CHookWeenie::SetHookVisibility(bool newSetting)
 			else
 				SafeDelete(m_Qualities._emote_table);
 
-			if (std::shared_ptr<CWeenieObject> hookedItem = m_Items[0])
+			if (std::shared_ptr<CWeenieObject> hookedItem = m_Items[0].lock())
 			{
 				m_Qualities.SetString(NAME_STRING, hookedItem->GetName());
 				m_Qualities.SetInt(ITEMS_CAPACITY_INT, hookedItem->m_Qualities.GetInt(ITEMS_CAPACITY_INT, 0));

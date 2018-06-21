@@ -41,11 +41,11 @@ CSpellProjectile::~CSpellProjectile()
 
 void CSpellProjectile::Tick()
 {
-	if (!m_bDestroyMe)
+	if (!ShouldDestroy())
 	{
 		if (!InValidCell() || (m_fDestroyTime <= Timer::cur_time))
 		{
-			MarkForDestroy();
+			g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
 		}
 		// not destroyed yet and distance/time exceeded
 		else if (m_fDestroyTime > Timer::cur_time + 10 && (m_Position.distance(m_CachedSpellCastData.initial_cast_position) > m_CachedSpellCastData.max_range || (m_fSpawnTime + MAX_SPELL_PROJECTILE_LIFETIME - 1) <= Timer::cur_time))

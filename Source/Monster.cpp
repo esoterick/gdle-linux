@@ -1595,7 +1595,7 @@ void CMonsterWeenie::OnMotionDone(DWORD motion, BOOL success)
 
 							NotifyContainedItemRemoved(pItem->id);
 
-							pItem->MarkForDestroy();
+							g_pWorld->RemoveEntity(pItem);
 						}
 					}
 
@@ -1682,8 +1682,15 @@ void CMonsterWeenie::GenerateDeathLoot(std::shared_ptr<CCorpseWeenie> pCorpse)
 
 	for each(auto item in pCorpse->m_Items)
 	{
-		if (item->IsDestroyedOnDeath())
-			removeList.push_back(item);
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->IsDestroyedOnDeath())
+			removeList.push_back(pItem);
 	}
 
 	for (auto item : removeList)
@@ -1699,7 +1706,7 @@ void CMonsterWeenie::OnDeathAnimComplete()
 
 	if (!_IsPlayer())
 	{
-		MarkForDestroy();
+		g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
 	}
 
 	// create corpse
@@ -2201,7 +2208,14 @@ double CMonsterWeenie::GetMeleeDefenseModUsingWielded()
 	Container_GetWieldedByMask(wielded, ARMOR_LOC);
 	for (auto item : m_Wielded) //check all armor for appropriate imbue effects
 	{
-		if (item->GetImbueEffects() & MeleeDefense_ImbuedEffectType)
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->GetImbueEffects() & MeleeDefense_ImbuedEffectType)
 			defenseMod += 0.01;
 	}
 
@@ -2224,7 +2238,14 @@ double CMonsterWeenie::GetMissileDefenseModUsingWielded()
 	Container_GetWieldedByMask(wielded, ARMOR_LOC);
 	for (auto item : m_Wielded) //check all armor for appropriate imbue effects
 	{
-		if (item->GetImbueEffects() & MissileDefense_ImbuedEffectType)
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->GetImbueEffects() & MissileDefense_ImbuedEffectType)
 			defenseMod += 0.01;
 	}
 

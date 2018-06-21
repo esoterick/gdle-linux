@@ -79,14 +79,6 @@ public:
 
 	void HandleItemManaRequest(DWORD itemId);
 
-	//base virtuals
-
-	virtual void MarkForDestroy()
-	{
-		m_pClient = NULL;
-		CMonsterWeenie::MarkForDestroy();
-	}
-
 	//Movement overrides
 	//...
 
@@ -206,6 +198,8 @@ public:
 
 	void UpdatePKActivity() { m_iPKActivity = Timer::cur_time + 60; }
 	bool CheckPKActivity() { return m_iPKActivity > Timer::cur_time; }
+
+	void MarkForDestroy() override;
 
 protected:
 	CClient *m_pClient;

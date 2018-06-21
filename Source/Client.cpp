@@ -1041,9 +1041,10 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 	std::shared_ptr<CContainerWeenie> sack = NULL;
 	for (auto pack : weenie->m_Packs)
 	{
-		if (pack->AsContainer())
+		std::shared_ptr<CWeenieObject> pPack = pack.lock();
+		if (pPack && pPack->AsContainer())
 		{
-			sack = pack->AsContainer();
+			sack = pPack->AsContainer();
 			break;
 		}
 	}

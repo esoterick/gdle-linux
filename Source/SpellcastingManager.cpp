@@ -1703,11 +1703,18 @@ int CSpellcastingManager::LaunchSpellEffect()
 					{
 						for (auto wielded : container->m_Wielded)
 						{
-							if (wielded->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
+							std::shared_ptr<CWeenieObject> pItem = wielded.lock();
+
+							if (!pItem)
 							{
-								if (castTarget == pWeenie || wielded->parent.lock()) // for other targets, only physically wielded allowed
+								continue;
+							}
+
+							if (pItem->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
+							{
+								if (castTarget == pWeenie || pItem->parent.lock()) // for other targets, only physically wielded allowed
 								{
-									targets.push_back(wielded);
+									targets.push_back(pItem);
 								}
 							}
 						}
@@ -1904,11 +1911,18 @@ int CSpellcastingManager::LaunchSpellEffect()
 									{
 										for (auto wielded : container->m_Wielded)
 										{
-											if (wielded->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
+											std::shared_ptr<CWeenieObject> pItem = wielded.lock();
+
+											if (!pItem)
 											{
-												if (member == pWeenie || wielded->parent.lock()) // for other targets, only physically wielded allowed
+												continue;
+											}
+
+											if (pItem->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
+											{
+												if (member == pWeenie || pItem->parent.lock()) // for other targets, only physically wielded allowed
 												{
-													targets.push_back(wielded);
+													targets.push_back(pItem);
 												}
 											}
 										}
@@ -3191,9 +3205,16 @@ std::map<DWORD, DWORD> CSpellcastingManager::FindComponentInContainer(std::share
 	int amountLeftToFind = amountNeeded;
 	for (auto item : container->m_Items)
 	{
-		if (item->InqDIDQuality(SPELL_COMPONENT_DID, 0) == componentId)
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
 		{
-			int amount = item->InqIntQuality(STACK_SIZE_INT, 1);
+			continue;
+		}
+
+		if (pItem->InqDIDQuality(SPELL_COMPONENT_DID, 0) == componentId)
+		{
+			int amount = pItem->InqIntQuality(STACK_SIZE_INT, 1);
 			if (amount > amountLeftToFind)
 			{
 				amount = amountLeftToFind;
@@ -3201,7 +3222,7 @@ std::map<DWORD, DWORD> CSpellcastingManager::FindComponentInContainer(std::share
 			}
 			else
 				amountLeftToFind -= amount;
-			foundItems.emplace(item->GetID(), amount);
+			foundItems.emplace(pItem->GetID(), amount);
 
 			if (amountLeftToFind == 0)
 				return foundItems;
@@ -3210,14 +3231,28 @@ std::map<DWORD, DWORD> CSpellcastingManager::FindComponentInContainer(std::share
 
 	for (auto packSlot : container->m_Packs)
 	{
-		std::shared_ptr<CContainerWeenie> pack = packSlot->AsContainer();
-		if (pack != NULL)
+		std::shared_ptr<CWeenieObject> pPack = packSlot.lock();
+
+		if (!pPack)
+		{
+			continue;
+		}
+
+		std::shared_ptr<CContainerWeenie> pack = pPack->AsContainer();
+		if (pack)
 		{
 			for (auto item : pack->m_Items)
 			{
-				if (item->InqDIDQuality(SPELL_COMPONENT_DID, 0) == componentId)
+				std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+				if (!pItem)
 				{
-					int amount = item->InqIntQuality(STACK_SIZE_INT, 1);
+					continue;
+				}
+
+				if (pItem->InqDIDQuality(SPELL_COMPONENT_DID, 0) == componentId)
+				{
+					int amount = pItem->InqIntQuality(STACK_SIZE_INT, 1);
 					if (amount > amountLeftToFind)
 					{
 						amount = amountLeftToFind;
@@ -3225,7 +3260,7 @@ std::map<DWORD, DWORD> CSpellcastingManager::FindComponentInContainer(std::share
 					}
 					else
 						amountLeftToFind -= amount;
-					foundItems.emplace(item->GetID(), amount);
+					foundItems.emplace(pItem->GetID(), amount);
 
 					if (amountLeftToFind == 0)
 						return foundItems;
@@ -3243,8 +3278,15 @@ std::shared_ptr<CWeenieObject> CSpellcastingManager::FindFociInContainer(std::sh
 {
 	for (auto pack : container->m_Packs)
 	{
-		if (pack->m_Qualities.id == fociWcid)
-			return pack;
+		std::shared_ptr<CWeenieObject> pItem = pack.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->m_Qualities.id == fociWcid)
+			return pItem;
 	}
 
 	return NULL;

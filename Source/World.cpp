@@ -340,7 +340,7 @@ bool CWorld::CreateEntity(std::shared_ptr<CWeenieObject> pEntity, bool bMakeAwar
 		else
 		{
 			// the caller wants to take control so remove all previous owners
-			if (bForceTakeControl)
+			if (true || bForceTakeControl)
 			{
 				LOG_PRIVATE(World, Warning, csprintf("Trying to spawn second (different) weenie with existing ID 0x%08X! Deleting OLD instead (%d, %d refs).\n", pEntity->id, pExistingWeenie.use_count()));
 				pExistingWeenie->Destroy();
@@ -361,9 +361,18 @@ bool CWorld::CreateEntity(std::shared_ptr<CWeenieObject> pEntity, bool bMakeAwar
 						// The dupe is in a corpse!
 						// Let's assume the corpse was already recovered.
 
+						
 						while (pContainer->m_Items.size() > 0)
 						{
-							pContainer->m_Items[0]->Remove();
+							auto i = pContainer->m_Items.begin();
+							std::shared_ptr<CWeenieObject> pItem = i->lock();
+
+							if (!pItem)
+							{
+								pContainer->m_Items.erase(i);
+								continue;
+							}
+							pItem->Remove();
 						}
 
 						// Corpse is now empty. We can get rid of it.
@@ -956,7 +965,10 @@ void CWorld::RemoveEntity(std::shared_ptr<CWeenieObject> pEntity)
 
 void CWorld::EnsureRemoved(std::shared_ptr<CWeenieObject> pEntity)
 {
-	m_mAllPlayers.erase(pEntity->GetID());
+	if (m_mAllPlayers.erase(pEntity->GetID()))
+	{
+		this->GetNumPlayers();
+	}
 	m_mAllObjects.erase(pEntity->GetID());
 
 	std::string eventString;

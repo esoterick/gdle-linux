@@ -3,6 +3,7 @@
 #include "WeenieObject.h"
 #include "Scroll.h"
 #include "Player.h"
+#include "World.h"
 
 CScrollWeenie::CScrollWeenie()
 {
@@ -109,7 +110,7 @@ void CScrollUseEvent::OnUseAnimSuccess(DWORD motion)
 			pWeenie->ReleaseFromAnyWeenieParent();
 			pWeenie->NotifyContainedItemRemoved(target->GetID());
 
-			target->MarkForDestroy();
+			g_pWorld->RemoveEntity(target);
 		}
 	}
 

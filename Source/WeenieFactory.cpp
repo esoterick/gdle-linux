@@ -1094,7 +1094,7 @@ void CWeenieFactory::AddWeenieToDestination(std::shared_ptr<CWeenieObject> weeni
 
 		if (!weenie->IsContained() && !weenie->IsStuck() && weenie->m_Position.objcell_id && !weenie->cell)
 		{
-			weenie->MarkForDestroy();
+			g_pWorld->RemoveEntity(weenie);
 			return;
 		}
 

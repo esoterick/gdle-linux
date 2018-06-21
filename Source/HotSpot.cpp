@@ -46,7 +46,7 @@ void CHotSpotWeenie::Tick()
 			{
 				if ((_timeToRot + 2.0) <= Timer::cur_time)
 				{
-					MarkForDestroy();
+					g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
 				}
 			}
 			else

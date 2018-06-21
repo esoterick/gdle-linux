@@ -927,7 +927,7 @@ void CWeenieObject::OnGeneratedDeath(std::shared_ptr<CWeenieObject> weenie)
 				{
 					//we're the child of a generator and all our children have been destroyed/picked up.
 					//so we're done and should cease to exist.
-					MarkForDestroy();
+					g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
 
 					//make the leftovers rot.
 					for each (auto entry in rotList)
@@ -1014,7 +1014,7 @@ void CWeenieObject::OnGeneratedPickedUp(std::shared_ptr<CWeenieObject> weenie)
 				{
 					//we're the child of a generator and all our children have been destroyed/picked up.
 					//so we're done and should cease to exist.
-					MarkForDestroy();
+					g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
 
 					//make the leftovers rot.
 					for each (auto entry in rotList)
@@ -2921,7 +2921,7 @@ void CWeenieObject::Tick()
 			{
 				if ((_timeToRot + 2.0) <= Timer::cur_time)
 				{
-					MarkForDestroy();
+					g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
 				}
 			}
 			else
@@ -5722,7 +5722,14 @@ bool CWeenieObject::TryMagicResist(DWORD magicSkill)
 	{
 		for (auto item : AsContainer()->m_Wielded)
 		{
-			if (item->GetImbueEffects() & MagicDefense_ImbuedEffectType)
+			std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+			if (!pItem)
+			{
+				continue;
+			}
+
+			if (pItem->GetImbueEffects() & MagicDefense_ImbuedEffectType)
 				defenseSkill += 1;
 		}
 	}
@@ -6047,7 +6054,14 @@ bool CWeenieObject::TryMissileEvade(DWORD attackSkill)
 	{
 		for (auto item : AsContainer()->m_Wielded)
 		{
-			if (item->GetImbueEffects() & MissileDefense_ImbuedEffectType)
+			std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+			if (!pItem)
+			{
+				continue;
+			}
+
+			if (pItem->GetImbueEffects() & MissileDefense_ImbuedEffectType)
 				defenseMod += 0.01;
 		}
 	}
@@ -6357,6 +6371,16 @@ bool CWeenieObject::LearnSpell(DWORD spell_id, bool showTextAndEffect)
 	return false;
 }
 
+void CWeenieObject::MarkForDestroy()
+{
+	m_dDestroyTime = Timer::cur_time;
+}
+
+bool CWeenieObject::ShouldDestroy()
+{
+	return m_dDestroyTime > 0 && m_dDestroyTime < Timer::cur_time; 
+}
+
 void CWeenieObject::Remove()
 {
 	if (IsContained())
@@ -6384,8 +6408,8 @@ void CWeenieObject::Remove()
 	SetWieldedLocation(INVENTORY_LOC::NONE_LOC);
 	m_Qualities.SetInt(PARENT_LOCATION_INT, 0);
 	unset_parent();
-	ReleaseFromBlock();
-	MarkForDestroy();
+
+	g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
 }
 
 void CWeenieObject::DebugValidate()
@@ -6539,7 +6563,7 @@ void CWeenieObject::HandleEventInactive()
 
 			if (std::shared_ptr<CWeenieObject> spawned_weenie = g_pWorld->FindObject(weenie_id))
 			{
-				spawned_weenie->MarkForDestroy();
+				g_pWorld->RemoveEntity(spawned_weenie);
 			}
 
 			// make sure it's gone (it should be already.)

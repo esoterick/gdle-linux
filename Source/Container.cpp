@@ -12,31 +12,31 @@
 CContainerWeenie::CContainerWeenie()
 {
 	for (DWORD i = 0; i < MAX_WIELDED_COMBAT; i++)
-		m_WieldedCombat[i] = NULL;
+		m_WieldedCombat[i] = std::shared_ptr<CWeenieObject>();
 }
 
 CContainerWeenie::~CContainerWeenie()
 {
 	for (DWORD i = 0; i < MAX_WIELDED_COMBAT; i++)
-		m_WieldedCombat[i] = NULL;
+		m_WieldedCombat[i] = std::shared_ptr<CWeenieObject>();
 
 	for (auto item : m_Wielded)
 	{
-		g_pWorld->RemoveEntity(item);
+		g_pWorld->RemoveEntity(item.lock());
 	}
 
 	m_Wielded.clear();
 
 	for (auto item : m_Items)
 	{
-		g_pWorld->RemoveEntity(item);
+		g_pWorld->RemoveEntity(item.lock());
 	}
 
 	m_Items.clear();
 
 	for (auto container : m_Packs)
 	{
-		g_pWorld->RemoveEntity(container);
+		g_pWorld->RemoveEntity(container.lock());
 	}
 
 	m_Packs.clear();
@@ -84,9 +84,11 @@ std::shared_ptr<CContainerWeenie> CContainerWeenie::FindContainer(DWORD containe
 
 	for (auto pack : m_Packs)
 	{
-		if (pack->GetID() == container_id)
+		std::shared_ptr<CWeenieObject> pPack = pack.lock();
+
+		if (pPack && pPack->GetID() == container_id)
 		{
-			if (std::shared_ptr<CContainerWeenie> packContainer = pack->AsContainer())
+			if (std::shared_ptr<CContainerWeenie> packContainer = pPack->AsContainer())
 			{
 				return packContainer;
 			}
@@ -115,7 +117,7 @@ std::shared_ptr<CWeenieObject> CContainerWeenie::GetWieldedCombat(COMBAT_USE com
 	if (index < 0 || index >= MAX_WIELDED_COMBAT)
 		return NULL;
 
-	return m_WieldedCombat[index];
+	return m_WieldedCombat[index].lock();
 }
 
 void CContainerWeenie::SetWieldedCombat(std::shared_ptr<CWeenieObject> wielded, COMBAT_USE combatUse)
@@ -158,8 +160,10 @@ std::shared_ptr<CWeenieObject> CContainerWeenie::GetWieldedCaster()
 {
 	for (auto item : m_Wielded)
 	{
-		if (item->AsCaster())
-			return item;
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (pItem && pItem->AsCaster())
+			return pItem;
 	}
 
 	return NULL;
@@ -169,8 +173,10 @@ void CContainerWeenie::Container_GetWieldedByMask(std::list<std::shared_ptr<CWee
 {
 	for (auto item : m_Wielded)
 	{
-		if (item->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE) & inv_loc_mask)
-			wielded.push_back(item);
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (pItem && pItem->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE) & inv_loc_mask)
+			wielded.push_back(pItem);
 	}
 }
 
@@ -178,8 +184,10 @@ std::shared_ptr<CWeenieObject> CContainerWeenie::GetWielded(INVENTORY_LOC slot)
 {
 	for (auto item : m_Wielded)
 	{
-		if (item->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE) == slot)
-			return item;
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (pItem && pItem->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE) == slot)
+			return pItem;
 	}
 
 	return NULL;
@@ -192,13 +200,13 @@ void CContainerWeenie::ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObje
 
 	for (DWORD i = 0; i < MAX_WIELDED_COMBAT; i++)
 	{
-		if (item == m_WieldedCombat[i])
-			m_WieldedCombat[i] = NULL;
+		if (item == m_WieldedCombat[i].lock())
+			m_WieldedCombat[i] = std::shared_ptr<CWeenieObject>();
 	}
 
-	for (std::vector<std::shared_ptr<CWeenieObject> >::iterator equipmentIterator = m_Wielded.begin(); equipmentIterator != m_Wielded.end();)
+	for (std::vector<std::weak_ptr<CWeenieObject> >::iterator equipmentIterator = m_Wielded.begin(); equipmentIterator != m_Wielded.end();)
 	{
-		if (*equipmentIterator != item)
+		if (equipmentIterator->lock() != item)
 		{
 			equipmentIterator++;
 			continue;
@@ -207,9 +215,9 @@ void CContainerWeenie::ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObje
 		equipmentIterator = m_Wielded.erase(equipmentIterator);
 	}
 
-	for (std::vector<std::shared_ptr<CWeenieObject> >::iterator itemIterator = m_Items.begin(); itemIterator != m_Items.end();)
+	for (std::vector<std::weak_ptr<CWeenieObject> >::iterator itemIterator = m_Items.begin(); itemIterator != m_Items.end();)
 	{
-		if (*itemIterator != item)
+		if (itemIterator->lock() != item)
 		{
 			itemIterator++;
 			continue;
@@ -218,9 +226,9 @@ void CContainerWeenie::ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObje
 		itemIterator = m_Items.erase(itemIterator);
 	}
 
-	for (std::vector<std::shared_ptr<CWeenieObject> >::iterator packIterator = m_Packs.begin(); packIterator != m_Packs.end();)
+	for (std::vector<std::weak_ptr<CWeenieObject> >::iterator packIterator = m_Packs.begin(); packIterator != m_Packs.end();)
 	{
-		std::shared_ptr<CWeenieObject> pack = *packIterator;
+		std::shared_ptr<CWeenieObject> pack = packIterator->lock();
 
 		if (pack != item)
 		{
@@ -255,10 +263,12 @@ BOOL CContainerWeenie::Container_CanEquip(std::shared_ptr<CWeenieObject> item, D
 
 	for (auto wielded : m_Wielded)
 	{
-		if (wielded == item)
+		std::shared_ptr<CWeenieObject> pWielded = wielded.lock();
+
+		if (pWielded == item)
 			return TRUE;
 
-		if (!wielded->CanEquipWith(item, location))
+		if (pWielded && !pWielded->CanEquipWith(item, location))
 			return FALSE;
 	}
 
@@ -273,7 +283,9 @@ void CContainerWeenie::Container_EquipItem(DWORD dwCell, std::shared_ptr<CWeenie
 	bool bAlreadyEquipped = false;
 	for (auto entry : m_Wielded)
 	{
-		if (entry == item)
+		std::shared_ptr<CWeenieObject> pWielded = entry.lock();
+
+		if (pWielded == item)
 		{
 			bAlreadyEquipped = true;
 			break;
@@ -337,22 +349,33 @@ std::shared_ptr<CWeenieObject> CContainerWeenie::FindContainedItem(DWORD object_
 {
 	for (auto item : m_Wielded)
 	{
-		if (item->GetID() == object_id)
-			return item;
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (pItem && pItem->GetID() == object_id)
+			return pItem;
 	}
 
 	for (auto item : m_Items)
 	{
-		if (item->GetID() == object_id)
-			return item;
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (pItem && pItem->GetID() == object_id)
+			return pItem;
 	}
 
 	for (auto item : m_Packs)
 	{
-		if (item->GetID() == object_id)
-			return item;
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->GetID() == object_id)
+			return pItem;
 		
-		if (auto subitem = item->FindContainedItem(object_id))
+		if (auto subitem = pItem->FindContainedItem(object_id))
 			return subitem;
 	}
 
@@ -417,7 +440,7 @@ BOOL CContainerWeenie::Container_CanStore(std::shared_ptr<CWeenieObject> pItem, 
 
 			for (auto container : m_Packs)
 			{
-				if (container == pItem)
+				if (container.lock() == pItem)
 					return TRUE;
 			}
 
@@ -447,7 +470,7 @@ BOOL CContainerWeenie::Container_CanStore(std::shared_ptr<CWeenieObject> pItem, 
 
 			for (auto container : m_Items)
 			{
-				if (container == pItem)
+				if (container.lock() == pItem)
 					return TRUE;
 			}
 
@@ -589,16 +612,18 @@ bool CContainerWeenie::SpawnInContainer(DWORD wcid, int amount, int ptid, float 
 		//If we're stackable, first let's try stacking to existing items.
 		for (auto possibleMatch : m_Items)
 		{
-			if (item->m_Qualities.id != possibleMatch->m_Qualities.id)
+			std::shared_ptr<CWeenieObject> pPossibleMatch = possibleMatch.lock();
+
+			if (item->m_Qualities.id != pPossibleMatch->m_Qualities.id)
 				continue;
 	
-			if (ptid != 0 && possibleMatch->InqIntQuality(PALETTE_TEMPLATE_INT, 0) != ptid)
+			if (ptid != 0 && pPossibleMatch->InqIntQuality(PALETTE_TEMPLATE_INT, 0) != ptid)
 				continue;
 	
-			if (shade >= 0.0 && possibleMatch->InqFloatQuality(SHADE_FLOAT, 0) != shade)
+			if (shade >= 0.0 && pPossibleMatch->InqFloatQuality(SHADE_FLOAT, 0) != shade)
 				continue;
 	
-			int possibleMatchStackSize = possibleMatch->InqIntQuality(STACK_SIZE_INT, 1);
+			int possibleMatchStackSize = pPossibleMatch->InqIntQuality(STACK_SIZE_INT, 1);
 			if (possibleMatchStackSize < maxStackSize)
 			{
 				//we have room.
@@ -606,14 +631,14 @@ bool CContainerWeenie::SpawnInContainer(DWORD wcid, int amount, int ptid, float 
 				if (roomFor >= amount)
 				{
 					//room for everything!
-					possibleMatch->SetStackSize(possibleMatchStackSize + amount);
+					pPossibleMatch->SetStackSize(possibleMatchStackSize + amount);
 					return true;
 				}
 				else
 				{
 					//room for some.
 					amount -= roomFor;
-					possibleMatch->SetStackSize(maxStackSize);
+					pPossibleMatch->SetStackSize(maxStackSize);
 				}
 			}
 		}
@@ -795,31 +820,51 @@ void CContainerWeenie::InitPhysicsObj()
 	
 	for (auto item : m_Wielded)
 	{
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
 #ifdef _DEBUG
 		assert(item->GetWielderID() == GetID());
 #endif
 
-		int parentLocation = item->InqIntQuality(PARENT_LOCATION_INT, PARENT_ENUM::PARENT_NONE);
+		int parentLocation = pItem->InqIntQuality(PARENT_LOCATION_INT, PARENT_ENUM::PARENT_NONE);
 		if (parentLocation != PARENT_ENUM::PARENT_NONE)
 		{
-			item->set_parent(GetPointer<CWeenieObject>(), parentLocation);
+			pItem->set_parent(GetPointer<CWeenieObject>(), parentLocation);
 
-			int placement = item->InqIntQuality(PLACEMENT_POSITION_INT, 0);
+			int placement = pItem->InqIntQuality(PLACEMENT_POSITION_INT, 0);
 			assert(placement);
 
-			item->SetPlacementFrame(placement, FALSE);
+			pItem->SetPlacementFrame(placement, FALSE);
 		}
 	}
 
 #ifdef _DEBUG
 	for (auto item : m_Items)
 	{
-		assert(item->InqIntQuality(PARENT_LOCATION_INT, PARENT_ENUM::PARENT_NONE) == PARENT_ENUM::PARENT_NONE);
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+		if (!pItem)
+		{
+			continue;
+		}
+
+		assert(pItem->InqIntQuality(PARENT_LOCATION_INT, PARENT_ENUM::PARENT_NONE) == PARENT_ENUM::PARENT_NONE);
 	}
 
 	for (auto pack : m_Packs)
 	{
-		assert(pack->InqIntQuality(PARENT_LOCATION_INT, PARENT_ENUM::PARENT_NONE) == PARENT_ENUM::PARENT_NONE);
+		std::shared_ptr<CWeenieObject> pPack = pack.lock();
+
+		if (!pPack)
+		{
+			continue;
+		}
+
+		assert(pPack->InqIntQuality(PARENT_LOCATION_INT, PARENT_ENUM::PARENT_NONE) == PARENT_ENUM::PARENT_NONE);
 	}
 #endif
 }
@@ -830,20 +875,38 @@ void CContainerWeenie::SaveEx(class CWeenieSave &save)
 
 	for (auto item : m_Wielded)
 	{
-		save._equipment.push_back(item->GetID());
-		item->Save();
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+		if (!pItem)
+		{
+			continue;
+		}
+
+		save._equipment.push_back(pItem->GetID());
+		pItem->Save();
 	}
 
 	for (auto item : m_Items)
 	{
-		save._inventory.push_back(item->GetID());
-		item->Save();
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+		if (!pItem)
+		{
+			continue;
+		}
+
+		save._inventory.push_back(pItem->GetID());
+		pItem->Save();
 	}
 
 	for (auto item : m_Packs)
 	{
-		save._packs.push_back(item->GetID());
-		item->Save();
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+		if (!pItem)
+		{
+			continue;
+		}
+
+		save._packs.push_back(pItem->GetID());
+		pItem->Save();
 	}
 }
 
@@ -1004,28 +1067,52 @@ void CContainerWeenie::MakeAwareViewContent(std::shared_ptr<CWeenieObject> other
 	//start from the bottom of the tree so the packs have their fill bar correctly populated.
 	for (auto pack : m_Packs)
 	{
-		if (pack->AsContainer())
-			pack->AsContainer()->MakeAwareViewContent(other);
-		other->MakeAware(pack, true);
+		std::shared_ptr<CWeenieObject> pPack = pack.lock();
+		if (!pPack)
+		{
+			continue;
+		}
+
+		if (pPack->AsContainer())
+			pPack->AsContainer()->MakeAwareViewContent(other);
+		other->MakeAware(pPack, true);
 	}
 
 	for (auto item : m_Items)
 	{
-		other->MakeAware(item, true);
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+		if (!pItem)
+		{
+			continue;
+		}
+
+		other->MakeAware(pItem, true);
 	}
 
 	PackableList<ContentProfile> inventoryList;
 	for (auto item : m_Items)
 	{
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+		if (!pItem)
+		{
+			continue;
+		}
+
 		ContentProfile prof;
-		prof.m_iid = item->GetID();
+		prof.m_iid = pItem->GetID();
 		prof.m_uContainerProperties = 0;
 		inventoryList.push_back(prof);
 	}
 	for (auto pack : m_Packs)
 	{
+		std::shared_ptr<CWeenieObject> pPack = pack.lock();
+		if (!pPack)
+		{
+			continue;
+		}
+
 		ContentProfile prof;
-		prof.m_iid = pack->GetID();
+		prof.m_iid = pPack->GetID();
 		prof.m_uContainerProperties = 1; //todo: what about foci? Do they need a different value here?
 		inventoryList.push_back(prof);
 	}
@@ -1118,11 +1205,41 @@ void CContainerWeenie::ResetToInitialState()
 	SetLocked(m_bInitiallyLocked ? TRUE : FALSE);
 
 	while (!m_Wielded.empty())
-		Container_DeleteItem((*m_Wielded.begin())->GetID());
+	{
+		std::shared_ptr<CWeenieObject> pItem = m_Wielded.begin()->lock();
+
+		if (!pItem)
+		{
+			m_Wielded.erase(m_Wielded.begin());
+			continue;
+		}
+
+		Container_DeleteItem(pItem->GetID());
+	}
 	while (!m_Items.empty())
-		Container_DeleteItem((*m_Items.begin())->GetID());
+	{
+		std::shared_ptr<CWeenieObject> pItem = m_Items.begin()->lock();
+
+		if (!pItem)
+		{
+			m_Items.erase(m_Items.begin());
+			continue;
+		}
+
+		Container_DeleteItem(pItem->GetID());
+	}
 	while (!m_Packs.empty())
-		Container_DeleteItem((*m_Packs.begin())->GetID());
+	{
+		std::shared_ptr<CWeenieObject> pItem = m_Packs.begin()->lock();
+
+		if (!pItem)
+		{
+			m_Packs.erase(m_Packs.begin());
+			continue;
+		}
+
+		Container_DeleteItem(pItem->GetID());
+	}
 
 
 	if (m_Qualities._generator_table)
@@ -1255,31 +1372,66 @@ void CContainerWeenie::InventoryTick()
 {
 	CWeenieObject::InventoryTick();
 
-	for (auto wielded : m_Wielded)
+	auto wielded = m_Wielded.begin();
+	while (wielded != m_Wielded.end())
 	{
-		wielded->WieldedTick();
+		std::shared_ptr<CWeenieObject> pItem = wielded->lock();
+
+		if (!pItem)
+		{
+			m_Wielded.erase(wielded);
+		}
+		else
+		{
+			pItem->WieldedTick();
 
 #ifdef _DEBUG
-		wielded->DebugValidate();
+			pItem->DebugValidate();
 #endif
+		}
+
+		wielded++;
 	}
 
-	for (auto item : m_Items)
+	auto item = m_Items.begin();
+	while (item != m_Items.end())
 	{
-		item->InventoryTick();
+		std::shared_ptr<CWeenieObject> pItem = item->lock();
+
+		if (!pItem)
+		{
+			m_Items.erase(wielded);
+		}
+		else
+		{
+			pItem->InventoryTick();
 
 #ifdef _DEBUG
-		item->DebugValidate();
+			pItem->DebugValidate();
 #endif
+		}
+		item++;
 	}
 
-	for (auto pack : m_Packs)
+	auto pack = m_Packs.begin();
+	while (pack != m_Packs.end())
 	{
-		pack->InventoryTick();
+		std::shared_ptr<CWeenieObject> pItem = pack->lock();
+
+		if (!pItem)
+		{
+			m_Packs.erase(wielded);
+		}
+		else
+		{
+			pItem->InventoryTick();
 
 #ifdef _DEBUG
-		pack->DebugValidate();
+			pItem->DebugValidate();
 #endif
+		}
+
+		pack++;
 	}
 }
 
@@ -1297,32 +1449,8 @@ void CContainerWeenie::Tick()
 		return;
 	}
 
-	for(auto wielded : m_Wielded)
-	{
-		wielded->WieldedTick();
-
-#ifdef _DEBUG
-		wielded->DebugValidate();
-#endif
-	}
-
-	for (auto item : m_Items)
-	{
-		item->InventoryTick();
-
-#ifdef _DEBUG
-		item->DebugValidate();
-#endif
-	}
-
-	for (auto pack : m_Packs)
-	{
-		pack->InventoryTick();
-
-#ifdef _DEBUG
-		pack->DebugValidate();
-#endif
-	}
+	// TODO mwnciau removed a lot of code here and replaced it with this. If problems occur...
+	InventoryTick();
 
 	_nextInventoryTick = Timer::cur_time + Random::GenFloat(0.4, 0.6);
 }
@@ -1412,12 +1540,27 @@ DWORD CContainerWeenie::RecalculateCoinAmount()
 	int coinAmount = 0;
 	for (auto item : m_Items)
 	{
-		if (item->m_Qualities.id == W_COINSTACK_CLASS)
-			coinAmount += item->InqIntQuality(STACK_SIZE_INT, 1, true);
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->m_Qualities.id == W_COINSTACK_CLASS)
+			coinAmount += pItem->InqIntQuality(STACK_SIZE_INT, 1, true);
 	}
 
 	for (auto pack : m_Packs)
-		coinAmount += pack->RecalculateCoinAmount();
+	{
+		std::shared_ptr<CWeenieObject> pItem = pack.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+		coinAmount += pItem->RecalculateCoinAmount();
+	}
 
 	m_Qualities.SetInt(COIN_VALUE_INT, coinAmount);
 	NotifyIntStatUpdated(COIN_VALUE_INT);
@@ -1430,12 +1573,28 @@ DWORD CContainerWeenie::RecalculateAltCoinAmount(int currencyid)
 	int coinAmount = 0;
 	for (auto item : m_Items)
 	{
-		if (item->m_Qualities.id == currencyid)
-			coinAmount += item->InqIntQuality(STACK_SIZE_INT, 1, true);
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->m_Qualities.id == currencyid)
+			coinAmount += pItem->InqIntQuality(STACK_SIZE_INT, 1, true);
 	}
 
 	for (auto pack : m_Packs)
-		coinAmount += pack->RecalculateAltCoinAmount(currencyid);
+	{
+		std::shared_ptr<CWeenieObject> pItem = pack.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		coinAmount += pItem->RecalculateAltCoinAmount(currencyid);
+	}
 
 	return coinAmount;
 }
@@ -1456,18 +1615,25 @@ DWORD CContainerWeenie::ConsumeCoin(int amountToConsume)
 	DWORD amountConsumed = 0;
 	for (auto item : m_Items)
 	{
-		if (item->m_Qualities.id == W_COINSTACK_CLASS)
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
 		{
-			int stackSize = item->InqIntQuality(STACK_SIZE_INT, 1, true);
+			continue;
+		}
+
+		if (pItem->m_Qualities.id == W_COINSTACK_CLASS)
+		{
+			int stackSize = pItem->InqIntQuality(STACK_SIZE_INT, 1, true);
 			if (stackSize <= amountToConsume)
 			{
-				removeList.push_back(item);
+				removeList.push_back(pItem);
 				amountToConsume -= stackSize;
 				amountConsumed += stackSize;
 			}
 			else
 			{
-				item->SetStackSize(stackSize - amountToConsume);
+				pItem->SetStackSize(stackSize - amountToConsume);
 				amountConsumed += amountToConsume;
 				break;
 			}
@@ -1481,7 +1647,14 @@ DWORD CContainerWeenie::ConsumeCoin(int amountToConsume)
 	{
 		for (auto pack : m_Packs)
 		{
-			DWORD amountFromPack = pack->ConsumeCoin(amountToConsume);
+			std::shared_ptr<CWeenieObject> pItem = pack.lock();
+
+			if (!pItem)
+			{
+				continue;
+			}
+
+			DWORD amountFromPack = pItem->ConsumeCoin(amountToConsume);
 			amountToConsume -= amountFromPack;
 			amountConsumed += amountFromPack;
 
@@ -1511,18 +1684,25 @@ DWORD CContainerWeenie::ConsumeAltCoin(int amountToConsume, int currencyid)
 	DWORD amountConsumed = 0;
 	for (auto item : m_Items)
 	{
-		if (item->m_Qualities.id == currencyid)
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
 		{
-			int stackSize = item->InqIntQuality(STACK_SIZE_INT, 1, true);
+			continue;
+		}
+
+		if (pItem->m_Qualities.id == currencyid)
+		{
+			int stackSize = pItem->InqIntQuality(STACK_SIZE_INT, 1, true);
 			if (stackSize <= amountToConsume)
 			{
-				removeList.push_back(item);
+				removeList.push_back(pItem);
 				amountToConsume -= stackSize;
 				amountConsumed += stackSize;
 			}
 			else
 			{
-				item->SetStackSize(stackSize - amountToConsume);
+				pItem->SetStackSize(stackSize - amountToConsume);
 				amountConsumed += amountToConsume;
 				break;
 			}
@@ -1536,7 +1716,14 @@ DWORD CContainerWeenie::ConsumeAltCoin(int amountToConsume, int currencyid)
 	{
 		for (auto pack : m_Packs)
 		{
-			DWORD amountFromPack = pack->ConsumeAltCoin(amountToConsume, currencyid);
+			std::shared_ptr<CWeenieObject> pItem = pack.lock();
+
+			if (!pItem)
+			{
+				continue;
+			}
+
+			DWORD amountFromPack = pItem->ConsumeAltCoin(amountToConsume, currencyid);
 			amountToConsume -= amountFromPack;
 			amountConsumed += amountFromPack;
 
@@ -1557,18 +1744,39 @@ void CContainerWeenie::RecalculateEncumbrance()
 	int newValue = 0;
 	for (auto wielded : m_Wielded)
 	{
-		newValue += wielded->InqIntQuality(ENCUMB_VAL_INT, 0);
+		std::shared_ptr<CWeenieObject> pItem = wielded.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		newValue += pItem->InqIntQuality(ENCUMB_VAL_INT, 0);
 	}
 
 	for (auto item : m_Items)
 	{
-		newValue += item->InqIntQuality(ENCUMB_VAL_INT, 0);
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		newValue += pItem->InqIntQuality(ENCUMB_VAL_INT, 0);
 	}
 
 	for (auto pack : m_Packs)
 	{
-		pack->RecalculateEncumbrance();
-		newValue += pack->InqIntQuality(ENCUMB_VAL_INT, 0);
+		std::shared_ptr<CWeenieObject> pItem = pack.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		pItem->RecalculateEncumbrance();
+		newValue += pItem->InqIntQuality(ENCUMB_VAL_INT, 0);
 	}
 
 	if (oldValue != newValue)
@@ -1582,19 +1790,40 @@ bool CContainerWeenie::IsAttunedOrContainsAttuned()
 {
 	for (auto wielded : m_Wielded)
 	{
-		if (wielded->IsAttunedOrContainsAttuned())
+		std::shared_ptr<CWeenieObject> pItem = wielded.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->IsAttunedOrContainsAttuned())
 			return true;
 	}
 
 	for (auto item : m_Items)
 	{
-		if (item->IsAttunedOrContainsAttuned())
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->IsAttunedOrContainsAttuned())
 			return true;
 	}
 
 	for (auto pack : m_Packs)
 	{
-		if (pack->IsAttunedOrContainsAttuned())
+		std::shared_ptr<CWeenieObject> pItem = pack.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->IsAttunedOrContainsAttuned())
 			return true;
 	}
 

@@ -140,7 +140,7 @@ void CCorpseWeenie::Tick()
 	{
 		if (_mark_for_destroy_at <= Timer::cur_time)
 		{
-			MarkForDestroy();
+			g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
 		}
 	}
 }

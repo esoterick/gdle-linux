@@ -281,8 +281,8 @@ public:
 	virtual void TryIdentify(std::shared_ptr<CWeenieObject> other);
 	virtual void Identify(std::shared_ptr<CWeenieObject> other, DWORD overrideId = 0);
 
-	virtual void MarkForDestroy() { m_bDestroyMe = true; }
-	virtual bool ShouldDestroy() { return m_bDestroyMe; }
+	virtual void MarkForDestroy();
+	virtual bool ShouldDestroy();
 	virtual void Remove();
 	virtual void DebugValidate();
 
@@ -492,8 +492,8 @@ public:
 	void TryCancelAttack();
 
 	float GetArmorModForDamageType(DAMAGE_TYPE dt);
-
-	bool m_bDestroyMe = false;
+	
+	double m_dDestroyTime = -1;
 
 	virtual void WieldedTick();
 	virtual void InventoryTick();

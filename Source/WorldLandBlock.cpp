@@ -947,7 +947,7 @@ BOOL CWorldLandBlock::Think()
 			}
 			else
 			{
-				Destroy(pEntity);
+				g_pWorld->RemoveEntity(pEntity);
 			}
 
 			eit++;

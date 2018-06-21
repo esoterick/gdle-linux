@@ -103,10 +103,10 @@ public:
 
 	void AdjustToNewCombatMode();
 
-	std::shared_ptr<CWeenieObject> m_WieldedCombat[MAX_WIELDED_COMBAT];
-	std::vector<std::shared_ptr<CWeenieObject> > m_Wielded;
-	std::vector<std::shared_ptr<CWeenieObject> > m_Items;
-	std::vector<std::shared_ptr<CWeenieObject> > m_Packs;
+	std::weak_ptr<CWeenieObject> m_WieldedCombat[MAX_WIELDED_COMBAT];
+	std::vector<std::weak_ptr<CWeenieObject> > m_Wielded;
+	std::vector<std::weak_ptr<CWeenieObject> > m_Items;
+	std::vector<std::weak_ptr<CWeenieObject> > m_Packs;
 
 	// For opening/closing containers
 	double _nextCheckToClose = 0.0;

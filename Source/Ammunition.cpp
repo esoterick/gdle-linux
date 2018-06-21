@@ -73,7 +73,7 @@ void CAmmunitionWeenie::HandleNonTargetCollision()
 		if (source->AsPlayer())
 			source->SendText("Your missile attack hit the environment.", LTT_DEFAULT);
 		else
-			MarkForDestroy();
+			g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
 
 		EmitSound(Sound_Collision, 1.0f);
 	}
@@ -83,7 +83,7 @@ void CAmmunitionWeenie::HandleNonTargetCollision()
 
 void CAmmunitionWeenie::HandleTargetCollision()
 {
-	MarkForDestroy();
+	g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
 }
 
 BOOL CAmmunitionWeenie::DoCollision(const class EnvCollisionProfile &prof)
