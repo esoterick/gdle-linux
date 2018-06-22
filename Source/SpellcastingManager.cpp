@@ -2729,12 +2729,30 @@ int CSpellcastingManager::CreatureBeginCast(DWORD target_id, DWORD spell_id)
 		return WERROR_MAGIC_GENERAL_FAILURE;
 	}
 
+	// if the spell uses mana and we use mana then check we've got enough
+	if (m_SpellCastData.uses_mana && m_pWeenie->InqBoolQuality(AI_USES_MANA_BOOL, 1) && m_pWeenie->GetMana() < m_SpellCastData.spell->_base_mana)
+	{
+		return WERROR_MAGIC_INSUFFICIENT_MANA;
+	}
+
+	// if we're at max hp, no need to cast self heals
+	if (m_SpellCastData.spell->_category == 67 && (m_pWeenie->GetHealth() == m_pWeenie->GetMaxHealth()))
+	{
+		return WERROR_NONE;
+	}
+
 	m_bCasting = true;
 	m_PendingMotions.clear();
 	m_bTurningToObject = false;
 
 	m_PendingMotions.push_back(SpellCastingMotion(Motion_CastSpell, 2.0f, true, true, 2.0f));
 	m_SpellCastData.power_level_of_power_component = m_SpellCastData.spell_formula.GetPowerLevelOfPowerComponent();
+
+	// if we use our mana pool then adjust it for the spell cost
+	if (m_SpellCastData.uses_mana && m_pWeenie->InqBoolQuality(AI_USES_MANA_BOOL, 1))
+	{
+		m_pWeenie->AdjustMana(-(m_SpellCastData.spell->_base_mana)); //should this use GetManaCost to adjust for skill/mana c?
+	}
 
 	BeginNextMotion();
 
