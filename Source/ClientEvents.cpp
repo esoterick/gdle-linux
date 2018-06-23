@@ -182,6 +182,27 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	m_pPlayer->LoginCharacter();
 	last_age_update = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
+	// give characters created before creation timestamp was being set a timestamp and DOB from their DB date_created
+	if (!m_pPlayer->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0))
+	{
+		if (g_pDB2->Query("SELECT date_created FROM characters WHERE weenie_id = %u", m_pPlayer->GetID()))
+		{
+			CSQLResult *pQueryResult = g_pDB2->GetResult();
+			if (pQueryResult)
+			{
+				SQLResultRow_t Row = pQueryResult->FetchRow();
+				time_t t = strtoul(Row[0], NULL, 10);
+				m_pPlayer->m_Qualities.SetInt(CREATION_TIMESTAMP_INT, t);
+
+				std::stringstream ss;
+				ss << std::put_time(std::gmtime(&t), "%d %B %Y");
+				m_pPlayer->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
+
+				delete pQueryResult;
+			}
+		}
+	}
+
 	//temporarily send a purge all enchantments packet on login to wipe stacked characters.
 	if (m_pPlayer->m_Qualities._enchantment_reg)
 	{
