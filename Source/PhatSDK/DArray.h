@@ -47,7 +47,10 @@ DArray<T>::DArray(DWORD grow_size)
 template<class T>
 DArray<T>::~DArray()
 {
-	delete[] array_data;
+	if (array_data)
+	{
+		delete[] array_data;
+	}
 }
 
 template<class T>

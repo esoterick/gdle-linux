@@ -17,6 +17,11 @@ CContainerWeenie::CContainerWeenie()
 
 CContainerWeenie::~CContainerWeenie()
 {
+	if (!g_pWorld)
+	{
+		return;
+	}
+
 	for (DWORD i = 0; i < MAX_WIELDED_COMBAT; i++)
 		m_WieldedCombat[i] = std::shared_ptr<CWeenieObject>();
 

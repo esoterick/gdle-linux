@@ -83,18 +83,25 @@ protected:
 
 	void ActivateLandblocksWithinPVS(DWORD cell_id);
 
+	/*
+	* Helper function that will remove an entity from the lists and maps
+	* Also removes any nullptrs
+	* @param pEntity The entity to remove
+	* @param bCheckEntityList Whether to run the remove over m_EntityList. For optimisation.
+	*/
+	void RemoveEntity(std::shared_ptr<CWeenieObject> pEntity, bool bCheckEntityList = true);
+
 	CWorld *m_pWorld;
 
 	WORD m_wHeader;
 
-	PlayerWeenieMap m_PlayerMap;
-	PlayerWeenieVector m_PlayerList; // Players, used for message broadcasting.
 
-	WeenieMap m_EntityMap;
-	WeenieVector m_EntitiesToAdd;
-	WeenieVector m_EntityList;
+	PlayerWeenieWeakMap m_PlayerMap;
+	PlayerWeenieWeakVector m_PlayerList; // Players, used for message broadcasting.
 
-	bool m_bThinking = false;
+	WeenieWeakMap m_EntityMap;
+	WeenieWeakVector m_EntitiesToAdd;
+	WeenieWeakVector m_EntityList;
 
 	class CLandBlock *m_LoadedLandBlock = NULL;
 	std::unordered_map<WORD, class CEnvCell *> m_LoadedEnvCells;
@@ -108,4 +115,5 @@ protected:
 	bool m_bTickingWithWorld = true;
 
 	bool _cached_any_seen_outside = true;
+
 };

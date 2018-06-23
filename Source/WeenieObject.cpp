@@ -6393,13 +6393,17 @@ void CWeenieObject::Remove()
 		}
 	}
 	else
+	{
 		NotifyObjectRemoved();
+	}
 
 
 	//if (!sourceItem->HasOwner())
 	//{
 	if (std::shared_ptr<CWeenieObject> generator = g_pWorld->FindObject(InqIIDQuality(GENERATOR_IID, 0)))
+	{
 		generator->NotifyGeneratedPickedUp(GetPointer<CWeenieObject>());
+	}
 	//}
 
 	//not sure which ones of the following are necessary but for now GetPointer<CWeenieObject>() works.

@@ -948,36 +948,70 @@ void CWorld::RemoveEntity(std::shared_ptr<CWeenieObject> pEntity)
 		pEntity->unset_parent();
 		pEntity->unparent_children();
 
-		EnsureRemoved(pEntity);
-
 		if (DWORD generator_id = pEntity->InqIIDQuality(GENERATOR_IID, 0))
 		{
 			std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(generator_id);
 			if (target)
 				target->NotifyGeneratedDeath(pEntity);
 		}
+
+		EnsureRemoved(pEntity);
 	}
 	else
 	{
 		pBlock->Destroy(pEntity);
+		EnsureRemoved(pEntity);
 	}
 }
 
 void CWorld::EnsureRemoved(std::shared_ptr<CWeenieObject> pEntity)
 {
-	if (m_mAllPlayers.erase(pEntity->GetID()))
 	{
-		this->GetNumPlayers();
+		auto pit = m_mAllPlayers.begin();
+		auto pend = m_mAllPlayers.end();
+
+		while (pit != pend)
+		{
+			if (!pit->second || pEntity == pit->second)
+			{
+				pit = m_mAllPlayers.erase(pit);
+				pend = m_mAllPlayers.end();
+			}
+			else
+			{
+				pit++;
+			}
+		}
 	}
-	m_mAllObjects.erase(pEntity->GetID());
+
+	{
+		auto pit = m_mAllObjects.begin();
+		auto pend = m_mAllObjects.end();
+
+		while (pit != pend)
+		{
+			if (!pit->second || pEntity == pit->second)
+			{
+				pit = m_mAllObjects.erase(pit);
+				pend = m_mAllObjects.end();
+			}
+			else
+			{
+				pit++;
+			}
+		}
+	}
 
 	std::string eventString;
 	if (pEntity->m_Qualities.InqString(GENERATOR_EVENT_STRING, eventString))
 	{
 		auto range_pair = _eventWeenies.equal_range(eventString);
-		
-		for (auto it = range_pair.first; it != range_pair.second; ++it) {
-			if (it->second == pEntity->GetID()) {
+		DWORD id = pEntity->GetID();
+
+		for (auto it = range_pair.first; it != range_pair.second; ++it)
+		{
+			if (it->second == id)
+			{
 				_eventWeenies.erase(it);
 				break;
 			}

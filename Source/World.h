@@ -28,6 +28,15 @@ typedef std::vector<std::shared_ptr<CWeenieObject> > WeenieVector;
 typedef std::unordered_map<DWORD, std::shared_ptr<CPlayerWeenie> > PlayerWeenieMap;
 typedef std::vector<std::shared_ptr<CPlayerWeenie> > PlayerWeenieVector;
 
+
+typedef std::unordered_map<DWORD, std::weak_ptr<CPhysicsObj> > PhysObjWeakMap;
+typedef std::vector<std::weak_ptr<CWeenieObject> > PhysObjWeakVector;
+typedef std::unordered_map<DWORD, std::weak_ptr<CWeenieObject> > WeenieWeakMap;
+typedef std::vector<std::weak_ptr<CWeenieObject> > WeenieWeakVector;
+typedef std::unordered_map<DWORD, std::weak_ptr<CPlayerWeenie> > PlayerWeenieWeakMap;
+typedef std::vector<std::weak_ptr<CPlayerWeenie> > PlayerWeenieWeakVector;
+
+
 typedef std::vector<TeleTownList_s> TeletownVector;
 typedef std::map<DWORD, Position> LocationMap;
 typedef std::vector<class CWorldLandBlock *> LandblockVector;
