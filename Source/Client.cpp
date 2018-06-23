@@ -5,6 +5,7 @@
 #include "Client.h"
 #include "ClientEvents.h"
 #include "Config.h"
+#include <chrono>
 
 // Network access
 #include "Network.h"
@@ -620,6 +621,15 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				}
 				
 				weenie->m_Qualities.SetInt(AGE_INT, 0);
+
+				auto t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+				std::stringstream ss;
+				ss << std::put_time(std::gmtime(&t), "%d %B %Y");
+				std::string str = ss.str();
+
+				weenie->m_Qualities.SetInt(CREATION_TIMESTAMP_INT, t);
+				weenie->m_Qualities.SetString(DATE_OF_BIRTH_STRING, str);
 
 				/*
 				cg.startArea = max(0, min(cgd->mStartAreaList.num_used - 1, cg.startArea));

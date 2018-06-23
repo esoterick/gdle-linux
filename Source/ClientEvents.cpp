@@ -5,6 +5,7 @@
 #include "ClientCommands.h"
 #include "ClientEvents.h"
 #include "World.h"
+#include <chrono>
 
 #include "Database.h"
 #include "DatabaseIO.h"
@@ -63,14 +64,27 @@ CPlayerWeenie *CClientEvents::GetPlayer()
 
 void CClientEvents::ExitWorld()
 {
+	auto t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	m_pPlayer->m_Qualities.SetInt(LOGOFF_TIMESTAMP_INT, t);
+
 	DetachPlayer();
 	m_pClient->ExitWorld();
 }
+
 
 void CClientEvents::Think()
 {
 	if (m_pPlayer)
 	{
+		// update in-game age
+		int age = m_pPlayer->m_Qualities.GetInt(AGE_INT, 0);
+		int time_now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+		int time_diff = time_now - last_age_update;
+		age += time_diff;
+		m_pPlayer->m_Qualities.SetInt(AGE_INT, age);
+		last_age_update = time_now;
+
 		if (m_bSendAllegianceUpdates)
 		{
 			if (m_fNextAllegianceUpdate <= g_pGlobals->Time())
@@ -166,6 +180,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	m_pPlayer->SetLoginPlayerQualities(); // overrides
 	m_pPlayer->RecalculateEncumbrance();
 	m_pPlayer->LoginCharacter();
+	last_age_update = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
 	//temporarily send a purge all enchantments packet on login to wipe stacked characters.
 	if (m_pPlayer->m_Qualities._enchantment_reg)
