@@ -28,7 +28,7 @@ public:
 	void UseTime(void);
 
 	SmartArray<CelestialPosition> sky_obj_pos; // 0x00
-	SmartArray<class std::shared_ptr<CPhysicsObj> > sky_obj; // 0x0C
+	//SmartArray<class std::shared_ptr<CPhysicsObj> > sky_obj; // 0x0C
 	SmartArray<DWORD> property_array; // 0x18
 	class CEnvCell *before_sky_cell; // 0x24
 	class CEnvCell *after_sky_cell; // 0x28

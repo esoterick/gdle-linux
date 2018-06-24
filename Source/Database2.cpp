@@ -809,17 +809,17 @@ void CGameDatabase::SpawnBSD()
 		if (bHasTusker)
 			continue;
 
-		/* TODO
-		 * is it safe to assume this works? mwnciau
-		 */
+		// CreateFromCapturedData always returns something so this is safe
 		std::shared_ptr<CMonsterWeenie> pMonster = g_pGameDatabase->CreateFromCapturedData(pMonsterInfo)->AsMonster();
 
-		// Modify these
-		pMonster->SetScale(pMonsterInfo->physics.object_scale);
-		pMonster->SetInitialPosition(spawnPos);
-
-		// Add and spawn it
-		g_pWorld->CreateEntity(pMonster);
+		if (pMonster)
+		{
+			// Modify these
+			pMonster->SetScale(pMonsterInfo->physics.object_scale);
+			pMonster->SetInitialPosition(spawnPos);
+			// Add and spawn it
+			g_pWorld->CreateEntity(pMonster);
+		}
 	}
 }
 

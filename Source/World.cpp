@@ -960,7 +960,6 @@ void CWorld::RemoveEntity(std::shared_ptr<CWeenieObject> pEntity)
 	else
 	{
 		pBlock->Destroy(pEntity);
-		EnsureRemoved(pEntity);
 	}
 }
 

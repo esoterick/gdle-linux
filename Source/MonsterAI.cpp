@@ -655,8 +655,8 @@ void MonsterAIManager::AlertIdleFriendsToAggro(std::shared_ptr<CWeenieObject> pA
 		if (!weenie->IsCreature())
 			continue;
 
-		// TODO is this safe to assume? mwnciau
 		std::shared_ptr<CMonsterWeenie> creature = weenie->AsMonster();
+
 		if (!creature->m_MonsterAI)
 			continue;
 

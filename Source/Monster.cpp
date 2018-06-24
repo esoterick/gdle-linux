@@ -1617,7 +1617,6 @@ std::shared_ptr<CCorpseWeenie> CMonsterWeenie::CreateCorpse(bool visible)
 		return NULL;
 
 	// spawn corpse
-	// TODO is this safe to assume? mwnciau
 	std::shared_ptr<CCorpseWeenie> pCorpse = g_pWeenieFactory->CreateWeenieByClassID(W_CORPSE_CLASS)->AsCorpse();
 
 	pCorpse->CopyDIDStat(SETUP_DID, GetPointer<CWeenieObject>());
@@ -1657,7 +1656,7 @@ std::shared_ptr<CCorpseWeenie> CMonsterWeenie::CreateCorpse(bool visible)
 	{
 		SERVER_ERROR << "Unable to create corpse of" << GetName().c_str() << "at Landblock:" << csprintf("0x%08X", m_Position.objcell_id) <<
 			"(X, Y, Z):" << m_Position.frame.m_origin.x << "," << m_Position.frame.m_origin.y << m_Position.frame.m_origin.z;
-		pCorpse = NULL;
+		pCorpse = std::shared_ptr<CCorpseWeenie>();
 	}
 
 	m_DeathKillerIDForCorpse = 0;

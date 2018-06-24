@@ -92,7 +92,7 @@ public:
 	Position pos; // 0x54
 
 	DWORD num_objects = 0; // 0x9C
-	DArray<std::shared_ptr<CPhysicsObj> > object_list; // 0xA0
+	DArray<std::weak_ptr<CPhysicsObj> > object_list; // 0xA0
 
 	// Light Information
 	DWORD num_lights = 0; // 0xB0

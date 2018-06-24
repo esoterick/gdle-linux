@@ -493,7 +493,7 @@ public:
 
 	float GetArmorModForDamageType(DAMAGE_TYPE dt);
 	
-	double m_dDestroyTime = -1;
+	double m_bShouldDestroy = false;
 
 	virtual void WieldedTick();
 	virtual void InventoryTick();

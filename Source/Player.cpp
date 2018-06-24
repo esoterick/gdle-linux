@@ -78,7 +78,7 @@ CPlayerWeenie::CPlayerWeenie(CClient *pClient, DWORD dwGUID, WORD instance_ts)
 
 CPlayerWeenie::~CPlayerWeenie()
 {
-	WINLOG(Data, Normal, (std::string("Deleted player: ") + GetName() + "\n").c_str());
+	//WINLOG(Data, Normal, (std::string("Deleted player: ") + GetName() + "\n").c_str());
 	LeaveFellowship();
 	
 	if (m_pTradeManager)
@@ -220,7 +220,7 @@ void CPlayerWeenie::Tick()
 
 		_beginLogoutTime = Timer::cur_time + 999999;
 	}
-	if (IsLoggingOut() && _logoutTime <= Timer::cur_time && m_dDestroyTime == -1)
+	if (IsLoggingOut() && _logoutTime <= Timer::cur_time)
 	{
 		// time to logout
 		if (m_pClient && m_pClient->GetEvents())
@@ -229,6 +229,7 @@ void CPlayerWeenie::Tick()
 		}
 
 		MarkForDestroy();
+		_logoutTime = DBL_MAX;
 	}
 
 	if (IsRecalling() && _recallTime <= Timer::cur_time)
@@ -3945,10 +3946,4 @@ void CPlayerWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 	{
 		m_pTradeManager->CloseTrade(AsPlayer(), 2); // EnteredCombat
 	}
-}
-
-void CPlayerWeenie::MarkForDestroy()
-{
-	WINLOG(Data, Normal, csprintf("Marked player for destroy: %s - (block %d)\n", GetName(), (int)m_pBlock));
-	m_dDestroyTime = Timer::cur_time;
 }

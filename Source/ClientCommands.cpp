@@ -3598,11 +3598,10 @@ CLIENT_COMMAND(spawnavatarvendor, "[name]", "Spawn avatar vendor.", ADMIN_ACCESS
 
 	std::shared_ptr<CAvatarVendor> pVendor = std::shared_ptr<CAvatarVendor>((new CAvatarVendor())->GetPointer<CAvatarVendor>(true));
 	g_pWeenieFactory->ApplyWeenieDefaults(pVendor, 719);
-	/* TODO
-	 * do we need these? mwnciau
+
 	SafeDelete(pVendor->m_Qualities._emote_table);
 	SafeDelete(pVendor->m_Qualities._create_list);
-	*/
+	
 
 	pVendor->SetInitialPosition(pPlayer->m_Position);
 	pVendor->SetScale(1.0f);
@@ -4078,9 +4077,7 @@ CLIENT_COMMAND(spawnrandomshadows, "[phase] [num to spawn]", "Spawns random shad
 		CCapturedWorldObjectInfo *pMonsterInfo = g_pGameDatabase->GetCapturedMonsterData(spawnName.c_str());
 		if (pMonsterInfo)
 		{
-			/* TODO
-			 * is it safe to assume this will succeed? mwnciau
-			*/
+			// CreateFromCapturedData always returns something so this is safe
 			std::shared_ptr<CMonsterWeenie> pMonster = g_pGameDatabase->CreateFromCapturedData(pMonsterInfo)->AsMonster();
 
 			Position spawnPos = pPlayer->GetPosition().add_offset(Vector(Random::GenFloat(-4.0f * total, 4.0f * total), Random::GenFloat(-4.0f * total, 4.0f * total), 0));

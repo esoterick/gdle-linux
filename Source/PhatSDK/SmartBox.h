@@ -64,7 +64,7 @@ public:
 	unsigned int num_cells;
 	CEnvCell **cells;
 	unsigned int num_objects;
-	std::vector<std::shared_ptr<CPhysicsObj>> objects;
+	//std::vector<std::shared_ptr<CPhysicsObj>> objects;
 	void(__cdecl *m_renderingCallback)();
 
 	static CSphere viewer_sphere;

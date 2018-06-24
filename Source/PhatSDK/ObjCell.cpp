@@ -50,7 +50,7 @@ std::shared_ptr<CPhysicsObj> CObjCell::get_object(DWORD iid)
 {
 	for (DWORD i = 0; i < num_objects; i++)
 	{
-		std::shared_ptr<CPhysicsObj> pObject = object_list.array_data[i];
+		std::shared_ptr<CPhysicsObj> pObject = object_list.array_data[i].lock();
 
 		if (pObject && pObject->GetID() == iid)
 			return pObject;
@@ -113,7 +113,7 @@ void CObjCell::remove_object(std::shared_ptr<CPhysicsObj> pObject)
 {
 	for (DWORD i = 0; i < num_objects; i++)
 	{
-		if (pObject == object_list.array_data[i])
+		if (pObject == object_list.array_data[i].lock())
 		{
 			// DEBUGOUT("Removing index %u object (total was %u)\r\n", i, m_ObjectCount);
 			object_list.array_data[i] = object_list.array_data[--num_objects];
@@ -462,7 +462,10 @@ void CObjCell::release_objects()
 
 		for (DWORD i = 0; i < num_objects; i++)
 		{
-			objs_to_leave.push_back(object_list.data[i]);
+			if (std::shared_ptr<CPhysicsObj> pObj = object_list.data[i].lock())
+			{
+				objs_to_leave.push_back(pObj);
+			}
 		}
 
 		for (auto toLeave : objs_to_leave)

@@ -55,7 +55,7 @@ CWeenieObject::CWeenieObject()
 CWeenieObject::~CWeenieObject()
 {
 	DEBUG_DATA << "Deleted object: " << GetName();
-	WINLOG(Data, Normal, (std::string("Deleted object: ") + GetName() + "\n").c_str());
+	//WINLOG(Data, Normal, (std::string("Deleted object: ") + GetName() + "\n").c_str());
 
 	CleanupPhysicsTemporary();
 
@@ -6373,12 +6373,12 @@ bool CWeenieObject::LearnSpell(DWORD spell_id, bool showTextAndEffect)
 
 void CWeenieObject::MarkForDestroy()
 {
-	m_dDestroyTime = Timer::cur_time;
+	m_bShouldDestroy = true;
 }
 
 bool CWeenieObject::ShouldDestroy()
 {
-	return m_dDestroyTime > 0 && m_dDestroyTime < Timer::cur_time; 
+	return m_bShouldDestroy;
 }
 
 void CWeenieObject::Remove()

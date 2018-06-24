@@ -26,7 +26,6 @@ public:
     //CObjectMaint *    m_ObjMaint;                  // 0x00
     SmartBox *        m_SmartBox;                  // 0x04
     std::weak_ptr<CPhysicsObj>     m_Player;                   // 0x08
-	//TODO mwnciau
     //HashBaseIter<std::weak_ptr<CPhysicsObj> >* m_Iter;    // 0x0C
     DWORD            m_10;                          // 0x10
 };

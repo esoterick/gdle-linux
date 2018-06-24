@@ -799,16 +799,9 @@ BOOL CWorldLandBlock::Think()
 	{
 		std::shared_ptr<CWeenieObject> pEntity = eit->lock();
 
-		if (auto pPlayer = pEntity->AsPlayer())
-		{
-			pPlayer->ShouldDestroy();
-		}
-
 		if (pEntity && pEntity->ShouldDestroy())
 		{
-			// detach so the next if statement returns true
-			pEntity->Detach();
-
+			//WINLOG(Data, Normal, csprintf("Should destroy player in WorldLandBlock Think: %s - (%d)\n", pEntity->GetName(), pEntity->GetID()));
 			g_pWorld->RemoveEntity(pEntity);
 		}
 
@@ -1311,47 +1304,42 @@ void CWorldLandBlock::RemoveEntity(std::shared_ptr<CWeenieObject> pEntity, bool 
 		}
 	}
 
-	std::shared_ptr<CPlayerWeenie> pPlayer = pEntity->AsPlayer();
-
-	if (pPlayer)
+	// m_PlayerList
 	{
-		// m_PlayerList
-		{
-			auto pit = m_PlayerList.begin();
-			auto pend = m_PlayerList.end();
+		auto pit = m_PlayerList.begin();
+		auto pend = m_PlayerList.end();
 
-			while (pit != pend)
+		while (pit != pend)
+		{
+			std::shared_ptr<CPlayerWeenie> pOther = pit->lock();
+			if (!pOther || pEntity == pOther)
 			{
-				std::shared_ptr<CPlayerWeenie> pOther = pit->lock();
-				if (!pOther || pEntity == pOther)
-				{
-					pit = m_PlayerList.erase(pit);
-					pend = m_PlayerList.end();
-				}
-				else
-				{
-					pit++;
-				}
+				pit = m_PlayerList.erase(pit);
+				pend = m_PlayerList.end();
+			}
+			else
+			{
+				pit++;
 			}
 		}
+	}
 
-		// m_PlayerList
+	// m_PlayerMap
+	{
+		auto pit = m_PlayerMap.begin();
+		auto pend = m_PlayerMap.end();
+
+		while (pit != pend)
 		{
-			auto pit = m_PlayerMap.begin();
-			auto pend = m_PlayerMap.end();
-
-			while (pit != pend)
+			std::shared_ptr<CPlayerWeenie> pOther = pit->second.lock();
+			if (!pOther || pEntity == pOther)
 			{
-				std::shared_ptr<CPlayerWeenie> pOther = pit->second.lock();
-				if (!pOther || pEntity == pOther)
-				{
-					pit = m_PlayerMap.erase(pit);
-					pend = m_PlayerMap.end();
-				}
-				else
-				{
-					pit++;
-				}
+				pit = m_PlayerMap.erase(pit);
+				pend = m_PlayerMap.end();
+			}
+			else
+			{
+				pit++;
 			}
 		}
 	}

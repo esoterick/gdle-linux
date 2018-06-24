@@ -189,8 +189,8 @@ void CPortalUseEvent::OnReadyToUse()
 		return;
 	}
 
-	// TODO is this safe? mwnciau
 	std::shared_ptr<CPortal> pPortal = target->AsPortal();
+
 	if (pPortal)
 	{
 		if (std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock())

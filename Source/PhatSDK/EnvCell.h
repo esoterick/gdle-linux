@@ -100,7 +100,6 @@ public:
 	DWORD num_static_objects; // 0x110
 	DWORD *static_object_ids; // 0x114
 	Frame *static_object_frames; // 0x118
-	// TODO weak or shared? mwnciau
 	std::vector<std::shared_ptr<CPhysicsObj>> static_objects; // 0x11C
 	LPVOID light_array; // 0x120
 	int incell_timestamp = 0;
