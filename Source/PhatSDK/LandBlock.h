@@ -54,8 +54,8 @@ public:
 	class CLandBlockInfo *lbi; // 0xCC / 0xD8
 	DWORD num_static_objects; // 0xD0 / 0xDC
 	DArray<std::shared_ptr<CPhysicsObj> > static_objects; // 0xD4 / 0xE0
-	DWORD num_buildings; // 0xE4 / 0xF0
-	class CBuildingObj **buildings; // 0xE8 / 0xF4
+	DWORD num_buildings = 0; // 0xE4 / 0xF0
+	std::shared_ptr<CBuildingObj> *buildings = NULL; // 0xE8 / 0xF4
 	DWORD stab_num; // 0xEC / 0xF8
 	DWORD *stablist; // 0xF0 / 0xFC
 	class CLandCell **draw_array; // 0xFC / 0x108

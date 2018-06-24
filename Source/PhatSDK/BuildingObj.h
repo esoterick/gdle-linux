@@ -9,7 +9,7 @@ public:
 	CBuildingObj();
 	virtual ~CBuildingObj();
 
-	static CBuildingObj *makeBuilding(DWORD data_id, unsigned int _num_portals, class CBldPortal **_portals, unsigned int _num_leaves);
+	static std::shared_ptr<CBuildingObj> makeBuilding(DWORD data_id, unsigned int _num_portals, class CBldPortal **_portals, unsigned int _num_leaves);
 
 	std::shared_ptr<CPhysicsObj> get_object(DWORD obj_iid);
 	void remove();

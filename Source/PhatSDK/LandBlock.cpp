@@ -92,7 +92,6 @@ void CLandBlock::destroy_buildings(void)
 			if (buildings[i])
 			{
 				buildings[i]->remove();
-				delete buildings[i];
 			}
 		}
 
@@ -327,13 +326,15 @@ void CLandBlock::init_buildings()
 				DWORD max_stab = 0;
 
 				if (lbi->num_buildings > 0)
-					buildings = new CBuildingObj *[lbi->num_buildings];
+					buildings = new std::shared_ptr<CBuildingObj>[lbi->num_buildings];
 
 				for (DWORD i = 0; i < lbi->num_buildings; i++)
 				{
+					buildings[i] = NULL;
+
 					BuildInfo *buildInfo = lbi->buildings[i];
 					
-					CBuildingObj *building = 
+					std::shared_ptr<CBuildingObj> building =
 						CBuildingObj::makeBuilding(
 							buildInfo->building_id,
 							buildInfo->num_portals,
@@ -356,9 +357,7 @@ void CLandBlock::init_buildings()
 							building->add_to_cell(pLandCell);
 							buildings[num_buildings++] = building;
 							building->add_to_stablist(stablist, max_stab, stab_num);
-						}
-						else
-							delete building;						
+						}					
 					}
 				}
 			}

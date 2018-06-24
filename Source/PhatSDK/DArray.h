@@ -38,7 +38,7 @@ DArray<T>::DArray(DWORD initial_size, DWORD grow_size)
 template<class T>
 DArray<T>::DArray(DWORD grow_size)
 {
-	array_data = new T[0]; // NULL;
+	array_data = NULL;
 	grow_size = grow_size;
 	num_used = 0;
 	alloc_size = 0;
