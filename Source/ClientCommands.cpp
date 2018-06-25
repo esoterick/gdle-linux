@@ -4529,6 +4529,12 @@ CLIENT_COMMAND(hover, "<on / off>", "Turns hovering on or off.", BASIC_ACCESS)
 		return false;
 	}
 
+	if (argc < 1)
+	{
+		pPlayer->SendText("Usage: /hover on | off", LTT_DEFAULT);
+		return false;
+	}
+
 	if (!_stricmp(argv[0], "on") || !_stricmp(argv[0], "1"))
 	{
 

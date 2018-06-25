@@ -1220,12 +1220,19 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case SetSanctuaryPosition_EmoteType:
 	{
-		std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id);
-		if (target)
+		if (std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(target_id))
 		{
-			target->SetInitialPosition(target->m_Position);
-			target->m_Qualities.SetPosition(SANCTUARY_POSITION, target->m_Position);
+			if (!emote.mPosition)
+			{
+				target->SetInitialPosition(target->m_Position);
+				target->m_Qualities.SetPosition(SANCTUARY_POSITION, target->m_Position);
+			}
+			else
+			{
+				target->m_Qualities.SetPosition(SANCTUARY_POSITION, emote.mPosition);
+			}
 		}
+
 		break;
 	}
 	case InqInt64Stat_EmoteType:
