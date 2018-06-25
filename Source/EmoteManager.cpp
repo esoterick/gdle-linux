@@ -1203,12 +1203,24 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	case SetSanctuaryPosition_EmoteType:
 	{
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
-		if (target)
+		if (!emote.mPosition)
 		{
-			target->SetInitialPosition(target->m_Position);
-			target->m_Qualities.SetPosition(SANCTUARY_POSITION, target->m_Position);
+			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			if (target)
+			{
+				target->SetInitialPosition(target->m_Position);
+				target->m_Qualities.SetPosition(SANCTUARY_POSITION, target->m_Position);
+			}
 		}
+		else
+		{
+			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			if (target)
+			{
+				target->m_Qualities.SetPosition(SANCTUARY_POSITION, emote.mPosition);
+			}
+		}
+
 		break;
 	}
 	case InqInt64Stat_EmoteType:
