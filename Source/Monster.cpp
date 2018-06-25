@@ -213,6 +213,13 @@ std::shared_ptr<CContainerWeenie> CMonsterWeenie::FindValidNearbyContainer(DWORD
 		{
 			// maybe it's on the ground
 			std::shared_ptr<CWeenieObject> object = g_pWorld->FindObject(containerId);
+
+			if (!object)
+			{
+				NotifyInventoryFailedEvent(containerId, WERROR_OBJECT_GONE);
+				return NULL;
+			}
+			
 			container = object->AsContainer();
 
 			if (!container || container->HasOwner() || !container->InValidCell())
@@ -774,6 +781,8 @@ bool CMonsterWeenie::FinishMoveItemToWield(std::shared_ptr<CWeenieObject> source
 		{
 			difficulty = 0;
 			DWORD skillActivationTypeDID = 0;
+
+
 			if (sourceItem->m_Qualities.InqInt(ITEM_SKILL_LEVEL_LIMIT_INT, difficulty, TRUE, FALSE) && sourceItem->m_Qualities.InqDataID(ITEM_SKILL_LIMIT_DID, skillActivationTypeDID))
 			{
 				STypeSkill skillActivationType = SkillTable::OldToNewSkill((STypeSkill)skillActivationTypeDID);
@@ -1772,7 +1781,21 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 	m_DeathKillerIDForCorpse = mostDamageSource;
 	if (!g_pWorld->FindObjectName(mostDamageSource, m_DeathKillerNameForCorpse))
-		m_DeathKillerNameForCorpse.clear();
+		m_DeathKillerNameForCorpse = "fate";
+
+	if (m_Qualities._generator_registry)
+	{
+		for each(auto entry in m_Qualities._generator_registry->_registry)
+		{
+			std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindObject(entry.second.m_objectId);
+
+			if (std::shared_ptr<CMonsterWeenie> pMonster = weenie->AsMonster())
+			{
+				pMonster->OnDeath(0);
+			}
+		}
+
+	}
 
 	MakeMovementManager(TRUE);
 	StopCompletely(0);
@@ -2006,7 +2029,10 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 
 	CWeenieObject::GetObjDesc(objDesc);
 
+
 	DWORD head_object_id;
+
+
 	if (m_Qualities.InqDataID(HEAD_OBJECT_DID, head_object_id))
 		objDesc.AddAnimPartChange(new AnimPartChange(16, head_object_id));
 

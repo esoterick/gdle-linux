@@ -283,7 +283,7 @@ void CPhysicsObj::stick_to_object(DWORD target)
 void CPhysicsObj::cancel_moveto()
 {
 	if (movement_manager)
-		movement_manager->CancelMoveTo(0x36);
+		movement_manager->CancelMoveTo(WERROR_INTERRUPTED);
 }
 
 void CPhysicsObj::RemoveLinkAnimations()
@@ -382,7 +382,7 @@ DWORD CPhysicsObj::StopInterpretedMotion(DWORD motion, class MovementParameters 
 	if (part_array)
 		return part_array->StopInterpretedMotion(motion, params);
 
-	return 0x47;
+	return WERROR_GENERAL_MOVEMENT_FAILURE;
 }
 
 DWORD CPhysicsObj::DoInterpretedMotion(DWORD motion, class MovementParameters *params)
@@ -390,7 +390,7 @@ DWORD CPhysicsObj::DoInterpretedMotion(DWORD motion, class MovementParameters *p
 	if (part_array)
 		return part_array->DoInterpretedMotion(motion, params);
 
-	return 0x47;
+	return WERROR_GENERAL_MOVEMENT_FAILURE;
 }
 
 BOOL CPhysicsObj::movement_is_autonomous()

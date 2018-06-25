@@ -1215,6 +1215,8 @@ void CHookWeenie::UpdateHookedObject(std::shared_ptr<CWeenieObject> hookedItem, 
 	}
 
 	DWORD value;
+
+
 	if (hookedItem->m_Qualities.InqDataID(SETUP_DID, value))
 	{
 		m_Qualities.SetDataID(SETUP_DID, value);
@@ -1321,6 +1323,9 @@ void CHookWeenie::ClearHookedObject(bool sendUpdate)
 	CWeenieDefaults *defaults = g_pWeenieFactory->GetWeenieDefaults(m_Qualities.id);
 
 	DWORD value;
+
+
+
 	if (defaults->m_Qualities.InqDataID(SETUP_DID, value))
 	{
 		m_Qualities.SetDataID(SETUP_DID, value);

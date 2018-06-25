@@ -1446,7 +1446,7 @@ bool CTreasureFactory::MutateItem(std::shared_ptr<CWeenieObject> newItem, sItemC
 
 			if (itemType == TYPE_CASTER)
 			{
-				for (int i = 0; i < category->wieldTiers.size() - 1; i++)
+				for (int i = 0; i < 2; i++)
 				{
 					//increase chance of no weapon skill casters as that is only used for war magic.
 					possibleWieldTiers.push_back(zeroReqWieldTier);
@@ -1455,7 +1455,7 @@ bool CTreasureFactory::MutateItem(std::shared_ptr<CWeenieObject> newItem, sItemC
 
 			if (possibleWieldTiers.size() == 0)
 				return false;
-			wieldTier = &possibleWieldTiers[(int)getRandomNumberExclusive((int)possibleWieldTiers.size(), eRandomFormula::favorMid, 2, 0)];
+			wieldTier = &possibleWieldTiers[(int)getRandomNumberExclusive((int)possibleWieldTiers.size(), eRandomFormula::equalDistribution, 2, 0)];
 
 			MutateWeapon(newItem, wieldTier, creationInfo, tier, category, entry);
 			if (itemType == TYPE_MELEE_WEAPON)
@@ -1502,7 +1502,7 @@ bool CTreasureFactory::MutateItem(std::shared_ptr<CWeenieObject> newItem, sItemC
 
 			if (possibleWieldTiers.size() == 0)
 				return false;
-			wieldTier = &possibleWieldTiers[getRandomNumberExclusive((int)possibleWieldTiers.size(), eRandomFormula::favorMid, 2, 0)];
+			wieldTier = &possibleWieldTiers[getRandomNumberExclusive((int)possibleWieldTiers.size(), eRandomFormula::equalDistribution, 2, 0)];
 			MutateArmor(newItem, wieldTier, creationInfo, tier, category, entry);
 		}
 	}
@@ -1814,6 +1814,7 @@ void CTreasureFactory::MutateMeleeWeapon(std::shared_ptr<CWeenieObject> newItem,
 			weenieDefs->m_Qualities.InqInt(DAMAGE_TYPE_INT, elementalType, TRUE);
 
 			DWORD setup;
+
 			if (weenieDefs->m_Qualities.InqDataID(SETUP_DID, setup))
 				newItem->m_Qualities.SetDataID(SETUP_DID, setup);
 

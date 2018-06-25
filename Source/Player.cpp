@@ -148,7 +148,7 @@ void CPlayerWeenie::BeginLogout()
 	if (IsLoggingOut())
 		return;
 
-	_beginLogoutTime = max(Timer::cur_time, m_iPKActivity-30);
+	_beginLogoutTime = max(Timer::cur_time, m_iPKActivity);
 	_logoutTime = _beginLogoutTime + 5.0;
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
@@ -806,6 +806,7 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 	UpdateVitaePool(0);
 	ReduceVitae(0.05f);
 	UpdateVitaeEnchantment();
+	ClearPKActivity();
 
 	if (killer_id != GetID())
 	{
@@ -1434,11 +1435,11 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				return WERROR_STAMINA_TOO_LOW;
 			}
 		}
-		else if (GetStamina() < 5) //I can't find a source but I'm pretty sure use actions always consumed some amount of stamina.
-		{
-			//SendText("You don't have enough stamina to do that.", LTT_CRAFT);
-			return WERROR_STAMINA_TOO_LOW;
-		}
+		//else if (GetStamina() < 5) //I can't find a source but I'm pretty sure use actions always consumed some amount of stamina.
+		//{
+		//	//SendText("You don't have enough stamina to do that.", LTT_CRAFT);
+		//	return WERROR_STAMINA_TOO_LOW;
+		//}
 
 		if (GetMana() < requiredMana)
 		{
@@ -1598,7 +1599,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				}
 
 				IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << itemWorkmanship << " TT:" << amountOfTimesTinkered <<
-					" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (successChance ? "TRUE" : "FALSE");
+					" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll;
 
 				break;
 			}
@@ -1664,7 +1665,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				}
 
 				IMBUE_LOG << "P:" << InqStringQuality(NAME_STRING, "") << " SL:" << skillLevel << " T:" << pTarget->InqStringQuality(NAME_STRING, "") << " TW:" << itemWorkmanship << " TT:" << amountOfTimesTinkered <<
-					" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll << " S/F:" << (successChance ? "TRUE" : "FALSE");
+					" M:" << pTool->InqStringQuality(NAME_STRING, "") << " MW:" << toolWorkmanship << " %:" << successChance << " Roll:" << successRoll;
 
 				break;
 			}
@@ -2115,6 +2116,8 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, std::sh
 		for each (TYPERequirement<STypeDID, DWORD> dIDRequirement in op->_requirements[index]._didRequirement)
 		{
 			DWORD value = 0;
+
+
 			bool exists = requirementTarget->m_Qualities.InqDataID(dIDRequirement._stat, value);
 
 			switch (dIDRequirement._operationType)

@@ -756,8 +756,17 @@ void CSpellcastingManager::PerformCastParticleEffects()
 	// target effect
 	if (m_SpellCastData.spell->_target_effect)
 	{
-		if (std::shared_ptr<CWeenieObject> pTarget = GetCastTarget())
-			pTarget->EmitEffect(m_SpellCastData.spell->_target_effect, max(0.0, min(1.0, (m_SpellCastData.power_level_of_power_component - 1.0) / 7.0)));
+		if ((m_SpellCastData.spell->_school == 3) && (GetCastSource() == GetCastTarget()))
+		{
+			return;
+		}
+		else
+		{
+			if (std::shared_ptr<CWeenieObject> pTarget = GetCastTarget())
+			{
+				pTarget->EmitEffect(m_SpellCastData.spell->_target_effect, max(0.0, min(1.0, (m_SpellCastData.power_level_of_power_component - 1.0) / 7.0)));
+			}
+		}
 	}
 }
 
@@ -1427,6 +1436,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					{
 						pWeenie->m_Qualities.SetPosition(LINKED_LIFESTONE_POSITION, pWeenie->m_Position);
 						bSpellPerformed = true;
+						pWeenie->SendText("You have successfully linked with the life stone.", LTT_MAGIC);
 					}
 					else
 					{
@@ -1440,6 +1450,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					{
 						pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_ONE_DID, pTarget->m_Qualities.id);
 						bSpellPerformed = true;
+						pWeenie->SendText("You have successfully linked with the portal.", LTT_MAGIC);
 					}
 					else
 					{
@@ -1454,6 +1465,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 					{
 						pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_TWO_DID, pTarget->m_Qualities.id);
 						bSpellPerformed = true;
+						pWeenie->SendText("You have successfully linked with the portal.", LTT_MAGIC);
 					}
 					else
 					{
@@ -1525,6 +1537,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 			case 4: // primary portal recall
 			{
 				DWORD portalDID = 0;
+
 				if (pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_ONE_DID, portalDID) && portalDID != 0)
 				{
 					CWeenieDefaults *portalDefaults = NULL;
@@ -1589,6 +1602,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 			case 5: // secondary portal recall
 			{
 				DWORD portalDID = 0;
+
 				if (pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_TWO_DID, portalDID) && portalDID != 0)
 				{
 					CWeenieDefaults *portalDefaults = NULL;
@@ -2204,6 +2218,12 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 			std::shared_ptr<CWeenieObject> target = GetCastTarget();
 
+			if ( ( pWeenie->AsPlayer() && pWeenie->AsPlayer()->CheckPKActivity() ) || ( target && pWeenie->HasOwner() && target->AsPlayer() && target->AsPlayer()->CheckPKActivity() ) )
+			{
+				pWeenie->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+				break;
+			}
+
 			if (target)
 			{
 				PerformCastParticleEffects(); // perform particle effects early because teleporting will cancel it
@@ -2607,14 +2627,12 @@ bool CSpellcastingManager::DoTransferSpell(std::shared_ptr<CWeenieObject> other,
 				pSourcePlayer->RefreshTargetHealth();
 			}
 		}
-		else
-		{
-			// should never happen
-		}
 	}
 
 	if (meta->_src == HEALTH_ATTRIBUTE_2ND)
+	{
 		source->CheckDeath(pWeenie, DAMAGE_TYPE::HEALTH_DAMAGE_TYPE);
+	}
 
 	return true;
 }
@@ -2692,6 +2710,9 @@ bool CSpellcastingManager::AdjustVital(std::shared_ptr<CWeenieObject> target)
 
 		dmgEvent.isProjectileSpell = false;
 		dmgEvent.spell_name = m_SpellCastData.spell->_name;
+
+		CalculateCriticalHitData(&dmgEvent, &m_SpellCastData);
+		dmgEvent.wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent.critChance) ? true : false;
 
 		CalculateDamage(&dmgEvent, &m_SpellCastData);
 

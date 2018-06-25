@@ -300,7 +300,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	}
 
 	pPlayer->SendText("GDLEnhanced " SERVER_VERSION_NUMBER_STRING " " SERVER_VERSION_STRING, LTT_DEFAULT);
-	pPlayer->SendText("Maintained by, ChosenOne, LikeableLime and Scribble, Contact us at https://discord.gg/WzGX348", LTT_DEFAULT);
+	pPlayer->SendText("Maintained by the GDLE Development Team. Contact us at https://discord.gg/WzGX348", LTT_DEFAULT);
 	pPlayer->SendText("Powered by GamesDeadLol. Not an official Asheron's Call server.", LTT_DEFAULT);
 
 	/*
@@ -349,6 +349,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 			{
 				difficulty = 0;
 				DWORD skillActivationTypeDID = 0;
+
 				if (pItem->m_Qualities.InqInt(ITEM_SKILL_LEVEL_LIMIT_INT, difficulty, TRUE, FALSE) && pItem->m_Qualities.InqDataID(ITEM_SKILL_LIMIT_DID, skillActivationTypeDID))
 				{
 					STypeSkill skillActivationType = SkillTable::OldToNewSkill((STypeSkill)skillActivationTypeDID);
@@ -836,7 +837,7 @@ void CClientEvents::Identify(DWORD target_id)
 	_next_allowed_identify = Timer::cur_time + 0.5;
 }
 
-void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD amount)
+void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD exp)
 {
 	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
 	
@@ -853,20 +854,35 @@ void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD amount)
 
 	__int64 unassignedExp = 0;
 	pPlayer->m_Qualities.InqInt64(AVAILABLE_EXPERIENCE_INT64, unassignedExp);
-	if ((unsigned __int64)unassignedExp < (unsigned __int64)amount)
+
+	if ((unsigned __int64)unassignedExp < (unsigned __int64)exp)
 	{
 		// Not enough experience
 		return;
 	}
 
-	pPlayer->GiveAttributeXP(key, amount);
-	pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)amount);
+	Attribute attr;
+	if (!pPlayer->m_Qualities.InqAttribute(key, attr))
+	{
+		// Doesn't have the attribute
+		return;
+	}
 
-	pPlayer->NotifyAttributeStatUpdated(key);
-	pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	const DWORD amountNeededForMaxXp = attr.GetXpNeededForMaxXp();
+
+	exp = min(exp, amountNeededForMaxXp);
+
+	if (exp > 0)
+	{
+		pPlayer->GiveAttributeXP(key, exp);
+		pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
+
+		pPlayer->NotifyAttributeStatUpdated(key);
+		pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	}
 }
 
-void CClientEvents::SpendAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
+void CClientEvents::SpendAttribute2ndXP(STypeAttribute2nd key, DWORD exp)
 {
 	std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock();
 	
@@ -883,16 +899,31 @@ void CClientEvents::SpendAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 
 	__int64 unassignedExp = 0;
 	pPlayer->m_Qualities.InqInt64(AVAILABLE_EXPERIENCE_INT64, unassignedExp);
-	if ((unsigned __int64)unassignedExp < (unsigned __int64)amount)
+	if ((unsigned __int64)unassignedExp < (unsigned __int64)exp)
 	{
 		// Not enough experience
 		return;
 	}
 
-	pPlayer->GiveAttribute2ndXP(key, amount);
+	SecondaryAttribute attr;
+	if (!pPlayer->m_Qualities.InqAttribute2nd(key, attr))
+	{
+		// Doesn't have the secondary attribute
+		return;
+	}
 
-	pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)amount);
-	pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	const DWORD amountNeededForMaxXp = attr.GetXpNeededForMaxXp();
+
+	// If the exp is more than is needed to reach max, it is limited to the amount needed to reach max
+	// This is done as the client may send more than the amount needed if it is desynced
+	exp = min(exp, amountNeededForMaxXp);
+
+	if (exp > 0)
+	{
+		pPlayer->GiveAttribute2ndXP(key, exp);
+		pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
+		pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	}
 }
 
 void CClientEvents::SpendSkillXP(STypeSkill key, DWORD exp)
@@ -921,10 +952,21 @@ void CClientEvents::SpendSkillXP(STypeSkill key, DWORD exp)
 		return;
 	}
 
-	pPlayer->GiveSkillXP(key, exp);
+	const DWORD amountNeededForMaxXp = skill.GetXpNeededForMaxXp();
 
-	pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
-	pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	// If the exp is more than is needed to reach max, it is limited to the amount needed to reach max
+	// This is done as the client may send more than the amount needed if it is desynced
+	exp = min(exp, amountNeededForMaxXp);
+
+
+	if (exp > 0)
+	{
+		// Only give the skill exp if it's not maxed
+		pPlayer->GiveSkillXP(key, exp);
+
+		pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
+		pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+	}
 }
 
 void CClientEvents::SpendSkillCredits(STypeSkill key, DWORD credits)
@@ -2386,7 +2428,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 	switch (dwEvent)
 	{
-		case 0x0005: // Change player option
+		case CHANGE_PLAYER_OPTION: // Change player option
 			{
 				DWORD option = pReader->ReadDWORD();
 				DWORD value = pReader->ReadDWORD();
@@ -2396,7 +2438,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				ChangePlayerOption((PlayerOptions)option, value ? true : false);
 				break;
 			}
-		case 0x0008: // Melee Attack
+		case MELEE_ATTACK: // Melee Attack
 			{
 				DWORD dwTarget = pReader->ReadDWORD();
 				DWORD dwHeight = pReader->ReadDWORD();
@@ -2406,7 +2448,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				Attack(dwTarget, dwHeight, flPower);
 				break;
 			}
-		case 0x000A: // Missile Attack
+		case MISSILE_ATTACK: // Missile Attack
 			{
 				DWORD target = pReader->ReadDWORD();
 				DWORD height = pReader->ReadDWORD();
@@ -2416,7 +2458,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				MissileAttack(target, height, power);
 				break;
 			}
-		case 0x0015: //Client Text
+		case TEXT_CLIENT: //Client Text
 			{
 				char *szText = pReader->ReadString();
 				if (pReader->GetLastError()) break;
@@ -2424,7 +2466,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				ClientText(szText);
 				break;
 			}
-		case 0x0019: //Store Item
+		case STORE_ITEM: //Store Item
 			{
 				DWORD dwItemID = pReader->ReadDWORD();
 				DWORD dwContainer = pReader->ReadDWORD();
@@ -2434,7 +2476,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->MoveItemToContainer(dwItemID, dwContainer, (char)dwSlot);
 				break;
 			}
-		case 0x001A: //Equip Item
+		case EQUIP_ITEM: //Equip Item
 			{
 				DWORD dwItemID = pReader->ReadDWORD();
 				DWORD dwCoverage = pReader->ReadDWORD();
@@ -2443,7 +2485,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->MoveItemToWield(dwItemID, dwCoverage);
 				break;
 			}
-		case 0x001B: //Drop Item
+		case DROP_ITEM: //Drop Item
 			{
 				DWORD dwItemID = pReader->ReadDWORD();
 				if (pReader->GetLastError()) break;
@@ -2451,7 +2493,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->MoveItemTo3D(dwItemID);
 				break;
 			}
-		case 0x001D: // Swear Allegiance request
+		case ALLEGIANCE_SWEAR: // Swear Allegiance request
 			{
 				DWORD target = pReader->Read<DWORD>();
 				if (pReader->GetLastError()) break;
@@ -2459,7 +2501,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				TrySwearAllegiance(target);
 				break;
 			}
-		case 0x001E: // Break Allegiance request
+		case ALLEGIANCE_BREAK: // Break Allegiance request
 			{
 				DWORD target = pReader->Read<DWORD>();
 				if (pReader->GetLastError())
@@ -2468,7 +2510,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				TryBreakAllegiance(target);
 				break;
 			}
-		case 0x001F: // Allegiance Update request
+		case ALLEGIANCE_SEND_UPDATES: // Allegiance Update request
 			{
 				int on = pReader->Read<int>();
 				if (pReader->GetLastError()) break;
@@ -2476,7 +2518,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				SetRequestAllegianceUpdate(on);
 				break;
 			}
-		case 0x0275: // confirmation response
+		case CONFIRMATION_RESPONSE: // confirmation response
 		{
 			DWORD confirmType = pReader->ReadDWORD();
 			int context = pReader->ReadInt32();
@@ -2494,7 +2536,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			break;
 		}
-		case 0x027D: // ust salvage request
+		case UST_SALVAGE_REQUEST: // ust salvage request
 		{
 			DWORD toolId = pReader->ReadDWORD();
 
@@ -2508,7 +2550,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->PerformSalvaging(toolId, items);
 			break;
 		}
-		case 0x0032: //Send Tell by GUID
+		case SEND_TELL_BY_GUID: //Send Tell by GUID
 			{
 				char *text = pReader->ReadString();
 				DWORD GUID = pReader->ReadDWORD();
@@ -2524,7 +2566,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 				break;
 			}
-		case 0x0035: //Use Item Ex
+		case USE_ITEM_EX: //Use Item Ex
 			{
 			DWORD dwSourceID = pReader->ReadDWORD();
 			DWORD dwDestID = pReader->ReadDWORD();
@@ -2532,14 +2574,14 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			UseItemEx(dwSourceID, dwDestID);
 			break;
 			}
-		case 0x0036: //Use Object
+		case USE_OBJECT: //Use Object
 		{
 			DWORD dwEID = pReader->ReadDWORD();
 			if (pReader->GetLastError()) break;
 			UseObject(dwEID);
 			break;
 		}
-		case 0x0044: // spend XP on vitals
+		case SPEND_XP_VITALS: // spend XP on vitals
 			{
 				DWORD dwAttribute2nd = pReader->ReadDWORD();
 				DWORD dwXP = pReader->ReadDWORD();
@@ -2548,7 +2590,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				SpendAttribute2ndXP((STypeAttribute2nd)dwAttribute2nd, dwXP);
 				break;
 			}
-		case 0x0045: // spend XP on attributes
+		case SPEND_XP_ATTRIBUTES: // spend XP on attributes
 			{
 				DWORD dwAttribute = pReader->ReadDWORD();
 				DWORD dwXP = pReader->ReadDWORD();
@@ -2557,7 +2599,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				SpendAttributeXP((STypeAttribute)dwAttribute, dwXP);
 				break;
 			}
-		case 0x0046: // spend XP on skills
+		case SPEND_XP_SKILLS: // spend XP on skills
 			{
 				DWORD dwSkill = pReader->ReadDWORD();
 				DWORD dwXP = pReader->ReadDWORD();
@@ -2566,7 +2608,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				SpendSkillXP((STypeSkill)dwSkill, dwXP);
 				break;
 			}
-		case 0x0047: // spend credits to train skill
+		case SPEND_SKILL_CREDITS: // spend credits to train skill
 			{
 				DWORD dwSkill = pReader->ReadDWORD();
 				DWORD dwCredits = pReader->ReadDWORD();
@@ -2575,7 +2617,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				SpendSkillCredits((STypeSkill)dwSkill, dwCredits);
 				break;
 			}
-		case 0x0048: // cast untargeted spell
+		case CAST_UNTARGETED_SPELL: // cast untargeted spell
 			{
 				DWORD spell_id = pReader->ReadDWORD();
 				if (pReader->GetLastError()) break;
@@ -2583,7 +2625,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->TryCastSpell(pPlayer->GetID() /*0*/, spell_id);
 				break;
 			}
-		case 0x004A: // cast targeted spell
+		case CAST_TARGETED_SPELL: // cast targeted spell
 			{
 				DWORD target = pReader->ReadDWORD();
 				DWORD spell_id = pReader->ReadDWORD();
@@ -2592,7 +2634,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->TryCastSpell(target, spell_id);
 				break;
 			}
-		case 0x0053: // Evt_Combat__ChangeCombatMode_ID "Change Combat Mode"
+		case CHANGE_COMBAT_STANCE: // Evt_Combat__ChangeCombatMode_ID "Change Combat Mode"
 			{
 				DWORD mode = pReader->ReadDWORD();
 				if (pReader->GetLastError()) break;
@@ -2600,7 +2642,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				ChangeCombatStance((COMBAT_MODE)mode);
 				break;
 			}
-		case 0x0054: // Evt_Inventory__StackableMerge
+		case STACKABLE_MERGE: // Evt_Inventory__StackableMerge
 			{
 				DWORD merge_from_id = pReader->Read<DWORD>();
 				DWORD merge_to_id = pReader->Read<DWORD>();
@@ -2612,7 +2654,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->MergeItem(merge_from_id, merge_to_id, amount);
 				break;
 			}
-		case 0x0055: // Evt_Inventory__StackableSplitToContainer
+		case STACKABLE_SPLIT_TO_CONTAINER: // Evt_Inventory__StackableSplitToContainer
 			{
 				DWORD stack_id = pReader->Read<DWORD>();
 				DWORD container_id = pReader->Read<DWORD>();
@@ -2625,7 +2667,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->SplitItemToContainer(stack_id, container_id, place, amount);
 				break;
 			}
-		case 0x0056: // Evt_Inventory__StackableSplitTo3D
+		case STACKABLE_SPLIT_TO_3D: // Evt_Inventory__StackableSplitTo3D
 			{
 				DWORD stack_id = pReader->Read<DWORD>();
 				DWORD amount = pReader->Read<DWORD>();
@@ -2636,7 +2678,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->SplitItemto3D(stack_id, amount);
 				break;
 			}
-		case 0x019B: // Evt_Inventory__StackableSplitToWield
+		case STACKABLE_SPLIT_TO_WIELD: // Evt_Inventory__StackableSplitToWield
 			{				
 				DWORD stack_id = pReader->Read<DWORD>();
 				DWORD loc = pReader->Read<DWORD>();
@@ -2648,7 +2690,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->SplitItemToWield(stack_id, loc, amount);
 				break;
 			}
-		case 0x005D: //Send Tell by Name
+		case SEND_TELL_BY_NAME: //Send Tell by Name
 		{
 			char* szText = pReader->ReadString();
 			char* szName = pReader->ReadString();
@@ -2662,7 +2704,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			break;
 		}
-		case 0x005F: // Buy from Vendor
+		case BUY_FROM_VENDOR: // Buy from Vendor
 			{
 				DWORD vendorID = pReader->Read<DWORD>();
 				DWORD numItems = pReader->Read<DWORD>();
@@ -2694,7 +2736,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 				break;
 			}
-		case 0x0060: // Buy from Vendor
+		case SELL_TO_VENDOR: // Sell to Vendor
 			{
 				DWORD vendorID = pReader->Read<DWORD>();
 				DWORD numItems = pReader->Read<DWORD>();
@@ -2727,17 +2769,17 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 				break;
 			}
-		case 0x0063: // Lifestone Recall
+		case RECALL_LIFESTONE: // Lifestone Recall
 		{
 			LifestoneRecall();
 			break;
 		}
-		case 0x00A1: // "Login Complete"
+		case LOGIN_COMPLETE: // "Login Complete"
 		{
 			ExitPortal();
 			break;
 		}
-		case 0x00A2: // "Create Fellowship"
+		case FELLOW_CREATE: // "Create Fellowship"
 		{
 			std::string name = pReader->ReadString();
 			int shareXP = pReader->Read<int>();
@@ -2748,7 +2790,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			TryFellowshipCreate(name, shareXP);
 			break;
 		}
-		case 0x00A3: // "Quit Fellowship"
+		case FELLOW_QUIT: // "Quit Fellowship"
 		{
 			int disband = pReader->Read<int>();
 
@@ -2758,7 +2800,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			TryFellowshipQuit(disband);
 			break;
 		}
-		case 0x00A4: // "Fellowship Dismiss"
+		case FELLOW_DISMISS: // "Fellowship Dismiss"
 		{
 			DWORD dismissed = pReader->Read<DWORD>();
 			if (pReader->GetLastError()) break;
@@ -2766,7 +2808,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			TryFellowshipDismiss(dismissed);
 			break;
 		}
-		case 0x00A5: // "Fellowship Recruit"
+		case FELLOW_RECRUIT: // "Fellowship Recruit"
 		{
 			DWORD target = pReader->Read<DWORD>();
 
@@ -2776,7 +2818,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			TryFellowshipRecruit(target);
 			break;
 		}
-		case 0x00A6: // "Fellowship Update"
+		case FELLOW_UPDATE: // "Fellowship Update"
 		{
 			int on = pReader->Read<int>();
 
@@ -2786,7 +2828,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			TryFellowshipUpdate(on);
 			break;
 		}
-		case 0x00CD: // Put object in container
+		case PUT_OBJECT_IN_CONTAINER: // Put object in container
 			{
 				DWORD target_id = pReader->Read<DWORD>();
 				DWORD object_id = pReader->Read<DWORD>();
@@ -2798,7 +2840,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->GiveItem(target_id, object_id, amount);
 				break;
 			}		
-		case 0x00BF: // "Inscribe"
+		case INSCRIBE: // "Inscribe"
 			{
 				DWORD target_id = pReader->Read<DWORD>();
 				std::string msg = pReader->ReadString();
@@ -2809,7 +2851,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				TryInscribeItem(target_id, msg);
 				break;
 			}
-		case 0x00C8: // Identify
+		case IDENTIFY: // Identify
 		{
 			DWORD target_id = pReader->ReadDWORD();
 
@@ -2819,7 +2861,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			Identify(target_id);
 			break;
 		}
-		case 0x00D6: // Advocate teleport (triggered by having an admin flag set, clicking the mini-map)
+		case ADMIN_TELEPORT: // Advocate teleport (triggered by having an admin flag set, clicking the mini-map)
 		{
 			if (pPlayer->GetAccessLevel() < ADVOCATE_ACCESS)
 				break;
@@ -2837,7 +2879,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			pPlayer->Movement_Teleport(position);
 			break;
 		}
-		case 0x0147: // Channel Text
+		case TEXT_CHANNEL: // Channel Text
 		{
 			DWORD channel_id = pReader->ReadDWORD();
 			char *msg = pReader->ReadString();
@@ -2853,7 +2895,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			break;
 		}
-		case 0x0195: // No longer viewing contents
+		case NO_LONGER_VIEWING_CONTAINER: // No longer viewing contents
 			{
 				DWORD container_id = pReader->Read<DWORD>();
 				if (pReader->GetLastError())
@@ -2862,7 +2904,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				NoLongerViewingContents(container_id);
 				break;
 			}
-		case 0x019C: // Add item to shortcut bar
+		case ADD_ITEM_SHORTCUT: // Add item to shortcut bar
 			{
 				ShortCutData data;
 				data.UnPack(pReader);
@@ -2872,7 +2914,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->_playerModule.AddShortCut(data);
 				break;
 			}
-		case 0x019D: // Add item to shortcut bar
+		case REMOVE_ITEM_SHORTCUT: // Add item to shortcut bar
 			{
 				int index = pReader->Read<int>();
 				if (pReader->GetLastError())
@@ -2881,7 +2923,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->_playerModule.RemoveShortCut(index);
 				break;
 			}
-		case 0x01A1:
+		case TOGGLE_SHOW_HELM:
 			{
 				PlayerModule module;
 				if (!module.UnPack(pReader) || pReader->GetLastError())
@@ -2891,13 +2933,13 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->UpdateModuleFromClient(module);
 				break;
 			}
-		case 0x01B7: // Cancel attack
+		case CANCEL_ATTACK: // Cancel attack
 		{
 			// TODO
 			pPlayer->TryCancelAttack();
 			break;
 		}
-		case 0x01BF: // Request health update
+		case HEALTH_UPDATE_REQUEST: // Request health update
 		{
 			DWORD target_id = pReader->ReadDWORD();
 
@@ -2907,7 +2949,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			RequestHealthUpdate(target_id);
 			break;
 		}
-		case 0x01DF: // Indirect Text (@me)
+		case TEXT_INDIRECT: // Indirect Text (@me)
 		{
 			char *msg = pReader->ReadString();
 
@@ -2922,7 +2964,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			break;
 		}
-		case 0x01E1: // Emote Text (*laugh* sends 'laughs')
+		case TEXT_EMOTE: // Emote Text (*laugh* sends 'laughs')
 		{
 			char *msg = pReader->ReadString();
 
@@ -2937,7 +2979,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			break;
 		}
-		case 0x01E3: // Add item to spell bar
+		case ADD_TO_SPELLBAR: // Add item to spell bar
 			{
 				DWORD spellID = pReader->Read<DWORD>();
 				int index = pReader->Read<int>();
@@ -2948,7 +2990,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->_playerModule.AddSpellFavorite(spellID, index, spellBar);
 				break;
 			}
-		case 0x01E4: // Remove item from spell bar
+		case REMOVE_FROM_SPELLBAR: // Remove item from spell bar
 			{
 				DWORD spellID = pReader->Read<DWORD>();
 				int spellBar = pReader->Read<int>();
@@ -2963,7 +3005,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			Ping();
 			break;
 		}
-		case 0x1F6: // Open Trade Negotiations
+		case TRADE_OPEN: // Open Trade Negotiations
 		{
 			if (pPlayer->GetTradeManager() != NULL)
 			{
@@ -2971,39 +3013,46 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				return;
 			}
 
-			std::shared_ptr<CPlayerWeenie> pOther = g_pWorld->FindWithinPVS(pPlayer, pReader->Read<DWORD>())->AsPlayer();
+			DWORD target = pReader->Read<DWORD>();
+			if (pReader->GetLastError())
+				return;
+
+			std::shared_ptr<CWeenieObject> pOther = g_pWorld->FindWithinPVS(pPlayer, target);
+			std::shared_ptr<CPlayerWeenie> pTarget;
+			if (pOther)
+				pTarget = pOther->AsPlayer();
 
 			if (!pOther)
 			{
 				// cannot open trade
 				pPlayer->SendText("Unable to open trade.", LTT_ERROR);
 			}
-			else if (pOther->_playerModule.options_ & 0x20000)
+			else if (pTarget->_playerModule.options_ & 0x20000)
 			{
-				SendText((pOther->GetName() + " has disabled trading.").c_str(), LTT_ERROR);
+				SendText((pTarget->GetName() + " has disabled trading.").c_str(), LTT_ERROR);
 			}
-			else if (pOther->IsBusyOrInAction())
+			else if (pTarget->IsBusyOrInAction())
 			{
-				SendText((pOther->GetName() + " is busy.").c_str(), LTT_ERROR);
+				SendText((pTarget->GetName() + " is busy.").c_str(), LTT_ERROR);
 			}
-			else if (pOther->GetTradeManager() != NULL)
+			else if (pTarget->GetTradeManager() != NULL)
 			{
-				SendText((pOther->GetName() + " is already trading with someone else!").c_str(), LTT_ERROR);
+				SendText((pTarget->GetName() + " is already trading with someone else!").c_str(), LTT_ERROR);
 			}
 			else if (pPlayer->DistanceTo(pOther, true) > 1)
 			{
-				SendText((pOther->GetName() + " is too far away!").c_str(), LTT_ERROR);
+				SendText((pTarget->GetName() + " is too far away!").c_str(), LTT_ERROR);
 			}
 			else
 			{
-				TradeManager *tm = TradeManager::RegisterTrade(pPlayer, pOther);
+				TradeManager *tm = TradeManager::RegisterTrade(pPlayer, pTarget);
 
 				pPlayer->SetTradeManager(tm);
-				pOther->SetTradeManager(tm);
+				pTarget->SetTradeManager(tm);
 			}
 			break;
 		}
-		case 0x1F7: // Close Trade Negotiations
+		case TRADE_CLOSE: // Close Trade Negotiations
 		{
 			TradeManager* tm = pPlayer->GetTradeManager();
 			if (tm)
@@ -3013,7 +3062,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			break;
 		}
-		case 0x1F8: // AddToTrade
+		case TRADE_ADD: // AddToTrade
 		{
 			TradeManager* tm = pPlayer->GetTradeManager();
 			if (tm)
@@ -3024,7 +3073,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			break;
 		}
-		case 0x1FA: // Accept trade
+		case TRADE_ACCEPT: // Accept trade
 		{
 			TradeManager* tm = pPlayer->GetTradeManager();
 			if (tm)
@@ -3033,7 +3082,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			break;
 		}
-		case 0x1FB: // Decline trade
+		case TRADE_DECLINE: // Decline trade
 		{
 			TradeManager* tm = pPlayer->GetTradeManager();
 			if (tm)
@@ -3042,7 +3091,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			break;
 		}
-		case 0x204: // Reset trade
+		case TRADE_RESET: // Reset trade
 		{
 			TradeManager* tm = pPlayer->GetTradeManager();
 			if (tm)
@@ -3051,7 +3100,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			break;
 		}
-		case 0x021C: //House_BuyHouse 
+		case HOUSE_BUY: //House_BuyHouse 
 			{
 				DWORD slumlord = pReader->Read<DWORD>();
 			
@@ -3065,17 +3114,17 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				HouseBuy(slumlord, items);
 				break;
 			}
-		case 0x021F: //House_AbandonHouse 
+		case HOUSE_ABANDON: //House_AbandonHouse 
 		{
 			HouseAbandon();
 			break;
 		}
-		case 0x21E: //House_QueryHouse 
+		case HOUSE_OF_PLAYER_QUERY: //House_QueryHouse 
 		{
 			HouseRequestData();
 			break;
 		}
-		case 0x0221: //House_RentHouse 
+		case HOUSE_RENT: //House_RentHouse 
 			{
 				DWORD slumlord = pReader->Read<DWORD>();
 
@@ -3089,7 +3138,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				HouseRent(slumlord, items);
 				break;
 			}
-		case 0x0245: //House_AddPermanentGuest 
+		case HOUSE_ADD_GUEST: //House_AddPermanentGuest 
 		{
 			std::string name = pReader->ReadString();
 
@@ -3099,7 +3148,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseAddPersonToAccessList(name);
 			break;
 		}
-		case 0x0246: //House_RemovePermanentGuest
+		case HOUSE_REMOVE_GUEST: //House_RemovePermanentGuest
 		{
 			std::string name = pReader->ReadString();
 
@@ -3109,7 +3158,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseRemovePersonFromAccessList(name);
 			break;
 		}
-		case 0x0247: //House_SetOpenHouseStatus
+		case HOUSE_SET_OPEN_ACCESS: //House_SetOpenHouseStatus
 		{
 			int newSetting = pReader->Read<int>();
 
@@ -3119,7 +3168,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseToggleOpenAccess(newSetting > 0);
 			break;
 		}
-		case 0x0249: //House_ChangeStoragePermission
+		case HOUSE_CHANGE_STORAGE_PERMISSIONS: //House_ChangeStoragePermission
 		{
 			std::string name = pReader->ReadString();
 			int isAdd = pReader->Read<int>();
@@ -3130,37 +3179,37 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseAddOrRemovePersonToStorageList(name, isAdd > 0);
 			break;
 		}
-		case 0x024C: //House_RemoveAllStoragePermission 
+		case HOUSE_CLEAR_STORAGE_PERMISSIONS: //House_RemoveAllStoragePermission 
 		{
 			HouseClearStorageAccess();
 			break;
 		}
-		case 0x024D: //House_RequestFullGuestList
+		case HOUSE_GUEST_LIST: //House_RequestFullGuestList
 		{
 			HouseRequestAccessList();
 			break;
 		}
-		case 0x0255: //Request allegiance MOTD
+		case ALLEGIANCE_MOTD: //Request allegiance MOTD
 		{
 			SendAllegianceMOTD();
 			break;
 		}
-		case 0x025C: //House_AddAllStoragePermission
+		case HOUSE_SET_OPEN_STORAGE_ACCESS: //House_AddAllStoragePermission
 		{
 			HouseToggleOpenStorageAccess();
 			break;
 		}
-		case 0x025E: //House_RemoveAllPermanentGuests
+		case HOUSE_REMOVE_ALL_GUESTS: //House_RemoveAllPermanentGuests
 		{
 			HouseClearAccessList();
 			break;
 		}
-		case 0x0262: // House Recall
+		case RECALL_HOUSE: // House Recall
 		{
 			HouseRecall();
 			break;
 		}		
-		case 0x0263: // Request Item Mana
+		case ITEM_MANA_REQUEST: // Request Item Mana
 		{
 			DWORD itemId = pReader->ReadDWORD();
 
@@ -3170,7 +3219,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			pPlayer->HandleItemManaRequest(itemId);
 			break;
 		}
-		case 0x0266: // House_SetHooksVisibility 
+		case HOUSE_SET_HOOKS_VISIBILITY: // House_SetHooksVisibility 
 		{
 			int newSetting = pReader->Read<int>();
 
@@ -3180,7 +3229,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseToggleHooks(newSetting > 0);
 			break;
 		}
-		case 0x0267: //House_ModifyAllegianceGuestPermission 
+		case HOUSE_CHANGE_ALLEGIANCE_GUEST_PERMISSIONS: //House_ModifyAllegianceGuestPermission 
 		{
 			int newSetting = pReader->Read<int>();
 
@@ -3190,7 +3239,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseAddOrRemoveAllegianceToAccessList(newSetting > 0);
 			break;
 		}
-		case 0x0268: //House_ModifyAllegianceStoragePermission
+		case HOUSE_CHANGE_ALLEGIANCE_STORAGE_PERMISSIONS: //House_ModifyAllegianceStoragePermission
 		{
 			int newSetting = pReader->Read<int>();
 
@@ -3200,12 +3249,12 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseAddOrRemoveAllegianceToStorageList(newSetting > 0);
 			break;
 		}
-		case 0x0278: // House_TeleToMansion
+		case RECALL_HOUSE_MANSION: // House_TeleToMansion
 		{
 			HouseMansionRecall();
 			break;
 		}
-		case 0x0279: // "/die" command
+		case DIE_COMMAND: // "/die" command
 		{
 			if (!pPlayer->IsDead() && !pPlayer->IsInPortalSpace() && !pPlayer->IsBusyOrInAction())
 			{
@@ -3216,7 +3265,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			break;
 		}
-		case 0x027B: // allegiance info request
+		case ALLEGIANCE_INFO_REQUEST: // allegiance info request
 			{
 				std::string target = pReader->ReadString();
 				if (target.empty() || pReader->GetLastError())
@@ -3225,7 +3274,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				AllegianceInfoRequest(target);
 				break;
 			}
-		case 0x0286: // "/die" command
+		case SPELLBOOK_FILTERS: // "/die" command
 			{
 				DWORD filters = pReader->Read<DWORD>();
 				if (pReader->GetLastError())
@@ -3234,12 +3283,12 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->_playerModule.spell_filters_ = filters;
 				break;
 			}
-		case 0x028D: // Marketplace Recall
+		case RECALL_MARKET: // Marketplace Recall
 		{
 			MarketplaceRecall();
 			break;
 		}
-		case 0x0290: // "Fellowship Assign New Leader"
+		case FELLOW_ASSIGN_NEW_LEADER: // "Fellowship Assign New Leader"
 			{
 				DWORD target_id = pReader->Read<DWORD>();
 
@@ -3249,7 +3298,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				TryFellowshipAssignNewLeader(target_id);
 				break;
 			}
-		case 0x0291: // "Fellowship Change Openness"
+		case FELLOW_CHANGE_OPENNESS: // "Fellowship Change Openness"
 			{
 				int open = pReader->Read<int>();
 
@@ -3259,12 +3308,12 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				TryFellowshipChangeOpenness(open);
 				break;
 			}
-		case 0x02AB: //Allegiance_RecallAllegianceHometown (bindstone)
+		case RECALL_ALLEGIANCE_HOMETOWN: //Allegiance_RecallAllegianceHometown (bindstone)
 		{
 			AllegianceHometownRecall();
 			break;
 		}
-		case 0xF61B: // Jump Movement
+		case JUMP_MOVEMENT: // Jump Movement
 		{
 			float extent = pReader->Read<float>(); // extent
 
@@ -3371,7 +3420,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			break;
 		}
-		case 0xF61C: // CM_Movement__Event_MoveToState (update vector movement?)
+		case MOVE_TO: // CM_Movement__Event_MoveToState (update vector movement?)
 		{
 			// TODO: Cancel attack
 			
@@ -3543,7 +3592,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			// pPlayer->Movement_UpdatePos();
 			break;
 		}
-		case 0xF753: // Update Exact Position
+		case UPDATE_POSITION: // Update Exact Position
 		{
 			Position position;
 			position.UnPack(pReader);

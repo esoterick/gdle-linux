@@ -102,7 +102,7 @@ void CUseEventData::MoveToUse()
 	_move_to = true;
 
 	MovementParameters params;
-	params.min_distance = _max_use_distance; //a little leeway on item move to range
+	params.min_distance = _max_use_distance + 0.25f; //a little leeway on item move to range
 	params.action_stamp = ++pWeenie->m_wAnimSequence;
 	pWeenie->last_move_was_autonomous = false;
 	pWeenie->MoveToObject(_target_id, &params);

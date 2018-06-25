@@ -181,6 +181,7 @@ BinaryWriter *GetPhysicsObjData(std::shared_ptr<CWeenieObject> pEntity)
 	}
 
 	DWORD motion_table = 0;
+
 	if (pEntity->m_Qualities.InqDataID(MOTION_TABLE_DID, motion_table) && motion_table)
 	{
 		dwSections |= PhysicsDescInfo::MTABLE;
