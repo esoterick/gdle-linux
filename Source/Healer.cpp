@@ -28,6 +28,11 @@ int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 		return WERROR_NONE;
 	}
 
+	if (with->GetHealth() == with->GetMaxHealth())
+	{
+		return WERROR_HEAL_FULL_HEALTH;
+	}
+
 	CHealerUseEvent *useEvent = new CHealerUseEvent;
 	useEvent->_target_id = with->GetID();
 	useEvent->_tool_id = GetID();

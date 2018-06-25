@@ -597,6 +597,14 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	dmgEvent.preVarianceDamage = preVarianceDamage;
 	dmgEvent.baseDamage = preVarianceDamage * (1.0f - Random::GenFloat(0.0f, variance)) * (0.5 + _attack_power);
 
+	CalculateCriticalHitData(&dmgEvent, NULL);
+	dmgEvent.wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent.critChance) ? true : false;
+	if (dmgEvent.wasCrit)
+	{
+		dmgEvent.baseDamage = dmgEvent.preVarianceDamage * (0.5 + _attack_power);//Recalculate baseDamage with no variance (uses max dmg on weapon)
+	}
+
+
 	CalculateDamage(&dmgEvent);
 
 	_weenie->TryToDealDamage(dmgEvent);

@@ -138,6 +138,12 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 				{
 					EmitSound(Sound_Collision, 1.0f);
 
+					if (pSource && pHit && pSource->AsPlayer() && pHit->AsPlayer())
+					{
+						pSource->AsPlayer()->UpdatePKActivity();
+						pHit->AsPlayer()->UpdatePKActivity();
+					}
+
 					// todo: do this in a better way?
 					// 50% medium, 30% low, 20% high
 					DAMAGE_QUADRANT hitQuadrant = DAMAGE_QUADRANT::DQ_UNDEF;
@@ -177,12 +183,27 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 					dmgEvent.target = pHit;
 					dmgEvent.weapon = weapon;
 					dmgEvent.damage_form = DF_MISSILE;
-					dmgEvent.damage_type = InqDamageType();
+
+					if (InqDamageType() != BASE_DAMAGE_TYPE)
+						dmgEvent.damage_type = InqDamageType();
+					else if (!weapon->InqDamageType())
+						dmgEvent.damage_type = PIERCE_DAMAGE_TYPE;
+					else
+						dmgEvent.damage_type = weapon->InqDamageType();
+
 					dmgEvent.hit_quadrant = hitQuadrant;
 					dmgEvent.attackSkill = _weaponSkill;
 					dmgEvent.attackSkillLevel = _weaponSkillLevel;
 					dmgEvent.preVarianceDamage = preVarianceDamage;
 					dmgEvent.baseDamage = preVarianceDamage * (1.0f - Random::GenFloat(0.0f, variance));
+
+					CalculateCriticalHitData(&dmgEvent, NULL);
+					dmgEvent.wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent.critChance) ? true : false;
+					if (dmgEvent.wasCrit)
+					{
+						dmgEvent.baseDamage = dmgEvent.preVarianceDamage;//Recalculate baseDamage with no variance (uses max dmg on weapon)
+					}
+
 
 					CalculateDamage(&dmgEvent);
 

@@ -641,7 +641,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 					if (!startPos.objcell_id)
 					{
-						startPos = Position(0xA9B00015, Vector(53.780079f, 105.814995f, 64.005005f), Quaternion(-0.933116f, 0, 0, -0.359575f));
+						startPos = Position(0x870301AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0, 0, 0.948985f));
 						//startPos = Position(0xA9B00006, Vector(24.258204f, 123.777000f, 63.060749f), Quaternion(1, 0, 0, 0));
 					}
 
@@ -653,7 +653,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 					if (!startPos.objcell_id)
 					{
-						startPos = Position(0xDE51001D, Vector(87.350517f, 114.857246f, 16.004999f), Quaternion(0.843159f, 0.0, 0.0, 0.537665f));
+						startPos = Position(0x800401AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0.0, 0.0, 0.948985f));
 						//startPos = Position(0xDE51000C, Vector(26.712753f, 89.279999f, 17.778936f), Quaternion(0.931082f, 0.0, 0.0, -0.364811f));
 					}
 
@@ -665,7 +665,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 					if (!startPos.objcell_id)
 					{
-						startPos = Position(0x7D680012, Vector(56.949219f, 29.860384f, 14.981730f), Quaternion(0.475755f, 0.0, 0.0, -0.879578f));
+						startPos = Position(0x8C0401AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0.0, 0.0, 0.948985f));
 						//startPos = Position(0x7D680019, Vector(79.102280f, 19.573767f, 12.821287f), Quaternion(-0.656578f, 0.0, 0.0, 0.754258f));
 					}
 
@@ -677,8 +677,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 					if (!startPos.objcell_id)
 					{
-						//redirect to Holtburg as Sanamar is post-ToD and so incomplete.
-						startPos = Position(0xA9B00015, Vector(53.780079f, 105.814995f, 64.005005f), Quaternion(-0.933116f, 0, 0, -0.359575f));
+						startPos = Position(0x720301AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0, 0, 0.948985f));
 						//startPos = Position(0xA9B00006, Vector(24.258204f, 123.777000f, 63.060749f), Quaternion(1, 0, 0, 0));
 					}
 
@@ -798,238 +797,238 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 	case Aluvian_HeritageGroup:
 		weenie->SpawnInContainer(W_BREAD_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGDAGGER_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
+			weenie->SpawnInContainer(W_DAGGERTRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGKNIFE_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 
 		break;
 	case Gharundim_HeritageGroup:
 		weenie->SpawnInContainer(W_CHEESE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGSTAFF_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
+			weenie->SpawnInContainer(W_STAFFTRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGBASTONE_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 
 		break;
 	case Sho_HeritageGroup:
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGKNUCKLES_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
+			weenie->SpawnInContainer(W_CESTUSTRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGHANDWRAPS_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 
 		break;
 	case Viamontian_HeritageGroup:
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGBROADSWORD_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGSHORTSWORD_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 
 		break;
 	case Lugian_HeritageGroup:
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGCLUB_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
+			weenie->SpawnInContainer(W_MACETRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGDABUS_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 
 		break;
 
 	case Tumerok_HeritageGroup:
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGSPEAR_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
+			weenie->SpawnInContainer(W_SPEARTRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGBUDIAQ_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 
 		break;
 
 	case Empyrean_HeritageGroup:
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGBROADSWORD_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGSHORTSWORD_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 
 		break;
 
 	case Undead_HeritageGroup:
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGHANDAXE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
+			weenie->SpawnInContainer(W_AXETRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGTUNGI_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 
 		break;
 
 	case Gearknight_HeritageGroup:
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGCLUB_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
+			weenie->SpawnInContainer(W_MACETRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGDABUS_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 
 		break;
 
 	case Penumbraen_HeritageGroup:
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGKNUCKLES_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
+			weenie->SpawnInContainer(W_CESTUSTRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGHANDWRAPS_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 
 		break;
 
 	case Shadowbound_HeritageGroup:
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_MACEACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGKNUCKLES_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
-			weenie->SpawnInContainer(W_NEWBIEBOWSHORT_CLASS, 1);
+			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
 			weenie->SpawnInContainer(W_ARROW_CLASS, 30);
 		}
 		if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
+			weenie->SpawnInContainer(W_CESTUSTRAINING_CLASS, 1);
 		if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_DAGGERACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_TRAININGHANDWRAPS_CLASS, 1);
 
 		if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS ||
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-			weenie->SpawnInContainer(W_WANDACADEMY_CLASS, 1);
+			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 			
 
 		break;

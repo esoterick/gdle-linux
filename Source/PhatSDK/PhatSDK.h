@@ -284,7 +284,7 @@ public:
 	virtual BYTE *GetPortalDataEntry(DWORD id, DWORD *length) = 0;
 	virtual BYTE *GetCellDataEntry(DWORD id, DWORD *length) = 0;
 
-	virtual class CEnvCell *EnvCell_GetVisible(DWORD cell_id) = 0;
+	virtual class CEnvCell *EnvCell_GetVisible(DWORD cell_id, bool bDoPostLoad = true) = 0;
 
 	virtual class CQuestDefDB *GetQuestDefDB() { return NULL; }
 };

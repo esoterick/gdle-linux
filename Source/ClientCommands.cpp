@@ -80,6 +80,38 @@ bool SpawningEnabled(CPlayerWeenie *pPlayer, bool item = false)
 }
 
 #ifndef PUBLIC_BUILD
+CLIENT_COMMAND(skillspendexp, "<skillID> <exp>", "Attempts to spend the input exp to the given skill.", ADMIN_ACCESS)
+{
+
+	if (argc < 2)
+	{
+		pPlayer->SendText("An arg is missing", LTT_DEFAULT);
+		return true;
+	}
+
+	DWORD seq = 1;
+	DWORD eventNum = 0x0046;
+	DWORD dwSkill = (unsigned)atoi(argv[0]);
+	DWORD dwXP = (unsigned)atoi(argv[1]);
+
+	std::vector<DWORD> data;
+	data.push_back(seq);
+	data.push_back(eventNum);
+	data.push_back(dwSkill);
+	data.push_back(dwXP);
+
+	BinaryReader reader(data.data(), data.size() * sizeof(DWORD));
+
+	player_client->GetEvents()->ProcessEvent(&reader);
+
+	pPlayer->SendText(csprintf("Attempted to add %i exp to the skill", dwXP), LTT_DEFAULT);
+
+	return false;
+}
+#endif
+
+
+#ifndef PUBLIC_BUILD
 CLIENT_COMMAND(simulateaccess, "<level>", "Simulate access level.", ADMIN_ACCESS)
 {
 	if (argc < 1)
@@ -3017,6 +3049,36 @@ CLIENT_COMMAND(spawntreasure2, "<tier> <num>", "Spawn treasure of a specific tie
 	return false;
 }
 
+CLIENT_COMMAND(spawntreasure3, "<tier> <num> <cat>", "Spawn treasure of a specific tier & category", ADMIN_ACCESS)
+{
+	if (argc < 3)
+		return true;
+
+	int tier = atoi(argv[0]);
+	int num = atoi(argv[1]);
+	int cat = atoi(argv[2]);
+	for (int i = 0; i < num; i++)
+	{
+		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure((tier), (eTreasureCategory)cat);
+		//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Armor);
+
+		if (treasure)
+		{
+			treasure->SetInitialPosition(pPlayer->m_Position.add_offset(Vector(Random::GenFloat(-2.0, 2.0), Random::GenFloat(-2.0, 2.0), 1.0)));
+
+			if (!g_pWorld->CreateEntity(treasure))
+			{
+				delete treasure;
+				return false;
+			}
+		}
+		else
+			continue;
+	}
+	return false;
+}
+
+
 CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid into inventory.", ADMIN_ACCESS)
 {
 	if (g_pConfig->GetValue("weapons_testing", "0") == 0)
@@ -3098,6 +3160,91 @@ CLIENT_COMMAND(spawnwcidinv, "<name> [amount] [ptid] [shade]", "Spawn by wcid in
 
 	return false;
 }
+
+CLIENT_COMMAND(spawnwcidinvfresh, "<name> [amount] [ptid] [shade]", "Reload weenie and spawn by wcid into inventory.", ADMIN_ACCESS)
+{
+	if (g_pConfig->GetValue("weapons_testing", "0") == 0)
+	{
+		if (pPlayer->GetAccessLevel() < SENTINEL_ACCESS)
+		{
+			pPlayer->SendText("You do not have access to this command.", LTT_DEFAULT);
+			return false;
+		}
+	}
+
+	if (!SpawningEnabled(pPlayer))
+	{
+		return false;
+	}
+
+	if (argc < 1)
+		return true;
+
+	g_pWeenieFactory->RefreshLocalStorage();
+
+	CWeenieObject *weenieTemplate;
+
+	if (IsNumeric(argv[0]))
+	{
+		weenieTemplate = g_pWeenieFactory->CreateWeenieByClassID(atoi(argv[0]), NULL, false);
+	}
+	else if (IsHexNumeric(argv[0]))
+	{
+		weenieTemplate = g_pWeenieFactory->CreateWeenieByClassID(strtoul(argv[0] + 2, NULL, 16), NULL, false);
+	}
+	else
+	{
+		weenieTemplate = g_pWeenieFactory->CreateWeenieByName(argv[0], NULL, false);
+	}
+
+	if (!weenieTemplate)
+	{
+		pPlayer->SendText("Couldn't find that to spawn!", LTT_DEFAULT);
+		return false;
+	}
+
+	if (!pPlayer->IsAdmin() && atoi(g_pConfig->GetValue("weapons_testing", "0")) != 0)
+	{
+		if (weenieTemplate->m_Qualities.m_WeenieType != MeleeWeapon_WeenieType)
+		{
+			pPlayer->SendText("Only weapon spawning is enabled.", LTT_DEFAULT);
+			delete weenieTemplate;
+
+			return false;
+		}
+	}
+
+	int amount = 1;
+	if (argc >= 2)
+		amount = atoi(argv[1]);
+	if (argc >= 3)
+		weenieTemplate->m_Qualities.SetInt(PALETTE_TEMPLATE_INT, atoi(argv[1]));
+	if (argc >= 4)
+		weenieTemplate->m_Qualities.SetFloat(SHADE_FLOAT, atof(argv[2]));
+
+	if (!weenieTemplate->CanPickup())
+	{
+		pPlayer->SendText("That can't be spawned in a container.", LTT_DEFAULT);
+		delete weenieTemplate;
+
+		return false;
+	}
+
+	int maxStackSize = weenieTemplate->InqIntQuality(MAX_STACK_SIZE_INT, 1);
+	if (amount > maxStackSize * 100)
+	{
+		pPlayer->SendText("The amount requested is too large.", LTT_DEFAULT);
+		delete weenieTemplate;
+
+		return false;
+	}
+
+	pPlayer->SpawnCloneInContainer(weenieTemplate, amount);
+	delete weenieTemplate;
+
+	return false;
+}
+
 
 CLIENT_COMMAND(spawnjewelerytoinvbymatid, "<tier> <num> <mat>", "Spawn treasure by material", ADMIN_ACCESS)
 {
@@ -4394,6 +4541,36 @@ CLIENT_COMMAND(givexpother, "[value]", "Gives you some XP for testing.", ADMIN_A
 
 	return false;
 }
+
+CLIENT_COMMAND(hover, "<on / off>", "Turns hovering on or off.", BASIC_ACCESS)
+{
+	if (pPlayer->InqIntQuality(HERITAGE_GROUP_INT, 0, true) != 9)
+	{
+		pPlayer->SendText("Command only available for Empyrean characters.", LTT_DEFAULT);
+		return false;
+	}
+
+	if (argc < 1)
+	{
+		pPlayer->SendText("Usage: /hover on | off", LTT_DEFAULT);
+		return false;
+	}
+
+	if (!_stricmp(argv[0], "on") || !_stricmp(argv[0], "1"))
+	{
+
+		pPlayer->SendText("Hovering on. You must relog for the change to take effect.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x9000207);
+	}
+	else if (!_stricmp(argv[0], "off") || !_stricmp(argv[0], "0"))
+	{
+		pPlayer->SendText("Hovering off. You must relog for the change to take effect.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x9000001);
+	}
+
+	return false;
+}
+
 
 const char* CommandBase::Info(CommandEntry* pCommand)
 {
