@@ -3007,7 +3007,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case TRADE_OPEN: // Open Trade Negotiations
 		{
-			if (pPlayer->GetTradeManager() != NULL)
+			if (pPlayer->GetTradeManager())
 			{
 				//already trading
 				return;
@@ -3022,7 +3022,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pOther)
 				pTarget = pOther->AsPlayer();
 
-			if (!pOther)
+			if (!pTarget)
 			{
 				// cannot open trade
 				pPlayer->SendText("Unable to open trade.", LTT_ERROR);
@@ -3035,7 +3035,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			{
 				SendText((pTarget->GetName() + " is busy.").c_str(), LTT_ERROR);
 			}
-			else if (pTarget->GetTradeManager() != NULL)
+			else if (pTarget->GetTradeManager())
 			{
 				SendText((pTarget->GetName() + " is already trading with someone else!").c_str(), LTT_ERROR);
 			}
@@ -3045,7 +3045,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			else
 			{
-				TradeManager *tm = TradeManager::RegisterTrade(pPlayer, pTarget);
+				std::shared_ptr<TradeManager> tm = std::shared_ptr<TradeManager>(new TradeManager(pPlayer, pTarget));
 
 				pPlayer->SetTradeManager(tm);
 				pTarget->SetTradeManager(tm);
@@ -3054,8 +3054,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case TRADE_CLOSE: // Close Trade Negotiations
 		{
-			TradeManager* tm = pPlayer->GetTradeManager();
-			if (tm)
+			if (std::shared_ptr<TradeManager> tm = pPlayer->GetTradeManager())
 			{
 				tm->CloseTrade(pPlayer);
 				return;
@@ -3064,8 +3063,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case TRADE_ADD: // AddToTrade
 		{
-			TradeManager* tm = pPlayer->GetTradeManager();
-			if (tm)
+			if (std::shared_ptr<TradeManager> tm = pPlayer->GetTradeManager())
 			{
 				DWORD item = pReader->Read<DWORD>();
 
@@ -3075,8 +3073,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case TRADE_ACCEPT: // Accept trade
 		{
-			TradeManager* tm = pPlayer->GetTradeManager();
-			if (tm)
+			if (std::shared_ptr<TradeManager> tm = pPlayer->GetTradeManager())
 			{
 				tm->AcceptTrade(pPlayer);
 			}
@@ -3084,8 +3081,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case TRADE_DECLINE: // Decline trade
 		{
-			TradeManager* tm = pPlayer->GetTradeManager();
-			if (tm)
+			if (std::shared_ptr<TradeManager> tm = pPlayer->GetTradeManager())
 			{
 				tm->DeclineTrade(pPlayer);
 			}
@@ -3093,8 +3089,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case TRADE_RESET: // Reset trade
 		{
-			TradeManager* tm = pPlayer->GetTradeManager();
-			if (tm)
+			if (std::shared_ptr<TradeManager> tm = pPlayer->GetTradeManager())
 			{
 				tm->ResetTrade(pPlayer);
 			}

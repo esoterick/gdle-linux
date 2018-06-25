@@ -3,11 +3,6 @@
 #include "TradeManager.h"
 #include "World.h"
 
-TradeManager* TradeManager::RegisterTrade(std::shared_ptr<CPlayerWeenie>  initiator, std::shared_ptr<CPlayerWeenie>  partner)
-{
-	return new TradeManager(initiator, partner);
-}
-
 TradeManager::TradeManager(std::shared_ptr<CPlayerWeenie> initiator, std::shared_ptr<CPlayerWeenie> partner)
 {
 	_initiator = initiator;
@@ -42,8 +37,7 @@ void TradeManager::CloseTrade(std::weak_ptr<CPlayerWeenie> playerFrom, DWORD rea
 
 void TradeManager::OnCloseTrade(std::weak_ptr<CPlayerWeenie> player, DWORD reason)
 {
-	std::shared_ptr<CWeenieObject> pPlayer = player.lock();
-	if (pPlayer)
+	if ( std::shared_ptr<CWeenieObject> pPlayer = player.lock() )
 	{
 		BinaryWriter closeTrade;
 		closeTrade.Write<DWORD>(0x1FF);
@@ -309,21 +303,15 @@ bool TradeManager::CheckTrade()
 // Removes references and then removes this from memory
 void TradeManager::Delete()
 {
-	std::shared_ptr<CPlayerWeenie> pInitiator = _initiator.lock();
-	std::shared_ptr<CPlayerWeenie> pPartner = _partner.lock();
-
 	// Delete all references to this
-	if (pInitiator)
+	if (std::shared_ptr<CPlayerWeenie> pInitiator = _initiator.lock())
 	{
-		pInitiator->SetTradeManager(NULL);
+		pInitiator->SetTradeManager(std::shared_ptr<TradeManager>());
 	}
-	if (pPartner)
+	if (std::shared_ptr<CPlayerWeenie> pPartner = _partner.lock())
 	{
-		pPartner->SetTradeManager(NULL);
+		pPartner->SetTradeManager(std::shared_ptr<TradeManager>());
 	}
-
-	// MUST be the final thing done in this class
-	delete this;
 }
 
 void TradeManager::CheckDistance()

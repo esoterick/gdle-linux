@@ -3926,12 +3926,12 @@ DWORD CPlayerWeenie::GetAccountHouseId()
 	return 0;
 }
 
-TradeManager* CPlayerWeenie::GetTradeManager()
+std::shared_ptr<TradeManager> CPlayerWeenie::GetTradeManager()
 {
 	return m_pTradeManager;
 }
 
-void CPlayerWeenie::SetTradeManager(TradeManager * tradeManager)
+void CPlayerWeenie::SetTradeManager(std::shared_ptr<TradeManager> tradeManager)
 {
 	m_pTradeManager = tradeManager;
 }

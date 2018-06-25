@@ -3052,7 +3052,7 @@ CLIENT_COMMAND(spawntreasure3, "<tier> <num> <cat>", "Spawn treasure of a specif
 	int cat = atoi(argv[2]);
 	for (int i = 0; i < num; i++)
 	{
-		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure((tier), (eTreasureCategory)cat);
+		std::shared_ptr<CWeenieObject> treasure = g_pTreasureFactory->GenerateTreasure((tier), (eTreasureCategory)cat);
 		//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Armor);
 
 		if (treasure)
@@ -3061,7 +3061,6 @@ CLIENT_COMMAND(spawntreasure3, "<tier> <num> <cat>", "Spawn treasure of a specif
 
 			if (!g_pWorld->CreateEntity(treasure))
 			{
-				delete treasure;
 				return false;
 			}
 		}
@@ -3168,7 +3167,7 @@ CLIENT_COMMAND(spawnwcidinvfresh, "<name> [amount] [ptid] [shade]", "Reload ween
 
 	g_pWeenieFactory->RefreshLocalStorage();
 
-	CWeenieObject *weenieTemplate;
+	std::shared_ptr<CWeenieObject> weenieTemplate;
 
 	if (IsNumeric(argv[0]))
 	{
@@ -3194,7 +3193,6 @@ CLIENT_COMMAND(spawnwcidinvfresh, "<name> [amount] [ptid] [shade]", "Reload ween
 		if (weenieTemplate->m_Qualities.m_WeenieType != MeleeWeapon_WeenieType)
 		{
 			pPlayer->SendText("Only weapon spawning is enabled.", LTT_DEFAULT);
-			delete weenieTemplate;
 
 			return false;
 		}
@@ -3211,7 +3209,6 @@ CLIENT_COMMAND(spawnwcidinvfresh, "<name> [amount] [ptid] [shade]", "Reload ween
 	if (!weenieTemplate->CanPickup())
 	{
 		pPlayer->SendText("That can't be spawned in a container.", LTT_DEFAULT);
-		delete weenieTemplate;
 
 		return false;
 	}
@@ -3220,13 +3217,11 @@ CLIENT_COMMAND(spawnwcidinvfresh, "<name> [amount] [ptid] [shade]", "Reload ween
 	if (amount > maxStackSize * 100)
 	{
 		pPlayer->SendText("The amount requested is too large.", LTT_DEFAULT);
-		delete weenieTemplate;
 
 		return false;
 	}
 
 	pPlayer->SpawnCloneInContainer(weenieTemplate, amount);
-	delete weenieTemplate;
 
 	return false;
 }

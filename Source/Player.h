@@ -189,8 +189,8 @@ public:
 	std::weak_ptr<CCorpseWeenie> _pendingCorpse;
 	DWORD GetAccountHouseId();
 	
-	TradeManager *GetTradeManager();
-	void SetTradeManager(TradeManager *tradeManager);
+	std::shared_ptr<TradeManager> GetTradeManager();
+	void SetTradeManager(std::shared_ptr<TradeManager> tradeManager);
 
 	virtual void CPlayerWeenie::ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObject> item) override;
 
@@ -218,7 +218,7 @@ protected:
 	Position _recallPos;
 	bool _isFirstPortalInSession = true;
 
-	TradeManager *m_pTradeManager = NULL;
+	std::shared_ptr<TradeManager> m_pTradeManager;
 	double m_fNextTradeCheck = 0;
 
 private:

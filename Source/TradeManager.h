@@ -5,7 +5,7 @@
 class TradeManager
 {
 public:
-	static TradeManager* RegisterTrade(std::shared_ptr<CPlayerWeenie> initiator, std::shared_ptr<CPlayerWeenie> partner);
+	TradeManager(std::shared_ptr<CPlayerWeenie> initiator, std::shared_ptr<CPlayerWeenie> partner);
 
 	void CloseTrade(std::weak_ptr<CPlayerWeenie> playerFrom, DWORD reason = 0x51);
 	void OnCloseTrade(std::weak_ptr<CPlayerWeenie> player, DWORD reason = 0);
@@ -24,9 +24,6 @@ public:
 
 	void CheckDistance();
 private:
-	// prevent anyone from initiating this outside of OpenTrade
-	TradeManager(std::shared_ptr<CPlayerWeenie> initiator, std::shared_ptr<CPlayerWeenie> partner);
-
 	void Delete();
 
 	std::weak_ptr<CPlayerWeenie> _initiator;

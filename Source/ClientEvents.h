@@ -4,6 +4,8 @@
 
 class CPlayerWeenie;
 
+class TradeManager;
+
 const float sidestep_factor = 0.5f;
 const float backwards_factor = 0.64999998f;
 const float run_turn_factor = 1.5f;
