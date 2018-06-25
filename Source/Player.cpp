@@ -437,6 +437,8 @@ void CPlayerWeenie::OnDeathAnimComplete()
 		{
 			//clear damage sources on death
 			m_aDamageSources.clear();
+			m_highestDamageSource = 0;
+			m_totalDamageTaken = 0;
 
 			//if (IsDead())
 			Revive();

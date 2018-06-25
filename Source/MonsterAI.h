@@ -131,3 +131,5 @@ public:
 	double _cachedVisualAwarenessRange = 0.0;
 };
 
+extern bool monster_brawl;
+
