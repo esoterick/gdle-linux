@@ -44,7 +44,7 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 		other->EmitSound(Sound_Eat1, 1.0f);
 
 	DWORD boost_stat = InqIntQuality(BOOSTER_ENUM_INT, 0);
-	DWORD boost_value = InqIntQuality(BOOST_VALUE_INT, 0);
+	int boost_value = InqIntQuality(BOOST_VALUE_INT, 0);
 
 	switch (boost_stat)
 	{
@@ -58,11 +58,16 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 			DWORD statValue = 0, maxStatValue = 0;
 			other->m_Qualities.InqAttribute2nd(statType, statValue, FALSE);
 			other->m_Qualities.InqAttribute2nd(maxStatType, maxStatValue, FALSE);
+			
+			int currentMax = static_cast<int>(maxStatValue);
+			int statChangeValue = statValue + boost_value;
+			int statChange = 0;
+			if (statChangeValue > currentMax)
+				statChange = currentMax;
+			else
+				statChange = max(0, statChangeValue);
 
-			DWORD newStatValue = min(statValue + boost_value, maxStatValue);
-
-			int statChange = newStatValue - statValue;
-			if (statChange)
+			if (statChange < currentMax)
 			{
 				if (other->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
 				{
@@ -71,7 +76,7 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 				}
 				else
 				{
-					other->m_Qualities.SetAttribute2nd(statType, newStatValue);
+					other->m_Qualities.SetAttribute2nd(statType, statChange);
 					other->NotifyAttribute2ndStatUpdated(statType);
 				}
 			}
@@ -83,8 +88,10 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 			case STAMINA_ATTRIBUTE_2ND: vitalName = "stamina"; break;
 			case MANA_ATTRIBUTE_2ND: vitalName = "mana"; break;
 			}
-
-			other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), max(0, statChange), vitalName), LTT_DEFAULT);
+			if(statChange >= statValue)
+				other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), max(0, statChange), vitalName), LTT_DEFAULT);
+			else
+				other->SendText(csprintf("The %s takes %d points of your %s.", GetName().c_str(), currentMax - statChange, vitalName), LTT_DEFAULT);
 
 			if (boost_stat == HEALTH_ATTRIBUTE_2ND)
 			{
