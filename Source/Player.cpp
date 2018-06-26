@@ -3955,3 +3955,58 @@ void CPlayerWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 		m_pTradeManager->CloseTrade(AsPlayer(), 2); // EnteredCombat
 	}
 }
+
+void CPlayerWeenie::AddCorpsePermission(std::shared_ptr<CPlayerWeenie> target)
+{
+	if (!m_vCorpsePermissions.empty())
+	{
+		for (std::vector<std::shared_ptr<CPlayerWeenie>>::iterator it = m_vCorpsePermissions.begin(); it != m_vCorpsePermissions.end(); ++it)
+		{
+			if (*it == target)
+			{
+				SendText(csprintf("%s is already permitted to loot your corpse!", target->GetName()), LTT_DEFAULT);
+				return;
+			}
+		}
+	}
+	m_vCorpsePermissions.emplace_back(target);
+	SendText(csprintf("%s has been permitted to loot your corpse.", target->GetName()), LTT_DEFAULT);
+}
+
+void CPlayerWeenie::RemoveCorpsePermission(std::shared_ptr<CPlayerWeenie> target)
+{
+	if (!m_vCorpsePermissions.empty())
+	{
+		for (std::vector<std::shared_ptr<CPlayerWeenie>>::iterator it = m_vCorpsePermissions.begin(); it != m_vCorpsePermissions.end(); ++it)
+		{
+			if (*it == target)
+			{
+				m_vCorpsePermissions.erase(it);
+				SendText(csprintf("%s is no longer permitted to loot your corpse.", target->GetName()), LTT_DEFAULT);
+				return;
+			}
+		}
+		SendText(csprintf("%s isn't permitted to loot your corpse!",target->GetName()), LTT_DEFAULT);
+	}
+	else
+	{
+		SendText("Nobody is currently permitted to loot your corpse.", LTT_DEFAULT);
+	}
+}
+
+void CPlayerWeenie::GetCorpsePermissions()
+{
+	if (!m_vCorpsePermissions.empty())
+	{
+		SendText("The following characters are currently permitted to loot your corpse:", LTT_DEFAULT);
+		for (std::vector<std::shared_ptr<CPlayerWeenie>>::iterator it = m_vCorpsePermissions.begin(); it != m_vCorpsePermissions.end(); ++it)
+		{
+			std::shared_ptr<CPlayerWeenie> player = *it;
+			SendText(csprintf("%s\n",player->GetName()), LTT_DEFAULT);
+		}
+	}
+	else
+	{
+		SendText("Nobody is currently permitted to loot your corpse.", LTT_DEFAULT);
+	}
+}

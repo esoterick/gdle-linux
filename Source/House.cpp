@@ -217,6 +217,8 @@ void CHouseData::AbandonHouse()
 
 		if (owner)
 			g_pHouseManager->SendHouseData(owner->AsPlayer(), _houseId);
+
+		g_pHouseManager->SaveHouseData(_houseId);
 }
 
 void CHouseData::Save()

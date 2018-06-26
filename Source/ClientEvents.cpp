@@ -2865,7 +2865,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			TryFellowshipUpdate(on);
 			break;
 		}
-		case PUT_OBJECT_IN_CONTAINER: // Put object in container
+		case GIVE_OBJECT: // Give an item to someone
 			{
 				DWORD target_id = pReader->Read<DWORD>();
 				DWORD object_id = pReader->Read<DWORD>();
@@ -2916,7 +2916,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			pPlayer->Movement_Teleport(position);
 			break;
 		}
-		case TEXT_CHANNEL: // Channel Text
+		case CHANNEL_TEXT: // Channel Text
 		{
 			DWORD channel_id = pReader->ReadDWORD();
 			char *msg = pReader->ReadString();
@@ -2960,7 +2960,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->_playerModule.RemoveShortCut(index);
 				break;
 			}
-		case TOGGLE_SHOW_HELM:
+		case CHARACTER_OPTIONS:
 			{
 				PlayerModule module;
 				if (!module.UnPack(pReader) || pReader->GetLastError())
@@ -2976,7 +2976,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			pPlayer->TryCancelAttack();
 			break;
 		}
-		case HEALTH_UPDATE_REQUEST: // Request health update
+		case QUERY_HEALTH: // Request health update
 		{
 			DWORD target_id = pReader->ReadDWORD();
 
@@ -3221,7 +3221,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseRequestAccessList();
 			break;
 		}
-		case ALLEGIANCE_MOTD: //Request allegiance MOTD
+		case ALLEGIANCE_QUERY_MOTD : //Request allegiance MOTD
 		{
 			SendAllegianceMOTD();
 			break;
@@ -3345,7 +3345,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			AllegianceHometownRecall();
 			break;
 		}
-		case JUMP_MOVEMENT: // Jump Movement
+		case MOVEMENT_JUMP: // Jump Movement
 		{
 			float extent = pReader->Read<float>(); // extent
 
@@ -3452,7 +3452,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			break;
 		}
-		case MOVE_TO: // CM_Movement__Event_MoveToState (update vector movement?)
+		case MOVEMENT_MOVE_TO_STATE: // CM_Movement__Event_MoveToState (update vector movement?)
 		{
 			// TODO: Cancel attack
 			
@@ -3624,7 +3624,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			// pPlayer->Movement_UpdatePos();
 			break;
 		}
-		case UPDATE_POSITION: // Update Exact Position
+		case MOVEMENT_AUTONOMOUS_POSITION: // Update Exact Position
 		{
 			Position position;
 			position.UnPack(pReader);

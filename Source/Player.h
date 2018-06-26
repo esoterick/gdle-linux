@@ -200,6 +200,11 @@ public:
 	bool CheckPKActivity() { return m_iPKActivity > Timer::cur_time; }
 	void ClearPKActivity() { m_iPKActivity = Timer::cur_time; }
 
+	void AddCorpsePermission(std::shared_ptr<CPlayerWeenie> target);
+	void RemoveCorpsePermission(std::shared_ptr<CPlayerWeenie> target);
+	void GetCorpsePermissions();
+	std::vector<std::shared_ptr<CPlayerWeenie>> m_vCorpsePermissions;
+
 protected:
 	CClient *m_pClient;
 

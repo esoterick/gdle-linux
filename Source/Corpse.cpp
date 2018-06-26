@@ -4,9 +4,11 @@
 #include "DatabaseIO.h"
 #include "WorldLandBlock.h"
 
+#define CORPSE_EXIST_TIME 180 // how long before a corpse disappears in seconds
+
 CCorpseWeenie::CCorpseWeenie()
 {
-	_begin_destroy_at = Timer::cur_time + (60.0 * 3);
+	_begin_destroy_at = Timer::cur_time + CORPSE_EXIST_TIME;
 }
 
 CCorpseWeenie::~CCorpseWeenie()
@@ -43,8 +45,27 @@ int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
 		DWORD killerId = InqIIDQuality(KILLER_IID, 0);
 		DWORD victimId = InqIIDQuality(VICTIM_IID, 0);
 		if (killerId == other->GetID() || victimId == other->GetID())
+		{
 			return WERROR_NONE;
-
+		}
+		if (_begin_destroy_at - (CORPSE_EXIST_TIME/3) <= Timer::cur_time)
+		{
+			return WERROR_NONE;
+		}
+		std::shared_ptr<CPlayerWeenie> owner = g_pWorld->FindPlayer(victimId);
+		if (owner)
+		{
+			if (!owner->m_vCorpsePermissions.empty())
+			{
+				for (std::vector<std::shared_ptr<CPlayerWeenie>>::iterator it = owner->m_vCorpsePermissions.begin(); it != owner->m_vCorpsePermissions.end(); ++it)
+				{
+					if (other == *it)
+					{
+						return WERROR_NONE;
+					}
+				}
+			}
+		}
 		if (Fellowship *fellowship = other->GetFellowship())
 		{
 			if (fellowship->_share_loot)
