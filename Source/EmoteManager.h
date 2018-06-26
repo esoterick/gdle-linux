@@ -15,6 +15,9 @@ public:
 	EmoteManager(class CWeenieObject *weenie);
 		
 	std::string ReplaceEmoteText(const std::string &text, DWORD target_id, DWORD source_id);
+	std::string mobName;
+	std::string kCountName;
+	void killTask(std::string, const char*, DWORD target_id);
 	bool ChanceExecuteEmoteSet(EmoteCategory category, std::string msg, DWORD target_id);
 	bool ChanceExecuteEmoteSet(EmoteCategory category, DWORD target_id);
 	void ExecuteEmoteSet(const EmoteSet &emoteSet, DWORD target_id);

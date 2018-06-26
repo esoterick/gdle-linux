@@ -173,6 +173,8 @@ public:
 	virtual void IncrementQuest(const char *questName) override;
 	virtual void DecrementQuest(const char *questName) override;
 	virtual void EraseQuest(const char *questName) override;
+	virtual std::string Ktref(const char *questName) override;
+	virtual unsigned int InqQuestMax(const char *questName) override;
 
 	std::unordered_map<DWORD, double> _objMadeAwareOf;
 

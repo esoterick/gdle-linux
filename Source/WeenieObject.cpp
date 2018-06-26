@@ -3126,6 +3126,13 @@ void CWeenieObject::InitCreateGenerator()
 		g_pWeenieFactory->AddFromGeneratorTable(this, true);
 }
 
+void CWeenieObject::InitCreateGeneratorOnDeath() //Called by Emote_Type 72 Generator
+{
+	g_pWeenieFactory->AddFromGeneratorTable(this, true);
+}
+
+
+
 bool CWeenieObject::IsStorage()
 {
 	return (m_Qualities.id == W_STORAGE_CLASS) ? true : false; // "STORAGE"
