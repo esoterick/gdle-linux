@@ -9,7 +9,7 @@ public:
 	CChestWeenie();
 	virtual ~CChestWeenie() override;
 
-	virtual class std::shared_ptr<CChestWeenie> AsChest() { return GetPointer<CChestWeenie>(); }
+	virtual class std::shared_ptr<CChestWeenie> AsChest() { return std::static_pointer_cast<CChestWeenie>(GetPointer()); }
 
 	virtual void PostSpawn() override;
 

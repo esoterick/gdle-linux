@@ -131,47 +131,6 @@ struct DamageEventData
 	std::string GetTargetName();
 };
 
-// define these for the smart pointers
-class CAmmunitionWeenie;
-class CAttributeTransferDeviceWeenie;
-class CBookWeenie;
-class CBootSpotWeenie;
-class CCasterWeenie;
-class CChestWeenie;
-class CClothingWeenie;
-class CContainerWeenie;
-class CCorpseWeenie;
-class CDeedWeenie;
-class CBaseDoor;
-class CFoodWeenie;
-class CGemWeenie;
-class CHealerWeenie;
-class CHotSpotWeenie;
-class CHookWeenie;
-class CHouseWeenie;
-class CHousePortalWeenie;
-class CKeyWeenie;
-class CBaseLifestone;
-class CBindStone;
-class CLockpickWeenie;
-class CManaStoneWeenie;
-class CMeleeWeaponWeenie;
-class CMissileWeenie;
-class CMissileLauncherWeenie;
-class CMonsterWeenie;
-class CPKModifierWeenie;
-class CPlayerWeenie;
-class CPortal;
-class CPressurePlateWeenie;
-class CScrollWeenie;
-class CSkillAlterationDeviceWeenie;
-class CSlumLordWeenie;
-class CSpellProjectile;
-class CStorageWeenie;
-class CSwitchWeenie;
-class CTownCrier;
-class CVendor;
-class CAugmentationDeviceWeenie;
 
 class CWeenieObject : public CPhysicsObj
 {
@@ -210,46 +169,8 @@ public:
 	// Returns WERROR code
 	virtual int UseChecked(std::shared_ptr<CPlayerWeenie> );
 
-	virtual class std::shared_ptr<CAmmunitionWeenie> AsAmmunition() { return NULL; }
-	virtual class std::shared_ptr<CAttributeTransferDeviceWeenie> AsAttributeTransferDevice() { return NULL; }
-	virtual class std::shared_ptr<CBookWeenie> AsBook() { return NULL; }
-	virtual class std::shared_ptr<CBootSpotWeenie> AsBootSpot() { return NULL; }
-	virtual class std::shared_ptr<CCasterWeenie> AsCaster() { return NULL; }
-	virtual class std::shared_ptr<CChestWeenie> AsChest() { return NULL; }
-	virtual class std::shared_ptr<CClothingWeenie> AsClothing() { return NULL; }
-	virtual class std::shared_ptr<CContainerWeenie> AsContainer() { return NULL; }
-	virtual class std::shared_ptr<CCorpseWeenie> AsCorpse() { return NULL; }
-	virtual class std::shared_ptr<CDeedWeenie> AsDeed() { return NULL; }
-	virtual class std::shared_ptr<CBaseDoor> AsDoor() { return NULL; }
-	virtual class std::shared_ptr<CFoodWeenie> AsFood() { return NULL; }
-	virtual class std::shared_ptr<CGemWeenie> AsGem() { return NULL; }
-	virtual class std::shared_ptr<CHealerWeenie> AsHealer() { return NULL; }
-	virtual class std::shared_ptr<CHotSpotWeenie> AsHotSpot() { return NULL; }
-	virtual class std::shared_ptr<CHookWeenie> AsHook() { return NULL; }
-	virtual class std::shared_ptr<CHouseWeenie> AsHouse() { return NULL; }
-	virtual class std::shared_ptr<CHousePortalWeenie> AsHousePortal() { return NULL; }
-	virtual class std::shared_ptr<CKeyWeenie> AsKey() { return NULL; }
-	virtual class std::shared_ptr<CBaseLifestone> AsLifestone() { return NULL; }
-	virtual class std::shared_ptr<CBindStone> AsBindStone() { return NULL; }
-	virtual class std::shared_ptr<CLockpickWeenie> AsLockpick() { return NULL; }
-	virtual class std::shared_ptr<CManaStoneWeenie> AsManaStone() { return NULL; }
-	virtual class std::shared_ptr<CMeleeWeaponWeenie> AsMeleeWeapon() { return NULL; }
-	virtual class std::shared_ptr<CMissileWeenie> AsMissile() { return NULL; }
-	virtual class std::shared_ptr<CMissileLauncherWeenie> AsMissileLauncher() { return NULL; }
-	virtual class std::shared_ptr<CMonsterWeenie> AsMonster() { return NULL; }
-	virtual class std::shared_ptr<CPKModifierWeenie> AsPKModifier() { return NULL; }
-	virtual class std::shared_ptr<CPlayerWeenie> AsPlayer() { return NULL; }
-	virtual class std::shared_ptr<CPortal> AsPortal() { return NULL; }
-	virtual class std::shared_ptr<CPressurePlateWeenie> AsPressurePlate() { return NULL; }
-	virtual class std::shared_ptr<CScrollWeenie> AsScroll() { return NULL; }
-	virtual class std::shared_ptr<CSkillAlterationDeviceWeenie> AsSkillAlterationDevice() { return NULL; }
-	virtual class std::shared_ptr<CSlumLordWeenie> AsSlumLord() { return NULL; }
-	virtual class std::shared_ptr<CSpellProjectile> AsSpellProjectile() { return NULL; }
-	virtual class std::shared_ptr<CStorageWeenie> AsStorage() { return NULL; }
-	virtual class std::shared_ptr<CSwitchWeenie> AsSwitch() { return NULL; }
-	virtual class std::shared_ptr<CTownCrier> AsTownCrier() { return NULL; }
-	virtual class std::shared_ptr<CVendor> AsVendor() { return NULL; }
-	virtual class std::shared_ptr<CAugmentationDeviceWeenie> AsAugmentationDevice() { return NULL; }
+	virtual class std::shared_ptr<CWeenieObject> AsWeenie() { return std::static_pointer_cast<CWeenieObject>(GetPointer()); }
+
 
 	virtual bool IsAdvocate() { return false; }
 	virtual bool IsSentinel() { return false; }

@@ -11,7 +11,7 @@ public:
 	CContainerWeenie();
 	virtual ~CContainerWeenie() override;
 
-	virtual class std::shared_ptr<CContainerWeenie> AsContainer() { return GetPointer<CContainerWeenie>(); }
+	virtual class std::shared_ptr<CContainerWeenie> AsContainer() { return std::static_pointer_cast<CContainerWeenie>(GetPointer()); }
 
 	virtual bool IsAttunedOrContainsAttuned() override;
 

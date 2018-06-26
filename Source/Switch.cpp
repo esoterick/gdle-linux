@@ -66,7 +66,7 @@ int CSwitchWeenie::Activate(DWORD activator_id)
 
 		if (activationResponse & Generate_ActivationResponse)
 		{
-			g_pWeenieFactory->AddFromGeneratorTable(GetPointer<CWeenieObject>(), false);
+			g_pWeenieFactory->AddFromGeneratorTable(AsWeenie(), false);
 		}
 
 		if (activationResponse & Talk_ActivationResponse)

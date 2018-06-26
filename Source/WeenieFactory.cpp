@@ -291,7 +291,7 @@ void CWeenieFactory::LoadLocalStorage(bool refresh)
 		{
 			BinaryReader reader(data, length);
 			
-			std::shared_ptr<CWeenieDefaults> pDefaults = std::shared_ptr<CWeenieDefaults>((new CWeenieDefaults())->GetPointer<CWeenieDefaults>(true));
+			std::shared_ptr<CWeenieDefaults> pDefaults = std::shared_ptr<CWeenieDefaults>((new CWeenieDefaults())->GetPointer(true)->AsWeenieDefaults());
 			if (pDefaults->UnPack(&reader))
 			{
 				bool bShouldInsert = true;
@@ -713,7 +713,7 @@ std::shared_ptr<CWeenieObject> CWeenieFactory::CreateBaseWeenieByType(int weenie
 	case Generic_WeenieType:
 	case Admin_WeenieType:
 		{
-			weenie = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>(true));
+			weenie = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer(true)->AsWeenie());
 			break;
 		}
 
@@ -721,207 +721,207 @@ std::shared_ptr<CWeenieObject> CWeenieFactory::CreateBaseWeenieByType(int weenie
 	case Creature_WeenieType:
 		{
 		if (!strcmp(weenieName, "Town Crier"))
-			weenie = std::shared_ptr<CTownCrier>((new CTownCrier())->GetPointer<CTownCrier>(true));
-			else
-				weenie = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer<CMonsterWeenie>(true));
+			weenie = std::shared_ptr<CTownCrier>((new CTownCrier())->GetPointer(true)->AsTownCrier());
+		else
+			weenie = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer(true)->AsMonster());
 			break;
 		}
 	case AttributeTransferDevice_WeenieType:
 		{
-			weenie = std::shared_ptr<CAttributeTransferDeviceWeenie>((new CAttributeTransferDeviceWeenie())->GetPointer<CAttributeTransferDeviceWeenie>(true));
+			weenie = std::shared_ptr<CAttributeTransferDeviceWeenie>((new CAttributeTransferDeviceWeenie())->GetPointer(true)->AsAttributeTransferDevice());
 			break;
 		}
 	case SkillAlterationDevice_WeenieType:
 		{
-			weenie = std::shared_ptr<CSkillAlterationDeviceWeenie>((new CSkillAlterationDeviceWeenie())->GetPointer<CSkillAlterationDeviceWeenie>(true));
+			weenie = std::shared_ptr<CSkillAlterationDeviceWeenie>((new CSkillAlterationDeviceWeenie())->GetPointer(true)->AsSkillAlterationDevice());
 			break;
 		}
 	case Container_WeenieType:
 		{
-			weenie = std::shared_ptr<CContainerWeenie>((new CContainerWeenie())->GetPointer<CContainerWeenie>(true));
+			weenie = std::shared_ptr<CContainerWeenie>((new CContainerWeenie())->GetPointer(true)->AsContainer());
 			break;
 		}
 	case Portal_WeenieType:
 		{
-			weenie = std::shared_ptr<CPortal>((new CPortal())->GetPointer<CPortal>(true));
+			weenie = std::shared_ptr<CPortal>((new CPortal())->GetPointer(true)->AsPortal());
 			break;
 		}
 	case LifeStone_WeenieType:
 		{
-			weenie = std::shared_ptr<CBaseLifestone>((new CBaseLifestone())->GetPointer<CBaseLifestone>(true));
+			weenie = std::shared_ptr<CBaseLifestone>((new CBaseLifestone())->GetPointer(true)->AsLifestone());
 			break;
 		}
 	case AllegianceBindstone_WeenieType:
 		{
-			weenie = std::shared_ptr<CBindStone>((new CBindStone())->GetPointer<CBindStone>(true));
+			weenie = std::shared_ptr<CBindStone>((new CBindStone())->GetPointer(true)->AsBindStone());
 			break;
 		}
 	case Door_WeenieType:
 		{
-			weenie = std::shared_ptr<CBaseDoor>((new CBaseDoor())->GetPointer<CBaseDoor>(true));
+			weenie = std::shared_ptr<CBaseDoor>((new CBaseDoor())->GetPointer(true)->AsDoor());
 			break;
 		}
 	case HotSpot_WeenieType:
 		{
-			weenie = std::shared_ptr<CHotSpotWeenie>((new CHotSpotWeenie())->GetPointer<CHotSpotWeenie>(true));
+			weenie = std::shared_ptr<CHotSpotWeenie>((new CHotSpotWeenie())->GetPointer(true)->AsHotSpot());
 			break;
 		}
 	case Switch_WeenieType:
 		{
-			weenie = std::shared_ptr<CSwitchWeenie>((new CSwitchWeenie())->GetPointer<CSwitchWeenie>(true));
+			weenie = std::shared_ptr<CSwitchWeenie>((new CSwitchWeenie())->GetPointer(true)->AsSwitch());
 			break;
 		}
 	case PressurePlate_WeenieType:
 		{
-			weenie = std::shared_ptr<CPressurePlateWeenie>((new CPressurePlateWeenie())->GetPointer<CPressurePlateWeenie>(true));
+			weenie = std::shared_ptr<CPressurePlateWeenie>((new CPressurePlateWeenie())->GetPointer(true)->AsPressurePlate());
 			break;
 		}
 	case Vendor_WeenieType:
 		{
 			/*
 			if (wcid == 719)
-				weenie = std::shared_ptr<CAvatarVendor>((new CAvatarVendor())->GetPointer<CAvatarVendor>(true)); // holtburg avatar vendor
+				weenie = std::shared_ptr<CAvatarVendor>((new CAvatarVendor())->GetPointer(true)->AsAvatarVendor()); // holtburg avatar vendor
 			else
 			*/
-			weenie = std::shared_ptr<CVendor>((new CVendor())->GetPointer<CVendor>(true));
+			weenie = std::shared_ptr<CVendor>((new CVendor())->GetPointer(true)->AsVendor());
 			break;
 		}
 
 	case Clothing_WeenieType:
 		{
-			weenie = std::shared_ptr<CClothingWeenie>((new CClothingWeenie())->GetPointer<CClothingWeenie>(true));
+			weenie = std::shared_ptr<CClothingWeenie>((new CClothingWeenie())->GetPointer(true)->AsClothing());
 			break;
 		}
 	case Caster_WeenieType:
 		{
-			weenie = std::shared_ptr<CCasterWeenie>((new CCasterWeenie())->GetPointer<CCasterWeenie>(true));
+			weenie = std::shared_ptr<CCasterWeenie>((new CCasterWeenie())->GetPointer(true)->AsCaster());
 			break;
 		}
 	case Healer_WeenieType:
 		{
-			weenie = std::shared_ptr<CHealerWeenie>((new CHealerWeenie())->GetPointer<CHealerWeenie>(true));
+			weenie = std::shared_ptr<CHealerWeenie>((new CHealerWeenie())->GetPointer(true)->AsHealer());
 			break;
 		}
 	case House_WeenieType:
 		{
-			weenie = std::shared_ptr<CHouseWeenie>((new CHouseWeenie())->GetPointer<CHouseWeenie>(true));
+			weenie = std::shared_ptr<CHouseWeenie>((new CHouseWeenie())->GetPointer(true)->AsHouse());
 			break;
 		}
 	case SlumLord_WeenieType:
 		{
-			weenie = std::shared_ptr<CSlumLordWeenie>((new CSlumLordWeenie())->GetPointer<CSlumLordWeenie>(true));
+			weenie = std::shared_ptr<CSlumLordWeenie>((new CSlumLordWeenie())->GetPointer(true)->AsSlumLord());
 			break;
 		}
 	case Scroll_WeenieType:
 		{
-			weenie = std::shared_ptr<CScrollWeenie>((new CScrollWeenie())->GetPointer<CScrollWeenie>(true));
+			weenie = std::shared_ptr<CScrollWeenie>((new CScrollWeenie())->GetPointer(true)->AsScroll());
 			break;
 		}
 
 	case Ammunition_WeenieType:
 		{
-			weenie = std::shared_ptr<CAmmunitionWeenie>((new CAmmunitionWeenie())->GetPointer<CAmmunitionWeenie>(true));
+			weenie = std::shared_ptr<CAmmunitionWeenie>((new CAmmunitionWeenie())->GetPointer(true)->AsAmmunition());
 			break;
 		}
 
 	case Missile_WeenieType:
 		{
-			weenie = std::shared_ptr<CMissileWeenie>((new CMissileWeenie())->GetPointer<CMissileWeenie>(true));
+			weenie = std::shared_ptr<CMissileWeenie>((new CMissileWeenie())->GetPointer(true)->AsMissile());
 			break;
 		}
 
 	case ManaStone_WeenieType:
 		{
-			weenie = std::shared_ptr<CManaStoneWeenie>((new CManaStoneWeenie())->GetPointer<CManaStoneWeenie>(true));
+			weenie = std::shared_ptr<CManaStoneWeenie>((new CManaStoneWeenie())->GetPointer(true)->AsManaStone());
 			break;
 		}
 	case Coin_WeenieType:
 		{
-			weenie = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>(true));
+			weenie = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer(true)->AsWeenie());
 			break;
 		}
 	case Book_WeenieType:
 		{
-			weenie = std::shared_ptr<CBookWeenie>((new CBookWeenie())->GetPointer<CBookWeenie>(true));
+			weenie = std::shared_ptr<CBookWeenie>((new CBookWeenie())->GetPointer(true)->AsBook());
 			break;
 		}
 	case Food_WeenieType:
 		{
-			weenie = std::shared_ptr<CFoodWeenie>((new CFoodWeenie())->GetPointer<CFoodWeenie>(true));
+			weenie = std::shared_ptr<CFoodWeenie>((new CFoodWeenie())->GetPointer(true)->AsFood());
 			break;
 		}
 	case PKModifier_WeenieType:
 		{
-			weenie = std::shared_ptr<CPKModifierWeenie>((new CPKModifierWeenie())->GetPointer<CPKModifierWeenie>(true));
+			weenie = std::shared_ptr<CPKModifierWeenie>((new CPKModifierWeenie())->GetPointer(true)->AsPKModifier());
 			break;
 		}
 	case Gem_WeenieType:
 		{
-			weenie = std::shared_ptr<CGemWeenie>((new CGemWeenie())->GetPointer<CGemWeenie>(true));
+			weenie = std::shared_ptr<CGemWeenie>((new CGemWeenie())->GetPointer(true)->AsGem());
 			break;
 		}
 	case Key_WeenieType:
 		{
-			weenie = std::shared_ptr<CKeyWeenie>((new CKeyWeenie())->GetPointer<CKeyWeenie>(true));
+			weenie = std::shared_ptr<CKeyWeenie>((new CKeyWeenie())->GetPointer(true)->AsKey());
 			break;
 		}
 	case Lockpick_WeenieType:
 		{
-			weenie = std::shared_ptr<CLockpickWeenie>((new CLockpickWeenie())->GetPointer<CLockpickWeenie>(true));
+			weenie = std::shared_ptr<CLockpickWeenie>((new CLockpickWeenie())->GetPointer(true)->AsLockpick());
 			break;
 		}
 	case Corpse_WeenieType:
 		{
-			weenie = std::shared_ptr<CCorpseWeenie>((new CCorpseWeenie())->GetPointer<CCorpseWeenie>(true));
+			weenie = std::shared_ptr<CCorpseWeenie>((new CCorpseWeenie())->GetPointer(true)->AsCorpse());
 			break;
 		}
 	case MeleeWeapon_WeenieType:
 		{
-			weenie = std::shared_ptr<CMeleeWeaponWeenie>((new CMeleeWeaponWeenie())->GetPointer<CMeleeWeaponWeenie>(true));
+			weenie = std::shared_ptr<CMeleeWeaponWeenie>((new CMeleeWeaponWeenie())->GetPointer(true)->AsMeleeWeapon());
 			break;
 		}
 	case MissileLauncher_WeenieType:
 		{
-			weenie = std::shared_ptr<CMissileLauncherWeenie>((new CMissileLauncherWeenie())->GetPointer<CMissileLauncherWeenie>(true));
+			weenie = std::shared_ptr<CMissileLauncherWeenie>((new CMissileLauncherWeenie())->GetPointer(true)->AsMissileLauncher());
 			break;
 		}
 	case Hook_WeenieType:
 		{
-			weenie = std::shared_ptr<CHookWeenie>((new CHookWeenie())->GetPointer<CHookWeenie>(true));
+			weenie = std::shared_ptr<CHookWeenie>((new CHookWeenie())->GetPointer(true)->AsHook());
 			break;
 		}
 	case Deed_WeenieType:
 		{
-			weenie = std::shared_ptr<CDeedWeenie>((new CDeedWeenie())->GetPointer<CDeedWeenie>(true));
+			weenie = std::shared_ptr<CDeedWeenie>((new CDeedWeenie())->GetPointer(true)->AsDeed());
 			break;
 		}
 	case BootSpot_WeenieType:
 		{
-			weenie = std::shared_ptr<CBootSpotWeenie>((new CBootSpotWeenie())->GetPointer<CBootSpotWeenie>(true));
+			weenie = std::shared_ptr<CBootSpotWeenie>((new CBootSpotWeenie())->GetPointer(true)->AsBootSpot());
 			break;
 		}
 	case HousePortal_WeenieType:
 		{
-			weenie = std::shared_ptr<CHousePortalWeenie>((new CHousePortalWeenie())->GetPointer<CHousePortalWeenie>(true));
+			weenie = std::shared_ptr<CHousePortalWeenie>((new CHousePortalWeenie())->GetPointer(true)->AsHousePortal());
 			break;
 		}
 	case Chest_WeenieType:
 		{
-			weenie = std::shared_ptr<CChestWeenie>((new CChestWeenie())->GetPointer<CChestWeenie>(true));
+			weenie = std::shared_ptr<CChestWeenie>((new CChestWeenie())->GetPointer(true)->AsChest());
 			break;
 		}
 	case Storage_WeenieType:
 		{
-			weenie = std::shared_ptr<CStorageWeenie>((new CStorageWeenie())->GetPointer<CStorageWeenie>(true));
+			weenie = std::shared_ptr<CStorageWeenie>((new CStorageWeenie())->GetPointer(true)->AsStorage());
 			break;
 		}
 	case AugmentationDevice_WeenieType:
 		{
-			weenie = std::shared_ptr<CAugmentationDeviceWeenie>((new CAugmentationDeviceWeenie())->GetPointer<CAugmentationDeviceWeenie>(true));
+			weenie = std::shared_ptr<CAugmentationDeviceWeenie>((new CAugmentationDeviceWeenie())->GetPointer(true)->AsAugmentationDevice());
 			break;
 		}
 	default:
-		weenie = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>(true));
+		weenie = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer(true)->AsWeenie());
 		break;
 	}
 

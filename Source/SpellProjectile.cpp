@@ -45,7 +45,7 @@ void CSpellProjectile::Tick()
 	{
 		if (!InValidCell() || (m_fDestroyTime <= Timer::cur_time))
 		{
-			g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
+			g_pWorld->RemoveEntity(AsWeenie());
 		}
 		// not destroyed yet and distance/time exceeded
 		else if (m_fDestroyTime > Timer::cur_time + 10 && (m_Position.distance(m_CachedSpellCastData.initial_cast_position) > m_CachedSpellCastData.max_range || (m_fSpawnTime + MAX_SPELL_PROJECTILE_LIFETIME - 1) <= Timer::cur_time))
@@ -86,7 +86,7 @@ BOOL CSpellProjectile::DoCollision(const class EnvCollisionProfile &prof)
 
 BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 {
-	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(GetPointer<CWeenieObject>(), prof.id);
+	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(AsWeenie(), prof.id);
 	if (pHit && (!m_TargetID || m_TargetID == pHit->GetID()) && (pHit->GetID() != m_SourceID))
 	{
 		std::shared_ptr<CWeenieObject> pSource = NULL;

@@ -9,7 +9,7 @@ public:
 	CTownCrier();
 	virtual ~CTownCrier() override;
 
-	virtual class std::shared_ptr<CTownCrier> AsTownCrier() { return GetPointer<CTownCrier>(); }
+	virtual class std::shared_ptr<CTownCrier> AsTownCrier() { return std::static_pointer_cast<CTownCrier>(GetPointer()); }
 
 	virtual int DoUseResponse(std::shared_ptr<CWeenieObject> player) override;
 	virtual int Use(std::shared_ptr<CPlayerWeenie> other) override;

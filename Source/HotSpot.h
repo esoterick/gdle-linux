@@ -9,7 +9,7 @@ public:
 	CHotSpotWeenie();
 	virtual ~CHotSpotWeenie() override;
 
-	virtual class std::shared_ptr<CHotSpotWeenie> AsHotSpot() { return GetPointer<CHotSpotWeenie>(); }
+	virtual class std::shared_ptr<CHotSpotWeenie> AsHotSpot() { return std::static_pointer_cast<CHotSpotWeenie>(GetPointer()); }
 
 	virtual void ApplyQualityOverrides() override;
 	virtual void Tick() override;

@@ -9,7 +9,7 @@ public:
 	CCorpseWeenie();
 	virtual ~CCorpseWeenie() override;
 
-	virtual class std::shared_ptr<CCorpseWeenie> AsCorpse() { return GetPointer<CCorpseWeenie>(); }
+	virtual class std::shared_ptr<CCorpseWeenie> AsCorpse() { return std::static_pointer_cast<CCorpseWeenie>(GetPointer()); }
 
 	virtual void Tick() override;
 	virtual void ApplyQualityOverrides() override;

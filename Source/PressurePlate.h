@@ -9,7 +9,7 @@ public:
 	CPressurePlateWeenie();
 	virtual ~CPressurePlateWeenie() override;
 
-	virtual class std::shared_ptr<CPressurePlateWeenie> AsPressurePlate() { return GetPointer<CPressurePlateWeenie>(); }
+	virtual class std::shared_ptr<CPressurePlateWeenie> AsPressurePlate() { return std::static_pointer_cast<CPressurePlateWeenie>(GetPointer()); }
 
 	virtual void ApplyQualityOverrides() override;
 	virtual void Tick() override;

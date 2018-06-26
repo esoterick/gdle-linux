@@ -8,7 +8,7 @@ public:
 	CFoodWeenie();
 	virtual ~CFoodWeenie() override;
 
-	virtual class std::shared_ptr<CFoodWeenie> AsFood() { return GetPointer<CFoodWeenie>(); }
+	virtual class std::shared_ptr<CFoodWeenie> AsFood() { return std::static_pointer_cast<CFoodWeenie>(GetPointer()); }
 
 	virtual void ApplyQualityOverrides() override;
 	virtual int Use(std::shared_ptr<CPlayerWeenie> ) override;

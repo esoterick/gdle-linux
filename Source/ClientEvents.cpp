@@ -164,7 +164,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	}
 	*/
 
-	std::shared_ptr<CPlayerWeenie> pPlayer = (new CPlayerWeenie(m_pClient, char_weenie_id, m_pClient->IncCharacterInstanceTS(char_weenie_id)))->GetPointer<CPlayerWeenie>(true);
+	std::shared_ptr<CPlayerWeenie> pPlayer = (new CPlayerWeenie(m_pClient, char_weenie_id, m_pClient->IncCharacterInstanceTS(char_weenie_id)))->GetPointer(true)->AsPlayer();;
 
 	m_pPlayer = pPlayer;
 

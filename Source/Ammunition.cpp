@@ -73,7 +73,7 @@ void CAmmunitionWeenie::HandleNonTargetCollision()
 		if (source->AsPlayer())
 			source->SendText("Your missile attack hit the environment.", LTT_DEFAULT);
 		else
-			g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
+			g_pWorld->RemoveEntity(AsWeenie());
 
 		EmitSound(Sound_Collision, 1.0f);
 	}
@@ -83,7 +83,7 @@ void CAmmunitionWeenie::HandleNonTargetCollision()
 
 void CAmmunitionWeenie::HandleTargetCollision()
 {
-	g_pWorld->RemoveEntity(GetPointer<CWeenieObject>());
+	g_pWorld->RemoveEntity(AsWeenie());
 }
 
 BOOL CAmmunitionWeenie::DoCollision(const class EnvCollisionProfile &prof)
@@ -96,7 +96,7 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 {
 	bool targetCollision = false;
 
-	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(GetPointer<CWeenieObject>(), prof.id);
+	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(AsWeenie(), prof.id);
 	if (pHit && (!_targetID || _targetID == pHit->GetID()) && (pHit->GetID() != _sourceID) && (pHit->GetID() != _launcherID))
 	{
 		std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindObject(_sourceID);

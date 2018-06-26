@@ -101,51 +101,103 @@ public:
 	DWORD _bitfield = Undef_OCPB;
 };
 
+// define these for the smart pointers
+class CAmmunitionWeenie;
+class CAttributeTransferDeviceWeenie;
+class CBookWeenie;
+class CBootSpotWeenie;
+class CCasterWeenie;
+class CChestWeenie;
+class CClothingWeenie;
+class CContainerWeenie;
+class CCorpseWeenie;
+class CDeedWeenie;
+class CBaseDoor;
+class CFoodWeenie;
+class CGemWeenie;
+class CHealerWeenie;
+class CHotSpotWeenie;
+class CHookWeenie;
+class CHouseWeenie;
+class CHousePortalWeenie;
+class CKeyWeenie;
+class CBaseLifestone;
+class CBindStone;
+class CLockpickWeenie;
+class CManaStoneWeenie;
+class CMeleeWeaponWeenie;
+class CMissileWeenie;
+class CMissileLauncherWeenie;
+class CMonsterWeenie;
+class CPKModifierWeenie;
+class CPlayerWeenie;
+class CPortal;
+class CPressurePlateWeenie;
+class CScrollWeenie;
+class CSkillAlterationDeviceWeenie;
+class CSlumLordWeenie;
+class CSpellProjectile;
+class CStorageWeenie;
+class CSwitchWeenie;
+class CTownCrier;
+class CVendor;
+class CAugmentationDeviceWeenie;
+class CBuildingObj;
+class CWeenieObject;
+
 class CPhysicsObj : public LongHashData
 {
 protected:
 	std::weak_ptr<CPhysicsObj> m_wpThis;
 	std::shared_ptr<CPhysicsObj> m_spThis = nullptr;
-	bool m_bPointerInitialised = false;
 public:
 	CPhysicsObj();
 	virtual ~CPhysicsObj();
 
-	template <class T>
-	std::shared_ptr<T> GetPointer(bool bTakeOwnership = false)
-	{
-		if (m_spThis)
-		{
-			std::shared_ptr<CPhysicsObj> pThis = m_spThis;
-			if (bTakeOwnership)
-			{
-				m_wpThis = m_spThis;
-				m_spThis = nullptr;
-			}
-			return std::dynamic_pointer_cast<T>(pThis);
-		}
+	std::shared_ptr<CPhysicsObj> GetPointer(bool bTakeOwnership = false);
 
-		std::shared_ptr<CPhysicsObj> pThis = m_wpThis.lock();
-		if (!pThis)
-		{
-			if (m_bPointerInitialised)
-			{
-				throw "Pointer attempted to be initialised as a shared pointer a second time";
-			}
-			pThis = std::shared_ptr<CPhysicsObj>(this);
-			m_bPointerInitialised = true;
-
-			if (bTakeOwnership)
-			{
-				m_wpThis = pThis;
-			}
-			else
-			{
-				m_spThis = pThis;
-			}
-		}
-		return std::dynamic_pointer_cast<T>(pThis);
-	}
+	virtual class std::shared_ptr<CAmmunitionWeenie> AsAmmunition() { return nullptr; }
+	virtual class std::shared_ptr<CAttributeTransferDeviceWeenie> AsAttributeTransferDevice() { return nullptr; }
+	virtual class std::shared_ptr<CBookWeenie> AsBook() { return nullptr; }
+	virtual class std::shared_ptr<CBootSpotWeenie> AsBootSpot() { return nullptr; }
+	virtual class std::shared_ptr<CCasterWeenie> AsCaster() { return nullptr; }
+	virtual class std::shared_ptr<CChestWeenie> AsChest() { return nullptr; }
+	virtual class std::shared_ptr<CClothingWeenie> AsClothing() { return nullptr; }
+	virtual class std::shared_ptr<CContainerWeenie> AsContainer() { return nullptr; }
+	virtual class std::shared_ptr<CCorpseWeenie> AsCorpse() { return nullptr; }
+	virtual class std::shared_ptr<CDeedWeenie> AsDeed() { return nullptr; }
+	virtual class std::shared_ptr<CBaseDoor> AsDoor() { return nullptr; }
+	virtual class std::shared_ptr<CFoodWeenie> AsFood() { return nullptr; }
+	virtual class std::shared_ptr<CGemWeenie> AsGem() { return nullptr; }
+	virtual class std::shared_ptr<CHealerWeenie> AsHealer() { return nullptr; }
+	virtual class std::shared_ptr<CHotSpotWeenie> AsHotSpot() { return nullptr; }
+	virtual class std::shared_ptr<CHookWeenie> AsHook() { return nullptr; }
+	virtual class std::shared_ptr<CHouseWeenie> AsHouse() { return nullptr; }
+	virtual class std::shared_ptr<CHousePortalWeenie> AsHousePortal() { return nullptr; }
+	virtual class std::shared_ptr<CKeyWeenie> AsKey() { return nullptr; }
+	virtual class std::shared_ptr<CBaseLifestone> AsLifestone() { return nullptr; }
+	virtual class std::shared_ptr<CBindStone> AsBindStone() { return nullptr; }
+	virtual class std::shared_ptr<CLockpickWeenie> AsLockpick() { return nullptr; }
+	virtual class std::shared_ptr<CManaStoneWeenie> AsManaStone() { return nullptr; }
+	virtual class std::shared_ptr<CMeleeWeaponWeenie> AsMeleeWeapon() { return nullptr; }
+	virtual class std::shared_ptr<CMissileWeenie> AsMissile() { return nullptr; }
+	virtual class std::shared_ptr<CMissileLauncherWeenie> AsMissileLauncher() { return nullptr; }
+	virtual class std::shared_ptr<CMonsterWeenie> AsMonster() { return nullptr; }
+	virtual class std::shared_ptr<CPKModifierWeenie> AsPKModifier() { return nullptr; }
+	virtual class std::shared_ptr<CPlayerWeenie> AsPlayer() { return nullptr; }
+	virtual class std::shared_ptr<CPortal> AsPortal() { return nullptr; }
+	virtual class std::shared_ptr<CPressurePlateWeenie> AsPressurePlate() { return nullptr; }
+	virtual class std::shared_ptr<CScrollWeenie> AsScroll() { return nullptr; }
+	virtual class std::shared_ptr<CSkillAlterationDeviceWeenie> AsSkillAlterationDevice() { return nullptr; }
+	virtual class std::shared_ptr<CSlumLordWeenie> AsSlumLord() { return nullptr; }
+	virtual class std::shared_ptr<CSpellProjectile> AsSpellProjectile() { return nullptr; }
+	virtual class std::shared_ptr<CStorageWeenie> AsStorage() { return nullptr; }
+	virtual class std::shared_ptr<CSwitchWeenie> AsSwitch() { return nullptr; }
+	virtual class std::shared_ptr<CTownCrier> AsTownCrier() { return nullptr; }
+	virtual class std::shared_ptr<CVendor> AsVendor() { return nullptr; }
+	virtual class std::shared_ptr<CAugmentationDeviceWeenie> AsAugmentationDevice() { return nullptr; }
+	virtual class std::shared_ptr<CBuildingObj> AsBuilding() { return nullptr; }
+	virtual class std::shared_ptr<CWeenieObject> AsWeenie() { return nullptr; }
 
 	void Destroy();
 

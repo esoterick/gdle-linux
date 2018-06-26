@@ -16,7 +16,7 @@ public:
 	CPortal();
 	virtual ~CPortal();
 
-	virtual class std::shared_ptr<CPortal> AsPortal() { return GetPointer<CPortal>(); }
+	virtual class std::shared_ptr<CPortal> AsPortal() { return std::static_pointer_cast<CPortal>(GetPointer()); }
 
 	virtual int Use(std::shared_ptr<CPlayerWeenie> ) override;
 	virtual void Tick() override;

@@ -96,5 +96,5 @@ void CPhysicsObj::Movement_UpdateVector()
 	moveMsg.Write<WORD>(_instance_timestamp);
 	moveMsg.Write<WORD>(++_vector_timestamp);
 
-	g_pWorld->BroadcastPVS(GetPointer<CWeenieObject>(), moveMsg.GetData(), moveMsg.GetSize(), OBJECT_MSG);
+	g_pWorld->BroadcastPVS(GetPointer(), moveMsg.GetData(), moveMsg.GetSize(), OBJECT_MSG);
 }

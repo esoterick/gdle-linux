@@ -161,7 +161,7 @@ CLIENT_COMMAND(spawnportal, "", "Spawns a dysfunctional portal near you.", ADMIN
 		return false;
 	}
 
-	std::shared_ptr<CPortal> pPortal = std::shared_ptr<CPortal>((new CPortal())->GetPointer<CPortal>(true));
+	std::shared_ptr<CPortal> pPortal = std::shared_ptr<CPortal>((new CPortal())->GetPointer(true)->AsPortal());
 	pPortal->SetInitialPosition(pPlayer->GetPosition());
 	g_pWorld->CreateEntity(pPortal);
 
@@ -175,7 +175,7 @@ CLIENT_COMMAND(spawndoor, "", "Spawns a door at your location.", ADMIN_ACCESS)
 		return false;
 	}
 
-	std::shared_ptr<CWeenieObject> pDoor = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>(true));
+	std::shared_ptr<CWeenieObject> pDoor = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer(true)->AsWeenie());
 	pDoor->SetInitialPosition(pPlayer->GetPosition());
 	g_pWorld->CreateEntity(pDoor);
 
@@ -394,7 +394,7 @@ CLIENT_COMMAND(spawnorbiter, "", "Just a test.", BASIC_ACCESS)
 	if (argc < 3)
 		return true;
 
-	std::shared_ptr<CTargetDrudge> pDrudge = std::shared_ptr<CTargetDrudge>((new CTargetDrudge())->GetPointer<CTargetDrudge>(true));
+	std::shared_ptr<CTargetDrudge> pDrudge = std::shared_ptr<CTargetDrudge>((new CTargetDrudge())->GetPointer(true)->AsTargetDrudge());
 	pDrudge->SetID(g_pWorld->GenerateGUID(eDynamicGUID));
 	pDrudge->m_Position = player_physobj->m_Position;
 	pDrudge->m_Position.frame.m_origin.x += 10.0f;
@@ -1043,7 +1043,7 @@ CLIENT_COMMAND(spawnbael, "", "Spawns Bael'Zharon.", ADMIN_ACCESS)
 		return false;
 	}
 
-	std::shared_ptr<CBaelZharon> pBael = std::shared_ptr<CBaelZharon>((new CBaelZharon())->GetPointer<CBaelZharon>(true));
+	std::shared_ptr<CBaelZharon> pBael = std::shared_ptr<CBaelZharon>((new CBaelZharon())->GetPointer(true)->AsBaelZharon());
 	pBael->SetInitialPosition(pPlayer->GetPosition());
 	g_pWorld->CreateEntity(pBael);
 
@@ -1104,7 +1104,7 @@ CLIENT_COMMAND(targetdrudge, "", "Spawns a Target Drudge.", BASIC_ACCESS)
 		return false;
 	}
 
-	std::shared_ptr<CTargetDrudge> pDrudge = std::shared_ptr<CTargetDrudge>((new CTargetDrudge())->GetPointer<CTargetDrudge>(true));
+	std::shared_ptr<CTargetDrudge> pDrudge = std::shared_ptr<CTargetDrudge>((new CTargetDrudge())->GetPointer(true)->AsTargetDrudge());
 	pDrudge->SetInitialPosition(pPlayer->GetPosition().add_offset(Vector(0, 0, 1.0f)));
 
 	g_pWorld->CreateEntity(pDrudge);
@@ -1142,7 +1142,7 @@ CLIENT_COMMAND(spawnwand, "", "Spawns a wand.", BASIC_ACCESS)
 
 	/*
 
-	CBaseWand* pWand = std::shared_ptr<CBaseWand>((new CBaseWand())->GetPointer<CBaseWand>(true));
+	CBaseWand* pWand = std::shared_ptr<CBaseWand>((new CBaseWand())->GetPointer(true)->AsBaseWand());
 	pWand->SetInitialPosition(pPlayer->GetPosition());
 	pWand->m_bDontClear = false;
 	g_pWorld->CreateEntity(pWand);
@@ -1214,7 +1214,7 @@ CLIENT_COMMAND(spawnmodel, "<model index> [scale=1] [name=*]", "Spawns a model."
 	float flScale = max(0.1, min(10, (float)((argc >= 2) ? atof(argv[1]) : 1.0f)));
 	const char* szName = (argc >= 3) ? argv[2] : csprintf("Model #%08X", dwModel);
 
-	std::shared_ptr<CWeenieObject> pSpawn = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>(true));
+	std::shared_ptr<CWeenieObject> pSpawn = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer(true)->AsWeenie());
 	pSpawn->SetSetupID(dwModel);
 	pSpawn->SetScale(flScale);
 	pSpawn->SetName(szName);
@@ -1265,7 +1265,7 @@ CLIENT_COMMAND(spawnmodels, "<start index> <end index>", "Spawns a range of mode
 	int y = 0;
 	for (DWORD i = dwModelStart; i <= dwModelEnd; i++)
 	{
-		std::shared_ptr<CWeenieObject> pSpawn = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>(true));
+		std::shared_ptr<CWeenieObject> pSpawn = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer(true)->AsWeenie());
 		pSpawn->SetSetupID(i);
 		pSpawn->SetScale(1.0f);
 		pSpawn->SetName(csprintf("Model #%08X", i));
@@ -1310,7 +1310,7 @@ CLIENT_COMMAND(spawnmonster2, "<model index> <base palette>", "Spawns a monster.
 	dwPalette1 &= 0xFFFFF;
 	dwPalette2 &= 0xFFFFF;
 
-	std::shared_ptr<CMonsterWeenie> pSpawn = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer<CMonsterWeenie>(true));
+	std::shared_ptr<CMonsterWeenie> pSpawn = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer(true)->AsMonster());
 	pSpawn->SetSetupID(dwModel);
 	pSpawn->m_scale = 1.0f;
 	pSpawn->SetName(csprintf("0x%X 0x%X 0x%X", dwModel, dwPalette1, dwPalette2));
@@ -1347,7 +1347,7 @@ CLIENT_COMMAND(spawnmonster, "<model index> [scale=1] [name=*] [dotcolor]", "Spa
 	const char* szName = (argc >= 3) ? argv[2] : csprintf("Model #%08X", dwModel);
 	int dotColor = (int)((argc >= 4) ? atoi(argv[3]) : 0);
 
-	std::shared_ptr<CMonsterWeenie> pSpawn = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer<CMonsterWeenie>(true));
+	std::shared_ptr<CMonsterWeenie> pSpawn = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer(true)->AsMonster());
 	pSpawn->SetSetupID(dwModel);
 	pSpawn->SetScale(flScale);
 	pSpawn->SetName(szName);
@@ -1381,7 +1381,7 @@ CLIENT_COMMAND(spawnitem, "<model index> [scale=1] [name=*]", "Spawns an item.",
 	float flScale = max(0.1, min(10, (float)((argc >= 2) ? atof(argv[1]) : 1.0f)));
 	const char* szName = (argc >= 3) ? argv[2] : csprintf("Model #%08X", dwModel);
 
-	std::shared_ptr<CWeenieObject> pSpawn = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer<CWeenieObject>(true));
+	std::shared_ptr<CWeenieObject> pSpawn = std::shared_ptr<CWeenieObject>((new CWeenieObject())->GetPointer(true)->AsWeenie());
 	pSpawn->m_Qualities.SetBool(STUCK_BOOL, FALSE);
 	pSpawn->SetSetupID(dwModel);
 	pSpawn->SetScale(flScale);
@@ -1400,7 +1400,7 @@ CLIENT_COMMAND(spawnlifestone, "", "Spawns a lifestone.", ADVOCATE_ACCESS)
 	if (!SpawningEnabled(pPlayer))
 		return false;
 
-	std::shared_ptr<CBaseLifestone> pSpawn = std::shared_ptr<CBaseLifestone>((new CBaseLifestone())->GetPointer<CBaseLifestone>(true));
+	std::shared_ptr<CBaseLifestone> pSpawn = std::shared_ptr<CBaseLifestone>((new CBaseLifestone())->GetPointer(true)->AsLifestone());
 	pSpawn->SetInitialPosition(pPlayer->GetPosition());
 	g_pWorld->CreateEntity(pSpawn);
 
@@ -1935,7 +1935,7 @@ CLIENT_COMMAND(test, "<index>", "Performs the specified test.", ADMIN_ACCESS)
 
 #if 0
 	case 3: {
-			std::shared_ptr<CBaseItem> pSpawn = std::shared_ptr<CBaseItem>((new CBaseItem())->GetPointer<CBaseItem>(true));
+			std::shared_ptr<CBaseItem> pSpawn = std::shared_ptr<CBaseItem>((new CBaseItem())->GetPointer(true)->AsBaseItem());
 			pSpawn->m_Position = position;
 			g_pWorld->CreateEntity(pSpawn);
 
@@ -1946,7 +1946,7 @@ CLIENT_COMMAND(test, "<index>", "Performs the specified test.", ADMIN_ACCESS)
 			break;
 		}
 	case 4: {
-			std::shared_ptr<CBaseItem> pSpawn = std::shared_ptr<CBaseItem>((new CBaseItem())->GetPointer<CBaseItem>(true));
+			std::shared_ptr<CBaseItem> pSpawn = std::shared_ptr<CBaseItem>((new CBaseItem())->GetPointer(true)->AsBaseItem());
 			pSpawn->m_Position = position;
 			g_pWorld->CreateEntity(pSpawn);
 
@@ -2609,7 +2609,7 @@ CLIENT_COMMAND(doomshard, "[palette=0xBF7]", "Spawns a doom shard.", BASIC_ACCES
 	if (argc >= 1)
 		palette = (unsigned short)strtoul(argv[0], NULL, 16);
 
-	std::shared_ptr<CMonsterWeenie> pDoomShard = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer<CMonsterWeenie>(true));
+	std::shared_ptr<CMonsterWeenie> pDoomShard = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer(true)->AsMonster());
 	pDoomShard->SetSetupID(0x02000700);
 	pDoomShard->SetScale(1.6f);
 	pDoomShard->SetName("Doom Shard");
@@ -2664,7 +2664,7 @@ CLIENT_COMMAND(spawnsetup, "[id]", "Spawns something by setup ID using default p
 		return false;
 	}
 
-	std::shared_ptr<CMonsterWeenie> pSpawn = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer<CMonsterWeenie>(true));
+	std::shared_ptr<CMonsterWeenie> pSpawn = std::shared_ptr<CMonsterWeenie>((new CMonsterWeenie())->GetPointer(true)->AsMonster());
 	pSpawn->SetSetupID(setupID);
 	pSpawn->SetName(csprintf("Model #%08X", setupID));
 	pSpawn->SetInitialPosition(pPlayer->GetPosition());
@@ -3787,7 +3787,7 @@ CLIENT_COMMAND(spawnavatarvendor, "[name]", "Spawn avatar vendor.", ADMIN_ACCESS
 		return false;
 	}
 
-	std::shared_ptr<CAvatarVendor> pVendor = std::shared_ptr<CAvatarVendor>((new CAvatarVendor())->GetPointer<CAvatarVendor>(true));
+	std::shared_ptr<CAvatarVendor> pVendor = std::shared_ptr<CAvatarVendor>(std::static_pointer_cast<CAvatarVendor>((new CAvatarVendor())->GetPointer(true)));
 	g_pWeenieFactory->ApplyWeenieDefaults(pVendor, 719);
 
 	SafeDelete(pVendor->m_Qualities._emote_table);

@@ -246,7 +246,7 @@ void CPlayerWeenie::Tick()
 
 	if (m_NextHealthUpdate <= Timer::cur_time)
 	{
-		std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(GetPointer<CWeenieObject>(), m_LastHealthRequest);
+		std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(AsWeenie(), m_LastHealthRequest);
 		if ( pTarget )
 		{
 			if (std::shared_ptr<CMonsterWeenie> pMonster = pTarget->AsMonster())
@@ -337,9 +337,9 @@ void CPlayerWeenie::MakeAware(std::shared_ptr<CWeenieObject> pEntity, bool bForc
 		{
 			if (std::shared_ptr<CPhysicsObj> pChild = pEntity->children->objects.array_data[i].lock())
 			{
-				if (std::shared_ptr<CWeenieObject> pChildWeenie = pChild->GetPointer<CWeenieObject>())
+				if (std::shared_ptr<CWeenieObject> pChildWeenie = pChild->AsWeenie())
 				{
-					if (BinaryWriter *CM = std::dynamic_pointer_cast<CWeenieObject>(pEntity)->CreateMessage())
+					if (BinaryWriter *CM = pEntity->CreateMessage())
 					{
 						SendNetMessage(CM, OBJECT_MSG);
 					}
@@ -348,7 +348,7 @@ void CPlayerWeenie::MakeAware(std::shared_ptr<CWeenieObject> pEntity, bool bForc
 		}
 	}
 
-	if (pEntity == GetPointer<CWeenieObject>())
+	if (pEntity == AsWeenie())
 	{
 		// make aware of inventory too
 		for (auto item : m_Wielded)
@@ -369,7 +369,7 @@ void CPlayerWeenie::MakeAware(std::shared_ptr<CWeenieObject> pEntity, bool bForc
 
 			if (std::shared_ptr<CContainerWeenie> container = pItem->AsContainer())
 			{
-				container->MakeAwareViewContent(GetPointer<CWeenieObject>());
+				container->MakeAwareViewContent(AsWeenie());
 			}
 		}
 	}
@@ -431,7 +431,7 @@ std::string CPlayerWeenie::RemoveLastAssessed()
 {
 	if (m_LastAssessed != 0)
 	{
-		std::shared_ptr<CWeenieObject> pObject = g_pWorld->FindWithinPVS(GetPointer<CWeenieObject>(), m_LastAssessed);
+		std::shared_ptr<CWeenieObject> pObject = g_pWorld->FindWithinPVS(AsWeenie(), m_LastAssessed);
 
 		if (pObject && !pObject->AsPlayer() && !pObject->m_bDontClear) {
 			std::string name = pObject->GetName();
@@ -969,7 +969,7 @@ void CPlayerWeenie::NotifyInventoryFailedEvent(DWORD object_id, int error)
 
 bool CPlayerWeenie::ImmuneToDamage(std::shared_ptr<CWeenieObject> other)
 {
-	if (GetPointer<CWeenieObject>() != other)
+	if (AsWeenie() != other)
 	{
 		if (other && other->AsPlayer())
 		{
@@ -1780,7 +1780,7 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, std::sh
 		requirementTarget = pTool;
 		break;
 	case 2:
-		requirementTarget = GetPointer<CWeenieObject>();
+		requirementTarget = AsWeenie();
 		break;
 	default:
 #ifdef _DEBUG
@@ -2567,7 +2567,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 			switch (intMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = GetPointer<CWeenieObject>();
+				modificationSource = AsWeenie();
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -2641,7 +2641,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 			switch (boolMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = GetPointer<CWeenieObject>();
+				modificationSource = AsWeenie();
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -2705,7 +2705,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 			switch (floatMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = GetPointer<CWeenieObject>();
+				modificationSource = AsWeenie();
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -2771,7 +2771,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 			switch (stringMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = GetPointer<CWeenieObject>();
+				modificationSource = AsWeenie();
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -2859,7 +2859,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 			switch (didMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = GetPointer<CWeenieObject>();
+				modificationSource = AsWeenie();
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -2923,7 +2923,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 			switch (iidMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = GetPointer<CWeenieObject>();
+				modificationSource = AsWeenie();
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -3203,7 +3203,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	if (!pTool)
 		return;
 
-	if (pTool->GetWorldTopLevelOwner() != GetPointer<CWeenieObject>())
+	if (pTool->GetWorldTopLevelOwner() != AsWeenie())
 	{
 		NotifyWeenieError(WERROR_SALVAGE_DONT_OWN_TOOL);
 		return;
@@ -3241,7 +3241,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 			return;
 		}
 
-		if (pItem->GetWorldTopLevelOwner() != GetPointer<CWeenieObject>())
+		if (pItem->GetWorldTopLevelOwner() != AsWeenie())
 		{
 			NotifyWeenieError(WERROR_SALVAGE_DONT_OWN_LOOT);
 			notSalvagable.push_back(pItem->GetID());
@@ -3403,7 +3403,7 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	}
 	//End of temporary code
 
-	g_pAllegianceManager->SetWeenieAllegianceQualities(GetPointer<CWeenieObject>());
+	g_pAllegianceManager->SetWeenieAllegianceQualities(AsWeenie());
 	m_Qualities.SetFloat(LOGIN_TIMESTAMP_FLOAT, Timer::cur_time);
 
 	// Position startPos = Position(0xDB75003B, Vector(186.000000f, 65.000000f, 36.088333f), Quaternion(1.000000, 0.000000, 0.000000, 0.000000));
