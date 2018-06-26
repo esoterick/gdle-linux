@@ -116,11 +116,16 @@ BinaryWriter *CPhysicsObj::Animation_GetAnimationInfo(bool bMoveToUpdate)
 			AnimInfo->Write<DWORD>(moveToManager->sought_object_id);
 
 			// _position_timestamp++;
-			CPhysicsObj *pTarget = CPhysicsObj::GetObject(moveToManager->sought_object_id);
-			if (pTarget && !pTarget->parent && pTarget->m_Position.objcell_id != 0)
+			std::shared_ptr<CPhysicsObj> pTarget = CPhysicsObj::GetObject(moveToManager->sought_object_id);
+
+			if (pTarget && !pTarget->parent.lock() && pTarget->m_Position.objcell_id != 0)
+			{
 				pTarget->m_Position.PackOrigin(AnimInfo);
+			}
 			else
+			{
 				m_Position.PackOrigin(AnimInfo);
+			}
 
 			moveToManager->movement_params.PackNet(MovementTypes::MoveToObject, AnimInfo);
 
@@ -133,9 +138,11 @@ BinaryWriter *CPhysicsObj::Animation_GetAnimationInfo(bool bMoveToUpdate)
 
 			float heading = 0.0f;
 
-			CPhysicsObj *pTarget = CPhysicsObj::GetObject(moveToManager->sought_object_id);
-			if (pTarget && !pTarget->parent)
+			std::shared_ptr<CPhysicsObj> pTarget = CPhysicsObj::GetObject(moveToManager->sought_object_id);
+			if (pTarget && !pTarget->parent.lock())
+			{
 				m_Position.heading(pTarget->m_Position);
+			}
 
 			AnimInfo->Write<float>(heading);
 			moveToManager->movement_params.PackNet(MovementTypes::TurnToObject, AnimInfo);
@@ -157,8 +164,12 @@ void CPhysicsObj::Animation_Update()
 {
 	m_bAnimUpdate = FALSE;
 
-	if (parent)
+	if (parent.lock())
+	{
 		return;
+	}
+
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
 	
 	BinaryWriter AnimUpdate;
 	AnimUpdate.Write<DWORD>(0xF74C);
@@ -166,7 +177,7 @@ void CPhysicsObj::Animation_Update()
 	AnimUpdate.Write<WORD>(_instance_timestamp);
 	AnimUpdate.Write<WORD>(++_movement_timestamp);
 	AnimUpdate.Write<WORD>(_server_control_timestamp);
-	AnimUpdate.Write<BYTE>((weenie_obj && weenie_obj->AsPlayer()) ? last_move_was_autonomous : 0);
+	AnimUpdate.Write<BYTE>((pWeenie && pWeenie->AsPlayer()) ? last_move_was_autonomous : 0);
 	AnimUpdate.Align();
 
 	last_move_was_autonomous = true;
@@ -175,13 +186,22 @@ void CPhysicsObj::Animation_Update()
 	AnimUpdate.Write(AnimInfo);
 	delete AnimInfo;
 
-	g_pWorld->BroadcastPVS(this, AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	if (std::shared_ptr<CWeenieObject> pWeenie = AsWeenie())
+	{
+		g_pWorld->BroadcastPVS(pWeenie, AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	}
+	else
+	{
+		g_pWorld->BroadcastPVS(GetPointer(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	}
 }
 
 void CPhysicsObj::Animation_MoveToUpdate()
 {
-	if (parent)
+	if (parent.lock())
+	{
 		return;
+	}
 	
 	last_move_was_autonomous = false;
 
@@ -198,7 +218,14 @@ void CPhysicsObj::Animation_MoveToUpdate()
 	AnimUpdate.Write(AnimInfo);
 	delete AnimInfo;
 
-	g_pWorld->BroadcastPVS(this, AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	if (std::shared_ptr<CWeenieObject> pWeenie = AsWeenie())
+	{
+		g_pWorld->BroadcastPVS(pWeenie, AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	}
+	else
+	{
+		g_pWorld->BroadcastPVS(GetPointer(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	}
 
 	last_move_was_autonomous = false;
 }

@@ -9,7 +9,7 @@ public:
 	CCorpseWeenie();
 	virtual ~CCorpseWeenie() override;
 
-	virtual class CCorpseWeenie *AsCorpse() { return this; }
+	virtual class std::shared_ptr<CCorpseWeenie> AsCorpse() { return std::static_pointer_cast<CCorpseWeenie>(GetPointer()); }
 
 	virtual void Tick() override;
 	virtual void ApplyQualityOverrides() override;
@@ -17,12 +17,12 @@ public:
 	void SetObjDesc(const ObjDesc &desc);
 	virtual void GetObjDesc(ObjDesc &objDesc) override;
 
-	virtual int CheckOpenContainer(CWeenieObject *other) override;
+	virtual int CheckOpenContainer(std::shared_ptr<CWeenieObject> other) override;
 
 	void BeginGracefulDestroy();
 
-	virtual void OnContainerOpened(CWeenieObject *other) override;
-	virtual void OnContainerClosed(CWeenieObject *other) override;
+	virtual void OnContainerOpened(std::shared_ptr<CWeenieObject> other) override;
+	virtual void OnContainerClosed(std::shared_ptr<CWeenieObject> other) override;
 	
 	virtual void SaveEx(class CWeenieSave &save) override;
 	void RemoveEx();

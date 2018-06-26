@@ -16,7 +16,7 @@
 #define MESSAGE_BEGIN(x)	BinaryWriter *x = new BinaryWriter
 #define MESSAGE_END(x)		return x
 
-BinaryWriter *GetWeenieObjData(CWeenieObject *pEntity)
+BinaryWriter *GetWeenieObjData(std::shared_ptr<CWeenieObject> pEntity)
 {
 	BinaryWriter *pWriter = new BinaryWriter;
 
@@ -151,7 +151,7 @@ BinaryWriter *GetWeenieObjData(CWeenieObject *pEntity)
 #endif
 }
 
-BinaryWriter *GetPhysicsObjData(CWeenieObject *pEntity)
+BinaryWriter *GetPhysicsObjData(std::shared_ptr<CWeenieObject> pEntity)
 {
 	BinaryWriter OptionalPhysicsObjData;
 	DWORD dwSections = 0; //0x019803
@@ -209,10 +209,10 @@ BinaryWriter *GetPhysicsObjData(CWeenieObject *pEntity)
 		OptionalPhysicsObjData.Write<DWORD>(setup_id);
 	}
 
-	if (pEntity->parent)
+	if (std::shared_ptr<CPhysicsObj> pParent = pEntity->parent.lock())
 	{
 		dwSections |= PhysicsDescInfo::PARENT;
-		OptionalPhysicsObjData.Write<DWORD>(pEntity->parent->id);
+		OptionalPhysicsObjData.Write<DWORD>(pParent->id);
 		OptionalPhysicsObjData.Write<DWORD>(pEntity->InqIntQuality(PARENT_LOCATION_INT, 0));
 	}
 
@@ -223,8 +223,11 @@ BinaryWriter *GetPhysicsObjData(CWeenieObject *pEntity)
 
 		for (DWORD i = 0; i < pEntity->children->num_objects; i++)
 		{
-			OptionalPhysicsObjData.Write<DWORD>(pEntity->children->objects.array_data[i]->id);
-			OptionalPhysicsObjData.Write<DWORD>(pEntity->children->location_ids.array_data[i]);
+			if (std::shared_ptr<CPhysicsObj> pChild = pEntity->children->objects.array_data[i].lock())
+			{
+				OptionalPhysicsObjData.Write<DWORD>(pChild->id);
+				OptionalPhysicsObjData.Write<DWORD>(pEntity->children->location_ids.array_data[i]);
+			}
 		}
 	}
 
@@ -303,7 +306,7 @@ BinaryWriter *GetPhysicsObjData(CWeenieObject *pEntity)
 	return PhysicsObjData;
 }
 
-BinaryWriter *CreateObject(CWeenieObject *pEntity)
+BinaryWriter *CreateObject(std::shared_ptr<CWeenieObject> pEntity)
 {
 	BinaryWriter *CO = new BinaryWriter;
 
@@ -326,7 +329,7 @@ BinaryWriter *CreateObject(CWeenieObject *pEntity)
 	return CO;
 }
 
-BinaryWriter *UpdateObject(CWeenieObject *pEntity)
+BinaryWriter *UpdateObject(std::shared_ptr<CWeenieObject> pEntity)
 {
 	BinaryWriter *UO = new BinaryWriter;
 
@@ -359,7 +362,7 @@ BinaryWriter *UpdateObject(CWeenieObject *pEntity)
 	return UO;
 }
 
-BinaryWriter *IdentifyObjectFail(CWeenieObject *pEntity, bool bShowLevel)
+BinaryWriter *IdentifyObjectFail(std::shared_ptr<CWeenieObject> pEntity, bool bShowLevel)
 {
 	BinaryWriter *pWriter = new BinaryWriter;
 
@@ -528,7 +531,7 @@ BinaryWriter *IdentifyObjectFail(CWeenieObject *pEntity, bool bShowLevel)
 	return pWriter;
 }
 
-BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWORD overrideId)
+BinaryWriter *IdentifyObject(std::shared_ptr<CWeenieObject> pSource, std::shared_ptr<CWeenieObject> pEntity, DWORD overrideId)
 {
 	BinaryWriter *pWriter = new BinaryWriter;
 
@@ -548,12 +551,12 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 	DWORD characterOptions;
 	DWORD characterOptions2;
 
-	if (CPlayerWeenie *pPlayerSource = pSource->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> pPlayerSource = pSource->AsPlayer())
 	{
 		bIsSourceAdmin = pPlayerSource->GetAccessLevel() >= ADMIN_ACCESS;
 	}
 
-	if (CPlayerWeenie *pPlayer = pEntity->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> pPlayer = pEntity->AsPlayer())
 	{
 		bIsPlayer = true;
 		characterOptions = pPlayer->GetCharacterOptions();
@@ -1010,7 +1013,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 	return pWriter;
 }
 
-BinaryWriter *LoginCharacter(CPlayerWeenie *pPlayer)
+BinaryWriter *LoginCharacter(std::shared_ptr<CPlayerWeenie> pPlayer)
 {
 	BinaryWriter *LC = new BinaryWriter;
 
@@ -1051,16 +1054,28 @@ BinaryWriter *LoginCharacter(CPlayerWeenie *pPlayer)
 	PackableList<ContentProfile> inventoryList;
 	for (auto item : pPlayer->m_Items)
 	{
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
 		ContentProfile prof;
-		prof.m_iid = item->GetID();
+		prof.m_iid = pItem->GetID();
 		prof.m_uContainerProperties = 0;
 		inventoryList.push_back(prof);
 	}
 	for (auto item : pPlayer->m_Packs)
 	{
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
 		ContentProfile prof;
-		prof.m_iid = item->GetID();
-		prof.m_uContainerProperties = item->AsContainer() ? 1 : 2;
+		prof.m_iid = pItem->GetID();
+		prof.m_uContainerProperties = pItem->AsContainer() ? 1 : 2;
 		inventoryList.push_back(prof);
 	}
 	inventoryList.Pack(LC);
@@ -1068,10 +1083,16 @@ BinaryWriter *LoginCharacter(CPlayerWeenie *pPlayer)
 	PackableList<InventoryPlacement> wieldedList;
 	for (auto wielded : pPlayer->m_Wielded)
 	{
+		std::shared_ptr<CWeenieObject> pItem = wielded.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
 		InventoryPlacement place;
-		place.iid_ = wielded->GetID();
-		place.loc_ = wielded->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0);
-		place.priority_ = wielded->InqIntQuality(CLOTHING_PRIORITY_INT, 0);
+		place.iid_ = pItem->GetID();
+		place.loc_ = pItem->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0);
+		place.priority_ = pItem->InqIntQuality(CLOTHING_PRIORITY_INT, 0);
 		wieldedList.push_back(place);
 	}
 	wieldedList.Pack(LC);
@@ -1079,7 +1100,7 @@ BinaryWriter *LoginCharacter(CPlayerWeenie *pPlayer)
 	return LC;
 }
 
-BinaryWriter *HealthUpdate(CWeenieObject *pWeenie)
+BinaryWriter *HealthUpdate(std::shared_ptr<CWeenieObject> pWeenie)
 {
 	MESSAGE_BEGIN(HealthUpdate);
 
@@ -1096,7 +1117,7 @@ BinaryWriter *HealthUpdate(CWeenieObject *pWeenie)
 	MESSAGE_END(HealthUpdate);
 }
 
-BinaryWriter *ItemManaUpdate(CWeenieObject *item)
+BinaryWriter *ItemManaUpdate(std::shared_ptr<CWeenieObject> item)
 {
 	MESSAGE_BEGIN(ItemManaUpdate);
 
@@ -1159,7 +1180,7 @@ BinaryWriter *InventoryDrop(DWORD dwItemID)
 	MESSAGE_END(InventoryDrop);
 }
 
-BinaryWriter *MoveUpdate(CWeenieObject *pEntity)
+BinaryWriter *MoveUpdate(std::shared_ptr<CWeenieObject> pEntity)
 {
 	BinaryWriter *pWriter = new BinaryWriter();
 

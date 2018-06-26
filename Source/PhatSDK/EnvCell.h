@@ -86,7 +86,7 @@ public:
 	void check_building_transit(int portal_id, Position *p, const unsigned int num_sphere, CSphere *sphere, CELLARRAY *cell_array, SPHEREPATH *path);
 	void check_building_transit(int portal_id, const unsigned int num_parts, CPhysicsPart **parts, CELLARRAY *cell_array);
 
-	CPhysicsObj *recursively_get_object(DWORD obj_iid, PackableHashTable<unsigned long, int> *visited_cells);
+	std::shared_ptr<CPhysicsObj> recursively_get_object(DWORD obj_iid, PackableHashTable<unsigned long, int> *visited_cells);
 
 	// custom, this doesn't really exist
 	bool Custom_GetDungeonDrop(int dropIndex, Frame *pDropFrame, int *pNumDrops);
@@ -100,7 +100,7 @@ public:
 	DWORD num_static_objects; // 0x110
 	DWORD *static_object_ids; // 0x114
 	Frame *static_object_frames; // 0x118
-	CPhysicsObj **static_objects; // 0x11C
+	std::vector<std::shared_ptr<CPhysicsObj>> static_objects; // 0x11C
 	LPVOID light_array; // 0x120
 	int incell_timestamp = 0;
 

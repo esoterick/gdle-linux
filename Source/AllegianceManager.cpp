@@ -71,7 +71,7 @@ void AllegianceTreeNode::FillAllegianceNode(AllegianceNode *node)
 //	node->_data._time_online = _ingameSecondsSworn; what unit is this and what does the client do with this information?
 }
 
-void AllegianceTreeNode::UpdateWithWeenie(CWeenieObject *weenie)
+void AllegianceTreeNode::UpdateWithWeenie(std::shared_ptr<CWeenieObject> weenie)
 {
 	_charID = weenie->GetID();
 	_charName = weenie->GetName();	
@@ -194,7 +194,7 @@ void AllegianceManager::WalkTreeAndBumpOnlineTime(AllegianceTreeNode *node, int 
 	// There's probably a better way of maintaining number of seconds of online-time.
 	for (auto &entry : node->_vassals) {
 		AllegianceTreeNode *vassal = entry.second;
-		CPlayerWeenie *target = g_pWorld->FindPlayer(vassal->_charID);
+		std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(vassal->_charID);
 		if (target)
 			vassal->_ingameSecondsSworn += onlineSecondsDelta;
 		WalkTreeAndBumpOnlineTime(vassal, onlineSecondsDelta);
@@ -350,7 +350,7 @@ void AllegianceManager::NotifyTreeRefreshRecursively(AllegianceTreeNode *node)
 	if (!node)
 		return;
 
-	CWeenieObject *weenie = g_pWorld->FindPlayer(node->_charID);
+	std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindPlayer(node->_charID);
 	if (weenie)
 	{
 		/*
@@ -389,7 +389,7 @@ AllegianceInfo *AllegianceManager::GetInfo(DWORD monarchID)
 	return NULL;
 }
 
-void AllegianceManager::SetWeenieAllegianceQualities(CWeenieObject *weenie)
+void AllegianceManager::SetWeenieAllegianceQualities(std::shared_ptr<CWeenieObject> weenie)
 {
 	if (!weenie)
 		return;
@@ -540,7 +540,7 @@ AllegianceProfile *AllegianceManager::CreateAllegianceProfile(DWORD char_id, uns
 
 const unsigned int MAX_DIRECT_VASSALS = 11;
 
-int AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject *target)
+int AllegianceManager::TrySwearAllegiance(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> target)
 {
 	if (source->IsBusyOrInAction())
 		return WERROR_ACTIONS_LOCKED;
@@ -550,7 +550,7 @@ int AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject *
 	if (source->DistanceTo(target) >= 4.0)
 		return WERROR_TOO_FAR;
 
-	if (CPlayerWeenie *player = target->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> player = target->AsPlayer())
 	{
 		if (player->GetCharacterOptions() & IgnoreAllegianceRequests_CharacterOption)
 			return WERROR_ALLEGIANCE_IGNORING_REQUESTS;
@@ -714,7 +714,7 @@ void AllegianceManager::BreakAllegiance(AllegianceTreeNode *patronNode, Allegian
 	Save();
 }
 
-int AllegianceManager::TryBreakAllegiance(CWeenieObject *source, DWORD target_id)
+int AllegianceManager::TryBreakAllegiance(std::shared_ptr<CWeenieObject> source, DWORD target_id)
 {
 	AllegianceTreeNode *selfTreeNode = g_pAllegianceManager->GetTreeNode(source->GetID());
 	if (!selfTreeNode)
@@ -749,7 +749,7 @@ int AllegianceManager::TryBreakAllegiance(CWeenieObject *source, DWORD target_id
 
 	source->SendText(csprintf(" You have broken your Allegiance to %s!", targetCharName.c_str()), LTT_DEFAULT);
 
-	CWeenieObject *target = g_pWorld->FindPlayer(target_id);
+	std::shared_ptr<CWeenieObject> target = g_pWorld->FindPlayer(target_id);
 	if (target)
 		target->SendText(csprintf("%s has broken their Allegiance to you!", source->GetName().c_str()), LTT_DEFAULT);
 
@@ -861,7 +861,7 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 		patron->_cp_cached += passupAmount;
 		patron->_cp_pool_to_unload = min(4294967295ull, patron->_cp_pool_to_unload + passupAmount);
 
-		CWeenieObject *patron_weenie = g_pWorld->FindPlayer(patron->_charID);
+		std::shared_ptr<CWeenieObject> patron_weenie = g_pWorld->FindPlayer(patron->_charID);
 		if (patron_weenie)
 			patron_weenie->TryToUnloadAllegianceXP(false);
 
@@ -875,11 +875,11 @@ void AllegianceManager::ChatMonarch(DWORD sender_id, const char *text)
 	if (!node || !node->_monarchID || node->_monarchID == sender_id) // no allegiance
 		return;
 
-	CWeenieObject *sender_weenie = g_pWorld->FindPlayer(sender_id);
+	std::shared_ptr<CWeenieObject> sender_weenie = g_pWorld->FindPlayer(sender_id);
 	if (!sender_weenie)
 		return;
 
-	CWeenieObject *target = g_pWorld->FindPlayer(node->_monarchID);
+	std::shared_ptr<CWeenieObject> target = g_pWorld->FindPlayer(node->_monarchID);
 	if (!target)
 		return;
 
@@ -893,11 +893,11 @@ void AllegianceManager::ChatPatron(DWORD sender_id, const char *text)
 	if (!node || !node->_patronID) // no allegiance
 		return;
 
-	CWeenieObject *sender_weenie = g_pWorld->FindPlayer(sender_id);
+	std::shared_ptr<CWeenieObject> sender_weenie = g_pWorld->FindPlayer(sender_id);
 	if (!sender_weenie)
 		return;
 
-	CWeenieObject *target = g_pWorld->FindPlayer(node->_patronID);
+	std::shared_ptr<CWeenieObject> target = g_pWorld->FindPlayer(node->_patronID);
 	if (!target)
 		return;
 
@@ -911,7 +911,7 @@ void AllegianceManager::ChatVassals(DWORD sender_id, const char *text)
 	if (!node) // no allegiance
 		return;
 
-	CWeenieObject *sender_weenie = g_pWorld->FindPlayer(sender_id);
+	std::shared_ptr<CWeenieObject> sender_weenie = g_pWorld->FindPlayer(sender_id);
 	if (!sender_weenie)
 		return;
 
@@ -919,7 +919,7 @@ void AllegianceManager::ChatVassals(DWORD sender_id, const char *text)
 
 	for (auto &entry : node->_vassals)
 	{
-		CWeenieObject *target = g_pWorld->FindPlayer(entry.second->_charID);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindPlayer(entry.second->_charID);
 		if (!target)
 			continue;
 
@@ -937,7 +937,7 @@ void AllegianceManager::ChatCovassals(DWORD sender_id, const char *text)
 	if (!patron_node) // no patron
 		return;
 
-	CWeenieObject *sender_weenie = g_pWorld->FindPlayer(sender_id);
+	std::shared_ptr<CWeenieObject> sender_weenie = g_pWorld->FindPlayer(sender_id);
 	if (!sender_weenie)
 		return;
 
@@ -948,18 +948,18 @@ void AllegianceManager::ChatCovassals(DWORD sender_id, const char *text)
 		if (entry.second->_charID == sender_id)
 			continue;
 
-		CWeenieObject *target = g_pWorld->FindPlayer(entry.second->_charID);
+		std::shared_ptr<CWeenieObject> target = g_pWorld->FindPlayer(entry.second->_charID);
 		if (target)
 			target->SendNetMessage(ServerText(csprintf("[Co-Vassals] %s says, \"%s\"", sender_weenie->GetName().c_str(), text), LTT_SPEECH_DIRECT), PRIVATE_MSG, FALSE, TRUE);
 	}
 
-	CWeenieObject *patron_weenie = g_pWorld->FindPlayer(node->_patronID);
+	std::shared_ptr<CWeenieObject> patron_weenie = g_pWorld->FindPlayer(node->_patronID);
 	if (patron_weenie)
 		patron_weenie->SendNetMessage(ServerText(csprintf("[Co-Vassals] %s says, \"%s\"", sender_weenie->GetName().c_str(), text), LTT_SPEECH_DIRECT), PRIVATE_MSG, FALSE, TRUE);
 
 }
 
-void AllegianceManager::SendAllegianceProfile(CWeenieObject *pPlayer)
+void AllegianceManager::SendAllegianceProfile(std::shared_ptr<CWeenieObject> pPlayer)
 {
 	unsigned int rank = 0;
 	AllegianceProfile *prof = g_pAllegianceManager->CreateAllegianceProfile(pPlayer->GetID(), &rank);
@@ -978,7 +978,7 @@ void AllegianceManager::SendAllegianceProfile(CWeenieObject *pPlayer)
 	delete prof;
 }
 
-DWORD AllegianceManager::GetCachedMonarchIDForPlayer(CPlayerWeenie *player)
+DWORD AllegianceManager::GetCachedMonarchIDForPlayer(std::shared_ptr<CPlayerWeenie> player)
 {
 	// this data may not be trustworthy, should use tree node for anything important
 	return player->InqIIDQuality(MONARCH_IID, 0);

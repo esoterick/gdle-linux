@@ -19,8 +19,8 @@ public:
 	double DistanceToTarget();
 	double HeadingDifferenceToTarget();
 	bool InUseRange();
-	CWeenieObject *GetTarget();
-	CWeenieObject *GetTool();
+	std::shared_ptr<CWeenieObject> GetTarget();
+	std::shared_ptr<CWeenieObject> GetTool();
 	void MoveToUse();
 
 	virtual void HandleMoveToDone(DWORD error);
@@ -33,7 +33,7 @@ public:
 	virtual bool IsInventoryEvent() { return false; }
 
 	class UseManager *_manager = NULL;
-	class CWeenieObject *_weenie = NULL;
+	class std::weak_ptr<CWeenieObject> _weenie;
 
 	DWORD _target_id = 0;
 	DWORD _tool_id = 0; // when using one item on another item
@@ -146,7 +146,7 @@ public:
 class UseManager
 {
 public:
-	UseManager(class CWeenieObject *weenie);
+	UseManager(class std::shared_ptr<CWeenieObject> weenie);
 	~UseManager();
 
 	void Update();
@@ -166,7 +166,7 @@ public:
 	void MarkForCleanup(CUseEventData *data);
 
 private:
-	class CWeenieObject *_weenie = NULL;
+	class std::weak_ptr<CWeenieObject> _weenie;
 
 	double _next_allowed_use = 0.0;
 	CUseEventData *_useData = NULL;

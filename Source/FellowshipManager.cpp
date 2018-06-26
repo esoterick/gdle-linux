@@ -58,7 +58,7 @@ void Fellowship::UpdateData()
 
 	for (auto &entry : _fellowship_table)
 	{
-		CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first);
+		std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first);
 		if (player)
 		{
 			entry.second._name = player->GetName();
@@ -114,7 +114,7 @@ void Fellowship::UpdateData()
 	}
 }
 
-double Fellowship::CalculateDegradeMod(CWeenieObject *source, CWeenieObject *target)
+double Fellowship::CalculateDegradeMod(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> target)
 {
 	WORD source_block_id = source->m_Position.objcell_id >> 16;
 	WORD source_cell_id = source->m_Position.objcell_id & 0xFFFF;
@@ -139,7 +139,7 @@ double Fellowship::CalculateDegradeMod(CWeenieObject *source, CWeenieObject *tar
 	return max(0.0, min(1.0, 1.0 - ((numClicks - 25.0) / 25.0)));
 }
 
-void Fellowship::GiveXP(CWeenieObject *source, long long amount, bool bShowText)
+void Fellowship::GiveXP(std::shared_ptr<CWeenieObject> source, long long amount, bool bShowText)
 {
 	UpdateData();
 
@@ -154,7 +154,7 @@ void Fellowship::GiveXP(CWeenieObject *source, long long amount, bool bShowText)
 			if (entry.first == source->GetID())
 				entry.second._cp_cache += amount;
 
-			CWeenieObject *other = entry.second._cachedWeenie;
+			std::shared_ptr<CWeenieObject> other = entry.second._cachedWeenie.lock();
 			if (other)
 			{
 				double degradeMod = CalculateDegradeMod(source, other);
@@ -209,7 +209,7 @@ void Fellowship::TickUpdate()
 		if (entry.second._updates)
 #endif
 		{
-			CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first);
+			std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first);
 			if (player)
 				player->SendNetMessage(&updateMessage, PRIVATE_MSG, TRUE, FALSE);
 		}
@@ -230,7 +230,7 @@ void Fellowship::SendUpdate(int updateType)
 
 			for (auto &entry : _fellowship_table)
 			{
-				CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first);
+				std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first);
 				if (player)
 					player->SendNetMessage(&updateMessage, PRIVATE_MSG, TRUE, FALSE);
 			}
@@ -267,7 +267,7 @@ void Fellowship::Disband(DWORD disbander_id)
 	disbandMessage.Write<DWORD>(0x2BF);
 	for (auto &entry : _fellowship_table)
 	{
-		CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first);
+		std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first);
 		if (player)
 		{
 			player->SendNetMessage(&disbandMessage, PRIVATE_MSG, TRUE, FALSE);
@@ -285,14 +285,14 @@ void Fellowship::Dismiss(DWORD dismissee_id)
 
 	for (auto &entry : _fellowship_table)
 	{
-		if (CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first))
+		if (std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first))
 		{
 			player->SendNetMessage(&dismissMessage, PRIVATE_MSG, TRUE, FALSE);
 		}
 	}
 
 	_fellowship_table.remove(dismissee_id);
-	if (CPlayerWeenie *player = g_pWorld->FindPlayer(dismissee_id))
+	if (std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(dismissee_id))
 	{
 		player->m_Qualities.RemoveString(FELLOWSHIP_STRING);
 	}
@@ -307,7 +307,7 @@ void Fellowship::Quit(DWORD quitter_id)
 	quitMessage.Write<DWORD>(quitter_id);
 
 	std::string quitter_name;
-	if (CPlayerWeenie *player = g_pWorld->FindPlayer(quitter_id))
+	if (std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(quitter_id))
 	{
 		player->m_Qualities.RemoveString(FELLOWSHIP_STRING);
 		quitter_name = player->GetName();
@@ -316,7 +316,7 @@ void Fellowship::Quit(DWORD quitter_id)
 
 	for (auto &entry : _fellowship_table)
 	{
-		if (CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first))
+		if (std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first))
 		{
 			player->SendNetMessage(&quitMessage, PRIVATE_MSG, TRUE, FALSE);
 			// player->SendNetMessage(quitText, PRIVATE_MSG, FALSE, FALSE);
@@ -351,7 +351,7 @@ void Fellowship::Recruit(DWORD recruitee_id)
 	
 	for (auto &entry : _fellowship_table)
 	{
-		if (CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first))
+		if (std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first))
 		{
 			if (entry.first == recruitee_id)
 			{
@@ -377,13 +377,13 @@ void Fellowship::ChangeOpen(BOOL open)
 	_open_fellow = open;
 	
 	std::string leader_name;
-	CWeenieObject *leader_weenie = g_pWorld->FindPlayer(_leader);
+	std::shared_ptr<CWeenieObject> leader_weenie = g_pWorld->FindPlayer(_leader);
 	if (leader_weenie)
 		leader_name = leader_weenie->GetName();
 
 	for (auto &entry : _fellowship_table)
 	{
-		CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first);
+		std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first);
 		if (player)
 		{
 			if (entry.first == _leader)
@@ -398,14 +398,14 @@ void Fellowship::AssignNewLeader(DWORD new_leader_id)
 {
 	_leader = new_leader_id;
 
-	CWeenieObject *leader_weenie = g_pWorld->FindPlayer(new_leader_id);
+	std::shared_ptr<CWeenieObject> leader_weenie = g_pWorld->FindPlayer(new_leader_id);
 	if (leader_weenie)
 	{
 		std::string new_leader_name = leader_weenie->GetName();
 
 		for (auto &entry : _fellowship_table)
 		{
-			CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first);
+			std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first);
 			if (player)
 			{
 				if (entry.first == new_leader_id)
@@ -421,7 +421,7 @@ void Fellowship::AssignNewLeader(DWORD new_leader_id)
 
 void Fellowship::Chat(DWORD sender_id, const char *text)
 {
-	CWeenieObject *sender_weenie = g_pWorld->FindPlayer(sender_id);
+	std::shared_ptr<CWeenieObject> sender_weenie = g_pWorld->FindPlayer(sender_id);
 	if (sender_weenie)
 	{
 		sender_weenie->SendNetMessage(ServerText(csprintf("You say to your fellowship, \"%s\"", text), LTT_FELLOWSHIP_CHANNEL), PRIVATE_MSG, FALSE, TRUE);
@@ -431,7 +431,7 @@ void Fellowship::Chat(DWORD sender_id, const char *text)
 		{
 			if (entry.first != sender_id)
 			{
-				CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first);
+				std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first);
 				if (player)
 					player->SendNetMessage(ServerText(csprintf("%s says to your fellowship, \"%s\"", sender_name.c_str(), text), LTT_FELLOWSHIP_CHANNEL), PRIVATE_MSG, FALSE, TRUE);
 			}
@@ -501,8 +501,8 @@ int FellowshipManager::Create(const std::string &name, DWORD creator_id, BOOL sh
 	Fellow f;
 	fs->_fellowship_table.add(creator_id, &f);
 
-	CWeenieObject *playerWeenie = g_pWorld->FindPlayer(creator_id);
-	if (CPlayerWeenie *player = playerWeenie->AsPlayer())
+	std::shared_ptr<CWeenieObject> playerWeenie = g_pWorld->FindPlayer(creator_id);
+	if (std::shared_ptr<CPlayerWeenie> player = playerWeenie->AsPlayer())
 	{
 		player->m_Qualities.SetString(FELLOWSHIP_STRING, name);
 		fs->_share_loot = player->ShareFellowshipLoot();
@@ -559,7 +559,7 @@ int FellowshipManager::Dismiss(const std::string &name, DWORD dismisser_id, DWOR
 	if (fs->_leader != dismisser_id)
 		return WERROR_FELLOWSHIP_NOT_LEADER;
 
-	CWeenieObject *dismissee_weenie = g_pWorld->FindPlayer(dismissee_id);
+	std::shared_ptr<CWeenieObject> dismissee_weenie = g_pWorld->FindPlayer(dismissee_id);
 	if (!dismissee_weenie)
 		return WERROR_NO_OBJECT;
 	if (!dismissee_weenie->HasFellowship())
@@ -592,13 +592,13 @@ int FellowshipManager::Recruit(const std::string &name, DWORD recruiter_id, DWOR
 	if (fs->IsLocked())
 		return WERROR_FELLOWSHIP_LOCKED_RECRUITER;
 
-	CPlayerWeenie *recruiter_weenie = g_pWorld->FindPlayer(recruiter_id);
+	std::shared_ptr<CPlayerWeenie> recruiter_weenie = g_pWorld->FindPlayer(recruiter_id);
 	if (!recruiter_weenie)
 		return WERROR_NO_OBJECT;
 	if (recruiter_weenie->IsBusyOrInAction())
 		return WERROR_ACTIONS_LOCKED;
 
-	CPlayerWeenie *recruited_weenie = g_pWorld->FindPlayer(recruitee_id);
+	std::shared_ptr<CPlayerWeenie> recruited_weenie = g_pWorld->FindPlayer(recruitee_id);
 	if (!recruited_weenie)
 		return WERROR_NO_OBJECT;
 

@@ -12,8 +12,8 @@ public:
 	virtual const char *GetName() = 0;
 	virtual void Think() = 0;
 
-	virtual void OnRemoveEntity(CWeenieObject *pEntity) = 0;
-	virtual void OnTargetAttacked(CWeenieObject *pTarget, CWeenieObject *pSource) = 0;
+	virtual void OnRemoveEntity(std::shared_ptr<CWeenieObject> pEntity) = 0;
+	virtual void OnTargetAttacked(std::shared_ptr<CWeenieObject> pTarget, std::shared_ptr<CWeenieObject> pSource) = 0;
 };
 
 class CGameMode_Tag : public CGameMode
@@ -25,12 +25,12 @@ public:
 	virtual const char *GetName();
 	virtual void Think() override;
 
-	virtual void OnRemoveEntity(CWeenieObject *pEntity) override;
-	virtual void OnTargetAttacked(CWeenieObject *pTarget, CWeenieObject *pSource) override;
+	virtual void OnRemoveEntity(std::shared_ptr<CWeenieObject> pEntity) override;
+	virtual void OnTargetAttacked(std::shared_ptr<CWeenieObject> pTarget, std::shared_ptr<CWeenieObject> pSource) override;
 
 protected:
-	void SelectPlayer(CPlayerWeenie *pPlayer);
+	void SelectPlayer(std::shared_ptr<CPlayerWeenie> pPlayer);
 	void UnselectPlayer();
 
-	CPlayerWeenie *m_pSelectedPlayer;
+	std::weak_ptr<CPlayerWeenie> m_pSelectedPlayer;
 };

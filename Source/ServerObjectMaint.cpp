@@ -4,11 +4,11 @@
 #include "PhysicsObj.h"
 #include "World.h"
 
-void CServerObjectMaint::GotoLostCell(class CPhysicsObj *, unsigned long)
+void CServerObjectMaint::GotoLostCell(class std::shared_ptr<CPhysicsObj> , unsigned long)
 {
 }
 
-void CServerObjectMaint::RemoveFromLostCell(class CPhysicsObj *)
+void CServerObjectMaint::RemoveFromLostCell(class std::shared_ptr<CPhysicsObj> )
 {
 }
 
@@ -20,7 +20,8 @@ void CServerObjectMaint::RemoveObjectToBeDestroyed(unsigned long)
 {
 }
 
-CPhysicsObj *CServerObjectMaint::GetObject(DWORD object_id)
+std::shared_ptr<CPhysicsObj> CServerObjectMaint::GetObject(DWORD object_id)
 {
+	// TODO convert CPhysObject to shared pointers?
 	return g_pWorld->FindObject(object_id);
 }

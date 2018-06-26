@@ -61,10 +61,10 @@ void CMonsterWeenie::ApplyQualityOverrides()
 void CMonsterWeenie::PreSpawnCreate()
 {
 	if (m_Qualities._create_list)
-		g_pWeenieFactory->AddFromCreateList(this, m_Qualities._create_list, (DestinationType)(Wield_DestinationType | WieldTreasure_DestinationType));
+		g_pWeenieFactory->AddFromCreateList(AsWeenie(), m_Qualities._create_list, (DestinationType)(Wield_DestinationType | WieldTreasure_DestinationType));
 
 	if (DWORD wieldedTreasureType = InqDIDQuality(WIELDED_TREASURE_TYPE_DID, 0))
-		g_pWeenieFactory->GenerateFromTypeOrWcid(this, DestinationType::WieldTreasure_DestinationType, wieldedTreasureType);
+		g_pWeenieFactory->GenerateFromTypeOrWcid(AsWeenie(), DestinationType::WieldTreasure_DestinationType, wieldedTreasureType);
 }
 
 void CMonsterWeenie::PostSpawn()
@@ -74,7 +74,7 @@ void CMonsterWeenie::PostSpawn()
 	// check if we need to create a monster AI
 	if (IsCreature() && !AsPlayer() && !IsVendor() && m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) != RubberGlue_PKStatus)
 	{
-		m_MonsterAI = new MonsterAIManager(this, m_Position);
+		m_MonsterAI = new MonsterAIManager(AsMonster(), m_Position);
 	}
 
 	if (!_IsPlayer())
@@ -83,7 +83,7 @@ void CMonsterWeenie::PostSpawn()
 	}
 }
 
-CWeenieObject *CMonsterWeenie::SpawnWielded(DWORD index, SmartArray<Style_CG> possibleStyles, DWORD color, SmartArray<DWORD> validColors, long double shade)
+std::shared_ptr<CWeenieObject> CMonsterWeenie::SpawnWielded(DWORD index, SmartArray<Style_CG> possibleStyles, DWORD color, SmartArray<DWORD> validColors, long double shade)
 {
 	index = max(min(index, possibleStyles.num_used - 1), 0);
 	shade = max(min(shade, 1), 0);
@@ -103,15 +103,15 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(DWORD index, SmartArray<Style_CG> po
 	if (!validColor)
 		color = validColors.array_data[0];
 
-	CWeenieObject *weenie = SpawnWielded(wcid, color, shade);
+	std::shared_ptr<CWeenieObject> weenie = SpawnWielded(wcid, color, shade);
 	weenie->m_Qualities.SetDataID(CLOTHINGBASE_DID, clothingTable);
 
 	return weenie;
 }
 
-CWeenieObject *CMonsterWeenie::SpawnWielded(DWORD wcid, int ptid, float shade)
+std::shared_ptr<CWeenieObject> CMonsterWeenie::SpawnWielded(DWORD wcid, int ptid, float shade)
 {
-	CWeenieObject *item = g_pWeenieFactory->CreateWeenieByClassID(wcid, NULL, false);
+	std::shared_ptr<CWeenieObject> item = g_pWeenieFactory->CreateWeenieByClassID(wcid, NULL, false);
 
 	if (ptid)
 		item->m_Qualities.SetInt(PALETTE_TEMPLATE_INT, ptid);
@@ -122,7 +122,7 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(DWORD wcid, int ptid, float shade)
 	return SpawnWielded(item);
 }
 
-CWeenieObject *CMonsterWeenie::SpawnWielded(CWeenieObject *item, bool deleteItemOnFailure)
+std::shared_ptr<CWeenieObject> CMonsterWeenie::SpawnWielded(std::shared_ptr<CWeenieObject> item, bool deleteItemOnFailure)
 {
 	if (!item)
 		return NULL;
@@ -130,8 +130,6 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(CWeenieObject *item, bool deleteItem
 	if (!item->IsEquippable())
 	{
 		LOG_PRIVATE(Temp, Warning, "Trying to SpawnWielded an unwieldable item %u\n", item->m_Qualities.id);
-		delete item;
-
 		return NULL;
 	}
 
@@ -139,7 +137,6 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(CWeenieObject *item, bool deleteItem
 
 	if (!g_pWorld->CreateEntity(item, false))
 	{
-		delete item;
 		return NULL;
 	}
 
@@ -152,17 +149,17 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(CWeenieObject *item, bool deleteItem
 	return item;
 }
 
-CWeenieObject *CMonsterWeenie::FindValidNearbyItem(DWORD itemId, float maxDistance)
+std::shared_ptr<CWeenieObject> CMonsterWeenie::FindValidNearbyItem(DWORD itemId, float maxDistance)
 {
 	//do we have it?
-	CWeenieObject *item = FindContainedItem(itemId);
+	std::shared_ptr<CWeenieObject> item = FindContainedItem(itemId);
 
 	if (!item)
 	{
 		// maybe it's in an external container
 		if (_lastOpenedRemoteContainerId != 0)
 		{
-			CContainerWeenie *externalContainer = FindContainer(_lastOpenedRemoteContainerId);
+			std::shared_ptr<CContainerWeenie> externalContainer = FindContainer(_lastOpenedRemoteContainerId);
 			if (externalContainer && externalContainer->_openedById == GetID())
 			{
 				item = externalContainer->FindContainedItem(itemId);
@@ -197,17 +194,17 @@ CWeenieObject *CMonsterWeenie::FindValidNearbyItem(DWORD itemId, float maxDistan
 	return item;
 }
 
-CContainerWeenie *CMonsterWeenie::FindValidNearbyContainer(DWORD containerId, float maxDistance)
+std::shared_ptr<CContainerWeenie> CMonsterWeenie::FindValidNearbyContainer(DWORD containerId, float maxDistance)
 {
 	//do we have it?
-	CContainerWeenie *container = FindContainer(containerId);
+	std::shared_ptr<CContainerWeenie> container = FindContainer(containerId);
 
 	if (!container)
 	{
 		// maybe it's in the external container
 		if (_lastOpenedRemoteContainerId != 0)
 		{
-			CContainerWeenie *externalContainer = FindContainer(_lastOpenedRemoteContainerId);
+			std::shared_ptr<CContainerWeenie> externalContainer = FindContainer(_lastOpenedRemoteContainerId);
 			if (externalContainer && externalContainer->_openedById == GetID())
 				container = externalContainer->FindContainer(containerId);
 		}
@@ -215,7 +212,7 @@ CContainerWeenie *CMonsterWeenie::FindValidNearbyContainer(DWORD containerId, fl
 		if (!container)
 		{
 			// maybe it's on the ground
-			CWeenieObject *object = g_pWorld->FindObject(containerId);
+			std::shared_ptr<CWeenieObject> object = g_pWorld->FindObject(containerId);
 
 			if (!object)
 			{
@@ -248,7 +245,7 @@ CContainerWeenie *CMonsterWeenie::FindValidNearbyContainer(DWORD containerId, fl
 	return container;
 }
 
-bool CMonsterWeenie::GetEquipPlacementAndHoldLocation(CWeenieObject *item, DWORD location, DWORD *pPlacementFrame, DWORD *pHoldLocation)
+bool CMonsterWeenie::GetEquipPlacementAndHoldLocation(std::shared_ptr<CWeenieObject> item, DWORD location, DWORD *pPlacementFrame, DWORD *pHoldLocation)
 {
 	if (location & (MELEE_WEAPON_LOC | TWO_HANDED_LOC))
 	{
@@ -321,7 +318,7 @@ BYTE CMonsterWeenie::GetEnchantmentSerialByteForMask(int priority)
 	return 0;
 }
 
-int CMonsterWeenie::CheckWieldRequirements(CWeenieObject *item, CWeenieObject *wielder, STypeInt requirementStat, STypeInt skillStat, STypeInt difficultyStat)
+int CMonsterWeenie::CheckWieldRequirements(std::shared_ptr<CWeenieObject> item, std::shared_ptr<CWeenieObject> wielder, STypeInt requirementStat, STypeInt skillStat, STypeInt difficultyStat)
 {
 	int requirementType = item->InqIntQuality(requirementStat, 0, TRUE);
 
@@ -420,14 +417,14 @@ bool CMonsterWeenie::MoveItemToContainer(DWORD sourceItemId, DWORD targetContain
 		return false;
 	}
 
-	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
+	std::shared_ptr<CWeenieObject> sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
 	if (!sourceItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
 		return false;
 	}
 
-	CContainerWeenie *targetContainer = FindValidNearbyContainer(targetContainerId, USEDISTANCE_FAR);
+	std::shared_ptr<CContainerWeenie> targetContainer = FindValidNearbyContainer(targetContainerId, USEDISTANCE_FAR);
 	if (!targetContainer || !targetContainer->Container_CanStore(sourceItem))
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
@@ -461,7 +458,7 @@ bool CMonsterWeenie::MoveItemToContainer(DWORD sourceItemId, DWORD targetContain
 	return true;
 }
 
-void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CContainerWeenie *targetContainer, DWORD targetSlot, bool bSendEvent, bool silent)
+void CMonsterWeenie::FinishMoveItemToContainer(std::shared_ptr<CWeenieObject> sourceItem, std::shared_ptr<CContainerWeenie> targetContainer, DWORD targetSlot, bool bSendEvent, bool silent)
 {
 	// Scenarios to consider:
 	// 1. Item being stored is equipped.
@@ -470,13 +467,13 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 	// 4. Item being stored is in an external container (chest) or being moved to an external container (chest)
 
 	bool wasWielded = sourceItem->IsWielded();
-	bool isPickup = sourceItem->GetWorldTopLevelOwner() != this;
+	bool isPickup = sourceItem->GetWorldTopLevelOwner() != AsWeenie();
 
 	DWORD dwCell = GetLandcell();
 
 	//if (!sourceItem->HasOwner())
 	//{
-		if (CWeenieObject *generator = g_pWorld->FindObject(sourceItem->InqIIDQuality(GENERATOR_IID, 0)))
+		if (std::shared_ptr<CWeenieObject> generator = g_pWorld->FindObject(sourceItem->InqIIDQuality(GENERATOR_IID, 0)))
 			generator->NotifyGeneratedPickedUp(sourceItem);
 	//}
 
@@ -498,17 +495,17 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 	}
 
 	if (isPickup)
-		sourceItem->OnPickedUp(this);
+		sourceItem->OnPickedUp(AsWeenie());
 
 	if (bSendEvent)
 	{
 		if (sourceItem->AsContainer())
-			sourceItem->AsContainer()->MakeAwareViewContent(this);
+			sourceItem->AsContainer()->MakeAwareViewContent(AsWeenie());
 
 		SendNetMessage(InventoryMove(sourceItem->GetID(), targetContainer->GetID(), targetSlot, sourceItem->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
 	}
 
-	if (targetContainer->GetWorldTopLevelOwner() != this)
+	if (targetContainer->GetWorldTopLevelOwner() != AsWeenie())
 		RecalculateEncumbrance();
 
 	if (sourceItem->GetItemType() & (TYPE_ARMOR | TYPE_CLOTHING))
@@ -537,7 +534,7 @@ bool CMonsterWeenie::MoveItemTo3D(DWORD sourceItemId, bool animationDone)
 		return false;
 	}
 
-	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
+	std::shared_ptr<CWeenieObject> sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
 	if (!sourceItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
@@ -564,7 +561,7 @@ bool CMonsterWeenie::MoveItemTo3D(DWORD sourceItemId, bool animationDone)
 	return true;
 }
 
-void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
+void CMonsterWeenie::FinishMoveItemTo3D(std::shared_ptr<CWeenieObject> sourceItem)
 {
 	// Scenarios to consider:
 	// 1. Item being dropped is equipped.
@@ -609,8 +606,8 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 		AdjustToNewCombatMode();
 
 	if(bWasWielded)
-		sourceItem->OnUnwield(this);
-	sourceItem->OnDropped(this);
+		sourceItem->OnUnwield(AsWeenie());
+	sourceItem->OnDropped(AsWeenie());
 }
 
 bool CMonsterWeenie::MoveItemToWield(DWORD sourceItemId, DWORD targetLoc, bool animationDone)
@@ -626,7 +623,7 @@ bool CMonsterWeenie::MoveItemToWield(DWORD sourceItemId, DWORD targetLoc, bool a
 		return false;
 	}
 
-	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
+	std::shared_ptr<CWeenieObject> sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
 	if (!sourceItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
@@ -657,37 +654,37 @@ bool CMonsterWeenie::MoveItemToWield(DWORD sourceItemId, DWORD targetLoc, bool a
 	return true;
 }
 
-bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targetLoc)
+bool CMonsterWeenie::FinishMoveItemToWield(std::shared_ptr<CWeenieObject> sourceItem, DWORD targetLoc)
 {
 	// Scenarios to consider:
 	// 1. Item being equipped from the GROUND!
 	// 2. Item being equipped from different equip slot.
 	// 3. Item being equipped from the player's inventory.
 
-	bool isPickup = sourceItem->GetWorldTopLevelOwner() != this;
+	bool isPickup = sourceItem->GetWorldTopLevelOwner() != AsWeenie();
 
-	int error = CheckWieldRequirements(sourceItem, this, WIELD_REQUIREMENTS_INT, WIELD_SKILLTYPE_INT, WIELD_DIFFICULTY_INT);
+	int error = CheckWieldRequirements(sourceItem, AsWeenie(), WIELD_REQUIREMENTS_INT, WIELD_SKILLTYPE_INT, WIELD_DIFFICULTY_INT);
 	if (error != WERROR_NONE)
 	{
 		NotifyInventoryFailedEvent(sourceItem->GetID(), error);
 		return false;
 	}
 
-	error = CheckWieldRequirements(sourceItem, this, WIELD_REQUIREMENTS_2_INT, WIELD_SKILLTYPE_2_INT, WIELD_DIFFICULTY_2_INT);
+	error = CheckWieldRequirements(sourceItem, AsWeenie(), WIELD_REQUIREMENTS_2_INT, WIELD_SKILLTYPE_2_INT, WIELD_DIFFICULTY_2_INT);
 	if (error != WERROR_NONE)
 	{
 		NotifyInventoryFailedEvent(sourceItem->GetID(), error);
 		return false;
 	}
 
-	error = CheckWieldRequirements(sourceItem, this, WIELD_REQUIREMENTS_3_INT, WIELD_SKILLTYPE_3_INT, WIELD_DIFFICULTY_3_INT);
+	error = CheckWieldRequirements(sourceItem, AsWeenie(), WIELD_REQUIREMENTS_3_INT, WIELD_SKILLTYPE_3_INT, WIELD_DIFFICULTY_3_INT);
 	if (error != WERROR_NONE)
 	{
 		NotifyInventoryFailedEvent(sourceItem->GetID(), error);
 		return false;
 	}
 
-	error = CheckWieldRequirements(sourceItem, this, WIELD_REQUIREMENTS_4_INT, WIELD_SKILLTYPE_4_INT, WIELD_DIFFICULTY_4_INT);
+	error = CheckWieldRequirements(sourceItem, AsWeenie(), WIELD_REQUIREMENTS_4_INT, WIELD_SKILLTYPE_4_INT, WIELD_DIFFICULTY_4_INT);
 	if (error != WERROR_NONE)
 	{
 		NotifyInventoryFailedEvent(sourceItem->GetID(), error);
@@ -709,7 +706,7 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 
 	//if (!sourceItem->HasOwner())
 	//{
-		if (CWeenieObject *generator = g_pWorld->FindObject(sourceItem->InqIIDQuality(GENERATOR_IID, 0)))
+		if (std::shared_ptr<CWeenieObject> generator = g_pWorld->FindObject(sourceItem->InqIIDQuality(GENERATOR_IID, 0)))
 			generator->NotifyGeneratedPickedUp(sourceItem);
 	//}
 
@@ -844,8 +841,8 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 	}
 
 	if(isPickup)
-		sourceItem->OnPickedUp(this);
-	sourceItem->OnWield(this);
+		sourceItem->OnPickedUp(AsWeenie());
+	sourceItem->OnWield(AsWeenie());
 	return true;
 }
 
@@ -857,14 +854,14 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 		return false;
 	}
 
-	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
+	std::shared_ptr<CWeenieObject> sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
 	if (!sourceItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
 		return false;
 	}
 
-	CWeenieObject *targetItem = FindValidNearbyItem(targetItemId, USEDISTANCE_FAR);
+	std::shared_ptr<CWeenieObject> targetItem = FindValidNearbyItem(targetItemId, USEDISTANCE_FAR);
 	if (!targetItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
@@ -961,14 +958,14 @@ bool CMonsterWeenie::SplitItemToContainer(DWORD sourceItemId, DWORD targetContai
 		return false;
 	}
 
-	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
+	std::shared_ptr<CWeenieObject> sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
 	if (!sourceItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
 		return false;
 	}
 
-	CContainerWeenie *targetContainer = FindValidNearbyContainer(targetContainerId, USEDISTANCE_FAR);
+	std::shared_ptr<CContainerWeenie> targetContainer = FindValidNearbyContainer(targetContainerId, USEDISTANCE_FAR);
 	if (!targetContainer || !targetContainer->Container_CanStore(sourceItem))
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
@@ -1014,7 +1011,7 @@ bool CMonsterWeenie::SplitItemToContainer(DWORD sourceItemId, DWORD targetContai
 			return false;
 		}
 
-		CWeenieObject *newStackItem = g_pWeenieFactory->CloneWeenie(sourceItem);
+		std::shared_ptr<CWeenieObject> newStackItem = g_pWeenieFactory->CloneWeenie(sourceItem);
 		if (!newStackItem)
 		{
 			NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
@@ -1025,7 +1022,6 @@ bool CMonsterWeenie::SplitItemToContainer(DWORD sourceItemId, DWORD targetContai
 
 		if (!g_pWorld->CreateEntity(newStackItem))
 		{
-			delete newStackItem;
 			return false;
 		}
 
@@ -1047,7 +1043,7 @@ bool CMonsterWeenie::SplitItemto3D(DWORD sourceItemId, DWORD amountToTransfer, b
 		return false;
 	}
 
-	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
+	std::shared_ptr<CWeenieObject> sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
 	if (!sourceItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
@@ -1080,7 +1076,7 @@ bool CMonsterWeenie::SplitItemto3D(DWORD sourceItemId, DWORD amountToTransfer, b
 			return false;
 		}
 
-		CWeenieObject *newStackItem = g_pWeenieFactory->CloneWeenie(sourceItem);
+		std::shared_ptr<CWeenieObject> newStackItem = g_pWeenieFactory->CloneWeenie(sourceItem);
 		if (!newStackItem)
 		{
 			NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
@@ -1091,12 +1087,11 @@ bool CMonsterWeenie::SplitItemto3D(DWORD sourceItemId, DWORD amountToTransfer, b
 
 		if (!g_pWorld->CreateEntity(newStackItem))
 		{
-			delete newStackItem;
 			return false;
 		}
 
 		// move the new stack to our main pack in preparation for dropping it.
-		FinishMoveItemToContainer(newStackItem, this, 0);
+		FinishMoveItemToContainer(newStackItem, AsContainer(), 0);
 		MakeAware(newStackItem);
 
 		// set original item amount to what remains.
@@ -1119,7 +1114,7 @@ bool CMonsterWeenie::SplitItemToWield(DWORD sourceItemId, DWORD targetLoc, DWORD
 		return false;
 	}
 
-	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
+	std::shared_ptr<CWeenieObject> sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
 	if (!sourceItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
@@ -1152,7 +1147,7 @@ bool CMonsterWeenie::SplitItemToWield(DWORD sourceItemId, DWORD targetLoc, DWORD
 			return false;
 		}
 
-		CWeenieObject *newStackItem = g_pWeenieFactory->CloneWeenie(sourceItem);
+		std::shared_ptr<CWeenieObject> newStackItem = g_pWeenieFactory->CloneWeenie(sourceItem);
 		if (!newStackItem)
 		{
 			NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
@@ -1189,8 +1184,8 @@ void CMonsterWeenie::GiveItem(DWORD targetContainerId, DWORD sourceItemId, DWORD
 		return;
 	}
 
-	CWeenieObject *target = g_pWorld->FindObject(targetContainerId);
-	CWeenieObject *sourceItem = FindContainedItem(sourceItemId);
+	std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(targetContainerId);
+	std::shared_ptr<CWeenieObject> sourceItem = FindContainedItem(sourceItemId);
 
 	if (!sourceItem || !target)
 	{
@@ -1225,7 +1220,7 @@ void CMonsterWeenie::GiveItem(DWORD targetContainerId, DWORD sourceItemId, DWORD
 	FinishGiveItem(target->AsContainer(), sourceItem, transferAmount);
 }
 
-void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieObject *sourceItem, DWORD amountToTransfer)
+void CMonsterWeenie::FinishGiveItem(std::shared_ptr<CContainerWeenie> targetContainer, std::shared_ptr<CWeenieObject> sourceItem, DWORD amountToTransfer)
 {
 	if (amountToTransfer <= 0 || amountToTransfer >= 100000)
 	{
@@ -1234,7 +1229,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 	}
 
 	// for now we won't support giving items that are currently equipped
-	if (sourceItem->IsEquipped() || sourceItem->parent)
+	if (sourceItem->IsEquipped() || sourceItem->parent.lock())
 	{
 		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_GIVE_NOT_ALLOWED);
 		return;
@@ -1246,7 +1241,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 		return;
 	}
 
-	CWeenieObject *targetTopLevel = targetContainer->GetWorldTopLevelOwner();
+	std::shared_ptr<CWeenieObject> targetTopLevel = targetContainer->GetWorldTopLevelOwner();
 
 	if (targetTopLevel != sourceItem->GetWorldTopLevelOwner() && targetTopLevel && targetTopLevel->IsExecutingEmote())
 	{
@@ -1255,7 +1250,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 		return;
 	}
 
-	if (CPlayerWeenie *player = targetContainer->AsPlayer())
+	if (std::shared_ptr<CPlayerWeenie> player = targetContainer->AsPlayer())
 	{
 		if (!(player->GetCharacterOptions() & AllowGive_CharacterOption))
 		{
@@ -1271,7 +1266,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 		return;
 	}
 
-	CWeenieObject *newStackItem;
+	std::shared_ptr<CWeenieObject> newStackItem;
 	if (amountToTransfer < currentStackSize)
 	{
 		// partial stack, make a new object
@@ -1296,13 +1291,13 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 	newStackItem->m_Qualities.SetInstanceID(CONTAINER_IID, targetContainer->GetID());
 	newStackItem->_cachedHasOwner = true;
 
-	CWeenieObject *topLevelOwnerObj = newStackItem->GetWorldTopLevelOwner();
+	std::shared_ptr<CWeenieObject> topLevelOwnerObj = newStackItem->GetWorldTopLevelOwner();
 	assert(topLevelOwnerObj);
 	assert(topLevelOwnerObj->AsContainer());
 
 	if (topLevelOwnerObj)
 	{
-		if (CContainerWeenie *topLevelOwner = topLevelOwnerObj->AsContainer())
+		if (std::shared_ptr<CContainerWeenie> topLevelOwner = topLevelOwnerObj->AsContainer())
 		{
 			if (newStackItem == sourceItem)
 			{
@@ -1335,7 +1330,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 			if (AsPlayer() && newStackItem->m_Qualities.id == W_COINSTACK_CLASS)
 				RecalculateCoinAmount();
 
-			topLevelOwner->OnReceiveInventoryItem(this, newStackItem, 0);
+			topLevelOwner->OnReceiveInventoryItem(AsWeenie(), newStackItem, 0);
 			topLevelOwner->DebugValidate();
 		}
 	}
@@ -1373,9 +1368,11 @@ void CMonsterWeenie::OnTookDamage(DamageEventData &damageData)
 
 void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 {
-	if (damageData.source && damageData.outputDamageFinal > 0)
+	std::shared_ptr<CWeenieObject> pSource = damageData.source.lock();
+	
+	if (pSource && damageData.outputDamageFinal > 0)
 	{
-		DWORD source = damageData.source->GetID();
+		DWORD source = pSource->GetID();
 
 		if (m_aDamageSources.find(source) == m_aDamageSources.end())
 		{
@@ -1389,15 +1386,15 @@ void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 		{
 			m_highestDamageSource = source;
 
-			if (monster_brawl && m_MonsterAI && !(InqIntQuality(CREATURE_TYPE_INT, 0) == damageData.source->InqIntQuality(CREATURE_TYPE_INT, 0)))
+			if (monster_brawl && m_MonsterAI && !(InqIntQuality(CREATURE_TYPE_INT, 0) == pSource->InqIntQuality(CREATURE_TYPE_INT, 0)))
 			{
-				m_MonsterAI->SetNewTarget(damageData.source);
+				m_MonsterAI->SetNewTarget(pSource);
 				return;
 			}
 
-			if (m_MonsterAI && damageData.source->AsPlayer())
+			if (m_MonsterAI && pSource->AsPlayer())
 			{
-				m_MonsterAI->SetNewTarget(damageData.source);
+				m_MonsterAI->SetNewTarget(pSource);
 			}
 		}
 	}
@@ -1422,19 +1419,19 @@ void CMonsterWeenie::OnRegen(STypeAttribute2nd currentAttrib, int newAmount)
 	}
 }
 
-void CMonsterWeenie::GivePerksForKill(CWeenieObject *pKilled)
+void CMonsterWeenie::GivePerksForKill(std::shared_ptr<CWeenieObject> pKilled)
 {
 	// Prevent CWeenieObject::GivePerksForKill from running
 }
 
 
-void CMonsterWeenie::OnIdentifyAttempted(CWeenieObject *other)
+void CMonsterWeenie::OnIdentifyAttempted(std::shared_ptr<CWeenieObject> other)
 {
 	if (m_MonsterAI)
 		m_MonsterAI->OnIdentifyAttempted(other);
 }
 
-void CMonsterWeenie::OnResistSpell(CWeenieObject *attacker)
+void CMonsterWeenie::OnResistSpell(std::shared_ptr<CWeenieObject> attacker)
 {
 	HandleAggro(attacker);
 
@@ -1442,7 +1439,7 @@ void CMonsterWeenie::OnResistSpell(CWeenieObject *attacker)
 		m_MonsterAI->OnResistSpell(attacker);
 }
 
-void CMonsterWeenie::OnEvadeAttack(CWeenieObject *attacker)
+void CMonsterWeenie::OnEvadeAttack(std::shared_ptr<CWeenieObject> attacker)
 {
 	HandleAggro(attacker);
 
@@ -1450,7 +1447,7 @@ void CMonsterWeenie::OnEvadeAttack(CWeenieObject *attacker)
 		m_MonsterAI->OnEvadeAttack(attacker);
 }
 
-void CMonsterWeenie::HandleAggro(CWeenieObject *attacker)
+void CMonsterWeenie::HandleAggro(std::shared_ptr<CWeenieObject> attacker)
 {
 	if (m_MonsterAI)
 		m_MonsterAI->HandleAggro(attacker);
@@ -1567,7 +1564,7 @@ void CMonsterWeenie::OnMotionDone(DWORD motion, BOOL success)
 
 						DoForcedStopCompletely();
 
-						CWeenieObject *pItem = FindContainedItem(useData.m_MotionUseTarget);
+						std::shared_ptr<CWeenieObject> pItem = FindContainedItem(useData.m_MotionUseTarget);
 
 						if (pItem)
 						{
@@ -1626,7 +1623,7 @@ void CMonsterWeenie::OnMotionDone(DWORD motion, BOOL success)
 
 							NotifyContainedItemRemoved(pItem->id);
 
-							pItem->MarkForDestroy();
+							g_pWorld->RemoveEntity(pItem);
 						}
 					}
 
@@ -1642,22 +1639,22 @@ void CMonsterWeenie::OnMotionDone(DWORD motion, BOOL success)
 	}
 }
 
-CCorpseWeenie *CMonsterWeenie::CreateCorpse(bool visible)
+std::shared_ptr<CCorpseWeenie> CMonsterWeenie::CreateCorpse(bool visible)
 {
 	if (!InValidCell())
 		return NULL;
 
 	// spawn corpse
-	CCorpseWeenie *pCorpse = (CCorpseWeenie *) g_pWeenieFactory->CreateWeenieByClassID(W_CORPSE_CLASS);
+	std::shared_ptr<CCorpseWeenie> pCorpse = g_pWeenieFactory->CreateWeenieByClassID(W_CORPSE_CLASS)->AsCorpse();
 
-	pCorpse->CopyDIDStat(SETUP_DID, this);
-	pCorpse->CopyDIDStat(MOTION_TABLE_DID, this);
+	pCorpse->CopyDIDStat(SETUP_DID, AsWeenie());
+	pCorpse->CopyDIDStat(MOTION_TABLE_DID, AsWeenie());
 	// pCorpse->CopyDIDStat(SOUND_TABLE_DID, this);
 	// pCorpse->CopyDIDStat(PHYSICS_EFFECT_TABLE_DID, this);
-	pCorpse->CopyFloatStat(DEFAULT_SCALE_FLOAT, this);
-	pCorpse->CopyFloatStat(TRANSLUCENCY_FLOAT, this);
+	pCorpse->CopyFloatStat(DEFAULT_SCALE_FLOAT, AsWeenie());
+	pCorpse->CopyFloatStat(TRANSLUCENCY_FLOAT, AsWeenie());
 
-	pCorpse->CopyIntStat(LEVEL_INT, this); //copy the level so the treasure generator can have access to that value.
+	pCorpse->CopyIntStat(LEVEL_INT, AsWeenie()); //copy the level so the treasure generator can have access to that value.
 
 	ObjDesc desc;
 	GetObjDesc(desc);
@@ -1687,7 +1684,7 @@ CCorpseWeenie *CMonsterWeenie::CreateCorpse(bool visible)
 	{
 		SERVER_ERROR << "Unable to create corpse of" << GetName().c_str() << "at Landblock:" << csprintf("0x%08X", m_Position.objcell_id) <<
 			"(X, Y, Z):" << m_Position.frame.m_origin.x << "," << m_Position.frame.m_origin.y << m_Position.frame.m_origin.z;
-		pCorpse = NULL;
+		pCorpse = std::shared_ptr<CCorpseWeenie>();
 	}
 
 	m_DeathKillerIDForCorpse = 0;
@@ -1696,11 +1693,11 @@ CCorpseWeenie *CMonsterWeenie::CreateCorpse(bool visible)
 	return pCorpse;
 }
 
-void CMonsterWeenie::DropAllLoot(CCorpseWeenie *pCorpse)
+void CMonsterWeenie::DropAllLoot(std::shared_ptr<CCorpseWeenie> pCorpse)
 {
 }
 
-void CMonsterWeenie::GenerateDeathLoot(CCorpseWeenie *pCorpse)
+void CMonsterWeenie::GenerateDeathLoot(std::shared_ptr<CCorpseWeenie> pCorpse)
 {
 	if (m_Qualities._create_list)
 		g_pWeenieFactory->AddFromCreateList(pCorpse, m_Qualities._create_list, (DestinationType)(Contain_DestinationType | Treasure_DestinationType));
@@ -1708,12 +1705,19 @@ void CMonsterWeenie::GenerateDeathLoot(CCorpseWeenie *pCorpse)
 	if (DWORD deathTreasureType = InqDIDQuality(DEATH_TREASURE_TYPE_DID, 0))
 		g_pWeenieFactory->GenerateFromTypeOrWcid(pCorpse, DestinationType::ContainTreasure_DestinationType, deathTreasureType);
 
-	std::list<CWeenieObject *> removeList;
+	std::list<std::shared_ptr<CWeenieObject> > removeList;
 
 	for each(auto item in pCorpse->m_Items)
 	{
-		if (item->IsDestroyedOnDeath())
-			removeList.push_back(item);
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->IsDestroyedOnDeath())
+			removeList.push_back(pItem);
 	}
 
 	for (auto item : removeList)
@@ -1727,21 +1731,19 @@ void CMonsterWeenie::OnDeathAnimComplete()
 
 	m_bWaitingForDeathToFinish = false;
 
-	if (!_IsPlayer())
-	{
-		MarkForDestroy();
-	}
-
 	// create corpse
-	CPlayerWeenie *player = AsPlayer();
-	if (!player)
+	if (!AsPlayer())
 	{
-		CCorpseWeenie *pCorpse = CreateCorpse();
+		std::shared_ptr<CCorpseWeenie> pCorpse = CreateCorpse();
 
 		if (pCorpse)
 			GenerateDeathLoot(pCorpse);
 	}
 
+	if (!_IsPlayer())
+	{
+		g_pWorld->RemoveEntity(AsWeenie());
+	}
 }
 
 void CMonsterWeenie::OnDeath(DWORD killer_id)
@@ -1764,7 +1766,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 		// hand out xp proportionally
 		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
 		{
-			CWeenieObject *pSource = g_pWorld->FindObject(it->first);
+			std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindObject(it->first);
 			double dPercentage = (double)it->second / m_totalDamageTaken;
 
 			if (pSource)
@@ -1782,8 +1784,13 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 	{
 		for each(auto entry in m_Qualities._generator_registry->_registry)
 		{
-			CWeenieObject *weenie = g_pWorld->FindObject(entry.second.m_objectId);
-			weenie->AsMonster()->OnDeath(0);
+			if (std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindObject(entry.second.m_objectId))
+			{
+				if (std::shared_ptr<CMonsterWeenie> pMonster = weenie->AsMonster())
+				{
+					pMonster->OnDeath(0);
+				}
+			}
 		}
 
 	}
@@ -1795,7 +1802,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 	if (g_pConfig->HardcoreMode() && _IsPlayer())
 	{
-		if (CWeenieObject *pKiller = g_pWorld->FindObject(m_highestDamageSource))
+		if (std::shared_ptr<CWeenieObject> pKiller = g_pWorld->FindObject(m_highestDamageSource))
 		{
 			if (!g_pConfig->HardcoreModePlayersOnly() || pKiller->_IsPlayer())
 			{
@@ -1837,7 +1844,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 			g_pWorld->BroadcastGlobal(ServerText(csprintf("%s has been defeated.", GetName().c_str()), LTT_DEFAULT), PRIVATE_MSG);
 		}
 
-		if (CCorpseWeenie *pCorpse = CreateCorpse())
+		if (std::shared_ptr<CCorpseWeenie> pCorpse = CreateCorpse())
 		{
 			DropAllLoot(pCorpse);
 		}
@@ -1870,7 +1877,7 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 
 	case MELEE_COMBAT_MODE:
 		{	
-		CWeenieObject *weapon =NULL;
+		std::shared_ptr<CWeenieObject> weapon =NULL;
 			if(!GetWieldedMelee())
 				weapon = GetWieldedTwoHanded();
 			else {
@@ -1890,7 +1897,7 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 				{
 					new_motion_style = Motion_SwordCombat;
 
-					if (CWeenieObject *shield = GetWieldedShield())
+					if (std::shared_ptr<CWeenieObject> shield = GetWieldedShield())
 					{
 						new_motion_style = Motion_SwordShieldCombat;
 					}
@@ -1910,13 +1917,13 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 
 	case MISSILE_COMBAT_MODE:
 		{
-			CWeenieObject *weapon = GetWieldedMissile();
+			std::shared_ptr<CWeenieObject> weapon = GetWieldedMissile();
 			CombatStyle default_combat_style = weapon ? (CombatStyle)weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, Undef_CombatStyle) : Undef_CombatStyle;
 
 			switch (default_combat_style)
 			{
 			case Bow_CombatStyle:
-				if (CWeenieObject *ammo = GetWieldedAmmo())
+				if (std::shared_ptr<CWeenieObject> ammo = GetWieldedAmmo())
 				{
 					new_motion_style = Motion_BowCombat;
 					newCombatMode = COMBAT_MODE::MISSILE_COMBAT_MODE;
@@ -1930,7 +1937,7 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 				break;
 
 			case Crossbow_CombatStyle:
-				if (CWeenieObject *ammo = GetWieldedAmmo())
+				if (std::shared_ptr<CWeenieObject> ammo = GetWieldedAmmo())
 				{
 					new_motion_style = Motion_CrossbowCombat;
 					newCombatMode = COMBAT_MODE::MISSILE_COMBAT_MODE;
@@ -1949,7 +1956,7 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 				break;
 
 			case Atlatl_CombatStyle:
-				if (CWeenieObject *ammo = GetWieldedAmmo())
+				if (std::shared_ptr<CWeenieObject> ammo = GetWieldedAmmo())
 				{
 					new_motion_style = Motion_AtlatlCombat;
 					newCombatMode = COMBAT_MODE::MISSILE_COMBAT_MODE;
@@ -2000,14 +2007,14 @@ DWORD CMonsterWeenie::DoForcedUseMotion(MotionUseType useType, DWORD motion, DWO
 	return DoForcedMotion(motion, params);
 }
 
-bool CMonsterWeenie::ClothingPrioritySorter(const CWeenieObject *first, const CWeenieObject *second)
+bool CMonsterWeenie::ClothingPrioritySorter(const std::shared_ptr<CWeenieObject> first, const std::shared_ptr<CWeenieObject> second)
 {
-	return ((CWeenieObject *)first)->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE) < ((CWeenieObject *)second)->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE);
+	return ((std::shared_ptr<CWeenieObject> )first)->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE) < ((std::shared_ptr<CWeenieObject> )second)->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE);
 }
 
 void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 {
-	std::list<CWeenieObject *> wieldedWearable;
+	std::list<std::shared_ptr<CWeenieObject> > wieldedWearable;
 	Container_GetWieldedByMask(wieldedWearable, ARMOR_LOC|CLOTHING_LOC);
 	for (auto wearable : wieldedWearable)
 	{
@@ -2052,7 +2059,7 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 		objDesc.AddSubpalette(new Subpalette(eye_palette_id, 0x20 << 3, 0x8 << 3));
 
 	/*
-	std::list<CWeenieObject *> wieldedClothings;
+	std::list<std::shared_ptr<CWeenieObject> > wieldedClothings;
 	Container_GetWieldedByMask(wieldedClothings, CLOTHING_LOC);
 	wieldedClothings.sort(ClothingPrioritySorter);
 
@@ -2097,7 +2104,7 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 	}
 	*/
 
-	std::list<CWeenieObject *> wieldedArmors;
+	std::list<std::shared_ptr<CWeenieObject> > wieldedArmors;
 	Container_GetWieldedByMask(wieldedArmors, CLOTHING_LOC|ARMOR_LOC);
 	wieldedArmors.sort(ClothingPrioritySorter);
 
@@ -2142,9 +2149,9 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 	}
 }
 
-DWORD CMonsterWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot)
+DWORD CMonsterWeenie::OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> item, DWORD desired_slot)
 {
-	if (source != this)
+	if (source != AsWeenie())
 	{
 		bool accepted = false;
 		// Use our emote table to determine what to do with this item.
@@ -2210,7 +2217,7 @@ DWORD CMonsterWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObjec
 
 double CMonsterWeenie::GetMeleeDefenseModUsingWielded()
 {
-	std::list<CWeenieObject *> wielded;
+	std::list<std::shared_ptr<CWeenieObject> > wielded;
 	Container_GetWieldedByMask(wielded, WEAPON_LOC | HELD_LOC);
 
 	double defenseMod = 1.0;
@@ -2224,7 +2231,14 @@ double CMonsterWeenie::GetMeleeDefenseModUsingWielded()
 	Container_GetWieldedByMask(wielded, ARMOR_LOC);
 	for (auto item : m_Wielded) //check all armor for appropriate imbue effects
 	{
-		if (item->GetImbueEffects() & MeleeDefense_ImbuedEffectType)
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->GetImbueEffects() & MeleeDefense_ImbuedEffectType)
 			defenseMod += 0.01;
 	}
 
@@ -2233,7 +2247,7 @@ double CMonsterWeenie::GetMeleeDefenseModUsingWielded()
 
 double CMonsterWeenie::GetMissileDefenseModUsingWielded()
 {
-	std::list<CWeenieObject *> wielded;
+	std::list<std::shared_ptr<CWeenieObject> > wielded;
 	Container_GetWieldedByMask(wielded, WEAPON_LOC | HELD_LOC);
 
 	double defenseMod = 1.0;
@@ -2247,7 +2261,14 @@ double CMonsterWeenie::GetMissileDefenseModUsingWielded()
 	Container_GetWieldedByMask(wielded, ARMOR_LOC);
 	for (auto item : m_Wielded) //check all armor for appropriate imbue effects
 	{
-		if (item->GetImbueEffects() & MissileDefense_ImbuedEffectType)
+		std::shared_ptr<CWeenieObject> pItem = item.lock();
+
+		if (!pItem)
+		{
+			continue;
+		}
+
+		if (pItem->GetImbueEffects() & MissileDefense_ImbuedEffectType)
 			defenseMod += 0.01;
 	}
 
@@ -2256,7 +2277,7 @@ double CMonsterWeenie::GetMissileDefenseModUsingWielded()
 
 double CMonsterWeenie::GetMagicDefenseModUsingWielded()
 {
-	std::list<CWeenieObject *> wielded;
+	std::list<std::shared_ptr<CWeenieObject> > wielded;
 	Container_GetWieldedByMask(wielded, WEAPON_LOC | HELD_LOC);
 
 	double defenseMod = 1.0;
@@ -2279,7 +2300,7 @@ double CMonsterWeenie::GetMagicDefenseModUsingWielded()
 
 int CMonsterWeenie::GetAttackTimeUsingWielded()
 {
-	std::list<CWeenieObject *> wielded;
+	std::list<std::shared_ptr<CWeenieObject> > wielded;
 	Container_GetWieldedByMask(wielded, WEAPON_LOC);
 	
 	for (auto item : wielded)
@@ -2293,7 +2314,7 @@ int CMonsterWeenie::GetAttackTimeUsingWielded()
 int CMonsterWeenie::GetAttackTime()
 {
 	/*
-	std::list<CWeenieObject *> wielded;
+	std::list<std::shared_ptr<CWeenieObject> > wielded;
 	Container_GetWieldedByMask(wielded, WEAPON_LOC);
 
 	int totalTime = CWeenieObject::GetAttackTime();
@@ -2311,7 +2332,7 @@ int CMonsterWeenie::GetAttackTime()
 int CMonsterWeenie::GetAttackDamage()
 {
 	/*
-	std::list<CWeenieObject *> wielded;
+	std::list<std::shared_ptr<CWeenieObject> > wielded;
 	Container_GetWieldedByMask(wielded, WEAPON_LOC);
 
 	int damage = CWeenieObject::GetAttackDamage();
@@ -2327,7 +2348,7 @@ int CMonsterWeenie::GetAttackDamage()
 
 float CMonsterWeenie::GetEffectiveArmorLevel(DamageEventData &damageData, bool bIgnoreMagicArmor)
 {
-	std::list<CWeenieObject *> wielded;
+	std::list<std::shared_ptr<CWeenieObject> > wielded;
 	Container_GetWieldedByMask(wielded, ARMOR_LOC|CLOTHING_LOC|SHIELD_LOC);
 
 	EnchantedQualityDetails buffDetails;
@@ -2368,7 +2389,7 @@ void CMonsterWeenie::TryMeleeAttack(DWORD target_id, ATTACK_HEIGHT height, float
 
 	if (!m_AttackManager)
 	{
-		m_AttackManager = new AttackManager(this);
+		m_AttackManager = new AttackManager(AsWeenie());
 	}
 
 	// duplicate attack
@@ -2395,7 +2416,7 @@ void CMonsterWeenie::TryMissileAttack(DWORD target_id, ATTACK_HEIGHT height, flo
 	}
 
 	if (!m_AttackManager)
-		m_AttackManager = new AttackManager(this);
+		m_AttackManager = new AttackManager(AsWeenie());
 
 	m_AttackManager->BeginMissileAttack(target_id, height, power, motion);
 
@@ -2407,9 +2428,9 @@ BOOL CMonsterWeenie::DoCollision(const class ObjCollisionProfile &prof)
 {
 	if (prof.IsDoor() && !AsPlayer())
 	{
-		if (CWeenieObject *weenie = g_pWorld->FindObject(prof.id))
+		if (std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindObject(prof.id))
 		{
-			if (CBaseDoor *door = weenie->AsDoor())
+			if (std::shared_ptr<CBaseDoor> door = weenie->AsDoor())
 			{
 				if (!door->IsLocked() && door->IsClosed())
 				{

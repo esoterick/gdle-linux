@@ -25,7 +25,6 @@ CEnvCell::CEnvCell()
 	num_static_objects = 0;
 	static_object_ids = NULL;
 	static_object_frames = NULL;
-	static_objects = NULL;
 	incell_timestamp = 0;
 	light_array = NULL;
 }
@@ -103,19 +102,18 @@ void CEnvCell::Destroy()
 		static_object_frames = NULL;
 	}
 
-	if (static_objects)
+	if (static_objects.size())
 	{
 		for (DWORD i = 0; i < num_static_objects; i++)
 		{
 			if (static_objects[i])
 			{
 				static_objects[i]->leave_world();
-				delete static_objects[i];
+				static_objects[i] = nullptr;
 			}
 		}
 
-		delete[] static_objects;
-		static_objects = NULL;
+		static_objects.clear();
 	}
 	num_static_objects = 0;
 
@@ -296,7 +294,7 @@ void CEnvCell::calc_clip_planes()
 
 void CEnvCell::init_static_objects()
 {
-	if (static_objects)
+	if (static_objects.size())
 	{
 		for (DWORD i = 0; i < num_static_objects; i++)
 		{
@@ -311,14 +309,14 @@ void CEnvCell::init_static_objects()
 	{
 		if (num_static_objects > 0)
 		{
-			static_objects = new CPhysicsObj*[num_static_objects];
+			static_objects.resize(num_static_objects);
 
 			for (DWORD i = 0; i < num_static_objects; i++)
 			{
 				if (static_object_ids[i])
 					static_objects[i] = CPhysicsObj::makeObject(static_object_ids[i], 0, FALSE);
 				else
-					static_objects[i] = NULL;
+					static_objects[i] = nullptr;
 
 				if (static_objects[i])
 					static_objects[i]->add_obj_to_cell(this, &static_object_frames[i]);
@@ -627,9 +625,9 @@ bool CEnvCell::Custom_GetDungeonDrop(int dropIndex, Frame *pDropFrame, int *pNum
 	return bFoundDrop || (dropIndex < 0);
 }
 
-CPhysicsObj *CEnvCell::recursively_get_object(DWORD obj_iid, PackableHashTable<unsigned long, int> *visited_cells)
+std::shared_ptr<CPhysicsObj> CEnvCell::recursively_get_object(DWORD obj_iid, PackableHashTable<unsigned long, int> *visited_cells)
 {
-	CPhysicsObj *pObject = get_object(obj_iid);
+	std::shared_ptr<CPhysicsObj> pObject = get_object(obj_iid);
 
 	if (!pObject)
 	{

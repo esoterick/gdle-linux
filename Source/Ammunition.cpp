@@ -68,12 +68,12 @@ void CAmmunitionWeenie::HandleNonTargetCollision()
 	MakeIntoAmmo();
 	_targetID = 0;
 
-	if (CWeenieObject *source = g_pWorld->FindObject(_sourceID))
+	if (std::shared_ptr<CWeenieObject> source = g_pWorld->FindObject(_sourceID))
 	{
 		if (source->AsPlayer())
 			source->SendText("Your missile attack hit the environment.", LTT_DEFAULT);
 		else
-			MarkForDestroy();
+			g_pWorld->RemoveEntity(AsWeenie());
 
 		EmitSound(Sound_Collision, 1.0f);
 	}
@@ -83,7 +83,7 @@ void CAmmunitionWeenie::HandleNonTargetCollision()
 
 void CAmmunitionWeenie::HandleTargetCollision()
 {
-	MarkForDestroy();
+	g_pWorld->RemoveEntity(AsWeenie());
 }
 
 BOOL CAmmunitionWeenie::DoCollision(const class EnvCollisionProfile &prof)
@@ -96,10 +96,10 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 {
 	bool targetCollision = false;
 
-	CWeenieObject *pHit = g_pWorld->FindWithinPVS(this, prof.id);
+	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(AsWeenie(), prof.id);
 	if (pHit && (!_targetID || _targetID == pHit->GetID()) && (pHit->GetID() != _sourceID) && (pHit->GetID() != _launcherID))
 	{
-		CWeenieObject *pSource = g_pWorld->FindObject(_sourceID);
+		std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindObject(_sourceID);
 
 		if (!pHit->ImmuneToDamage(pSource))
 		{
@@ -108,7 +108,7 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 			int preVarianceDamage;
 			float variance;
 
-			CWeenieObject *weapon = g_pWorld->FindObject(_launcherID);
+			std::shared_ptr<CWeenieObject> weapon = g_pWorld->FindObject(_launcherID);
 			if (weapon)
 			{		
 				bool bEvaded = false;

@@ -32,7 +32,7 @@ void GameSky::UseTime(void)
 
 		for (DWORD i = 0; i < m_SkyDescs.num_used; i++)
 		{
-			CPhysicsObj *    object = m_Objs0C.array_data[i];
+			std::shared_ptr<CPhysicsObj>     object = m_Objs0C.array_data[i];
 			SkyDesc *        skydesc = &m_SkyDescs.array_data[i];
 
 			if (Object = m_Objs0C.array_data[i])
@@ -49,13 +49,13 @@ void GameSky::UseTime(void)
 #endif
 }
 
-CPhysicsObj *GameSky::MakeObject(DWORD id, Vec2D &tex_velocity, int after, int weather)
+std::shared_ptr<CPhysicsObj> GameSky::MakeObject(DWORD id, Vec2D &tex_velocity, int after, int weather)
 {
 #if INCLUDE_SKY_CODE
 	if (!ModelID)
 		return NULL;
 
-	CPhysicsObj *Object;
+	std::shared_ptr<CPhysicsObj> Object;
 
 	if (Object = CPhysicsObj::makeObject(ModelID, 0, 0))
 	{

@@ -49,7 +49,7 @@ int CSwitchWeenie::Activate(DWORD activator_id)
 	{		
 		if (DWORD activation_target_id = InqIIDQuality(ACTIVATION_TARGET_IID, 0))
 		{
-			CWeenieObject *activation_target = g_pWorld->FindObject(activation_target_id);
+			std::shared_ptr<CWeenieObject> activation_target = g_pWorld->FindObject(activation_target_id);
 			if (activation_target)
 				activation_target->Activate(activator_id);
 		}
@@ -66,7 +66,7 @@ int CSwitchWeenie::Activate(DWORD activator_id)
 
 		if (activationResponse & Generate_ActivationResponse)
 		{
-			g_pWeenieFactory->AddFromGeneratorTable(this, false);
+			g_pWeenieFactory->AddFromGeneratorTable(AsWeenie(), false);
 		}
 
 		if (activationResponse & Talk_ActivationResponse)
@@ -74,7 +74,7 @@ int CSwitchWeenie::Activate(DWORD activator_id)
 			std::string talkText;
 			if (m_Qualities.InqString(ACTIVATION_TALK_STRING, talkText))
 			{
-				CPlayerWeenie *player = g_pWorld->FindPlayer(activator_id);
+				std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(activator_id);
 				if (player)
 					player->SendText(talkText.c_str(), LTT_DEFAULT);
 			}
@@ -89,7 +89,7 @@ int CSwitchWeenie::Activate(DWORD activator_id)
 		std::string failText;
 		if (m_Qualities.InqString(ACTIVATION_FAILURE_STRING, failText))
 		{
-			CPlayerWeenie *player = g_pWorld->FindPlayer(activator_id);
+			std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(activator_id);
 			if (player)
 				player->SendText(failText.c_str(), LTT_DEFAULT);
 		}
@@ -98,7 +98,7 @@ int CSwitchWeenie::Activate(DWORD activator_id)
 	return WERROR_NONE;
 }
 
-int CSwitchWeenie::Use(CPlayerWeenie *other)
+int CSwitchWeenie::Use(std::shared_ptr<CPlayerWeenie> other)
 {
 	CActivationUseEvent *useEvent = new CActivationUseEvent();
 	useEvent->_target_id = GetID();

@@ -481,7 +481,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				startPos = Position(0xD3380005, Vector(5.500000f, 109.800003f, 168.463333f), Quaternion(1.000000f, 0.000000f, 0.000000f, 0.000000f));
 
 				// WCID "1" is always a player weenie
-				CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(1, &startPos, false);
+				std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(1, &startPos, false);
 
 				if(!weenie)
 					goto BadData;
@@ -750,9 +750,9 @@ BadData:
 	}
 }
 
-void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult cg, Sex_CG *scg)
+void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, ACCharGenResult cg, Sex_CG *scg)
 {
-	CMonsterWeenie *weenie = weenieObject->AsMonster();
+	std::shared_ptr<CMonsterWeenie> weenie = weenieObject->AsMonster();
 	if (weenie == NULL)
 		return;
 
@@ -1047,12 +1047,13 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 	weenie->SpawnInContainer(W_SACK_CLASS, 1);
 	weenie->SpawnInContainer(W_CALLINGSTONE_CLASS, 1);
 
-	CContainerWeenie *sack = NULL;
+	std::shared_ptr<CContainerWeenie> sack = NULL;
 	for (auto pack : weenie->m_Packs)
 	{
-		if (pack->AsContainer())
+		std::shared_ptr<CWeenieObject> pPack = pack.lock();
+		if (pPack && pPack->AsContainer())
 		{
-			sack = pack->AsContainer();
+			sack = pPack->AsContainer();
 			break;
 		}
 	}
@@ -1354,11 +1355,11 @@ void CClient::ProcessMessage(BYTE *data, DWORD length, WORD group)
 				DWORD dwEID = in.ReadDWORD();
 				if (in.GetLastError()) break;
 
-				CPlayerWeenie *pPlayer;
+				std::shared_ptr<CPlayerWeenie> pPlayer;
 
 				if ((m_pEvents) && (pPlayer = m_pEvents->GetPlayer()))
 				{
-					CWeenieObject *pTarget = g_pWorld->FindWithinPVS(pPlayer, dwEID);
+					std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(pPlayer, dwEID);
 									
 					if (pTarget)
 						pPlayer->MakeAware(pTarget);

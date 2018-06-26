@@ -4,6 +4,8 @@
 
 class CPlayerWeenie;
 
+class TradeManager;
+
 const float sidestep_factor = 0.5f;
 const float backwards_factor = 0.64999998f;
 const float run_turn_factor = 1.5f;
@@ -23,7 +25,7 @@ public:
 
 	void DetachPlayer();
 	DWORD GetPlayerID();
-	CPlayerWeenie* GetPlayer();
+	std::shared_ptr<CPlayerWeenie> GetPlayer();
 
 	void LoginError(int iError);
 	void LoginCharacter(DWORD dwGUID, const char *szAccount);
@@ -120,7 +122,7 @@ public:
 private:
 	CClient *m_pClient;
 
-	CPlayerWeenie *m_pPlayer;
+	std::weak_ptr<CPlayerWeenie> m_pPlayer;
 
 	WORD m_MoveActionStamp = 0xFFFF;
 

@@ -15,7 +15,6 @@ MotionTableManager *MotionTableManager::Create(DWORD arg0)
 
 MotionTableManager::MotionTableManager(DWORD ID)
 {
-	physics_obj = NULL;
 	table = NULL;
 
 	animation_counter = 0;
@@ -49,7 +48,7 @@ void MotionTableManager::UseTime()
 	CheckForCompletedMotions();
 }
 
-void MotionTableManager::SetPhysicsObject(CPhysicsObj *pPhysicsObj)
+void MotionTableManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> pPhysicsObj)
 {
 	physics_obj = pPhysicsObj;
 }
@@ -84,6 +83,12 @@ void MotionTableManager::HandleExitWorld()
 
 void MotionTableManager::AnimationDone(BOOL success)
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+
 	AnimNode *pnode = (AnimNode *)pending_animations.head_;
 
 	if (pnode)
@@ -99,7 +104,7 @@ void MotionTableManager::AnimationDone(BOOL success)
 				state.remove_action_head();
 
 			DWORD motion_id = pnode->motion;
-			physics_obj->MotionDone(motion_id, success);
+			pPhysObj->MotionDone(motion_id, success);
 			animation_counter -= pnode->num_anims;
 
 			if (pending_animations.head_)
@@ -108,8 +113,10 @@ void MotionTableManager::AnimationDone(BOOL success)
 			}
 
 #if PHATSDK_IS_SERVER
-			if (physics_obj->weenie_obj)
-				physics_obj->weenie_obj->OnMotionDone(motion_id, success);
+			if (std::shared_ptr<CWeenieObject> pWeenie = pPhysObj->weenie_obj.lock())
+			{
+				pWeenie->OnMotionDone(motion_id, success);
+			}
 #endif
 
 			pnode = (AnimNode *)pending_animations.head_;
@@ -253,12 +260,18 @@ DWORD MotionTableManager::PerformMovement(const MovementStruct &ms, CSequence *s
 		}
 
 	default:
-		return (DWORD)seq;
+		return (DWORD)-1;
 	}
 }
 
 void MotionTableManager::CheckForCompletedMotions()
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+
 	while (pending_animations.head_)
 	{
 		AnimNode *pAnim = ((AnimNode *)pending_animations.head_);
@@ -270,14 +283,16 @@ void MotionTableManager::CheckForCompletedMotions()
 			state.remove_action_head();
 
 		DWORD motion_id = pAnim->motion;
-		physics_obj->MotionDone(motion_id, TRUE);
+		pPhysObj->MotionDone(motion_id, TRUE);
 
 		if (pending_animations.head_) // this can go bad; probably due to somewhere in MotionDone()
 			pending_animations.RemoveAndDelete(pAnim);
 
 #if PHATSDK_IS_SERVER
-		if (physics_obj->weenie_obj)
-			physics_obj->weenie_obj->OnMotionDone(motion_id, TRUE);
+		if (std::shared_ptr<CWeenieObject> pWeenie = pPhysObj->weenie_obj.lock())
+		{
+			pWeenie->OnMotionDone(motion_id, TRUE);
+		}
 #endif
 	}
 }
