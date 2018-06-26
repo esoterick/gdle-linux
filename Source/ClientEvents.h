@@ -127,6 +127,7 @@ private:
 	double m_fNextAllegianceUpdate = 0.0;
 	BOOL m_bSendAllegianceUpdates = FALSE;
 	BOOL m_bSentFirstAllegianceUpdate = FALSE;
+	int last_age_update = 0;
 
 	double _next_chat_interval = 0.0;
 	double _next_chat_allowed = 0.0;
