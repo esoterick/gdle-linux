@@ -939,6 +939,48 @@ CLIENT_COMMAND(debug, "<index>", "", ADMIN_ACCESS)
 	return false;
 }
 
+CLIENT_COMMAND(monsterbrawl, "", "Toggle monsters fighting each other.", ADMIN_ACCESS)
+{
+	monster_brawl = !monster_brawl;
+
+	if (monster_brawl)
+		pPlayer->SendText("Enabled brawling monsters.", LTT_DEFAULT);
+	else
+		pPlayer->SendText("Disabled brawling monsters.", LTT_DEFAULT);
+
+	return false;
+}
+
+CLIENT_COMMAND(damagesources, "", "Lists all damage sources and values for the last assessed target if it's a monster.", ADMIN_ACCESS)
+{
+	std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!target)
+	{
+		return false;
+	}
+
+	if (std::shared_ptr<CMonsterWeenie> pMonster = target->AsMonster())
+	{
+		std::string info;
+		for (std::map<DWORD, int>::iterator it = pMonster->m_aDamageSources.begin(), ite = pMonster->m_aDamageSources.end(); it != ite; ++it)
+		{
+			std::shared_ptr<CWeenieObject> source = g_pWorld->FindObject(it->first);
+			info += csprintf("%s has done %d damage.\n", source->GetName(), it->second);
+		}
+
+		if (!info.empty())
+		{
+			pPlayer->SendText(info.c_str(), LTT_DEFAULT);
+		}
+		else
+		{
+			pPlayer->SendText("No damage taken.", LTT_DEFAULT);
+		}
+	}
+
+	return false;
+}
+
 CLIENT_COMMAND(envmode, "<mode>", "", ADMIN_ACCESS)
 {
 	if (argc < 1)

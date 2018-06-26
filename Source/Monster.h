@@ -87,6 +87,9 @@ public:
 
 	bool IsAttackMotion(DWORD motion);
 
+	DWORD m_highestDamageSource = 0;
+	int m_totalDamageTaken = 0;
+
 	DWORD m_LastAttackTarget = 0;
 	DWORD m_LastAttackHeight = 1;
 	float m_LastAttackPower = 0.0f;

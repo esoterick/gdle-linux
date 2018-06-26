@@ -1368,11 +1368,11 @@ void CMonsterWeenie::OnTookDamage(DamageEventData &damageData)
 
 void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 {
-	std::shared_ptr<CPhysicsObj> pSource = damageData.source.lock();
+	std::shared_ptr<CWeenieObject> pSource = damageData.source.lock();
 	
 	if (pSource && damageData.outputDamageFinal > 0)
 	{
-		DWORD source =pSource->GetID();
+		DWORD source = pSource->GetID();
 
 		if (m_aDamageSources.find(source) == m_aDamageSources.end())
 		{
@@ -1380,6 +1380,23 @@ void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 		}
 
 		m_aDamageSources[source] += damageData.outputDamageFinal;
+		m_totalDamageTaken += damageData.outputDamageFinal;
+
+		if (m_highestDamageSource == 0 || m_aDamageSources[source] > m_aDamageSources[m_highestDamageSource])
+		{
+			m_highestDamageSource = source;
+
+			if (monster_brawl && m_MonsterAI && !(InqIntQuality(CREATURE_TYPE_INT, 0) == pSource->InqIntQuality(CREATURE_TYPE_INT, 0)))
+			{
+				m_MonsterAI->SetNewTarget(pSource);
+				return;
+			}
+
+			if (m_MonsterAI && pSource->AsPlayer())
+			{
+				m_MonsterAI->SetNewTarget(pSource);
+			}
+		}
 	}
 }
 
@@ -1396,6 +1413,8 @@ void CMonsterWeenie::OnRegen(STypeAttribute2nd currentAttrib, int newAmount)
 		{
 			// reset damage sources
 			m_aDamageSources.clear();
+			m_highestDamageSource = 0;
+			m_totalDamageTaken = 0;
 		}
 	}
 }
@@ -1733,26 +1752,6 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 {
 	CWeenieObject::OnDeath(killer_id);
 	
-	DWORD mostDamageSource = killer_id;
-	int mostDamage = 0;
-	int totalDamage = 0;
-	
-	if (m_aDamageSources.size() == 0)
-	{
-		mostDamageSource = killer_id;
-	}
-	else {
-		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
-		{
-			totalDamage += it->second;
-
-			if (it->second > mostDamage)
-			{
-				mostDamage = it->second;
-				mostDamageSource = it->first;
-			}
-		}
-	}
 	int level = InqIntQuality(LEVEL_INT, 0);
 
 	int xpForKill = 0;
@@ -1770,7 +1769,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
 		{
 			std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindObject(it->first);
-			double dPercentage = (double)it->second / totalDamage;
+			double dPercentage = (double)it->second / m_totalDamageTaken;
 
 			if (pSource)
 			{
@@ -1779,8 +1778,8 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 		}
 	}
 
-	m_DeathKillerIDForCorpse = mostDamageSource;
-	if (!g_pWorld->FindObjectName(mostDamageSource, m_DeathKillerNameForCorpse))
+	m_DeathKillerIDForCorpse = m_highestDamageSource;
+	if (!g_pWorld->FindObjectName(m_highestDamageSource, m_DeathKillerNameForCorpse))
 		m_DeathKillerNameForCorpse = "fate";
 
 	if (m_Qualities._generator_registry)
@@ -1804,7 +1803,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 	if (g_pConfig->HardcoreMode() && _IsPlayer())
 	{
-		if (std::shared_ptr<CWeenieObject> pKiller = g_pWorld->FindObject(mostDamageSource))
+		if (std::shared_ptr<CWeenieObject> pKiller = g_pWorld->FindObject(m_highestDamageSource))
 		{
 			if (!g_pConfig->HardcoreModePlayersOnly() || pKiller->_IsPlayer())
 			{
@@ -2458,6 +2457,8 @@ int CMonsterWeenie::AdjustHealth(int amount)
 	{
 		// reset damage sources
 		m_aDamageSources.clear();
+		m_highestDamageSource = 0;
+		m_totalDamageTaken = 0;
 	}
 
 	return amount;
