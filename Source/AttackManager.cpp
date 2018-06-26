@@ -1228,7 +1228,7 @@ void AttackManager::OnAttackCancelled(DWORD error)
 {
 	if (_attackData)
 	{
-		std::shared_ptr<CWeenieObject> pWeenie = pWeenie;
+		std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
 
 		if (pWeenie)
 		{

@@ -18,7 +18,7 @@ EmoteManager::EmoteManager(std::shared_ptr<CWeenieObject> weenie)
 
 bool EmoteManager::ChanceExecuteEmoteSet(EmoteCategory category, std::string msg, DWORD target_id)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = pWeenie;
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
 	if (!pWeenie)
 	{
 		return false;
@@ -44,7 +44,7 @@ bool EmoteManager::ChanceExecuteEmoteSet(EmoteCategory category, std::string msg
 
 bool EmoteManager::ChanceExecuteEmoteSet(EmoteCategory category, DWORD target_id)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = pWeenie;
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
 	if (!pWeenie)
 	{
 		return false;
@@ -135,7 +135,7 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = pWeenie;
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
 	if (!pWeenie)
 	{
 		return;
