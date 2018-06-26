@@ -64,7 +64,7 @@ CPlayerWeenie *CClientEvents::GetPlayer()
 
 void CClientEvents::ExitWorld()
 {
-	auto t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	auto t = chrono::system_clock::to_time_t(chrono::system_clock::now());
 	m_pPlayer->m_Qualities.SetInt(LOGOFF_TIMESTAMP_INT, t);
 
 	DetachPlayer();
@@ -78,11 +78,12 @@ void CClientEvents::Think()
 	{
 		// update in-game age
 		int age = m_pPlayer->m_Qualities.GetInt(AGE_INT, 0);
-		int time_now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+		int time_now = chrono::system_clock::to_time_t(chrono::system_clock::now());
 
 		int time_diff = time_now - last_age_update;
 		age += time_diff;
 		m_pPlayer->m_Qualities.SetInt(AGE_INT, age);
+		m_pPlayer->NotifyIntStatUpdated(AGE_INT);
 		last_age_update = time_now;
 
 		if (m_bSendAllegianceUpdates)
@@ -180,26 +181,22 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	m_pPlayer->SetLoginPlayerQualities(); // overrides
 	m_pPlayer->RecalculateEncumbrance();
 	m_pPlayer->LoginCharacter();
-	last_age_update = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	last_age_update = chrono::system_clock::to_time_t(chrono::system_clock::now());
 
 	// give characters created before creation timestamp was being set a timestamp and DOB from their DB date_created
 	if (!m_pPlayer->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0))
 	{
-		if (g_pDB2->Query("SELECT date_created FROM characters WHERE weenie_id = %u", m_pPlayer->GetID()))
+		CharacterDesc_t char_info = g_pDBIO->GetCharacterInfo(m_pPlayer->GetID());
+		if (char_info.date_created) // check that the query got info, will be 0 if it didn't
 		{
-			CSQLResult *pQueryResult = g_pDB2->GetResult();
-			if (pQueryResult)
-			{
-				SQLResultRow_t Row = pQueryResult->FetchRow();
-				time_t t = strtoul(Row[0], NULL, 10);
-				m_pPlayer->m_Qualities.SetInt(CREATION_TIMESTAMP_INT, t);
+			time_t t = char_info.date_created;
+			m_pPlayer->m_Qualities.SetInt(CREATION_TIMESTAMP_INT, t);
+			m_pPlayer->NotifyIntStatUpdated(CREATION_TIMESTAMP_INT);
 
-				std::stringstream ss;
-				ss << std::put_time(std::gmtime(&t), "%d %B %Y");
-				m_pPlayer->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
-
-				delete pQueryResult;
-			}
+			std::stringstream ss;
+			ss << std::put_time(std::gmtime(&t), "%d %B %Y"); // convert time to a string of format '01 January 2018'
+			m_pPlayer->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
+			m_pPlayer->NotifyStringStatUpdated(DATE_OF_BIRTH_STRING);
 		}
 	}
 

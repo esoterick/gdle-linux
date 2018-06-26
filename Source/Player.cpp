@@ -3361,7 +3361,7 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	//End of temporary code
 
 	g_pAllegianceManager->SetWeenieAllegianceQualities(this);
-	auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	auto t = chrono::system_clock::to_time_t(chrono::system_clock::now());
 	m_Qualities.SetInt(LOGIN_TIMESTAMP_INT, t);
 	m_Qualities.SetFloat(LOGIN_TIMESTAMP_FLOAT, t);
 
