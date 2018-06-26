@@ -4112,7 +4112,7 @@ enum ClientEventsEnum
 	ADD_ITEM_SHORTCUT = 0x019C, // Add item to shortcut bar
 	REMOVE_ITEM_SHORTCUT = 0x019D, // Remove item to shortcut bar
 	CHARACTER_OPTIONS = 0x01A1, // 
-	SPELLBOOK_REMOVE = 0x01A8,
+	SPELLBOOK_REMOVE = 0x01A8, // Delete spell from spellbook
 	CANCEL_ATTACK = 0x01B7, // Cancel attack
 	QUERY_HEALTH = 0x01BF, // Request health update
 	QUERY_AGE = 0x01C2,

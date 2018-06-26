@@ -211,7 +211,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 			pPlayer->NotifyIntStatUpdated(CREATION_TIMESTAMP_INT);
 
 			std::stringstream ss;
-			ss << std::put_time(std::gmtime(&t), "%d %B %Y"); // convert time to a string of format '01 January 2018'
+			ss << "You were born on " << std::put_time(std::localtime(&t), "%m/%d/%y %I:%M:%S %p."); // convert time to a string of format '01/01/18 11:59:59 AM.'
 			pPlayer->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
 			pPlayer->NotifyStringStatUpdated(DATE_OF_BIRTH_STRING);
 		}
@@ -729,6 +729,30 @@ void CClientEvents::RequestHealthUpdate(DWORD dwGUID)
 			m_pClient->SendNetMessage(HealthUpdate(pMonster), PRIVATE_MSG, TRUE, TRUE);
 		}
 	}
+}
+
+std::string GetAgeString(int age) 
+{
+	int mo = age / 2629800; // seconds in a month
+	int leftover = age % 2629800;
+	int d = leftover / 86400; // seconds in a day
+	leftover %= 86400;
+	int h = leftover / 3600; // seconds in an hour
+	leftover %= 3600;
+	int m = leftover / 60; // seconds in a minute
+	leftover %= 60;
+	int s = leftover;
+	std::string out = "You have played for ";
+	if (mo)
+		out += csprintf("%dmo ", mo);
+	if (d)
+		out += csprintf("%dd ", d);
+	if (h)
+		out += csprintf("%dh ", h);
+	if (m)
+		out += csprintf("%dm ", m);
+	out += csprintf("%ds.", s);
+	return out;
 }
 
 void CClientEvents::ChangeCombatStance(COMBAT_MODE mode)
@@ -2495,6 +2519,10 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				MissileAttack(target, height, power);
 				break;
 			}
+		case SET_AFK_MODE:
+		case SET_AFK_MESSAGE:
+			{
+			}
 		case TEXT_CLIENT: //Client Text
 			{
 				char *szText = pReader->ReadString();
@@ -2503,6 +2531,10 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				ClientText(szText);
 				break;
 			}
+		case REMOVE_FRIEND:
+		case ADD_FRIEND:
+		{
+		}
 		case STORE_ITEM: //Store Item
 			{
 				DWORD dwItemID = pReader->ReadDWORD();
@@ -2555,6 +2587,12 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				SetRequestAllegianceUpdate(on);
 				break;
 			}
+		case CLEAR_FRIENDS:
+		case RECALL_PKL_ARENA:
+		case RECALL_PK_ARENA:
+		case SET_DISPLAY_TITLE:
+		{
+		}
 		case CONFIRMATION_RESPONSE: // confirmation response
 		{
 			DWORD confirmType = pReader->ReadDWORD();
@@ -2587,6 +2625,10 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->PerformSalvaging(toolId, items);
 			break;
 		}
+		case ALLEGIANCE_QUERY_NAME:
+		case ALLEGIANCE_CLEAR_NAME:
+		{
+		}
 		case SEND_TELL_BY_GUID: //Send Tell by GUID
 			{
 				char *text = pReader->ReadString();
@@ -2603,6 +2645,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 				break;
 			}
+		case ALLEGIANCE_SET_NAME:
+		{
+		}
 		case USE_ITEM_EX: //Use Item Ex
 			{
 			DWORD dwSourceID = pReader->ReadDWORD();
@@ -2617,6 +2662,16 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError()) break;
 			UseObject(dwEID);
 			break;
+		}
+		case ALLEGIANCE_SET_OFFICER:
+		case ALLEGIANCE_SET_OFFICER_TITLE:
+		case ALLEGIANCE_LIST_OFFICER_TITLES:
+		case ALLEGIANCE_CLEAR_OFFICER_TITLES:
+		case ALLEGIANCE_LOCK_ACTION:
+		case ALLEGIANCE_APPROVED_VASSAL:
+		case ALLEGIANCE_CHAT_GAG:
+		case ALLEGIANCE_HOUSE_ACTION:
+		{
 		}
 		case SPEND_XP_VITALS: // spend XP on vitals
 			{
@@ -2727,6 +2782,11 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->SplitItemToWield(stack_id, loc, amount);
 				break;
 			}
+		case SQUELCH_CHARACTER_MODIFY:
+		case SQUELCH_ACCOUNT_MODIFY:
+		case SQUELCH_GLOBAL_MODIFY:
+		{
+		}
 		case SEND_TELL_BY_NAME: //Send Tell by Name
 		{
 			char* szText = pReader->ReadString();
@@ -2865,6 +2925,13 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			TryFellowshipUpdate(on);
 			break;
 		}
+		case BOOK_ADD_PAGE:
+		case BOOK_MODIFY_PAGE:
+		case BOOK_DATA:
+		case BOOK_DELETE_PAGE:
+		case BOOK_PAGE_DATA:
+		{
+		}
 		case GIVE_OBJECT: // Give an item to someone
 			{
 				DWORD target_id = pReader->Read<DWORD>();
@@ -2916,6 +2983,18 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			pPlayer->Movement_Teleport(position);
 			break;
 		}
+		case ABUSE_LOG_REQUEST: // Send abuse report
+		{
+			// Read: string target, uint status = 1, string complaint
+		}
+		case CHANNEL_ADD: // Join chat channel
+		{
+			// Read: uint channel ID
+		}
+		case CHANNEL_REMOVE: // Leave chat channel
+		{
+			// Read: uint channel ID
+		}
 		case CHANNEL_TEXT: // Channel Text
 		{
 			DWORD channel_id = pReader->ReadDWORD();
@@ -2931,6 +3010,14 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 
 			break;
+		}
+		case CHANNEL_LIST: // List of characters listening to a channel
+		{
+			// Read: PackableList<string> characters
+		}
+		case CHANNEL_INDEX: // List of channels available to the player
+		{
+			// Read: PackableList<string> channels
 		}
 		case NO_LONGER_VIEWING_CONTAINER: // No longer viewing contents
 			{
@@ -2960,7 +3047,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->_playerModule.RemoveShortCut(index);
 				break;
 			}
-		case CHARACTER_OPTIONS:
+		case CHARACTER_OPTIONS: // Character Options 
 			{
 				PlayerModule module;
 				if (!module.UnPack(pReader) || pReader->GetLastError())
@@ -2970,6 +3057,10 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				pPlayer->UpdateModuleFromClient(module);
 				break;
 			}
+		case SPELLBOOK_REMOVE:
+		{
+			// Read in: LayeredSpellID spellID - Full spell ID combining the (SpellID)id with the spell (ushort)layer.
+		}
 		case CANCEL_ATTACK: // Cancel attack
 		{
 			// TODO
@@ -2985,6 +3076,26 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			RequestHealthUpdate(target_id);
 			break;
+		}
+		case QUERY_AGE:
+		{
+			DWORD targetID = pReader->ReadDWORD(); // don't need this, query can't target anyone else
+
+			if (pReader->GetLastError())
+				break;
+
+			int age = pPlayer->m_Qualities.GetInt(AGE_INT, 0);
+			SendText(GetAgeString(age).c_str(), LTT_DEFAULT); // You have played for Xm Xd Xh Xm Xs.
+		}
+		case QUERY_BIRTH:
+		{
+			DWORD targetID = pReader->ReadDWORD(); // don't need this, query can't target anyone else
+
+			if (pReader->GetLastError())
+				break;
+
+			std::string DOB = pPlayer->InqStringQuality(DATE_OF_BIRTH_STRING, "");
+			SendText(DOB.c_str(), LTT_DEFAULT);
 		}
 		case TEXT_INDIRECT: // Indirect Text (@me)
 		{
@@ -3017,27 +3128,27 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 		case ADD_TO_SPELLBAR: // Add item to spell bar
-			{
-				DWORD spellID = pReader->Read<DWORD>();
-				int index = pReader->Read<int>();
-				int spellBar = pReader->Read<int>();
-				if (pReader->GetLastError())
-					break;
-
-				pPlayer->_playerModule.AddSpellFavorite(spellID, index, spellBar);
+		{
+			DWORD spellID = pReader->Read<DWORD>();
+			int index = pReader->Read<int>();
+			int spellBar = pReader->Read<int>();
+			if (pReader->GetLastError())
 				break;
-			}
+
+			pPlayer->_playerModule.AddSpellFavorite(spellID, index, spellBar);
+			break;
+		}
 		case REMOVE_FROM_SPELLBAR: // Remove item from spell bar
-			{
-				DWORD spellID = pReader->Read<DWORD>();
-				int spellBar = pReader->Read<int>();
-				if (pReader->GetLastError())
-					break;
-
-				pPlayer->_playerModule.RemoveSpellFavorite(spellID, spellBar);
+		{
+			DWORD spellID = pReader->Read<DWORD>();
+			int spellBar = pReader->Read<int>();
+			if (pReader->GetLastError())
 				break;
-			}
-		case 0x01E9: // Ping
+
+			pPlayer->_playerModule.RemoveSpellFavorite(spellID, spellBar);
+			break;
+		}
+		case PING: // Ping
 		{
 			Ping();
 			break;
@@ -3132,20 +3243,51 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			break;
 		}
-		case HOUSE_BUY: //House_BuyHouse 
-			{
-				DWORD slumlord = pReader->Read<DWORD>();
-			
-				// TODO sanity check on the number of items here
-				PackableList<DWORD> items;
-				items.UnPack(pReader);
+		case CONSENT_LIST_CLEAR:{}
+		case CONSENT_LIST_SHOW:{}
+		case CONSENT_LIST_REMOVE:{}
+		case CORPSE_PERMIT_ADD:
+		{
+			std::string targetName = pReader->ReadString();
 
-				if (pReader->GetLastError())
-					break;
-
-				HouseBuy(slumlord, items);
+			if (pReader->GetLastError())
 				break;
+
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(targetName.c_str());
+			if (target) 
+			{
+				pPlayer->AddCorpsePermission(target);
 			}
+			break;
+		}
+		case CORPSE_PERMIT_REMOVE:
+		{
+			std::string targetName = pReader->ReadString();
+
+			if (pReader->GetLastError())
+				break;
+
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(targetName.c_str());
+			if (target)
+			{
+				pPlayer->RemoveCorpsePermission(target);
+			}
+			break;
+		}
+		case HOUSE_BUY: //House_BuyHouse 
+		{
+			DWORD slumlord = pReader->Read<DWORD>();
+			
+			// TODO sanity check on the number of items here
+			PackableList<DWORD> items;
+			items.UnPack(pReader);
+
+			if (pReader->GetLastError())
+				break;
+
+			HouseBuy(slumlord, items);
+			break;
+		}
 		case HOUSE_ABANDON: //House_AbandonHouse 
 		{
 			HouseAbandon();
@@ -3157,19 +3299,19 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 		case HOUSE_RENT: //House_RentHouse 
-			{
-				DWORD slumlord = pReader->Read<DWORD>();
+		{
+			DWORD slumlord = pReader->Read<DWORD>();
 
-				// TODO sanity check on the number of items here
-				PackableList<DWORD> items;
-				items.UnPack(pReader);
+			// TODO sanity check on the number of items here
+			PackableList<DWORD> items;
+			items.UnPack(pReader);
 
-				if (pReader->GetLastError())
-					break;
-
-				HouseRent(slumlord, items);
+			if (pReader->GetLastError())
 				break;
-			}
+
+			HouseRent(slumlord, items);
+			break;
+		}
 		case HOUSE_ADD_GUEST: //House_AddPermanentGuest 
 		{
 			std::string name = pReader->ReadString();
@@ -3221,10 +3363,29 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseRequestAccessList();
 			break;
 		}
+		case ALLEGIANCE_SET_MOTD:
+		{
+			std::string motd = pReader->ReadString();
+
+			if (pReader->GetLastError())
+				break;
+
+			TrySetAllegianceMOTD(motd);
+			break;
+		}
 		case ALLEGIANCE_QUERY_MOTD : //Request allegiance MOTD
 		{
 			SendAllegianceMOTD();
 			break;
+		}
+		case ALLEGIANCE_CLEAR_MOTD:
+		{
+			TrySetAllegianceMOTD("");
+			break;
+		}
+		case HOUSE_QUERY_SLUMLORD:
+		{
+			// read in: DWORD lord = pReader->ReadDWORD();
 		}
 		case HOUSE_SET_OPEN_STORAGE_ACCESS: //House_AddAllStoragePermission
 		{
@@ -3235,6 +3396,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		{
 			HouseClearAccessList();
 			break;
+		}
+		case HOUSE_BOOT_ALL:
+		{
 		}
 		case RECALL_HOUSE: // House Recall
 		{
@@ -3281,6 +3445,13 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseAddOrRemoveAllegianceToStorageList(newSetting > 0);
 			break;
 		}
+		case CHESS_JOIN: {}
+		case CHESS_QUIT: {}
+		case CHESS_MOVE: {}
+		case CHESS_PASS: {}
+		case CHESS_STALEMATE: {}
+		case HOUSE_LIST_AVAILABLE: {}
+		case ALLEGIANCE_BOOT_PLAYER: {}
 		case RECALL_HOUSE_MANSION: // House_TeleToMansion
 		{
 			HouseMansionRecall();
@@ -3320,6 +3491,13 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			MarketplaceRecall();
 			break;
 		}
+		case PKLITE:
+		{
+			// change dot to pink
+			// change to attackable by other PKLs
+			// change to dropping nothing on death from other PKL
+			// do PKL animation
+		}
 		case FELLOW_ASSIGN_NEW_LEADER: // "Fellowship Assign New Leader"
 			{
 				DWORD target_id = pReader->Read<DWORD>();
@@ -3340,6 +3518,13 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				TryFellowshipChangeOpenness(open);
 				break;
 			}
+		case ALLEGIANCE_CHAT_BOOT: {}
+		case ALLEGIANCE_ADD_PLAYER_BAN: {}
+		case ALLEGIANCE_REMOVE_PLAYER_BAN: {}
+		case ALLEGIANCE_LIST_BANS: {}
+		case ALLEGIANCE_REMOVE_OFFICER: {}
+		case ALLEGIANCE_LIST_OFFICERS: {}
+		case ALLEGIANCE_CLEAR_OFFICERS:	{}
 		case RECALL_ALLEGIANCE_HOMETOWN: //Allegiance_RecallAllegianceHometown (bindstone)
 		{
 			AllegianceHometownRecall();
@@ -3624,6 +3809,10 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			// pPlayer->Movement_UpdatePos();
 			break;
 		}
+		case MOVEMENT_DO_MOVEMENT_COMMAND: {}
+		case MOVEMENT_TURN_TO: {}
+		case MOVEMENT_STOP: {}
+		case MOVEMENT_AUTONOMY_LEVEL: {}
 		case MOVEMENT_AUTONOMOUS_POSITION: // Update Exact Position
 		{
 			Position position;
@@ -3723,6 +3912,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			pPlayer->Movement_UpdatePos();
 			break;
 		}
+		case MOVEMENT_JUMP_NON_AUTONOMOUS: {}
 		default:
 		{
 			//Unknown Event
