@@ -808,6 +808,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_BREAD_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGDAGGER_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
@@ -829,6 +831,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_CHEESE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGSTAFF_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
@@ -850,6 +854,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGKNUCKLES_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
@@ -871,6 +877,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGBROADSWORD_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
@@ -892,6 +900,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGCLUB_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
@@ -914,6 +924,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGSPEAR_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
@@ -936,6 +948,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGBROADSWORD_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
@@ -958,6 +972,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGHANDAXE_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
@@ -980,6 +996,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGCLUB_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
@@ -1002,6 +1020,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGKNUCKLES_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
@@ -1024,6 +1044,8 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGKNUCKLES_CLASS, 1);
+		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			weenie->SpawnInContainer(W_TRAININGSPADONE_CLASS, 1);
 		if (cg.skillAdvancementClasses[MISSILE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		{
 			weenie->SpawnInContainer(W_BOWTRAINING_CLASS, 1);
