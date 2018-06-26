@@ -50,7 +50,14 @@ void CPhysicsObj::EmitSound(DWORD sound_id, float speed, bool bLocalClientOnly)
 	}
 	else
 	{
-		g_pWorld->BroadcastPVS(GetPointer(), SoundMsg.GetData(), SoundMsg.GetSize(), OBJECT_MSG);
+		if (std::shared_ptr<CWeenieObject> pWeenie = AsWeenie())
+		{
+			g_pWorld->BroadcastPVS(pWeenie, SoundMsg.GetData(), SoundMsg.GetSize(), OBJECT_MSG);
+		}
+		else
+		{
+			g_pWorld->BroadcastPVS(GetPointer(), SoundMsg.GetData(), SoundMsg.GetSize(), OBJECT_MSG);
+		}
 	}
 }
 
@@ -65,7 +72,14 @@ void CPhysicsObj::EmitEffect(DWORD dwIndex, float flScale)
 	EffectMsg.Write<DWORD>(dwIndex);
 	EffectMsg.Write<float>(flScale);
 
-	g_pWorld->BroadcastPVS(GetPointer(), EffectMsg.GetData(), EffectMsg.GetSize(), OBJECT_MSG, 0);
+	if (std::shared_ptr<CWeenieObject> pWeenie = AsWeenie())
+	{
+		g_pWorld->BroadcastPVS(pWeenie, EffectMsg.GetData(), EffectMsg.GetSize(), OBJECT_MSG, 0);
+	}
+	else
+	{
+		g_pWorld->BroadcastPVS(GetPointer(), EffectMsg.GetData(), EffectMsg.GetSize(), OBJECT_MSG, 0);
+	}
 }
 
 void CPhysicsObj::InitPhysicsTemporary()

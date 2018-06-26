@@ -96,5 +96,12 @@ void CPhysicsObj::Movement_UpdateVector()
 	moveMsg.Write<WORD>(_instance_timestamp);
 	moveMsg.Write<WORD>(++_vector_timestamp);
 
-	g_pWorld->BroadcastPVS(GetPointer(), moveMsg.GetData(), moveMsg.GetSize(), OBJECT_MSG);
+	if (std::shared_ptr<CWeenieObject> pWeenie = AsWeenie())
+	{
+		g_pWorld->BroadcastPVS(pWeenie, moveMsg.GetData(), moveMsg.GetSize(), OBJECT_MSG);
+	}
+	else
+	{
+		g_pWorld->BroadcastPVS(GetPointer(), moveMsg.GetData(), moveMsg.GetSize(), OBJECT_MSG);
+	}
 }

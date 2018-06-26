@@ -186,7 +186,14 @@ void CPhysicsObj::Animation_Update()
 	AnimUpdate.Write(AnimInfo);
 	delete AnimInfo;
 
-	g_pWorld->BroadcastPVS(GetPointer(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	if (std::shared_ptr<CWeenieObject> pWeenie = AsWeenie())
+	{
+		g_pWorld->BroadcastPVS(pWeenie, AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	}
+	else
+	{
+		g_pWorld->BroadcastPVS(GetPointer(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	}
 }
 
 void CPhysicsObj::Animation_MoveToUpdate()
@@ -211,7 +218,14 @@ void CPhysicsObj::Animation_MoveToUpdate()
 	AnimUpdate.Write(AnimInfo);
 	delete AnimInfo;
 
-	g_pWorld->BroadcastPVS(GetPointer(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	if (std::shared_ptr<CWeenieObject> pWeenie = AsWeenie())
+	{
+		g_pWorld->BroadcastPVS(pWeenie, AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	}
+	else
+	{
+		g_pWorld->BroadcastPVS(GetPointer(), AnimUpdate.GetData(), AnimUpdate.GetSize(), OBJECT_MSG);
+	}
 
 	last_move_was_autonomous = false;
 }
