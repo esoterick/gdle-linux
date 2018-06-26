@@ -2626,7 +2626,7 @@ enum EmoteType
 	SetBoolStat_EmoteType = 69,
 	SetQuestCompletions_EmoteType = 70,
 	InqNumCharacterTitles_EmoteType = 71,
-	Generate_EmoteType = 72,
+	Generate_EmoteType = 72, //Functionality Implemented
 	PetCastSpellOnOwner_EmoteType = 73,
 	TakeItems_EmoteType = 74,
 	InqYesNo_EmoteType = 75,

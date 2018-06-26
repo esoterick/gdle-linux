@@ -823,6 +823,10 @@ DEFINE_PACK(Emote)
 	case TeleportSelf_EmoteType:
 		mPosition.Pack(pWriter);
 		break;
+	case Generate_EmoteType:
+		pWriter->Write<DWORD>(amount);
+		break;
+
 	}
 }
 
@@ -1074,6 +1078,10 @@ DEFINE_UNPACK(Emote)
 	case 0x64:
 		mPosition.UnPack(pReader);
 		break;
+	case Generate_EmoteType:
+		amount = pReader->Read<DWORD>();
+		break;
+
 	}
 
 	return true; // Emote::IsValid()
@@ -1304,6 +1312,10 @@ DEFINE_PACK_JSON(Emote)
 	case 0x64:
 		mPosition.PackJson(writer["mPosition"]);
 		break;
+	case Generate_EmoteType:
+		writer["amount"] = amount;
+		break;
+
 	}
 }
 
@@ -1535,6 +1547,10 @@ DEFINE_UNPACK_JSON(Emote)
 	case 0x64:
 		mPosition.UnPackJson(reader["mPosition"]);
 		break;
+	case Generate_EmoteType:
+		amount = reader["amount"];
+		break;
+
 	}
 
 	return true; // Emote::IsValid()
