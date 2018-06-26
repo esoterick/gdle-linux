@@ -5,6 +5,7 @@
 #include "ClientCommands.h"
 #include "ClientEvents.h"
 #include "World.h"
+#include <chrono>
 
 #include "Database.h"
 #include "DatabaseIO.h"
@@ -68,9 +69,16 @@ std::shared_ptr<CPlayerWeenie> CClientEvents::GetPlayer()
 
 void CClientEvents::ExitWorld()
 {
+	if (std::shared_ptr<CPlayerWeenie> pPlayer = m_pPlayer.lock())
+	{
+		auto t = chrono::system_clock::to_time_t(chrono::system_clock::now());
+		pPlayer->m_Qualities.SetInt(LOGOFF_TIMESTAMP_INT, t);
+	}
+
 	DetachPlayer();
 	m_pClient->ExitWorld();
 }
+
 
 void CClientEvents::Think()
 {
@@ -78,6 +86,16 @@ void CClientEvents::Think()
 
 	if (pPlayer)
 	{
+		// update in-game age
+		int age = pPlayer->m_Qualities.GetInt(AGE_INT, 0);
+		int time_now = chrono::system_clock::to_time_t(chrono::system_clock::now());
+
+		int time_diff = time_now - last_age_update;
+		age += time_diff;
+		pPlayer->m_Qualities.SetInt(AGE_INT, age);
+		pPlayer->NotifyIntStatUpdated(AGE_INT);
+		last_age_update = time_now;
+
 		if (m_bSendAllegianceUpdates)
 		{
 			if (m_fNextAllegianceUpdate <= g_pGlobals->Time())
@@ -179,6 +197,25 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	pPlayer->SetLoginPlayerQualities(); // overrides
 	pPlayer->RecalculateEncumbrance();
 	pPlayer->LoginCharacter();
+
+	last_age_update = chrono::system_clock::to_time_t(chrono::system_clock::now());
+
+	// give characters created before creation timestamp was being set a timestamp and DOB from their DB date_created
+	if (!pPlayer->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0))
+	{
+		CharacterDesc_t char_info = g_pDBIO->GetCharacterInfo(pPlayer->GetID());
+		if (char_info.date_created) // check that the query got info, will be 0 if it didn't
+		{
+			time_t t = char_info.date_created;
+			pPlayer->m_Qualities.SetInt(CREATION_TIMESTAMP_INT, t);
+			pPlayer->NotifyIntStatUpdated(CREATION_TIMESTAMP_INT);
+
+			std::stringstream ss;
+			ss << std::put_time(std::gmtime(&t), "%d %B %Y"); // convert time to a string of format '01 January 2018'
+			pPlayer->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
+			pPlayer->NotifyStringStatUpdated(DATE_OF_BIRTH_STRING);
+		}
+	}
 
 	//temporarily send a purge all enchantments packet on login to wipe stacked characters.
 	if (pPlayer->m_Qualities._enchantment_reg)

@@ -233,6 +233,28 @@ std::list<CharacterDesc_t> CDatabaseIO::GetCharacterList(unsigned int account_id
 	return results;
 }
 
+CharacterDesc_t CDatabaseIO::GetCharacterInfo(unsigned int weenie_id)
+{
+	CharacterDesc_t result = { 0,0,"",0,0 };
+
+	if (g_pDB2->Query("SELECT account_id, weenie_id, name, date_created, instance_ts FROM characters WHERE weenie_id = %u", weenie_id))
+	{
+		CSQLResult *pQueryResult = g_pDB2->GetResult();
+		if (pQueryResult)
+		{
+			SQLResultRow_t Row = pQueryResult->FetchRow();
+			result.account_id = strtoul(Row[0], NULL, 10);
+			result.weenie_id = strtoul(Row[1], NULL, 10);
+			result.name = Row[2];
+			result.date_created = strtoul(Row[3], NULL, 10);
+			result.instance_ts = (WORD)strtoul(Row[4], NULL, 10);
+
+			delete pQueryResult;
+		}
+	}
+	return result;
+}
+
 bool CDatabaseIO::CreateCharacter(unsigned int account_id, unsigned int weenie_id, const char *name)
 {
 	return g_pDB2->Query("INSERT INTO characters (account_id, weenie_id, name, date_created, instance_ts) VALUES (%u, %u, '%s', UNIX_TIMESTAMP(), 1)",

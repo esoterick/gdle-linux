@@ -23,6 +23,7 @@
 #include "House.h"
 #include "easylogging++.h"
 #include "Util.h"
+#include <chrono>
 
 #define PLAYER_SAVE_INTERVAL 180.0
 #define PLAYER_HEALTH_POLL_INTERVAL 5.0
@@ -3404,7 +3405,9 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	//End of temporary code
 
 	g_pAllegianceManager->SetWeenieAllegianceQualities(AsWeenie());
-	m_Qualities.SetFloat(LOGIN_TIMESTAMP_FLOAT, Timer::cur_time);
+	auto t = chrono::system_clock::to_time_t(chrono::system_clock::now());
+	m_Qualities.SetInt(LOGIN_TIMESTAMP_INT, t);
+	m_Qualities.SetFloat(LOGIN_TIMESTAMP_FLOAT, t);
 
 	// Position startPos = Position(0xDB75003B, Vector(186.000000f, 65.000000f, 36.088333f), Quaternion(1.000000, 0.000000, 0.000000, 0.000000));
 	// Position startPos = Position(0xA9B4001F, Vector(87.750603f, 147.722321f, 66.005005f), Quaternion(0.011819f, 0.000000, 0.000000, -0.999930f));
