@@ -60,27 +60,39 @@ int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 			other->m_Qualities.InqAttribute2nd(maxStatType, maxStatValue, FALSE);
 			
 			int currentMax = static_cast<int>(maxStatValue);
-			int statChangeValue = statValue + boost_value;
-			int statChange = 0;
-			if (statChangeValue > currentMax)
-				statChange = currentMax;
-			else
-				statChange = max(0, statChangeValue);
+			int currentStat = static_cast<int>(statValue);
+			int diff = 0;
 
-			if (statChange < currentMax)
+			if (boost_value + currentStat < currentMax)
 			{
-				if (other->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
+				if (boost_value + currentStat <= 0)
 				{
-					other->AdjustHealth(statChange);
-					other->NotifyAttribute2ndStatUpdated(statType);
+					diff = currentStat;
+					currentStat = 0;
 				}
 				else
 				{
-					other->m_Qualities.SetAttribute2nd(statType, statChange);
-					other->NotifyAttribute2ndStatUpdated(statType);
+					currentStat += boost_value;
+					diff = boost_value;
 				}
 			}
+			else
+			{
+				diff = currentMax - currentStat;
+				currentStat = currentMax;
+			}
 
+			if (other->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
+			{
+				other->AdjustHealth(currentStat);
+				other->NotifyAttribute2ndStatUpdated(statType);
+			}
+			else
+			{
+				other->m_Qualities.SetAttribute2nd(statType, currentStat);
+				other->NotifyAttribute2ndStatUpdated(statType);
+			}
+	
 			const char *vitalName = "";
 			switch (boost_stat)
 			{
@@ -88,10 +100,10 @@ int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 			case STAMINA_ATTRIBUTE_2ND: vitalName = "stamina"; break;
 			case MANA_ATTRIBUTE_2ND: vitalName = "mana"; break;
 			}
-			if(statChange >= statValue)
-				other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), max(0, statChange), vitalName), LTT_DEFAULT);
+			if(boost_value >= 0)
+				other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), diff, vitalName), LTT_DEFAULT);
 			else
-				other->SendText(csprintf("The %s takes %d points of your %s.", GetName().c_str(), currentMax - statChange, vitalName), LTT_DEFAULT);
+				other->SendText(csprintf("The %s takes %d points of your %s.", GetName().c_str(), diff, vitalName), LTT_DEFAULT);
 
 			if (boost_stat == HEALTH_ATTRIBUTE_2ND)
 			{
