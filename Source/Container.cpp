@@ -833,7 +833,7 @@ void CContainerWeenie::InitPhysicsObj()
 		}
 
 #ifdef _DEBUG
-		assert(item->GetWielderID() == GetID());
+		assert(item.lock()->GetWielderID() == GetID());
 #endif
 
 		int parentLocation = pItem->InqIntQuality(PARENT_LOCATION_INT, PARENT_ENUM::PARENT_NONE);
@@ -1522,20 +1522,20 @@ void CContainerWeenie::DebugValidate()
 	
 	for (auto wielded : m_Wielded)
 	{
-		assert(wielded->GetWielderID() == GetID());
-		wielded->DebugValidate();
+		assert(wielded.lock()->GetWielderID() == GetID());
+		wielded.lock()->DebugValidate();
 	}
 
 	for (auto item : m_Items)
 	{
-		assert(item->GetContainerID() == GetID());
-		item->DebugValidate();
+		assert(item.lock()->GetContainerID() == GetID());
+		item.lock()->DebugValidate();
 	}
 
 	for (auto pack : m_Packs)
 	{
-		assert(pack->GetContainerID() == GetID());
-		pack->DebugValidate();
+		assert(pack.lock()->GetContainerID() == GetID());
+		pack.lock()->DebugValidate();
 	}
 #endif
 }

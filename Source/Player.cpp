@@ -261,6 +261,8 @@ void CPlayerWeenie::Tick()
 
 		RemoveLastHealthRequest();
 	}
+
+	UpdateCorpsePermissions();
 }
 
 bool CPlayerWeenie::IsBusy()
@@ -669,7 +671,6 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 	for (auto item : alwaysDropList)
 		FinishMoveItemToContainer(item, pCorpse, 0, true, true);
 
-
 	// This section calculates the effective value for each item (halved for each previous dupe)
 	std::multimap <int, std::shared_ptr<CWeenieObject> > itemValueList;
 	std::map<std::string, int> itemNameList;
@@ -810,6 +811,7 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 	ReduceVitae(0.05f);
 	UpdateVitaeEnchantment();
 	ClearPKActivity();
+	bool pkKill = 0;
 
 	if (killer_id != GetID())
 	{
@@ -820,7 +822,8 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 				m_Qualities.SetFloat(PK_TIMESTAMP_FLOAT, Timer::cur_time + g_pConfig->PKRespiteTime());
 				m_Qualities.SetInt(PLAYER_KILLER_STATUS_INT, PKStatusEnum::NPK_PKStatus);
 				NotifyIntStatUpdated(PLAYER_KILLER_STATUS_INT, false);
-
+				pkKill = 1;
+				NotifyWeenieError(WERROR_PK_SWITCH_RESPITE);
 				SendText("Bael'Zharon has granted you respite after your moment of weakness. You are temporarily no longer a player killer.", LTT_MAGIC);
 			}
 		}
@@ -828,9 +831,13 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 
 	// create corpse but make it invisible.
 	_pendingCorpse = CreateCorpse(false);
-
 	if (std::shared_ptr<CCorpseWeenie> pCorpse = _pendingCorpse.lock())
 	{
+		if (pkKill)
+		{
+			pCorpse->m_Qualities.SetBool(PK_KILLER_BOOL, 1); // flag the corpse as one made by a PK
+			pkKill = 0;
+		}
 		CalculateAndDropDeathItems(pCorpse, killer_id);
 	}
 
@@ -3958,35 +3965,38 @@ void CPlayerWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 
 void CPlayerWeenie::AddCorpsePermission(std::shared_ptr<CPlayerWeenie> target)
 {
-	if (!m_vCorpsePermissions.empty())
+	if (AsPlayer() != target) // can't add yourself to permissions
 	{
-		for (std::vector<std::shared_ptr<CPlayerWeenie>>::iterator it = m_vCorpsePermissions.begin(); it != m_vCorpsePermissions.end(); ++it)
+		if (!m_umCorpsePermissions.empty())
 		{
-			if (*it == target)
+			for (auto it : m_umCorpsePermissions)
 			{
-				SendText(csprintf("%s is already permitted to loot your corpse!", target->GetName()), LTT_DEFAULT);
-				return;
+				if (it.first == target)
+				{
+					SendText(csprintf("%s is already permitted to loot your corpse!", target->GetName().c_str()), LTT_DEFAULT);
+					return;
+				}
 			}
 		}
+		m_umCorpsePermissions.emplace(target, static_cast<int>(Timer::cur_time)); // add them to our permissions list
+		SendText(csprintf("%s has been permitted to loot your corpse.", target->GetName().c_str()), LTT_DEFAULT);
+		target->SendText(csprintf("You have been permitted to loot the corpse of %s.", GetName().c_str()), LTT_DEFAULT);
+		target->m_umConsentList.emplace(AsPlayer(), static_cast<int>(Timer::cur_time)); // add us to their consent list
 	}
-	m_vCorpsePermissions.emplace_back(target);
-	SendText(csprintf("%s has been permitted to loot your corpse.", target->GetName()), LTT_DEFAULT);
 }
 
 void CPlayerWeenie::RemoveCorpsePermission(std::shared_ptr<CPlayerWeenie> target)
 {
-	if (!m_vCorpsePermissions.empty())
+	if (!m_umCorpsePermissions.empty())
 	{
-		for (std::vector<std::shared_ptr<CPlayerWeenie>>::iterator it = m_vCorpsePermissions.begin(); it != m_vCorpsePermissions.end(); ++it)
+		if (m_umCorpsePermissions.find(target) != m_umCorpsePermissions.end())
 		{
-			if (*it == target)
-			{
-				m_vCorpsePermissions.erase(it);
-				SendText(csprintf("%s is no longer permitted to loot your corpse.", target->GetName()), LTT_DEFAULT);
-				return;
-			}
+				m_umCorpsePermissions.erase(target); // remove them from our permissions list
+				SendText(csprintf("%s is no longer permitted to loot your corpse.", target->GetName().c_str()), LTT_DEFAULT);
+				target->SendText(csprintf("You are no longer permitted to loot the corpse of %s.", GetName().c_str()), LTT_DEFAULT);
+				target->m_umConsentList.erase(AsPlayer()); // remove us from their consent list
 		}
-		SendText(csprintf("%s isn't permitted to loot your corpse!",target->GetName()), LTT_DEFAULT);
+		SendText(csprintf("%s isn't permitted to loot your corpse!",target->GetName().c_str()), LTT_DEFAULT);
 	}
 	else
 	{
@@ -3994,19 +4004,63 @@ void CPlayerWeenie::RemoveCorpsePermission(std::shared_ptr<CPlayerWeenie> target
 	}
 }
 
-void CPlayerWeenie::GetCorpsePermissions()
+void CPlayerWeenie::UpdateCorpsePermissions() // Check whether any permissions have expired
 {
-	if (!m_vCorpsePermissions.empty())
+	if (!m_umCorpsePermissions.empty())
 	{
-		SendText("The following characters are currently permitted to loot your corpse:", LTT_DEFAULT);
-		for (std::vector<std::shared_ptr<CPlayerWeenie>>::iterator it = m_vCorpsePermissions.begin(); it != m_vCorpsePermissions.end(); ++it)
+		for (auto it : m_umCorpsePermissions)
 		{
-			std::shared_ptr<CPlayerWeenie> player = *it;
-			SendText(csprintf("%s\n",player->GetName()), LTT_DEFAULT);
+			if (it.second < static_cast<int>(Timer::cur_time - 3600) || !g_pWorld->FindPlayer(it.first->GetID())) // If an hour has gone by or the player isn't online any more revoke permissions
+			{
+				m_umCorpsePermissions.erase(it.first); // remove them from our permissions list
+				SendText(csprintf("%s is no longer permitted to loot your corpse.", it.first->GetName().c_str()), LTT_DEFAULT);
+				it.first->m_umConsentList.erase(AsPlayer()); // remove us from their consent list
+			}
+		}
+	}
+}
+
+void CPlayerWeenie::RemoveConsent(std::shared_ptr<CPlayerWeenie> target)
+{
+	if (m_umCorpsePermissions.find(target) != m_umCorpsePermissions.end()) // check if the target exists
+	{
+		m_umConsentList.erase(target); // remove from our consent list
+		SendText(csprintf("You have removed the corpse consent of %s.", target->GetName().c_str()), LTT_DEFAULT);
+		target->m_umCorpsePermissions.erase(AsPlayer()); // remove us from their permissions list
+	}
+	SendText(csprintf("You don't have corpse consent from %s.", target->GetName().c_str()), LTT_DEFAULT);
+}
+
+void CPlayerWeenie::DisplayConsent()
+{
+	if (!m_umConsentList.empty())
+	{
+		SendText("You have corpse consent from the following players:", LTT_DEFAULT);
+		for (auto it : m_umConsentList)
+		{
+			SendText(it.first->GetName().c_str(), LTT_DEFAULT);
 		}
 	}
 	else
 	{
-		SendText("Nobody is currently permitted to loot your corpse.", LTT_DEFAULT);
+		SendText("You don't have corpse consent from any players.", LTT_DEFAULT);
+	}
+}
+
+void CPlayerWeenie::ClearConsent()
+{
+	if (!m_umConsentList.empty())
+	{
+		for (auto it : m_umConsentList)
+		{
+			it.first->m_umCorpsePermissions.erase(AsPlayer()); // remove us from their permissions list
+			it.first->SendText(csprintf("%s has removed your corpse consent.",GetName().c_str()), LTT_DEFAULT);
+			m_umConsentList.erase(it.first); // now remove them from our consent list
+		}
+		SendText("Your corpse consent list has been cleared.", LTT_DEFAULT);
+	}
+	else
+	{
+		SendText("You don't have any corpse consent to clear!", LTT_DEFAULT);
 	}
 }

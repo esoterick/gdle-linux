@@ -202,8 +202,12 @@ public:
 
 	void AddCorpsePermission(std::shared_ptr<CPlayerWeenie> target);
 	void RemoveCorpsePermission(std::shared_ptr<CPlayerWeenie> target);
-	void GetCorpsePermissions();
-	std::vector<std::shared_ptr<CPlayerWeenie>> m_vCorpsePermissions;
+	void UpdateCorpsePermissions();
+	void RemoveConsent(std::shared_ptr<CPlayerWeenie> target);
+	void DisplayConsent();
+	void ClearConsent();
+	std::unordered_map<std::shared_ptr<CPlayerWeenie>, int> m_umCorpsePermissions;
+	std::unordered_map<std::shared_ptr<CPlayerWeenie>, int> m_umConsentList;
 
 protected:
 	CClient *m_pClient;

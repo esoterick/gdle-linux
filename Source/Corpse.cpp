@@ -4,7 +4,7 @@
 #include "DatabaseIO.h"
 #include "WorldLandBlock.h"
 
-#define CORPSE_EXIST_TIME 180 // how long before a corpse disappears in seconds
+#define CORPSE_EXIST_TIME 300.0 // how long before a corpse disappears in seconds
 
 CCorpseWeenie::CCorpseWeenie()
 {
@@ -48,21 +48,22 @@ int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
 		{
 			return WERROR_NONE;
 		}
-		if (_begin_destroy_at - (CORPSE_EXIST_TIME/3) <= Timer::cur_time)
+		if (_begin_destroy_at - (CORPSE_EXIST_TIME/2) <= Timer::cur_time) // If the corpse hasn't been opened after half its life, open to anyone
 		{
 			return WERROR_NONE;
 		}
 		std::shared_ptr<CPlayerWeenie> owner = g_pWorld->FindPlayer(victimId);
-		if (owner)
+		std::shared_ptr<CPlayerWeenie> looter = other->AsPlayer();
+		bool killedByPK = m_Qualities.GetBool(PK_KILLER_BOOL, 0);
+		if (owner && !killedByPK && looter) // Make sure we're both players & don't let corpse permissions work on PK kills
 		{
-			if (!owner->m_vCorpsePermissions.empty())
+			if (!owner->m_umCorpsePermissions.empty()) // if the corpse owner has players on their permissions list
 			{
-				for (std::vector<std::shared_ptr<CPlayerWeenie>>::iterator it = owner->m_vCorpsePermissions.begin(); it != owner->m_vCorpsePermissions.end(); ++it)
+				if (owner->m_umCorpsePermissions.find(looter) != owner->m_umCorpsePermissions.end()) // if the looter is on the owners permissions list
 				{
-					if (other == *it)
-					{
-						return WERROR_NONE;
-					}
+					owner->RemoveCorpsePermission(looter); // revoke permission now you've looted 1 corpse
+					looter->RemoveConsent(owner); // remove from looter consent list
+					return WERROR_NONE;
 				}
 			}
 		}

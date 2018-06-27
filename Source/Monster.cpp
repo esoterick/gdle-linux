@@ -1764,10 +1764,10 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 	if (xpForKill > 0)
 	{
 		// hand out xp proportionally
-		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
+		for (auto it : m_aDamageSources)
 		{
-			std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindObject(it->first);
-			double dPercentage = (double)it->second / m_totalDamageTaken;
+			std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindObject(it.first);
+			double dPercentage = (double)it.second / m_totalDamageTaken;
 
 			if (pSource)
 			{

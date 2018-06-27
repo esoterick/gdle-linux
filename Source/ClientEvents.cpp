@@ -2520,8 +2520,12 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				break;
 			}
 		case SET_AFK_MODE:
+		{
+			// Read: bool afk - Whether user is afk
+		}
 		case SET_AFK_MESSAGE:
 			{
+				// Read: string message
 			}
 		case TEXT_CLIENT: //Client Text
 			{
@@ -2532,8 +2536,12 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				break;
 			}
 		case REMOVE_FRIEND:
+		{
+			// Read: DWORD friendID
+		}
 		case ADD_FRIEND:
 		{
+			// Read: string friendName
 		}
 		case STORE_ITEM: //Store Item
 			{
@@ -2588,13 +2596,24 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				break;
 			}
 		case CLEAR_FRIENDS:
+		{
+			// Nothing to read
+		}
 		case RECALL_PKL_ARENA:
+		{
+			// Nothing to read
+		}
 		case RECALL_PK_ARENA:
+		{
+			// Nothing to read
+		}
 		case SET_DISPLAY_TITLE:
 		{
+			// Read: uint titleID
 		}
 		case CONFIRMATION_RESPONSE: // confirmation response
 		{
+			// ConfirmationTypes: SwearAllegiance 1, AlterSkill 2, AlterAttribute 3, Fellowship 4, Craft 5, Augmentation 6, YesNo 7
 			DWORD confirmType = pReader->ReadDWORD();
 			int context = pReader->ReadInt32();
 			bool accepted = pReader->ReadInt32();
@@ -2626,8 +2645,12 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 		case ALLEGIANCE_QUERY_NAME:
+		{
+			// Nothing to read
+		}
 		case ALLEGIANCE_CLEAR_NAME:
 		{
+			// Nothing to read
 		}
 		case SEND_TELL_BY_GUID: //Send Tell by GUID
 			{
@@ -2647,6 +2670,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 		case ALLEGIANCE_SET_NAME:
 		{
+			// Read: string msg - new allegiance name
 		}
 		case USE_ITEM_EX: //Use Item Ex
 			{
@@ -2664,14 +2688,36 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 		case ALLEGIANCE_SET_OFFICER:
+		{
+			// Read: string charName, AllegianceOfficerLevel level - levels are Speaker 0x01, Seneschal 0x02, Castellan 0x03
+		}
 		case ALLEGIANCE_SET_OFFICER_TITLE:
+		{
+			// Read: AllegianceOfficerLevel level, string title
+		}
 		case ALLEGIANCE_LIST_OFFICER_TITLES:
+		{
+			// Nothing to read
+		}
 		case ALLEGIANCE_CLEAR_OFFICER_TITLES:
+		{
+			// Nothing to read
+		}
 		case ALLEGIANCE_LOCK_ACTION:
+		{
+			// Read: AllegianceLockAction action - LockedOff 1, LockedOn 2, ToggleLocked 3, CheckLocked 4, DisplayBypass 5, ClearBypass 6
+		}
 		case ALLEGIANCE_APPROVED_VASSAL:
+		{
+			// Read: string charName - player being approved as a vassal
+		}
 		case ALLEGIANCE_CHAT_GAG:
+		{
+			// Read: string charName, bool on - player being gagged, whether gag is on
+		}
 		case ALLEGIANCE_HOUSE_ACTION:
 		{
+			// Read: AllegianceHouseAction action - Help 1, GuestOpen 2, GuestClosed 3, StorageOpen 4, StorageClosed 5
 		}
 		case SPEND_XP_VITALS: // spend XP on vitals
 			{
@@ -2783,9 +2829,17 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				break;
 			}
 		case SQUELCH_CHARACTER_MODIFY:
+		{
+			// Read: bool add, DWORD characterID, string characterName, ChatMessageType msgType
+			//		0 = unsquelch, 1 = squelch, ChatMessageType = enum LogTextType
+		}
 		case SQUELCH_ACCOUNT_MODIFY:
+		{
+			// Read: bool add, string characterName
+		}
 		case SQUELCH_GLOBAL_MODIFY:
 		{
+			// Read: bool add, ChatMessageType msgType
 		}
 		case SEND_TELL_BY_NAME: //Send Tell by Name
 		{
@@ -2926,11 +2980,24 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 		case BOOK_ADD_PAGE:
-		case BOOK_MODIFY_PAGE:
-		case BOOK_DATA:
-		case BOOK_DELETE_PAGE:
-		case BOOK_PAGE_DATA:
 		{
+			// Read: DWORD objectID - ID of book
+		}
+		case BOOK_MODIFY_PAGE:
+		{
+			// Read: DWORD objectID, int pageNum, string pageText
+		}
+		case BOOK_DATA: // Request update to book data (seems to be after failed add page)
+		{
+			// Read: DWORD objectID - ID of book
+		}
+		case BOOK_DELETE_PAGE:
+		{
+			// Read: DWORD objectID, int pageNum
+		}
+		case BOOK_PAGE_DATA: // Requests data of a page of a book
+		{
+			// Read: DWORD objectID, int pageNum
 		}
 		case GIVE_OBJECT: // Give an item to someone
 			{
@@ -2970,10 +3037,10 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pPlayer->GetAccessLevel() < ADVOCATE_ACCESS)
 				break;
 
-			// Starts with string (was empty when I tested)
+			// Starts with string (target)
 			pReader->ReadString();
 
-			// Then position (target)
+			// Then position (dest)
 			Position position;
 			position.UnPack(pReader);
 
@@ -3243,10 +3310,27 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			break;
 		}
-		case CONSENT_LIST_CLEAR:{}
-		case CONSENT_LIST_SHOW:{}
-		case CONSENT_LIST_REMOVE:{}
-		case CORPSE_PERMIT_ADD:
+		case CONSENT_LIST_CLEAR: // Clears the player's corpse looting consent list, /consent clear
+		{
+			pPlayer->ClearConsent();
+		}
+		case CONSENT_LIST_SHOW: // Display the player's corpse looting consent list, /consent who
+		{
+			pPlayer->DisplayConsent();
+		}
+		case CONSENT_LIST_REMOVE: // Remove your corpse looting permission for the given player, / consent remove
+		{
+			std::string targetName = pReader->ReadString();
+
+			if (pReader->GetLastError())
+				break;
+			std::shared_ptr<CPlayerWeenie> target = g_pWorld->FindPlayer(targetName.c_str());
+			if (target)
+			{
+				pPlayer->RemoveConsent(target);
+			}
+		}
+		case CORPSE_PERMIT_ADD: // Grants a player corpse looting permission, /permit add
 		{
 			std::string targetName = pReader->ReadString();
 
@@ -3260,7 +3344,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			break;
 		}
-		case CORPSE_PERMIT_REMOVE:
+		case CORPSE_PERMIT_REMOVE: // Revokes a player's corpse looting permission, /permit remove
 		{
 			std::string targetName = pReader->ReadString();
 
@@ -3397,8 +3481,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseClearAccessList();
 			break;
 		}
-		case HOUSE_BOOT_ALL:
+		case HOUSE_BOOT_ALL: // Boot everyone from your house, /house boot -all
 		{
+			// Nothing to read
 		}
 		case RECALL_HOUSE: // House Recall
 		{
@@ -3445,13 +3530,35 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseAddOrRemoveAllegianceToStorageList(newSetting > 0);
 			break;
 		}
-		case CHESS_JOIN: {}
-		case CHESS_QUIT: {}
-		case CHESS_MOVE: {}
-		case CHESS_PASS: {}
-		case CHESS_STALEMATE: {}
-		case HOUSE_LIST_AVAILABLE: {}
-		case ALLEGIANCE_BOOT_PLAYER: {}
+		case CHESS_JOIN: 
+		{
+			// Read: uint gameID, uint whichTeam
+		}
+		case CHESS_QUIT: 
+		{
+			// Nothing to read
+		}
+		case CHESS_MOVE: 
+		{
+			// Read: int xFrom, int yFrom, int xTo, int yTo
+		}
+		case CHESS_PASS: 
+		{
+			// Nothing to read
+		}
+		case CHESS_STALEMATE: 
+		{
+			// Read: bool on - whether stalemate offer is active or not
+		}
+		case HOUSE_LIST_AVAILABLE: 
+		{
+			// Read: HouseType houseType - type of house to list, cottage 1, villa 2, mansion 3, apartment 4
+			// Reply: 0x0271, HouseType houseType, PackableList<uint> houses, int numHouses
+		}
+		case ALLEGIANCE_BOOT_PLAYER: // Boots a player from the allegiance, optionally all characters on their account
+		{
+			// Read: string booteeName, bool accountBoot - name of char to boot, whether to boot all chars from their account
+		}
 		case RECALL_HOUSE_MANSION: // House_TeleToMansion
 		{
 			HouseMansionRecall();
@@ -3469,23 +3576,23 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 		case ALLEGIANCE_INFO_REQUEST: // allegiance info request
-			{
-				std::string target = pReader->ReadString();
-				if (target.empty() || pReader->GetLastError())
-					break;
-
-				AllegianceInfoRequest(target);
+		{
+			std::string target = pReader->ReadString();
+			if (target.empty() || pReader->GetLastError())
 				break;
-			}
+
+			AllegianceInfoRequest(target);
+			break;
+		}
 		case SPELLBOOK_FILTERS: // "/die" command
-			{
-				DWORD filters = pReader->Read<DWORD>();
-				if (pReader->GetLastError())
-					break;
-
-				pPlayer->_playerModule.spell_filters_ = filters;
+		{
+			DWORD filters = pReader->Read<DWORD>();
+			if (pReader->GetLastError())
 				break;
-			}
+
+			pPlayer->_playerModule.spell_filters_ = filters;
+			break;
+		}
 		case RECALL_MARKET: // Marketplace Recall
 		{
 			MarketplaceRecall();
@@ -3493,6 +3600,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case PKLITE:
 		{
+			// Nothing to read
 			// change dot to pink
 			// change to attackable by other PKLs
 			// change to dropping nothing on death from other PKL
@@ -3518,17 +3626,45 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				TryFellowshipChangeOpenness(open);
 				break;
 			}
-		case ALLEGIANCE_CHAT_BOOT: {}
-		case ALLEGIANCE_ADD_PLAYER_BAN: {}
-		case ALLEGIANCE_REMOVE_PLAYER_BAN: {}
-		case ALLEGIANCE_LIST_BANS: {}
-		case ALLEGIANCE_REMOVE_OFFICER: {}
-		case ALLEGIANCE_LIST_OFFICERS: {}
-		case ALLEGIANCE_CLEAR_OFFICERS:	{}
+		case ALLEGIANCE_CHAT_BOOT: 
+		{
+			// Read: string charName, string reason
+		}
+		case ALLEGIANCE_ADD_PLAYER_BAN: 
+		{
+			// Read: string charName
+		}
+		case ALLEGIANCE_REMOVE_PLAYER_BAN: 
+		{
+			//Read: string charName
+		}
+		case ALLEGIANCE_LIST_BANS: 
+		{
+			// Nothing to read
+		}
+		case ALLEGIANCE_REMOVE_OFFICER: 
+		{
+			// Read: string charName
+		}
+		case ALLEGIANCE_LIST_OFFICERS: 
+		{
+			// Nothing to read
+		}
+		case ALLEGIANCE_CLEAR_OFFICERS:	
+		{
+			// Nothing to read
+		}
 		case RECALL_ALLEGIANCE_HOMETOWN: //Allegiance_RecallAllegianceHometown (bindstone)
 		{
 			AllegianceHometownRecall();
 			break;
+		}
+		case FINISH_BARBER:
+		{
+			//Read: DataID basePalette, DataID headObject, DataID headTexture, DataID defaultHeadTexture, DataID eyesTexture
+			// DataID defaultEyesTexture, DataID noseTexture, DataID defaultNoseTexture, DataID mouthTexture, DataID defaultMouthTexture
+			// DataID skinPalette, DataID hairPalette, DataID eyesPalette, DataID setupID, int option1, int option2
+			// option1 = toggle certain race options e.g. empyrean float or flaming head undead, option2 = not used?
 		}
 		case MOVEMENT_JUMP: // Jump Movement
 		{
@@ -3809,12 +3945,29 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			// pPlayer->Movement_UpdatePos();
 			break;
 		}
-		case MOVEMENT_DO_MOVEMENT_COMMAND: {}
-		case MOVEMENT_TURN_TO: {}
-		case MOVEMENT_STOP: {}
-		case MOVEMENT_AUTONOMY_LEVEL: {}
+		case MOVEMENT_DO_MOVEMENT_COMMAND: 
+		{
+			// Read: uint motion, float speed, uint holdKey
+		}
+		case MOVEMENT_TURN_TO: 
+		{
+			// Read: TurnToEventPack ttep - set of turning data, not in client
+		}
+		case MOVEMENT_STOP: 
+		{
+			// Read: uint motion, uint holdKey
+		}
+		case MOVEMENT_AUTONOMY_LEVEL: 
+		{
+			// Read: uint autonomyLevel - Seems to be 0, 1 or 2. I think 0/1 is server controlled, 2 is client controlled
+			// Align to DWORD boundary
+		}
 		case MOVEMENT_AUTONOMOUS_POSITION: // Update Exact Position
 		{
+			// Read: AutonomousPositionPack app - AutonomousPositionPack is pack of Position position,
+			// ushort objectInstanceSequence, ushort objectServerControlSequence, ushort objectTeleportSequence, 
+			// ushort objectForcePositionSequence, ubyte contact. Align to DWORD boundary.
+
 			Position position;
 			position.UnPack(pReader);
 
@@ -3912,7 +4065,10 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			pPlayer->Movement_UpdatePos();
 			break;
 		}
-		case MOVEMENT_JUMP_NON_AUTONOMOUS: {}
+		case MOVEMENT_JUMP_NON_AUTONOMOUS: 
+		{
+			// Read: float extent - Power of jump
+		}
 		default:
 		{
 			//Unknown Event
@@ -3923,11 +4079,3 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 	}
 }
-
-
-
-
-
-
-
-
