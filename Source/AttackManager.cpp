@@ -1233,7 +1233,10 @@ void AttackManager::OnAttackCancelled(DWORD error)
 		if (pWeenie)
 		{
 			pWeenie->NotifyAttackDone();
-			//pWeenie->DoForcedStopCompletely();
+
+			// restores character to default combat mode animation
+			pWeenie->DoForcedMotion(pWeenie->get_minterp()->InqStyle());
+
 			pWeenie->unstick_from_object();
 		}
 
