@@ -3566,6 +3566,11 @@ void CPlayerWeenie::EraseQuest(const char *questName)
 	_questTable.RemoveQuest(questName);
 }
 
+void CPlayerWeenie::SetQuestCompletions(const char *questName, int numCompletions)
+{
+	_questTable.SetQuestCompletions(questName, numCompletions);
+}
+
 std::string CPlayerWeenie::Ktref(const char *questName)
 {
 	return _questTable.Ktref(questName);
