@@ -87,14 +87,16 @@ void CClientEvents::Think()
 	if (pPlayer)
 	{
 		// update in-game age
-		int age = pPlayer->m_Qualities.GetInt(AGE_INT, 0);
 		int time_now = chrono::system_clock::to_time_t(chrono::system_clock::now());
-
-		int time_diff = time_now - last_age_update;
-		age += time_diff;
-		pPlayer->m_Qualities.SetInt(AGE_INT, age);
-		pPlayer->NotifyIntStatUpdated(AGE_INT);
-		last_age_update = time_now;
+		if (time_now > (last_age_update + 15)) 
+		{
+			int age = pPlayer->m_Qualities.GetInt(AGE_INT, 0);
+			int time_diff = time_now - last_age_update;
+			age += time_diff;
+			pPlayer->m_Qualities.SetInt(AGE_INT, age);
+			pPlayer->NotifyIntStatUpdated(AGE_INT);
+			last_age_update = time_now;
+		}
 
 		if (m_bSendAllegianceUpdates)
 		{

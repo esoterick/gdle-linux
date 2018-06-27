@@ -261,8 +261,11 @@ void CPlayerWeenie::Tick()
 
 		RemoveLastHealthRequest();
 	}
-
-	UpdateCorpsePermissions();
+	if (m_NextCorpsePermissionsUpdate <= Timer::cur_time)
+	{
+		UpdateCorpsePermissions();
+		m_NextCorpsePermissionsUpdate = Timer::cur_time + 60.0;
+	}
 }
 
 bool CPlayerWeenie::IsBusy()
