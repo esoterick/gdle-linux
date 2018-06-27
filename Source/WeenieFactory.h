@@ -10,28 +10,28 @@ public:
 	void Reset();
 	void Initialize();
 
-	CWeenieObject *CreateWeenieByClassID(DWORD wcid, const Position *pos = NULL, bool bSpawn = false);
-	CWeenieObject *CreateWeenieByName(const char *name, const Position *pos = NULL, bool bSpawn = false);
-	CWeenieObject *CloneWeenie(CWeenieObject *weenie);
+	std::shared_ptr<CWeenieObject> CreateWeenieByClassID(DWORD wcid, const Position *pos = NULL, bool bSpawn = false);
+	std::shared_ptr<CWeenieObject> CreateWeenieByName(const char *name, const Position *pos = NULL, bool bSpawn = false);
+	std::shared_ptr<CWeenieObject> CloneWeenie(std::shared_ptr<CWeenieObject> weenie);
 
-	void AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject *parent, DWORD destinationType, bool isRegenLocationType, const GeneratorProfile *profile = NULL);
-	int AddFromCreateList(CWeenieObject *parent, PackableListWithJson<CreationProfile> *createList, DestinationType validDestinationTypes = DestinationType::Undef_DestinationType);
-	int AddFromGeneratorTable(CWeenieObject *parent, bool isInit);
+	void AddWeenieToDestination(std::shared_ptr<CWeenieObject> weenie, std::shared_ptr<CWeenieObject> parent, DWORD destinationType, bool isRegenLocationType, const GeneratorProfile *profile = NULL);
+	int AddFromCreateList(std::shared_ptr<CWeenieObject> parent, PackableListWithJson<CreationProfile> *createList, DestinationType validDestinationTypes = DestinationType::Undef_DestinationType);
+	int AddFromGeneratorTable(std::shared_ptr<CWeenieObject> parent, bool isInit);
 
-	int GenerateFromTypeOrWcid(CWeenieObject *parent, const GeneratorProfile *profile);
-	int GenerateFromTypeOrWcid(CWeenieObject *parent, RegenLocationType destinationType, DWORD treasureType, unsigned int ptid = 0, float shade = 0.0f);
-	int GenerateFromTypeOrWcid(CWeenieObject *parent, DestinationType destinationType, DWORD treasureType, unsigned int ptid = 0, float shade = 0.0f);
+	int GenerateFromTypeOrWcid(std::shared_ptr<CWeenieObject> parent, const GeneratorProfile *profile);
+	int GenerateFromTypeOrWcid(std::shared_ptr<CWeenieObject> parent, RegenLocationType destinationType, DWORD treasureType, unsigned int ptid = 0, float shade = 0.0f);
+	int GenerateFromTypeOrWcid(std::shared_ptr<CWeenieObject> parent, DestinationType destinationType, DWORD treasureType, unsigned int ptid = 0, float shade = 0.0f);
 
-	bool ApplyWeenieDefaults(CWeenieObject *weenie, DWORD wcid);
+	bool ApplyWeenieDefaults(std::shared_ptr<CWeenieObject> weenie, DWORD wcid);
 
 	DWORD GetWCIDByName(const char *name, int index = 0);
 
 	CWeenieDefaults *GetWeenieDefaults(DWORD wcid);
 	CWeenieDefaults *GetWeenieDefaults(const char *name, int index = 0);
 	
-	bool TryToResolveAppearanceData(CWeenieObject *weenie);
+	bool TryToResolveAppearanceData(std::shared_ptr<CWeenieObject> weenie);
 
-	CWeenieObject *CreateBaseWeenieByType(int weenieType, unsigned int wcid, const char *weenieName = "");
+	std::shared_ptr<CWeenieObject> CreateBaseWeenieByType(int weenieType, unsigned int wcid, const char *weenieName = "");
 
 	DWORD GetScrollSpellForWCID(DWORD wcid);
 	DWORD GetWCIDForScrollSpell(DWORD spell_id);
@@ -44,9 +44,9 @@ public:
 	std::list<DWORD> GetWCIDsWithMotionTable(DWORD mtable);
 
 protected:
-	CWeenieObject *CreateWeenie(CWeenieDefaults *defaults, const Position *pos = NULL, bool bSpawn = false);
+	std::shared_ptr<CWeenieObject> CreateWeenie(CWeenieDefaults *defaults, const Position *pos = NULL, bool bSpawn = false);
 
-	void ApplyWeenieDefaults(CWeenieObject *weenie, CWeenieDefaults *defaults);
+	void ApplyWeenieDefaults(std::shared_ptr<CWeenieObject> weenie, CWeenieDefaults *defaults);
 
 	void LoadLocalStorage(bool refresh = false);
 	void LoadLocalStorageIndexed();

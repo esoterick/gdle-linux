@@ -101,11 +101,103 @@ public:
 	DWORD _bitfield = Undef_OCPB;
 };
 
+// define these for the smart pointers
+class CAmmunitionWeenie;
+class CAttributeTransferDeviceWeenie;
+class CBookWeenie;
+class CBootSpotWeenie;
+class CCasterWeenie;
+class CChestWeenie;
+class CClothingWeenie;
+class CContainerWeenie;
+class CCorpseWeenie;
+class CDeedWeenie;
+class CBaseDoor;
+class CFoodWeenie;
+class CGemWeenie;
+class CHealerWeenie;
+class CHotSpotWeenie;
+class CHookWeenie;
+class CHouseWeenie;
+class CHousePortalWeenie;
+class CKeyWeenie;
+class CBaseLifestone;
+class CBindStone;
+class CLockpickWeenie;
+class CManaStoneWeenie;
+class CMeleeWeaponWeenie;
+class CMissileWeenie;
+class CMissileLauncherWeenie;
+class CMonsterWeenie;
+class CPKModifierWeenie;
+class CPlayerWeenie;
+class CPortal;
+class CPressurePlateWeenie;
+class CScrollWeenie;
+class CSkillAlterationDeviceWeenie;
+class CSlumLordWeenie;
+class CSpellProjectile;
+class CStorageWeenie;
+class CSwitchWeenie;
+class CTownCrier;
+class CVendor;
+class CAugmentationDeviceWeenie;
+class CBuildingObj;
+class CWeenieObject;
+
 class CPhysicsObj : public LongHashData
 {
+protected:
+	std::weak_ptr<CPhysicsObj> m_wpThis;
+	std::shared_ptr<CPhysicsObj> m_spThis = nullptr;
 public:
 	CPhysicsObj();
 	virtual ~CPhysicsObj();
+
+	std::shared_ptr<CPhysicsObj> GetPointer(bool bTakeOwnership = false);
+
+	virtual class std::shared_ptr<CAmmunitionWeenie> AsAmmunition() { return nullptr; }
+	virtual class std::shared_ptr<CAttributeTransferDeviceWeenie> AsAttributeTransferDevice() { return nullptr; }
+	virtual class std::shared_ptr<CBookWeenie> AsBook() { return nullptr; }
+	virtual class std::shared_ptr<CBootSpotWeenie> AsBootSpot() { return nullptr; }
+	virtual class std::shared_ptr<CCasterWeenie> AsCaster() { return nullptr; }
+	virtual class std::shared_ptr<CChestWeenie> AsChest() { return nullptr; }
+	virtual class std::shared_ptr<CClothingWeenie> AsClothing() { return nullptr; }
+	virtual class std::shared_ptr<CContainerWeenie> AsContainer() { return nullptr; }
+	virtual class std::shared_ptr<CCorpseWeenie> AsCorpse() { return nullptr; }
+	virtual class std::shared_ptr<CDeedWeenie> AsDeed() { return nullptr; }
+	virtual class std::shared_ptr<CBaseDoor> AsDoor() { return nullptr; }
+	virtual class std::shared_ptr<CFoodWeenie> AsFood() { return nullptr; }
+	virtual class std::shared_ptr<CGemWeenie> AsGem() { return nullptr; }
+	virtual class std::shared_ptr<CHealerWeenie> AsHealer() { return nullptr; }
+	virtual class std::shared_ptr<CHotSpotWeenie> AsHotSpot() { return nullptr; }
+	virtual class std::shared_ptr<CHookWeenie> AsHook() { return nullptr; }
+	virtual class std::shared_ptr<CHouseWeenie> AsHouse() { return nullptr; }
+	virtual class std::shared_ptr<CHousePortalWeenie> AsHousePortal() { return nullptr; }
+	virtual class std::shared_ptr<CKeyWeenie> AsKey() { return nullptr; }
+	virtual class std::shared_ptr<CBaseLifestone> AsLifestone() { return nullptr; }
+	virtual class std::shared_ptr<CBindStone> AsBindStone() { return nullptr; }
+	virtual class std::shared_ptr<CLockpickWeenie> AsLockpick() { return nullptr; }
+	virtual class std::shared_ptr<CManaStoneWeenie> AsManaStone() { return nullptr; }
+	virtual class std::shared_ptr<CMeleeWeaponWeenie> AsMeleeWeapon() { return nullptr; }
+	virtual class std::shared_ptr<CMissileWeenie> AsMissile() { return nullptr; }
+	virtual class std::shared_ptr<CMissileLauncherWeenie> AsMissileLauncher() { return nullptr; }
+	virtual class std::shared_ptr<CMonsterWeenie> AsMonster() { return nullptr; }
+	virtual class std::shared_ptr<CPKModifierWeenie> AsPKModifier() { return nullptr; }
+	virtual class std::shared_ptr<CPlayerWeenie> AsPlayer() { return nullptr; }
+	virtual class std::shared_ptr<CPortal> AsPortal() { return nullptr; }
+	virtual class std::shared_ptr<CPressurePlateWeenie> AsPressurePlate() { return nullptr; }
+	virtual class std::shared_ptr<CScrollWeenie> AsScroll() { return nullptr; }
+	virtual class std::shared_ptr<CSkillAlterationDeviceWeenie> AsSkillAlterationDevice() { return nullptr; }
+	virtual class std::shared_ptr<CSlumLordWeenie> AsSlumLord() { return nullptr; }
+	virtual class std::shared_ptr<CSpellProjectile> AsSpellProjectile() { return nullptr; }
+	virtual class std::shared_ptr<CStorageWeenie> AsStorage() { return nullptr; }
+	virtual class std::shared_ptr<CSwitchWeenie> AsSwitch() { return nullptr; }
+	virtual class std::shared_ptr<CTownCrier> AsTownCrier() { return nullptr; }
+	virtual class std::shared_ptr<CVendor> AsVendor() { return nullptr; }
+	virtual class std::shared_ptr<CAugmentationDeviceWeenie> AsAugmentationDevice() { return nullptr; }
+	virtual class std::shared_ptr<CBuildingObj> AsBuilding() { return nullptr; }
+	virtual class std::shared_ptr<CWeenieObject> AsWeenie() { return nullptr; }
 
 	void Destroy();
 
@@ -115,9 +207,9 @@ public:
 	static class CServerObjectMaint *obj_maint;
 #endif
 
-	static CPhysicsObj *GetObject(DWORD object_id);
-	static CPhysicsObj *makeObject(DWORD data_did, DWORD object_iid, BOOL bDynamic);
-	static CPhysicsObj *makeParticleObject(unsigned int num_parts, CSphere *sorting_sphere);
+	static std::shared_ptr<CPhysicsObj> GetObject(DWORD object_id);
+	static std::shared_ptr<CPhysicsObj> makeObject(DWORD data_did, DWORD object_iid, BOOL bDynamic);
+	static std::shared_ptr<CPhysicsObj> makeParticleObject(unsigned int num_parts, CSphere *sorting_sphere);
 
 	void SetScaleStatic(float new_scale);
 	Vector get_local_physics_velocity();
@@ -171,7 +263,7 @@ public:
 	BOOL IsFullyConstrained();
 
 	void UpdateChildrenInternal();
-	void UpdateChild(CPhysicsObj *child_obj, unsigned int part_index, Frame *child_frame);
+	void UpdateChild(std::shared_ptr<CPhysicsObj> child_obj, unsigned int part_index, Frame *child_frame);
 	void DrawRecursive();
 	void UpdateViewerDistance();
 	void set_sequence_animation(DWORD AnimationID, BOOL ClearAnimations, long StartFrame, float FrameRate);
@@ -206,8 +298,8 @@ public:
 	void set_initial_frame(Frame *Pos);
 	DWORD create_particle_emitter(DWORD emitter_info_id, unsigned int part_index, Frame *offset, unsigned int emitter_id);
 	void remove_parts(CObjCell *obj_cell);
-	int build_collision_profile(ObjCollisionProfile *prof, CPhysicsObj *obj, Vector *vel, const int amIInContact, const int objIsMissile, const int objHasContact) const;
-	int report_object_collision(CPhysicsObj *object, int prev_has_contact);
+	int build_collision_profile(ObjCollisionProfile *prof, std::shared_ptr<CPhysicsObj> obj, Vector *vel, const int amIInContact, const int objIsMissile, const int objHasContact) const;
+	int report_object_collision(std::shared_ptr<CPhysicsObj> object, int prev_has_contact);
 
 	BOOL InitObjectBegin(DWORD object_iid, BOOL bDynamic);
 	BOOL InitPartArrayObject(DWORD data_did, BOOL bCreateParts);
@@ -228,7 +320,7 @@ public:
 	void UpdatePartsInternal();
 	void process_hooks();
 
-	int check_collision(CPhysicsObj *);
+	int check_collision(std::shared_ptr<CPhysicsObj> );
 	int get_object_info(class CTransition *transit, int admin_move);
 	static BOOL is_valid_walkable(Vector *normal);
 
@@ -261,11 +353,11 @@ public:
 	void unset_parent();
 	void unparent_children();
 	void clear_transient_states();
-	BOOL set_parent(CPhysicsObj *obj, unsigned int part_index, Frame *frame);
-	BOOL set_parent(CPhysicsObj *obj, DWORD placement);
+	BOOL set_parent(std::shared_ptr<CPhysicsObj> obj, unsigned int part_index, Frame *frame);
+	BOOL set_parent(std::shared_ptr<CPhysicsObj> obj, DWORD placement);
 	void recalc_cross_cells();
-	BOOL add_child(CPhysicsObj *obj, DWORD location_id);
-	BOOL add_child(CPhysicsObj *obj, unsigned int part_index, Frame *frame);
+	BOOL add_child(std::shared_ptr<CPhysicsObj> obj, DWORD location_id);
+	BOOL add_child(std::shared_ptr<CPhysicsObj> obj, unsigned int part_index, Frame *frame);
 	void RemovePartFromShadowCells(CPhysicsPart *part);
 	void AddPartToShadowCells(CPhysicsPart *part);
 
@@ -273,7 +365,7 @@ public:
 	int prepare_to_leave_visibility();
 	void leave_visibility();
 	int CheckPositionInternal(CObjCell *new_cell, Position *new_pos, CTransition *transit, const SetPositionStruct &sps);
-	int track_object_collision(const CPhysicsObj *object, int prev_has_contact);
+	int track_object_collision(const std::shared_ptr<CPhysicsObj> object, int prev_has_contact);
 	int play_default_script();
 	int report_environment_collision(int prev_has_contact);
 	int handle_all_collisions(COLLISIONINFO *collisions, int prev_has_contact, int prev_on_walkable);
@@ -324,7 +416,7 @@ public:
 	class PhysicsScriptTable *physics_script_table = NULL; // 0x34
 	DWORD m_DefaultScript = 0; // 0x38
 	float m_DefaultScriptIntensity = 0.0f; // 0x3C
-	CPhysicsObj *parent = NULL; // 0x40
+	std::weak_ptr<CPhysicsObj> parent; // 0x40
 	class CHILDLIST *children = NULL; // 0x44
 	Position m_Position; // 0x48
 	class CObjCell *cell = NULL; // 0x90
@@ -353,7 +445,7 @@ public:
 	class AttackManager * attack_manager = NULL; // 0x120
 	class TargetManager * target_manager = NULL; // 0x124
 	class ParticleManager * particle_manager = NULL;// 0x128
-	class CWeenieObject *weenie_obj = NULL; // 0x12C
+	class std::weak_ptr<CWeenieObject> weenie_obj; // 0x12C
 	Plane contact_plane; // 0x130
 	DWORD contact_plane_cell_id = 0; // 0x140
 	Vector sliding_normal; // 0x144

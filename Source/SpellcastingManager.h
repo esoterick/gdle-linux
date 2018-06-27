@@ -61,7 +61,7 @@ public:
 		float min_time;
 	};
 
-	CSpellcastingManager(class CWeenieObject *pWeenie);
+	CSpellcastingManager(class std::shared_ptr<CWeenieObject> pWeenie);
 	virtual ~CSpellcastingManager();
 
 	int CreatureBeginCast(DWORD target_id, DWORD spell_id);
@@ -73,9 +73,9 @@ public:
 	bool MotionRequiresHeading();
 	bool AddMotionsForSpell();
 	bool ResolveSpellBeingCasted();
-	CWeenieObject *GetCastTarget();
-	CWeenieObject *GetCastCaster();
-	CWeenieObject *GetCastSource();
+	std::shared_ptr<CWeenieObject> GetCastTarget();
+	std::shared_ptr<CWeenieObject> GetCastCaster();
+	std::shared_ptr<CWeenieObject> GetCastSource();
 	float HeadingToTarget();
 	void BeginNextMotion();
 	int LaunchBoltProjectile(DWORD wcid);
@@ -83,14 +83,14 @@ public:
 	void PerformCastParticleEffects();
 	void PerformFellowCastParticleEffects(Fellowship *fellow);
 	int LaunchSpellEffect();
-	bool DoTransferSpell(CWeenieObject *other, const TransferSpellEx *meta);
-	bool AdjustVital(CWeenieObject *target);
-	void SendAdjustVitalText(CWeenieObject *target, int amount, const char *vitalName);
-	void TransferVitalPercent(CWeenieObject *target, float drainPercent, float infusePercent, STypeAttribute2nd attribute);
-	void SendTransferVitalPercentText(CWeenieObject *target, int drained, int infused, bool reversed, const char *vitalName);
-	//void SendAdjustedVitalText(CWeenieObject *target, unsigned int amount, STypeAttribute2nd attribute, bool beneficial);
-	Position GetSpellProjectileSpawnPosition(CSpellProjectile *pProjectile, CWeenieObject *pTarget, float *pDistToTarget, double dDir, bool bRing);
-	Vector GetSpellProjectileSpawnVelocity(Position *pSpawnPosition, CWeenieObject *pTarget, float speed, bool tracked, bool gravity, Vector *pTargetDir, double dDir, bool bRing);
+	bool DoTransferSpell(std::shared_ptr<CWeenieObject> other, const TransferSpellEx *meta);
+	bool AdjustVital(std::shared_ptr<CWeenieObject> target);
+	void SendAdjustVitalText(std::shared_ptr<CWeenieObject> target, int amount, const char *vitalName);
+	void TransferVitalPercent(std::shared_ptr<CWeenieObject> target, float drainPercent, float infusePercent, STypeAttribute2nd attribute);
+	void SendTransferVitalPercentText(std::shared_ptr<CWeenieObject> target, int drained, int infused, bool reversed, const char *vitalName);
+	//void SendAdjustedVitalText(std::shared_ptr<CWeenieObject> target, unsigned int amount, STypeAttribute2nd attribute, bool beneficial);
+	Position GetSpellProjectileSpawnPosition(std::shared_ptr<CSpellProjectile> pProjectile, std::shared_ptr<CWeenieObject> pTarget, float *pDistToTarget, double dDir, bool bRing);
+	Vector GetSpellProjectileSpawnVelocity(Position *pSpawnPosition, std::shared_ptr<CWeenieObject> pTarget, float speed, bool tracked, bool gravity, Vector *pTargetDir, double dDir, bool bRing);
 	void Update();
 
 	DWORD DetermineSkillLevelForSpell();
@@ -106,10 +106,10 @@ public:
 	void OnDeath(DWORD killer_id);
 	void HandleMotionDone(DWORD motion, BOOL success);
 
-	std::map<DWORD, DWORD> FindComponentInContainer(CContainerWeenie *container, unsigned int componentId, int amountNeeded);
-	CWeenieObject *FindFociInContainer(CContainerWeenie *container, DWORD fociWcid);
+	std::map<DWORD, DWORD> FindComponentInContainer(std::shared_ptr<CContainerWeenie> container, unsigned int componentId, int amountNeeded);
+	std::shared_ptr<CWeenieObject> FindFociInContainer(std::shared_ptr<CContainerWeenie> container, DWORD fociWcid);
 
-	CWeenieObject *m_pWeenie;
+	std::weak_ptr<CWeenieObject> m_pWeenie;
 	bool m_bCasting = false;
 	double m_fNextCastTime = 0.0;
 

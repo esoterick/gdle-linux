@@ -11,7 +11,7 @@ public:
 	CContainerWeenie();
 	virtual ~CContainerWeenie() override;
 
-	virtual class CContainerWeenie *AsContainer() { return this; }
+	virtual class std::shared_ptr<CContainerWeenie> AsContainer() { return std::static_pointer_cast<CContainerWeenie>(GetPointer()); }
 
 	virtual bool IsAttunedOrContainsAttuned() override;
 
@@ -36,77 +36,77 @@ public:
 	virtual DWORD ConsumeAltCoin(int amountToConsume, int currencyid) override;
 
 	bool IsGroundContainer();
-	bool IsInOpenRange(CWeenieObject *other);
+	bool IsInOpenRange(std::shared_ptr<CWeenieObject> other);
 
-	virtual int DoUseResponse(CWeenieObject *other);
+	virtual int DoUseResponse(std::shared_ptr<CWeenieObject> other);
 
-	virtual void OnContainerOpened(CWeenieObject *other);
-	virtual void OnContainerClosed(CWeenieObject *requestedBy = NULL);
-	virtual DWORD OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot);
+	virtual void OnContainerOpened(std::shared_ptr<CWeenieObject> other);
+	virtual void OnContainerClosed(std::shared_ptr<CWeenieObject> requestedBy = NULL);
+	virtual DWORD OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> item, DWORD desired_slot);
 
-	virtual void NotifyGeneratedPickedUp(CWeenieObject *weenie) override;
+	virtual void NotifyGeneratedPickedUp(std::shared_ptr<CWeenieObject> weenie) override;
 
 	int GetItemsCapacity();
 	int GetContainersCapacity();
 
-	void MakeAwareViewContent(CWeenieObject *other);
+	void MakeAwareViewContent(std::shared_ptr<CWeenieObject> other);
 
 	void UnloadContainer();
 
-	CContainerWeenie *FindContainer(DWORD container_id);
-	virtual CWeenieObject *FindContainedItem(DWORD object_id) override;
+	std::shared_ptr<CContainerWeenie> FindContainer(DWORD container_id);
+	virtual std::shared_ptr<CWeenieObject> FindContainedItem(DWORD object_id) override;
 
-	virtual CWeenieObject *GetWieldedCombat(COMBAT_USE combatUse) override;
-	void SetWieldedCombat(CWeenieObject *wielded, COMBAT_USE combatUse);
+	virtual std::shared_ptr<CWeenieObject> GetWieldedCombat(COMBAT_USE combatUse) override;
+	void SetWieldedCombat(std::shared_ptr<CWeenieObject> wielded, COMBAT_USE combatUse);
 
-	CWeenieObject *GetWieldedMelee();
-	CWeenieObject *GetWieldedMissile();
-	CWeenieObject *GetWieldedAmmo();
-	CWeenieObject *GetWieldedShield();
-	CWeenieObject *GetWieldedTwoHanded();
-	virtual CWeenieObject *GetWieldedCaster() override;
+	std::shared_ptr<CWeenieObject> GetWieldedMelee();
+	std::shared_ptr<CWeenieObject> GetWieldedMissile();
+	std::shared_ptr<CWeenieObject> GetWieldedAmmo();
+	std::shared_ptr<CWeenieObject> GetWieldedShield();
+	std::shared_ptr<CWeenieObject> GetWieldedTwoHanded();
+	virtual std::shared_ptr<CWeenieObject> GetWieldedCaster() override;
 
-	void Container_GetWieldedByMask(std::list<CWeenieObject *> &wielded, DWORD inv_loc_mask);
-	CWeenieObject *GetWielded(INVENTORY_LOC slot) override;
+	void Container_GetWieldedByMask(std::list<std::shared_ptr<CWeenieObject> > &wielded, DWORD inv_loc_mask);
+	std::shared_ptr<CWeenieObject> GetWielded(INVENTORY_LOC slot) override;
 
-	BOOL Container_CanEquip(CWeenieObject *pItem, DWORD dwCoverage);
-	BOOL Container_CanStore(CWeenieObject *pItem, bool bPackSlot);
-	BOOL Container_CanStore(CWeenieObject *pItem);
+	BOOL Container_CanEquip(std::shared_ptr<CWeenieObject> pItem, DWORD dwCoverage);
+	BOOL Container_CanStore(std::shared_ptr<CWeenieObject> pItem, bool bPackSlot);
+	BOOL Container_CanStore(std::shared_ptr<CWeenieObject> pItem);
 
 	BOOL IsItemsCapacityFull();
 	BOOL IsContainersCapacityFull();
 
-	void Container_EquipItem(DWORD dwCell, CWeenieObject *pItem, DWORD dwCoverage, DWORD child_location, DWORD placement);
+	void Container_EquipItem(DWORD dwCell, std::shared_ptr<CWeenieObject> pItem, DWORD dwCoverage, DWORD child_location, DWORD placement);
 	void Container_DeleteItem(DWORD object_id);
-	virtual DWORD Container_InsertInventoryItem(DWORD dwCell, CWeenieObject *pItem, DWORD slot);
+	virtual DWORD Container_InsertInventoryItem(DWORD dwCell, std::shared_ptr<CWeenieObject> pItem, DWORD slot);
 
 	DWORD Container_GetNumFreeMainPackSlots();
 
-	virtual void ReleaseContainedItemRecursive(CWeenieObject *item) override;
+	virtual void ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObject> item) override;
 
 	bool SpawnTreasureInContainer(eTreasureCategory category, int tier, int workmanship = -1);
 	bool SpawnInContainer(DWORD wcid, int amount = 1, int ptid = 0, float shade = 0, bool sendEnvent = true);
-	bool SpawnCloneInContainer(CWeenieObject *itemToClone, int amount, bool sendEnvent = true);
-	bool SpawnInContainer(CWeenieObject *item, bool sendEnvent = true, bool deleteItemOnFailure = true);
+	bool SpawnCloneInContainer(std::shared_ptr<CWeenieObject> itemToClone, int amount, bool sendEnvent = true);
+	bool SpawnInContainer(std::shared_ptr<CWeenieObject> item, bool sendEnvent = true, bool deleteItemOnFailure = true);
 
-	CWeenieObject *FindContained(DWORD object_id);
+	std::shared_ptr<CWeenieObject> FindContained(DWORD object_id);
 
 	virtual void InitPhysicsObj() override;
 
 	void CheckToClose();
 
-	virtual int CheckOpenContainer(CWeenieObject *other);
+	virtual int CheckOpenContainer(std::shared_ptr<CWeenieObject> other);
 
-	void HandleNoLongerViewing(CWeenieObject *other);
+	void HandleNoLongerViewing(std::shared_ptr<CWeenieObject> other);
 
 	virtual bool HasContainerContents() override;
 
 	void AdjustToNewCombatMode();
 
-	CWeenieObject *m_WieldedCombat[MAX_WIELDED_COMBAT];
-	std::vector<CWeenieObject *> m_Wielded;
-	std::vector<CWeenieObject *> m_Items;
-	std::vector<CWeenieObject *> m_Packs;
+	std::weak_ptr<CWeenieObject> m_WieldedCombat[MAX_WIELDED_COMBAT];
+	std::vector<std::weak_ptr<CWeenieObject> > m_Wielded;
+	std::vector<std::weak_ptr<CWeenieObject> > m_Items;
+	std::vector<std::weak_ptr<CWeenieObject> > m_Packs;
 
 	// For opening/closing containers
 	double _nextCheckToClose = 0.0;

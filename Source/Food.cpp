@@ -18,7 +18,7 @@ void CFoodWeenie::ApplyQualityOverrides()
 {
 }
 
-int CFoodWeenie::Use(CPlayerWeenie *pOther)
+int CFoodWeenie::Use(std::shared_ptr<CPlayerWeenie> pOther)
 {
 	if (!pOther->FindContainedItem(GetID()))
 		return WERROR_OBJECT_GONE;
@@ -31,7 +31,7 @@ int CFoodWeenie::Use(CPlayerWeenie *pOther)
 	return WERROR_NONE;
 }
 
-int CFoodWeenie::DoUseResponse(CWeenieObject *other)
+int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 {
 	if (!other->FindContainedItem(GetID()))
 		return WERROR_OBJECT_GONE;
@@ -107,10 +107,10 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 
 			if (boost_stat == HEALTH_ATTRIBUTE_2ND)
 			{
-				if (other->AsPlayer())
+				if (std::shared_ptr<CPlayerWeenie> pOtherPlayer = other->AsPlayer())
 				{
 					// update the target's health on the healing player asap
-					((CPlayerWeenie*)other)->RefreshTargetHealth();
+					pOtherPlayer->RefreshTargetHealth();
 				}
 			}
 			break;

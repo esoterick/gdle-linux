@@ -12,11 +12,11 @@ CHILDLIST::~CHILDLIST()
 {
 }
 
-BOOL CHILDLIST::FindChildIndex(CPhysicsObj *pObj, WORD *Index)
+BOOL CHILDLIST::FindChildIndex(std::shared_ptr<CPhysicsObj> pObj, WORD *Index)
 {
 	for (DWORD i = 0; i < num_objects; i++)
 	{
-		if (objects.array_data[i] == pObj)
+		if (objects.array_data[i].lock() == pObj)
 		{
 			*Index = (WORD) i;
 			return TRUE;
@@ -26,7 +26,7 @@ BOOL CHILDLIST::FindChildIndex(CPhysicsObj *pObj, WORD *Index)
 	return FALSE;
 }
 
-void CHILDLIST::add_child(CPhysicsObj *pChild, Frame *pFrame, DWORD part_number, DWORD location_id)
+void CHILDLIST::add_child(std::shared_ptr<CPhysicsObj> pChild, Frame *pFrame, DWORD part_number, DWORD location_id)
 {
 	if (num_objects >= objects.array_size)
 	{
@@ -46,12 +46,12 @@ void CHILDLIST::add_child(CPhysicsObj *pChild, Frame *pFrame, DWORD part_number,
 	num_objects++;
 }
 
-void CHILDLIST::remove_child(CPhysicsObj *pChild)
+void CHILDLIST::remove_child(std::shared_ptr<CPhysicsObj> pChild)
 {
 	DWORD i;
 	for (i = 0; i < num_objects; i++)
 	{
-		if (objects.array_data[i] == pChild)
+		if (objects.array_data[i].lock() == pChild)
 			break;
 	}
 

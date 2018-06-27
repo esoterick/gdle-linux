@@ -17,7 +17,7 @@ void CPhysicsObj::Movement_Shutdown()
 
 void CPhysicsObj::Movement_Think()
 {
-	if (parent)
+	if (parent.lock())
 		return;
 
 	if ((m_fMoveThink + 1.0f) < Timer::cur_time)
@@ -38,7 +38,7 @@ void CPhysicsObj::Movement_Think()
 
 void CPhysicsObj::Movement_SendUpdate(DWORD dwCell)
 {
-	if (CWeenieObject *pWeenie = GetWeenie())
+	if (std::shared_ptr<CWeenieObject> pWeenie = GetWeenie())
 	{
 		BinaryWriter* poo = MoveUpdate(pWeenie);
 		g_pWorld->BroadcastPVS(dwCell, poo->GetData(), poo->GetSize());
@@ -48,7 +48,7 @@ void CPhysicsObj::Movement_SendUpdate(DWORD dwCell)
 
 void CPhysicsObj::Movement_UpdatePos()
 {
-	if (parent)
+	if (parent.lock())
 		return;
 
 	//QUICKFIX: Broadcast to the old landblock that we've moved from.
@@ -79,7 +79,7 @@ void CPhysicsObj::Movement_UpdatePos()
 
 void CPhysicsObj::Movement_UpdateVector()
 {
-	if (parent)
+	if (parent.lock())
 		return;
 
 	BinaryWriter moveMsg;
@@ -96,5 +96,12 @@ void CPhysicsObj::Movement_UpdateVector()
 	moveMsg.Write<WORD>(_instance_timestamp);
 	moveMsg.Write<WORD>(++_vector_timestamp);
 
-	g_pWorld->BroadcastPVS(this, moveMsg.GetData(), moveMsg.GetSize(), OBJECT_MSG);
+	if (std::shared_ptr<CWeenieObject> pWeenie = AsWeenie())
+	{
+		g_pWorld->BroadcastPVS(pWeenie, moveMsg.GetData(), moveMsg.GetSize(), OBJECT_MSG);
+	}
+	else
+	{
+		g_pWorld->BroadcastPVS(GetPointer(), moveMsg.GetData(), moveMsg.GetSize(), OBJECT_MSG);
+	}
 }

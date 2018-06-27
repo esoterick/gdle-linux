@@ -50,7 +50,14 @@ void CPhysicsObj::EmitSound(DWORD sound_id, float speed, bool bLocalClientOnly)
 	}
 	else
 	{
-		g_pWorld->BroadcastPVS(this, SoundMsg.GetData(), SoundMsg.GetSize(), OBJECT_MSG);
+		if (std::shared_ptr<CWeenieObject> pWeenie = AsWeenie())
+		{
+			g_pWorld->BroadcastPVS(pWeenie, SoundMsg.GetData(), SoundMsg.GetSize(), OBJECT_MSG);
+		}
+		else
+		{
+			g_pWorld->BroadcastPVS(GetPointer(), SoundMsg.GetData(), SoundMsg.GetSize(), OBJECT_MSG);
+		}
 	}
 }
 
@@ -65,7 +72,14 @@ void CPhysicsObj::EmitEffect(DWORD dwIndex, float flScale)
 	EffectMsg.Write<DWORD>(dwIndex);
 	EffectMsg.Write<float>(flScale);
 
-	g_pWorld->BroadcastPVS(this, EffectMsg.GetData(), EffectMsg.GetSize(), OBJECT_MSG, 0);
+	if (std::shared_ptr<CWeenieObject> pWeenie = AsWeenie())
+	{
+		g_pWorld->BroadcastPVS(pWeenie, EffectMsg.GetData(), EffectMsg.GetSize(), OBJECT_MSG, 0);
+	}
+	else
+	{
+		g_pWorld->BroadcastPVS(GetPointer(), EffectMsg.GetData(), EffectMsg.GetSize(), OBJECT_MSG, 0);
+	}
 }
 
 void CPhysicsObj::InitPhysicsTemporary()
@@ -80,12 +94,12 @@ void CPhysicsObj::CleanupPhysicsTemporary()
 	Movement_Shutdown();
 }
 
-float CPhysicsObj::DistanceTo(CPhysicsObj *pOther)
+float CPhysicsObj::DistanceTo(std::shared_ptr<CPhysicsObj> pOther)
 {
 	return m_Position.distance(pOther->m_Position);
 }
 
-float CPhysicsObj::DistanceSquared(CPhysicsObj *pOther)
+float CPhysicsObj::DistanceSquared(std::shared_ptr<CPhysicsObj> pOther)
 {
 	return m_Position.distance_squared(pOther->m_Position);
 }
@@ -107,23 +121,27 @@ void CPhysicsObj::ExitPortal()
 
 void CPhysicsObj::SendNetMessage(void *_data, DWORD _len, WORD _group, BOOL _event)
 {
-	if (weenie_obj)
-		weenie_obj->SendNetMessage(_data, _len, _group, _event);
+	if ( std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock())
+	{
+		pWeenie->SendNetMessage(_data, _len, _group, _event);
+	}
 }
 
 void CPhysicsObj::SendNetMessage(BinaryWriter *_food, WORD _group, BOOL _event, BOOL del)
 {
-	if (weenie_obj)
-		weenie_obj->SendNetMessage(_food, _group, _event, del);
+	if (std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock())
+	{
+		pWeenie->SendNetMessage(_food, _group, _event, del);
+	}
 }
 
 void CPhysicsObj::Tick()
 {
 }
 
-CWeenieObject *CPhysicsObj::GetWeenie()
+std::shared_ptr<CWeenieObject> CPhysicsObj::GetWeenie()
 {
-	return weenie_obj;
+	return weenie_obj.lock();
 }
 
 DWORD CPhysicsObj::GetLandcell()

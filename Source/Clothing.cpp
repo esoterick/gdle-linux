@@ -10,7 +10,7 @@ void CClothingWeenie::ApplyQualityOverrides()
 {
 }
 
-int CClothingWeenie::Use(CPlayerWeenie *other)
+int CClothingWeenie::Use(std::shared_ptr<CPlayerWeenie> other)
 {
 	return CWeenieObject::Use(other);
 }
@@ -23,7 +23,7 @@ bool CClothingWeenie::IsValidWieldLocation(DWORD location)
 	return false;
 }
 
-bool CClothingWeenie::CanEquipWith(CWeenieObject *other, DWORD otherLocation)
+bool CClothingWeenie::CanEquipWith(std::shared_ptr<CWeenieObject> other, DWORD otherLocation)
 {
 	if (CWeenieObject::CanEquipWith(other, otherLocation))
 		return true;

@@ -19,8 +19,6 @@ MovementManager::MovementManager()
 {
 	motion_interpreter = NULL;
 	moveto_manager = NULL;
-	physics_obj = NULL;
-	weenie_obj = NULL;
 }
 
 MovementManager::~MovementManager()
@@ -28,7 +26,7 @@ MovementManager::~MovementManager()
 	Destroy();
 }
 
-MovementManager *MovementManager::Create(CPhysicsObj *pPObject, CWeenieObject *pWObject)
+MovementManager *MovementManager::Create(std::shared_ptr<CPhysicsObj> pPObject, std::shared_ptr<CWeenieObject> pWObject)
 {
 	MovementManager *pManager = new MovementManager;
 	pManager->SetPhysicsObject(pPObject);
@@ -52,15 +50,32 @@ void MovementManager::Destroy()
 
 void MovementManager::MakeMoveToManager()
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
 	if (!moveto_manager)
 	{
-		moveto_manager = MoveToManager::Create(physics_obj, weenie_obj);
+		moveto_manager = MoveToManager::Create(pPhysObj, pWeenie);
 	}
 }
 
 void MovementManager::EnterDefaultState()
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+
+	if (!pPhysObj)
 		return;
 
 	get_minterp()->enter_default_state();
@@ -97,7 +112,13 @@ void MovementManager::CancelMoveTo(DWORD err)
 
 DWORD MovementManager::PerformMovement(MovementStruct &mvs)
 {
-	physics_obj->set_active(TRUE);
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return 0x47;
+	}
+
+	pPhysObj->set_active(TRUE);
 
 	switch (mvs.type)
 	{
@@ -137,11 +158,22 @@ void MovementManager::HandleEnterWorld()
 
 CMotionInterp *MovementManager::get_minterp()
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return NULL;
+	}
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+	if (!pWeenie)
+	{
+		return NULL;
+	}
+
 	if (!motion_interpreter)
 	{
-		motion_interpreter = CMotionInterp::Create(physics_obj, weenie_obj);
+		motion_interpreter = CMotionInterp::Create(pPhysObj, pWeenie);
 
-		if (physics_obj)
+		if (pPhysObj)
 			motion_interpreter->enter_default_state();
 	}
 
@@ -158,7 +190,7 @@ BOOL MovementManager::motions_pending()
 	return TRUE;
 }
 
-void MovementManager::SetPhysicsObject(CPhysicsObj *pObject)
+void MovementManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> pObject)
 {
 	physics_obj = pObject;
 
@@ -169,7 +201,7 @@ void MovementManager::SetPhysicsObject(CPhysicsObj *pObject)
 		moveto_manager->SetPhysicsObject(pObject);
 }
 
-void MovementManager::SetWeenieObject(CWeenieObject *pObject)
+void MovementManager::SetWeenieObject(std::shared_ptr<CWeenieObject> pObject)
 {
 	weenie_obj = pObject;
 
@@ -200,11 +232,14 @@ void MovementManager::LeaveGround()
 
 BOOL MovementManager::unpack_movement(BinaryReader *pReader)
 {
-	if (!motion_interpreter || !physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj || !motion_interpreter)
+	{
 		return FALSE;
+	}
 
-	physics_obj->cancel_moveto();
-	physics_obj->unstick_from_object();
+	pPhysObj->cancel_moveto();
+	pPhysObj->unstick_from_object();
 
 	MovementParameters params;
 	Position pos;
@@ -234,7 +269,7 @@ BOOL MovementManager::unpack_movement(BinaryReader *pReader)
 			move_to_interpreted_state(interpState);
 			if (target)
 			{
-				physics_obj->stick_to_object(target);
+				pPhysObj->stick_to_object(target);
 			}
 
 			motion_interpreter->standing_longjump = pack_word & 0x200;
@@ -261,11 +296,9 @@ void MovementManager::MotionDone(DWORD motion, BOOL success)
 		motion_interpreter->MotionDone(success);
 }
 
-CMotionInterp::CMotionInterp(CPhysicsObj *pPObject, CWeenieObject *pWObject)
+CMotionInterp::CMotionInterp(std::shared_ptr<CPhysicsObj> pPObject, std::shared_ptr<CWeenieObject> pWObject)
 {
 	initted = 0;
-	weenie_obj = NULL;
-	physics_obj = NULL;
 
 	current_speed_factor = 1.0;
 	my_run_rate = 1.0;
@@ -288,7 +321,7 @@ void CMotionInterp::Destroy()
 	pending_motions.clear();
 }
 
-CMotionInterp* CMotionInterp::Create(CPhysicsObj *pPObject, CWeenieObject *pWObject)
+CMotionInterp* CMotionInterp::Create(std::shared_ptr<CPhysicsObj> pPObject, std::shared_ptr<CWeenieObject> pWObject)
 {
 	CMotionInterp *pInterp = new CMotionInterp(pPObject, pWObject);
 
@@ -300,13 +333,19 @@ CMotionInterp* CMotionInterp::Create(CPhysicsObj *pPObject, CWeenieObject *pWObj
 
 void CMotionInterp::HandleExitWorld()
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+
 	for (std::list<MotionNode>::iterator i = pending_motions.begin(); i != pending_motions.end(); i++)
 	{
-		if (physics_obj)
+		if (pPhysObj)
 		{
 			if (i->motion & CM_Action)
 			{
-				physics_obj->unstick_from_object();
+				pPhysObj->unstick_from_object();
 				interpreted_state.RemoveAction();
 				raw_state.RemoveAction();
 			}
@@ -317,15 +356,18 @@ void CMotionInterp::HandleExitWorld()
 
 void CMotionInterp::MotionDone(BOOL success)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return;
+	}
 
 	std::list<MotionNode>::iterator motionData = pending_motions.begin();
 	if (motionData != pending_motions.end())
 	{
 		if (motionData->motion & CM_Action)
 		{
-			physics_obj->unstick_from_object();
+			pPhysObj->unstick_from_object();
 			interpreted_state.RemoveAction();
 			raw_state.RemoveAction();
 		}
@@ -359,14 +401,17 @@ void CMotionInterp::SetHoldKey(HoldKey key, BOOL cancel_moveto)
 
 DWORD CMotionInterp::DoMotion(DWORD MotionID, MovementParameters *Params)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return WERROR_NO_PHYSICS_OBJECT;
+	}
 
 	MovementParameters CurrentParams(*Params);
 	DWORD CurrentMotion = MotionID;
 
 	if (Params->cancel_moveto)
-		physics_obj->cancel_moveto();
+		pPhysObj->cancel_moveto();
 
 	if (Params->set_hold_key)
 		SetHoldKey(Params->hold_key_to_apply, Params->cancel_moveto);
@@ -405,11 +450,14 @@ DWORD CMotionInterp::DoMotion(DWORD MotionID, MovementParameters *Params)
 
 DWORD CMotionInterp::StopMotion(DWORD MotionID, MovementParameters *Params)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return WERROR_NO_PHYSICS_OBJECT;
+	}
 
 	if (Params->cancel_moveto)
-		physics_obj->cancel_moveto();
+		pPhysObj->cancel_moveto();
 
 	DWORD                CurrentMotion = MotionID;
 	MovementParameters   CurrentParams(*Params);
@@ -439,22 +487,24 @@ DWORD CMotionInterp::motion_allows_jump(DWORD mid)
 
 BOOL CMotionInterp::contact_allows_move(DWORD mid)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return FALSE;
+	}
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
 
 	if (mid == Motion_Dead || mid == Motion_Falling || (mid >= Motion_TurnRight && mid <= Motion_TurnLeft))
 		return TRUE;
 
-	if (weenie_obj && !weenie_obj->IsCreature())
+	if (pWeenie && !pWeenie->IsCreature())
 	    return TRUE;
 
-	if (!physics_obj)
+	if (!(pPhysObj->m_PhysicsState & GRAVITY_PS))
 		return TRUE;
-	if (!(physics_obj->m_PhysicsState & GRAVITY_PS))
-		return TRUE;
-	if (!(physics_obj->transient_state & 0x1))
+	if (!(pPhysObj->transient_state & 0x1))
 		return FALSE;
-	if (physics_obj->transient_state & 0x2)
+	if (pPhysObj->transient_state & 0x2)
 		return TRUE;
 
 	return FALSE;
@@ -462,11 +512,16 @@ BOOL CMotionInterp::contact_allows_move(DWORD mid)
 
 BOOL CMotionInterp::move_to_interpreted_state(const InterpretedMotionState &state)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return FALSE;
+	}
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
 
 	raw_state.current_style = state.current_style;
-	physics_obj->cancel_moveto();
+	pPhysObj->cancel_moveto();
 
 	DWORD maj = ((motion_allows_jump(interpreted_state.forward_command)) ? TRUE : FALSE);
 
@@ -495,7 +550,7 @@ BOOL CMotionInterp::move_to_interpreted_state(const InterpretedMotionState &stat
 
 		if (val2)
 		{
-			if ((weenie_obj && weenie_obj->IsCreature()) || i->autonomous)
+			if ((pWeenie && pWeenie->IsCreature()) || i->autonomous)
 			{
 				server_action_stamp = i->stamp;
 				params.speed = i->speed;
@@ -510,8 +565,11 @@ BOOL CMotionInterp::move_to_interpreted_state(const InterpretedMotionState &stat
 
 DWORD CMotionInterp::StopInterpretedMotion(DWORD mid, MovementParameters *params)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return WERROR_NO_PHYSICS_OBJECT;
+	}
 
 	DWORD var_ebp;
 
@@ -526,7 +584,7 @@ DWORD CMotionInterp::StopInterpretedMotion(DWORD mid, MovementParameters *params
 		}
 		else
 		{
-			var_ebp = physics_obj->StopInterpretedMotion(mid, params);
+			var_ebp = pPhysObj->StopInterpretedMotion(mid, params);
 
 			if (!var_ebp)
 			{
@@ -546,10 +604,10 @@ DWORD CMotionInterp::StopInterpretedMotion(DWORD mid, MovementParameters *params
 	}
 
 	// Inlined.
-	if (physics_obj)
+	if (pPhysObj)
 	{
-		if (!physics_obj->cell)
-			physics_obj->RemoveLinkAnimations();
+		if (!pPhysObj->cell)
+			pPhysObj->RemoveLinkAnimations();
 	}
 
 	return var_ebp;
@@ -557,8 +615,11 @@ DWORD CMotionInterp::StopInterpretedMotion(DWORD mid, MovementParameters *params
 
 DWORD CMotionInterp::DoInterpretedMotion(DWORD motion, MovementParameters *params)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return WERROR_NO_PHYSICS_OBJECT;
+	}
 
 	DWORD var_ebp;
 
@@ -574,9 +635,11 @@ DWORD CMotionInterp::DoInterpretedMotion(DWORD motion, MovementParameters *param
 		else
 		{
 			if (motion == Motion_Dead)
-				physics_obj->RemoveLinkAnimations();
+			{
+				pPhysObj->RemoveLinkAnimations();
+			}
 
-			var_ebp = physics_obj->DoInterpretedMotion(motion, params);
+			var_ebp = pPhysObj->DoInterpretedMotion(motion, params);
 
 			if (!var_ebp)
 			{
@@ -613,10 +676,10 @@ DWORD CMotionInterp::DoInterpretedMotion(DWORD motion, MovementParameters *param
 	}
 
 	// Inlined.
-	if (physics_obj)
+	if (pPhysObj)
 	{
-		if (!physics_obj->cell)
-			physics_obj->RemoveLinkAnimations();
+		if (!pPhysObj->cell)
+			pPhysObj->RemoveLinkAnimations();
 	}
 
 	return var_ebp;
@@ -624,7 +687,9 @@ DWORD CMotionInterp::DoInterpretedMotion(DWORD motion, MovementParameters *param
 
 void CMotionInterp::adjust_motion(DWORD &motion, float &speed, HoldKey key)
 {
-	if (weenie_obj && !weenie_obj->IsCreature())
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
+	if (pWeenie && !pWeenie->IsCreature())
 		return;
 
 	switch (motion)
@@ -662,12 +727,14 @@ void CMotionInterp::adjust_motion(DWORD &motion, float &speed, HoldKey key)
 
 void CMotionInterp::apply_run_to_command(DWORD &motion, float &speed)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
 	float speedMod;
 
-	if (weenie_obj)
+	if (pWeenie)
 	{
 		float run_factor;
-		if (weenie_obj->InqRunRate(run_factor))
+		if (pWeenie->InqRunRate(run_factor))
 			speedMod = run_factor;
 		else
 			speedMod = my_run_rate;
@@ -704,12 +771,19 @@ void CMotionInterp::apply_run_to_command(DWORD &motion, float &speed)
 
 void CMotionInterp::apply_current_movement(BOOL cancel_moveto, BOOL disallow_jump)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
+	if (!pPhysObj)
 		return;
 	if (initted == 0)
 		return;
 
-	if ((weenie_obj && !weenie_obj->IsCreature()) || !physics_obj->movement_is_autonomous())
+	if ((pWeenie && !pWeenie->IsCreature()) || !pPhysObj->movement_is_autonomous())
 		apply_interpreted_movement(cancel_moveto, disallow_jump);
 	else
 		apply_raw_movement(cancel_moveto, disallow_jump);
@@ -717,8 +791,12 @@ void CMotionInterp::apply_current_movement(BOOL cancel_moveto, BOOL disallow_jum
 
 void CMotionInterp::apply_raw_movement(BOOL cancel_moveto, BOOL disallow_jump)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return;
+	}
+
 
 	interpreted_state.current_style = raw_state.current_style;
 	interpreted_state.forward_command = raw_state.forward_command;
@@ -737,8 +815,11 @@ void CMotionInterp::apply_raw_movement(BOOL cancel_moveto, BOOL disallow_jump)
 
 void CMotionInterp::apply_interpreted_movement(BOOL cancel_moveto, BOOL disallow_jump)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return;
+	}
 
 	MovementParameters params;
 
@@ -792,11 +873,7 @@ void CMotionInterp::apply_interpreted_movement(BOOL cancel_moveto, BOOL disallow
 	}
 	else
 	{
-		// Inlined from somewhere.
-		if (!physics_obj)
-			return;
-
-		DWORD x = physics_obj->StopInterpretedMotion(Motion_TurnRight, &params);
+		DWORD x = pPhysObj->StopInterpretedMotion(Motion_TurnRight, &params);
 
 		if (!x)
 		{
@@ -807,20 +884,26 @@ void CMotionInterp::apply_interpreted_movement(BOOL cancel_moveto, BOOL disallow
 		}
 
 		// Inlined from somewhere.
-		if (!physics_obj)
+		if (!pPhysObj)
 			return;
 
-		if (!physics_obj->cell)
-			physics_obj->RemoveLinkAnimations();
+		if (!pPhysObj->cell)
+			pPhysObj->RemoveLinkAnimations();
 	}
 }
 
 void CMotionInterp::enter_default_state()
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+
 	raw_state = RawMotionState();
 	interpreted_state = InterpretedMotionState();
 
-	physics_obj->InitializeMotionTables();
+	pPhysObj->InitializeMotionTables();
 
 	add_to_queue(0, Motion_Ready, WERROR_NONE);
 
@@ -831,43 +914,54 @@ void CMotionInterp::enter_default_state()
 
 void CMotionInterp::LeaveGround()
 {
-	if (!physics_obj)
-		return;
-
-	if (weenie_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
 	{
-		if (!weenie_obj->IsCreature())
-			return;
+		return;
+	}
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
+	if (pWeenie && !pWeenie->IsCreature())
+	{
+		return;
 	}
 
-	if (!physics_obj || !(physics_obj->m_PhysicsState & GRAVITY_PS))
+	if (!(pPhysObj->m_PhysicsState & GRAVITY_PS))
 		return;
 
 	Vector velocity;
 	get_leave_ground_velocity(velocity);
 
-	physics_obj->set_local_velocity(velocity, 1);
+	pPhysObj->set_local_velocity(velocity, 1);
 
 	standing_longjump = 0;
 	jump_extent = 0;
 
-	physics_obj->RemoveLinkAnimations();
+	pPhysObj->RemoveLinkAnimations();
 	apply_current_movement(0, 0);
 }
 
 void CMotionInterp::get_leave_ground_velocity(Vector& v)
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+
 	v = get_state_velocity();
 	v.z = get_jump_v_z();
 
 	if (!v.is_zero())
 	{
-		v = physics_obj->m_Position.globaltolocalvec(v);
+		v = pPhysObj->m_Position.globaltolocalvec(v);
 	}
 }
 
 Vector CMotionInterp::get_state_velocity()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
 	Vector sv;
 
 	if (interpreted_state.sidestep_command == Motion_SideStepRight)
@@ -886,10 +980,10 @@ Vector CMotionInterp::get_state_velocity()
 
 	float runRate = 1.0f;
 
-	if (weenie_obj)
+	if (pWeenie)
 	{
 		float _runRate;
-		if (weenie_obj->InqRunRate(_runRate))
+		if (pWeenie->InqRunRate(_runRate))
 			runRate = _runRate;
 		else
 			runRate = my_run_rate;
@@ -908,6 +1002,8 @@ Vector CMotionInterp::get_state_velocity()
 
 float CMotionInterp::get_jump_v_z()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
 	float extent = jump_extent;
 
 	if (extent < F_EPSILON)
@@ -916,11 +1012,11 @@ float CMotionInterp::get_jump_v_z()
 	if (extent > 1.0f)
 		extent = 1.0f;
 
-	if (!weenie_obj)
+	if (!pWeenie)
 		return 10.0f;
 
 	float vz = extent;
-	if (weenie_obj->InqJumpVelocity(extent, vz))
+	if (pWeenie->InqJumpVelocity(extent, vz))
 		return vz;
 	
 	return 0.0f;
@@ -928,12 +1024,14 @@ float CMotionInterp::get_jump_v_z()
 
 double CMotionInterp::get_adjusted_max_speed()
 {
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
 	double rate;
 
-	if (weenie_obj)
+	if (pWeenie)
 	{
 		float run_factor;
-		if (weenie_obj->InqRunRate(run_factor))
+		if (pWeenie->InqRunRate(run_factor))
 			rate = run_factor;
 		else
 			rate = my_run_rate;
@@ -953,11 +1051,13 @@ double CMotionInterp::get_adjusted_max_speed()
 
 float CMotionInterp::get_max_speed(void)
 {
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
 	float speed = 0.0f;
 
-	if (weenie_obj)
+	if (pWeenie)
 	{
-		if (!weenie_obj->InqRunRate(speed))
+		if (!pWeenie->InqRunRate(speed))
 			speed = my_run_rate;
 	}
 	else
@@ -968,10 +1068,13 @@ float CMotionInterp::get_max_speed(void)
 
 DWORD CMotionInterp::jump(float extent, long &stamina_adjustment)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return WERROR_NO_PHYSICS_OBJECT;
+	}
 
-	physics_obj->cancel_moveto();
+	pPhysObj->cancel_moveto();
 
 	DWORD allowed = jump_is_allowed(extent, stamina_adjustment);
 
@@ -980,7 +1083,7 @@ DWORD CMotionInterp::jump(float extent, long &stamina_adjustment)
 	else
 	{
 		jump_extent = extent;
-		physics_obj->set_on_walkable(allowed);
+		pPhysObj->set_on_walkable(allowed);
 	}
 
 	return allowed;
@@ -988,7 +1091,9 @@ DWORD CMotionInterp::jump(float extent, long &stamina_adjustment)
 
 DWORD CMotionInterp::jump_charge_is_allowed()
 {
-	if (!weenie_obj || weenie_obj->CanJump(jump_extent))
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
+	if (!pWeenie || pWeenie->CanJump(jump_extent))
 	{
 		DWORD fwd_command = interpreted_state.forward_command;
 
@@ -1003,9 +1108,17 @@ DWORD CMotionInterp::jump_charge_is_allowed()
 
 DWORD CMotionInterp::jump_is_allowed(float extent, long &stamina_cost)
 {
-	if (physics_obj && ((weenie_obj && !weenie_obj->IsCreature()) || !physics_obj || !(physics_obj->m_PhysicsState & GRAVITY_PS) || ((physics_obj->transient_state & CONTACT_TS) && (physics_obj->transient_state & ON_WALKABLE_TS))))
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
 	{
-		if (physics_obj->IsFullyConstrained())
+		return 0x47;
+	}
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
+
+	if (pPhysObj && ((pWeenie && !pWeenie->IsCreature()) || !pPhysObj || !(pPhysObj->m_PhysicsState & GRAVITY_PS) || ((pPhysObj->transient_state & CONTACT_TS) && (pPhysObj->transient_state & ON_WALKABLE_TS))))
+	{
+		if (pPhysObj->IsFullyConstrained())
 			return WERROR_GENERAL_MOVEMENT_FAILURE;
 
 		auto pendingMotionHead = pending_motions.begin();
@@ -1020,8 +1133,10 @@ DWORD CMotionInterp::jump_is_allowed(float extent, long &stamina_cost)
 
 			if (!jumpError)
 			{
-				if (weenie_obj && !(weenie_obj->JumpStaminaCost(extent, stamina_cost)))
+				if (pWeenie && !(pWeenie->JumpStaminaCost(extent, stamina_cost)))
+				{
 					jumpError = WERROR_GENERAL_MOVEMENT_FAILURE;
+				}
 			}
 		}
 
@@ -1033,10 +1148,13 @@ DWORD CMotionInterp::jump_is_allowed(float extent, long &stamina_cost)
 
 DWORD CMotionInterp::StopCompletely()
 {
-	if (physics_obj == NULL)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return WERROR_NO_PHYSICS_OBJECT;
+	}
 
-	physics_obj->cancel_moveto();
+	pPhysObj->cancel_moveto();
 
 	DWORD maj = motion_allows_jump(interpreted_state.forward_command);
 
@@ -1049,12 +1167,12 @@ DWORD CMotionInterp::StopCompletely()
 	interpreted_state.sidestep_command = 0;
 	interpreted_state.turn_command = 0;
 
-	physics_obj->StopCompletely_Internal();
+	pPhysObj->StopCompletely_Internal();
 
 	add_to_queue(0, Motion_Ready, maj);
 
-	if (physics_obj && !physics_obj->cell)
-		physics_obj->RemoveLinkAnimations();
+	if (pPhysObj && !pPhysObj->cell)
+		pPhysObj->RemoveLinkAnimations();
 
 	return 0;
 }
@@ -1073,14 +1191,14 @@ BOOL CMotionInterp::motions_pending()
 	return !!pending_motions.size();
 }
 
-void CMotionInterp::SetPhysicsObject(CPhysicsObj *pObject)
+void CMotionInterp::SetPhysicsObject(std::shared_ptr<CPhysicsObj> pObject)
 {
 	physics_obj = pObject;
 
 	apply_current_movement(TRUE, 0);
 }
 
-void CMotionInterp::SetWeenieObject(CWeenieObject *pObject)
+void CMotionInterp::SetWeenieObject(std::shared_ptr<CWeenieObject> pObject)
 {
 	weenie_obj = pObject;
 
@@ -1089,6 +1207,11 @@ void CMotionInterp::SetWeenieObject(CWeenieObject *pObject)
 
 DWORD CMotionInterp::PerformMovement(MovementStruct& cmd)
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		return 0;
+	}
 	DWORD x;
 
 	switch (cmd.type)
@@ -1117,33 +1240,33 @@ DWORD CMotionInterp::PerformMovement(MovementStruct& cmd)
 		return WERROR_GENERAL_MOVEMENT_FAILURE; // 0x47;
 	}
 
-	physics_obj->CheckForCompletedMotions();
+	pPhysObj->CheckForCompletedMotions();
 	return x;
 }
 
 void CMotionInterp::HitGround()
 {
-	if (!physics_obj)
-		return;
-
-	if (weenie_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
 	{
-		if (!weenie_obj->IsCreature())
-			return;
+		return;
+	}
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
+	if (pWeenie && !pWeenie->IsCreature())
+	{
+		return;
 	}
 
-	if (!physics_obj || !(physics_obj->m_PhysicsState & GRAVITY_PS))
+	if (!pPhysObj || !(pPhysObj->m_PhysicsState & GRAVITY_PS))
 		return;
 
-	physics_obj->RemoveLinkAnimations();
+	pPhysObj->RemoveLinkAnimations();
 	apply_current_movement(0, 0);
 }
 
 MoveToManager::MoveToManager()
 {
-	physics_obj = NULL;
-	weenie_obj = NULL;
-
 	InitializeLocalVariables();
 }
 
@@ -1159,12 +1282,13 @@ void MoveToManager::Destroy()
 
 void MoveToManager::CleanUp()
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
 	MovementParameters Params;
 
 	Params.hold_key_to_apply = movement_params.hold_key_to_apply;
 	Params.cancel_moveto = 0;
 
-	if (physics_obj)
+	if (pPhysObj)
 	{
 		if (current_command)
 			_StopMotion(current_command, &Params);
@@ -1173,13 +1297,13 @@ void MoveToManager::CleanUp()
 			_StopMotion(aux_command, &Params);
 
 		if (top_level_object_id && movement_type)
-			physics_obj->clear_target();
+			pPhysObj->clear_target();
 	}
 
 	InitializeLocalVariables();
 }
 
-MoveToManager* MoveToManager::Create(CPhysicsObj *pPhysicsObj, CWeenieObject *pWeenieObj)
+MoveToManager* MoveToManager::Create(std::shared_ptr<CPhysicsObj> pPhysicsObj, std::shared_ptr<CWeenieObject> pWeenieObj)
 {
 	MoveToManager *pManager = new MoveToManager();
 
@@ -1192,26 +1316,32 @@ MoveToManager* MoveToManager::Create(CPhysicsObj *pPhysicsObj, CWeenieObject *pW
 	return pManager;
 }
 
-void MoveToManager::SetPhysicsObject(CPhysicsObj *pPhysicsObj)
+void MoveToManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> pPhysicsObj)
 {
 	physics_obj = pPhysicsObj;
 }
 
-void MoveToManager::SetWeenieObject(CWeenieObject *pWeenieObj)
+void MoveToManager::SetWeenieObject(std::shared_ptr<CWeenieObject> pWeenieObj)
 {
 	weenie_obj = pWeenieObj;
 }
 
 DWORD MoveToManager::_StopMotion(DWORD motion, MovementParameters *Params)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		CancelMoveTo(WERROR_NO_PHYSICS_OBJECT);
 		return WERROR_NO_PHYSICS_OBJECT;
+	}
 
-	if (!physics_obj->get_minterp())
+	if (!pPhysObj->get_minterp())
+	{
 		return WERROR_NO_MOTION_INTERPRETER;
+	}
 
-	physics_obj->get_minterp()->adjust_motion(motion, Params->speed, Params->hold_key_to_apply);
-	return physics_obj->get_minterp()->StopInterpretedMotion(motion, Params);
+	pPhysObj->get_minterp()->adjust_motion(motion, Params->speed, Params->hold_key_to_apply);
+	return pPhysObj->get_minterp()->StopInterpretedMotion(motion, Params);
 }
 
 void MoveToManager::InitializeLocalVariables()
@@ -1243,7 +1373,8 @@ void MoveToManager::InitializeLocalVariables()
 
 void MoveToManager::HandleUpdateTarget(TargetInfo *target_info)
 {
-	if (physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (pPhysObj)
 	{
 		if (top_level_object_id == target_info->object_id)
 		{
@@ -1266,10 +1397,10 @@ void MoveToManager::HandleUpdateTarget(TargetInfo *target_info)
 					CancelMoveTo(WERROR_OBJECT_GONE);
 				}
 			}
-			else if (top_level_object_id == physics_obj->id)
+			else if (top_level_object_id == pPhysObj->id)
 			{
-				sought_position = physics_obj->m_Position;
-				current_target_position = physics_obj->m_Position;
+				sought_position = pPhysObj->m_Position;
+				current_target_position = pPhysObj->m_Position;
 				CleanUpAndCallWeenie(WERROR_NONE);
 			}
 			else if (target_info->status == Ok_TargetStatus)
@@ -1297,18 +1428,19 @@ void MoveToManager::HandleUpdateTarget(TargetInfo *target_info)
 
 void MoveToManager::MoveToObject_Internal(Position *_target_position, Position *interpolated_position)
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
 	float distance;
 	unsigned int command; 
 	int move_away;
 	HoldKey hold_key;
 
-	if (physics_obj)
+	if (pPhysObj)
 	{
 		sought_position = *interpolated_position;
 		current_target_position = *_target_position;
 		
-		float h1 = physics_obj->m_Position.heading(*interpolated_position);
-		float heading_to_object = h1 - physics_obj->get_heading();
+		float h1 = pPhysObj->m_Position.heading(*interpolated_position);
+		float heading_to_object = h1 - pPhysObj->get_heading();
 
 		distance = GetCurrentDistance();
 
@@ -1343,11 +1475,23 @@ void MoveToManager::MoveToObject_Internal(Position *_target_position, Position *
 
 void MoveToManager::TurnToObject_Internal(Position *_target_position)
 {
-	if (physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		CancelMoveTo(8);
+		return;
+	}
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	if (pPhysObj)
 	{
 		current_target_position = *_target_position;
 
-		float headingGoal = fmod(physics_obj->m_Position.heading(current_target_position) + sought_position.frame.get_heading(), 360.0);
+		float headingGoal = fmod(pPhysObj->m_Position.heading(current_target_position) + sought_position.frame.get_heading(), 360.0);
 		sought_position.frame.set_heading(headingGoal);
 
 		MovementNode node;
@@ -1375,14 +1519,21 @@ void MoveToManager::CancelMoveTo(DWORD retval)
 
 void MoveToManager::CleanUpAndCallWeenie(DWORD retval)
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	std::shared_ptr<CWeenieObject> pWeenie = weenie_obj.lock();
+
 	CleanUp();
 
-	if (physics_obj)
-		physics_obj->StopCompletely(WERROR_NONE);
+	if (pPhysObj)
+	{
+		pPhysObj->StopCompletely(WERROR_NONE);
+	}
 
 	// custom
-	if (weenie_obj) 
-		weenie_obj->HandleMoveToDone(retval);
+	if (pWeenie)
+	{
+		pWeenie->HandleMoveToDone(retval);
+	}
 	//
 }
 
@@ -1393,46 +1544,56 @@ BOOL MoveToManager::is_moving_to()
 
 void MoveToManager::MoveToObject(DWORD object_id, DWORD top_level_id, float object_radius, float object_height, MovementParameters *params)
 {
-	if (physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
 	{
-		physics_obj->StopCompletely(WERROR_NONE);
-
-		starting_position = physics_obj->m_Position;
-		sought_object_id = object_id;
-		sought_object_radius = object_radius;
-		sought_object_height = object_height;
-		movement_type = MovementTypes::MoveToObject;
-		top_level_object_id = top_level_id;
-
-		movement_params.bitfield = params->bitfield;
-		movement_params.distance_to_object = params->distance_to_object;
-		movement_params.min_distance = params->min_distance;
-		movement_params.desired_heading = params->desired_heading;
-		movement_params.speed = params->speed;
-		movement_params.fail_distance = params->fail_distance;
-		movement_params.walk_run_threshhold = params->walk_run_threshhold;
-		movement_params.context_id = params->context_id;
-		movement_params.hold_key_to_apply = params->hold_key_to_apply;
-		movement_params.action_stamp = params->action_stamp;
-
-		initialized = 0;
-		if (top_level_id != physics_obj->id)
-		{
-			physics_obj->set_target(0, top_level_object_id, 0.5, 0.0);
-			return;
-		}
-
-		CleanUp();
+		CancelMoveTo(WERROR_NO_PHYSICS_OBJECT);
+		return;
 	}
 
-	if (physics_obj)
-		physics_obj->StopCompletely(WERROR_NONE);
+	pPhysObj->StopCompletely(WERROR_NONE);
+
+	starting_position = pPhysObj->m_Position;
+	sought_object_id = object_id;
+	sought_object_radius = object_radius;
+	sought_object_height = object_height;
+	movement_type = MovementTypes::MoveToObject;
+	top_level_object_id = top_level_id;
+
+	movement_params.bitfield = params->bitfield;
+	movement_params.distance_to_object = params->distance_to_object;
+	movement_params.min_distance = params->min_distance;
+	movement_params.desired_heading = params->desired_heading;
+	movement_params.speed = params->speed;
+	movement_params.fail_distance = params->fail_distance;
+	movement_params.walk_run_threshhold = params->walk_run_threshhold;
+	movement_params.context_id = params->context_id;
+	movement_params.hold_key_to_apply = params->hold_key_to_apply;
+	movement_params.action_stamp = params->action_stamp;
+
+	initialized = 0;
+	if (top_level_id != pPhysObj->id)
+	{
+		pPhysObj->set_target(0, top_level_object_id, 0.5, 0.0);
+		return;
+	}
+
+	CleanUp();
+
+	pPhysObj->StopCompletely(WERROR_NONE);
 }
 
 DWORD MoveToManager::PerformMovement(MovementStruct &mvs)
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		CancelMoveTo(WERROR_NO_PHYSICS_OBJECT);
+		return 0;
+	}
+
 	CancelMoveTo(WERROR_INTERRUPTED);
-	physics_obj->unstick_from_object();
+	pPhysObj->unstick_from_object();
 
 	switch (mvs.type)
 	{
@@ -1455,11 +1616,8 @@ DWORD MoveToManager::PerformMovement(MovementStruct &mvs)
 
 #if PHATSDK_IS_SERVER
 	// send current movement type
-	if (physics_obj)
-	{
-		physics_obj->Movement_UpdatePos();
-		physics_obj->Animation_MoveToUpdate();
-	}
+	pPhysObj->Movement_UpdatePos();
+	pPhysObj->Animation_MoveToUpdate();
 #endif
 
 	return 0;
@@ -1467,52 +1625,56 @@ DWORD MoveToManager::PerformMovement(MovementStruct &mvs)
 
 void MoveToManager::MoveToPosition(Position *p, MovementParameters *params)
 {
-	if (physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
 	{
-		physics_obj->StopCompletely(WERROR_NONE);
-
-		current_target_position = *p;
-		sought_object_radius = 0;
-
-		float distance = GetCurrentDistance();
-
-		float headingDiff = physics_obj->m_Position.heading(*p) - physics_obj->get_heading();
-		if (fabs(headingDiff) < F_EPSILON)
-			headingDiff = 0.0;
-		if (-F_EPSILON > headingDiff)
-			headingDiff += 360.0;
-
-		unsigned int command;
-		int move_away;
-		HoldKey hold_key;
-		params->get_command(distance, headingDiff, &command, &hold_key, &move_away);
-
-		if (command)
-		{
-			AddTurnToHeadingNode(physics_obj->m_Position.heading(*p));
-			AddMoveToPositionNode();
-		}
-
-		if (params->use_final_heading)
-			AddTurnToHeadingNode(params->desired_heading);
-
-		sought_position = *p;
-		starting_position = physics_obj->m_Position;
-
-		movement_type = MovementTypes::MoveToPosition;
-		movement_params.bitfield = params->bitfield;
-		movement_params.distance_to_object = params->distance_to_object;
-		movement_params.min_distance = params->min_distance;
-		movement_params.desired_heading = params->desired_heading;
-		movement_params.speed = params->speed;
-		movement_params.fail_distance = params->fail_distance;
-		movement_params.walk_run_threshhold = params->walk_run_threshhold;
-		movement_params.context_id = params->context_id;
-		movement_params.hold_key_to_apply = params->hold_key_to_apply;
-		movement_params.action_stamp = params->action_stamp;
-		movement_params.bitfield &= 0xFFFFFF7F;
-		MoveToManager::BeginNextNode();
+		CancelMoveTo(WERROR_NO_PHYSICS_OBJECT);
+		return;
 	}
+
+	pPhysObj->StopCompletely(WERROR_NONE);
+
+	current_target_position = *p;
+	sought_object_radius = 0;
+
+	float distance = GetCurrentDistance();
+
+	float headingDiff = pPhysObj->m_Position.heading(*p) - pPhysObj->get_heading();
+	if (fabs(headingDiff) < F_EPSILON)
+		headingDiff = 0.0;
+	if (-F_EPSILON > headingDiff)
+		headingDiff += 360.0;
+
+	unsigned int command;
+	int move_away;
+	HoldKey hold_key;
+	params->get_command(distance, headingDiff, &command, &hold_key, &move_away);
+
+	if (command)
+	{
+		AddTurnToHeadingNode(pPhysObj->m_Position.heading(*p));
+		AddMoveToPositionNode();
+	}
+
+	if (params->use_final_heading)
+		AddTurnToHeadingNode(params->desired_heading);
+
+	sought_position = *p;
+	starting_position = pPhysObj->m_Position;
+
+	movement_type = MovementTypes::MoveToPosition;
+	movement_params.bitfield = params->bitfield;
+	movement_params.distance_to_object = params->distance_to_object;
+	movement_params.min_distance = params->min_distance;
+	movement_params.desired_heading = params->desired_heading;
+	movement_params.speed = params->speed;
+	movement_params.fail_distance = params->fail_distance;
+	movement_params.walk_run_threshhold = params->walk_run_threshhold;
+	movement_params.context_id = params->context_id;
+	movement_params.hold_key_to_apply = params->hold_key_to_apply;
+	movement_params.action_stamp = params->action_stamp;
+	movement_params.bitfield &= 0xFFFFFF7F;
+	MoveToManager::BeginNextNode();
 }
 
 void MoveToManager::AddTurnToHeadingNode(float global_heading)
@@ -1532,10 +1694,14 @@ void MoveToManager::AddMoveToPositionNode()
 
 void MoveToManager::TurnToObject(DWORD object_id, DWORD top_level_id, MovementParameters *params)
 {
-	if (physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+
+	if (pPhysObj)
 	{
 		if (params->stop_completely)
-			physics_obj->StopCompletely(WERROR_NONE);
+		{
+			pPhysObj->StopCompletely(WERROR_NONE);
+		}
 
 		movement_type = MovementTypes::TurnToObject;
 		sought_object_id = object_id;
@@ -1554,10 +1720,10 @@ void MoveToManager::TurnToObject(DWORD object_id, DWORD top_level_id, MovementPa
 		movement_params.hold_key_to_apply = params->hold_key_to_apply;
 		movement_params.action_stamp = params->action_stamp;
 
-		if (top_level_id != physics_obj->id)
+		if (top_level_id != pPhysObj->id)
 		{
 			initialized = 0;
-			physics_obj->set_target(0, top_level_id, 0.5, 0.0);
+			pPhysObj->set_target(0, top_level_id, 0.5, 0.0);
 			return;
 		}
 
@@ -1568,24 +1734,22 @@ void MoveToManager::TurnToObject(DWORD object_id, DWORD top_level_id, MovementPa
 		movement_params.context_id = params->context_id;
 	}
 
-	if (physics_obj)
-		physics_obj->StopCompletely(WERROR_NONE);
+	pPhysObj->StopCompletely(WERROR_NONE);
 }
 
 void MoveToManager::TurnToHeading(MovementParameters *pparams)
 {
-	if (physics_obj == NULL)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
 	{
 		movement_params.context_id = pparams->context_id;
-
-		// this must be inlined, can never happen..
-		if (physics_obj)
-			physics_obj->StopCompletely(WERROR_NONE);
 	}
 	else
 	{
 		if (pparams->stop_completely)
-			physics_obj->StopCompletely(WERROR_NONE);
+		{
+			pPhysObj->StopCompletely(WERROR_NONE);
+		}
 
 		movement_params = *pparams;
 		movement_params.sticky = 0;
@@ -1636,24 +1800,15 @@ void MoveToManager::BeginNextNode()
 			float old_object_height = sought_object_height;
 			DWORD old_object_ID = top_level_object_id;
 
-			/*
-			CleanUp();
-
-			if (physics_obj) // obviously inlined
-				physics_obj->StopCompletely(0);
-				*/
 			CleanUpAndCallWeenie(WERROR_NONE);
-			
-			physics_obj->get_position_manager()->StickTo(old_object_ID, old_object_radius, old_object_height);
+			std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+			if (pPhysObj)
+			{
+				pPhysObj->get_position_manager()->StickTo(old_object_ID, old_object_radius, old_object_height);
+			}
 		}
 		else
 		{
-			/*
-			CleanUp();
-
-			if (physics_obj)
-				physics_obj->StopCompletely(0);
-				*/
 			CleanUpAndCallWeenie(WERROR_NONE);
 		}
 	}
@@ -1661,15 +1816,24 @@ void MoveToManager::BeginNextNode()
 
 void MoveToManager::UseTime()
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		CancelMoveTo(8);
 		return;
-	if (!(physics_obj->transient_state & CONTACT_TS))
+	}
+
+	if (!(pPhysObj->transient_state & CONTACT_TS))
+	{
 		return;
+	}
 
 	std::list<MovementNode>::iterator i = pending_actions.begin();
 
 	if (i == pending_actions.end())
+	{
 		return;
+	}
 
 	if (!top_level_object_id || !movement_type || initialized)
 	{
@@ -1687,21 +1851,22 @@ void MoveToManager::UseTime()
 }
 
 void MoveToManager::HandleMoveToPosition()
-{	
-	if (!physics_obj)
+{
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
 	{
 		MoveToManager::CancelMoveTo(WERROR_NO_PHYSICS_OBJECT);
 		return;
 	}
 
-	Position curr_pos = physics_obj->m_Position;
+	Position curr_pos = pPhysObj->m_Position;
 
 	MovementParameters params;
 	params.speed = movement_params.speed;
 	params.bitfield &= 0xFFFF7FFF;
 	params.hold_key_to_apply = movement_params.hold_key_to_apply;
 
-	if (physics_obj->motions_pending())
+	if (pPhysObj->motions_pending())
 	{
 		if (aux_command)
 		{
@@ -1716,7 +1881,7 @@ void MoveToManager::HandleMoveToPosition()
 		if (someHeading >= 360.0)
 			someHeading -= 360.0;
 
-		float headingDiff = someHeading - physics_obj->get_heading();
+		float headingDiff = someHeading - pPhysObj->get_heading();
 
 		if (fabs(headingDiff) < F_EPSILON)
 			headingDiff = 0.0;
@@ -1749,7 +1914,7 @@ void MoveToManager::HandleMoveToPosition()
 
 	if (!CheckProgressMade(currDistance))
 	{
-		if (!physics_obj->IsInterpolating() && !physics_obj->motions_pending())
+		if (!pPhysObj->IsInterpolating() && !pPhysObj->motions_pending())
 			++fail_progress_count;
 	}
 	else
@@ -1772,8 +1937,10 @@ void MoveToManager::HandleMoveToPosition()
 		}
 		else
 		{
-			if (starting_position.distance(physics_obj->m_Position) > movement_params.fail_distance)
+			if (starting_position.distance(pPhysObj->m_Position) > movement_params.fail_distance)
+			{
 				CancelMoveTo(WERROR_TOO_FAR);
+			}
 		}
 	}
 
@@ -1781,14 +1948,14 @@ void MoveToManager::HandleMoveToPosition()
 	{
 		if (movement_type)
 		{
-			Vector vel = physics_obj->get_velocity();
+			Vector vel = pPhysObj->get_velocity();
 			float velMag = vel.magnitude();
 
 			if (velMag > 0.1)
 			{
 				float approx_time_to_get_there = currDistance / velMag;
-				if (fabs(approx_time_to_get_there - physics_obj->get_target_quantum()) > 1.0)
-					physics_obj->set_target_quantum(approx_time_to_get_there);
+				if (fabs(approx_time_to_get_there - pPhysObj->get_target_quantum()) > 1.0)
+					pPhysObj->set_target_quantum(approx_time_to_get_there);
 			}
 		}
 	}
@@ -1862,18 +2029,20 @@ BOOL heading_greater(float x, float y, DWORD motionid)
 
 void MoveToManager::BeginTurnToHeading()
 {
-	if (!pending_actions.size() || !physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+
+	if (!pending_actions.size() || !pPhysObj)
 	{
 		CancelMoveTo(WERROR_NO_PHYSICS_OBJECT);
 		return;
 	}
 
-	if (physics_obj->motions_pending())
+	if (pPhysObj->motions_pending())
 		return;
 
 	std::list<MovementNode>::iterator i = pending_actions.begin();
 
-	float diff = heading_diff(i->heading, physics_obj->get_heading(), Motion_TurnRight);
+	float diff = heading_diff(i->heading, pPhysObj->get_heading(), Motion_TurnRight);
 	DWORD motionid;
 
 	if (diff <= 180.0f)
@@ -1925,28 +2094,32 @@ void MoveToManager::BeginTurnToHeading()
 
 double MoveToManager::GetCurrentDistance()
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
 		return FLT_MAX;
+	}
 
 	if (movement_params.bitfield & 0x400)
 	{
 		return Position::cylinder_distance(
-			physics_obj->GetRadius(),
-			physics_obj->GetHeight(),
-			physics_obj->m_Position,
+			pPhysObj->GetRadius(),
+			pPhysObj->GetHeight(),
+			pPhysObj->m_Position,
 			sought_object_radius, 
 			sought_object_height,
 			current_target_position);
 	}
 	else
 	{
-		return physics_obj->m_Position.distance(current_target_position);
+		return pPhysObj->m_Position.distance(current_target_position);
 	}	
 }
 
 void MoveToManager::BeginMoveForward()
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
 	{
 		CancelMoveTo(WERROR_NO_PHYSICS_OBJECT);
 		return;
@@ -1960,7 +2133,7 @@ void MoveToManager::BeginMoveForward()
 	MovementParameters params;
 
 	curr_distance = GetCurrentDistance();
-	curr_heading = physics_obj->m_Position.heading(current_target_position) - physics_obj->get_heading();
+	curr_heading = pPhysObj->m_Position.heading(current_target_position) - pPhysObj->get_heading();
 	if (fabs(curr_heading) < F_EPSILON)
 		curr_heading = 0.0;
 
@@ -2005,14 +2178,22 @@ void MoveToManager::BeginMoveForward()
 
 DWORD MoveToManager::_DoMotion(DWORD motionid, MovementParameters *pparams)
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
+	{
+		CancelMoveTo(WERROR_NO_PHYSICS_OBJECT);
 		return WERROR_NO_PHYSICS_OBJECT;
+	}
 
-	if (!physics_obj->get_minterp())
+
+	if (!pPhysObj->get_minterp())
+	{
+		CancelMoveTo(WERROR_NO_MOTION_INTERPRETER);
 		return WERROR_NO_MOTION_INTERPRETER;
+	}
 
-	physics_obj->get_minterp()->adjust_motion(motionid, pparams->speed, pparams->hold_key_to_apply);
-	return physics_obj->get_minterp()->DoInterpretedMotion(motionid, pparams);
+	pPhysObj->get_minterp()->adjust_motion(motionid, pparams->speed, pparams->hold_key_to_apply);
+	return pPhysObj->get_minterp()->DoInterpretedMotion(motionid, pparams);
 }
 
 void MoveToManager::RemovePendingActionsHead()
@@ -2022,7 +2203,8 @@ void MoveToManager::RemovePendingActionsHead()
 
 void MoveToManager::HandleTurnToHeading()
 {
-	if (!physics_obj)
+	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
+	if (!pPhysObj)
 	{
 		CancelMoveTo(WERROR_NO_PHYSICS_OBJECT);
 		return;
@@ -2036,12 +2218,12 @@ void MoveToManager::HandleTurnToHeading()
 
 	std::list<MovementNode>::iterator i = pending_actions.begin();
 
-	float curheading = physics_obj->get_heading();
+	float curheading = pPhysObj->get_heading();
 
 	if (heading_greater(curheading, i->heading, current_command))
 	{
 		fail_progress_count = 0;
-		physics_obj->set_heading(i->heading, 1);
+		pPhysObj->set_heading(i->heading, 1);
 
 		RemovePendingActionsHead();
 
@@ -2067,7 +2249,7 @@ void MoveToManager::HandleTurnToHeading()
 		{
 			previous_heading = curheading;
 
-			if (!physics_obj->IsInterpolating() && !physics_obj->motions_pending())
+			if (!pPhysObj->IsInterpolating() && !pPhysObj->motions_pending())
 				fail_progress_count++;
 		}
 	}

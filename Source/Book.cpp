@@ -18,7 +18,7 @@ void CBookWeenie::ApplyQualityOverrides()
 {
 }
 
-int CBookWeenie::Use(CPlayerWeenie *pOther)
+int CBookWeenie::Use(std::shared_ptr<CPlayerWeenie> pOther)
 {
 	BinaryWriter bookDataMessage;
 	bookDataMessage.Write<DWORD>(0xB4);
