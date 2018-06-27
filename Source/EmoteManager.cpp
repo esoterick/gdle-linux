@@ -661,8 +661,9 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			CWeenieObject *target = g_pWorld->FindObject(target_id);
 			if (target && emote.msg.find("@#kt") != std::string::npos)  //if @#kt found in quest string this is a killtask call collect data pass to killtask func.
 			{
-				kCountName = target->Ktref(emote.msg.c_str()); //trims the @#kt off of the quest name and returns the questflag used by the quest for stamping/validation
+				auto kCountName = target->Ktref(emote.msg.c_str()); //trims the @#kt off of the quest name and returns the questflag used by the quest for stamping/validation
 
+				std::string mobName;
 				_weenie->m_Qualities.InqString((STypeString)1, mobName);
 
 				killTask(mobName, kCountName.c_str(), target_id);
@@ -1252,6 +1253,22 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 		break;
 	}
+
+	case SetQuestCompletions_EmoteType:
+
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+	{
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		if (target)
+		{
+			target->SetQuestCompletions(emote.msg.c_str(), emote.amount);
+		}
+
+	}
+	break;
+
 	case Generate_EmoteType: //type:72 adds from generator table attached to creature weenie. Sets init value of generator table and calls weenie factory to begin generation. Can use same emote with value of 0 in amount field to disable generator.
 	{
 		CMonsterWeenie *monster = _weenie->AsMonster();
@@ -1303,7 +1320,7 @@ void EmoteManager::OnDeath(DWORD killer_id)
 		ChanceExecuteEmoteSet(Death_EmoteCategory, killer_id);
 }
 
-void EmoteManager::killTask(std::string, const char*, DWORD target_id)
+void EmoteManager::killTask(std::string mobName, std::string kCountName, DWORD target_id)
 {
 	{
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
@@ -1317,73 +1334,23 @@ void EmoteManager::killTask(std::string, const char*, DWORD target_id)
 
 				if (success)
 				{
-					target->StampQuest(kCountName.c_str()); //yes, stamp quest
-					int intQuestSolves = (target->InqQuestSolves(kCountName.c_str())-1); //set quest solves to variable NOTE: literal -1 is due to the intial start point of 1 on quest sovles instead of 0 due to the quest NPC stamping this.
-					auto strQuestSolves = std::to_string(intQuestSolves); //convert int to string
-
-					auto intMaxQsolves = target->InqQuestMax(kCountName.c_str()); //what is this quests max solves?
-					auto strMaxQsolves = std::to_string(intMaxQsolves); //Convert to string (we need integer value and string value)
-
-					if (intQuestSolves <= intMaxQsolves) //if quest solves are less than max execute inprogress msg.
-					{
-						auto text = "You have killed " + strQuestSolves + " " + mobName + "s. You must kill " + strMaxQsolves + " to complete your task!";
-
-						if (!text.empty())
-						{
-							target->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
-						}
-
-					}
-					else //send msg quest complete msg
-					{
-						auto text = "You have killed " + strMaxQsolves + " " + mobName + "s. Your task is complete!"; //NOTE: that the stamping functionality will exceed the max. so using questSolves instead of maxQsolves is prone to irregular numbers at completion.
-
-						if (!text.empty())
-						{
-							target->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
-						}
-					}
+					killTaskSub(mobName, kCountName, target); //execute stamping and messaging.
 				}
 			}
 			else //We are in a fellow 
 			{
-				CWorldLandBlock *block = target->GetBlock();
+				CWorldLandBlock *block = target->GetBlock(); //set mob killed location.
 				for (auto &entry : fellow->_fellowship_table) //for each entry of the fellow table.
 				{
 					if (CWeenieObject *member = g_pWorld->FindObject(entry.first))
 					{
-						if (member->GetBlock() == block)
+						if (member->GetBlock() == block) //are we local to the killed mob?
 						{
 							bool success = member->InqQuest(kCountName.c_str()); //are we flagged for this quest?
 
 							if (success)
 							{
-								member->StampQuest(kCountName.c_str()); //yes, stamp quest
-								int intQuestSolves = (member->InqQuestSolves(kCountName.c_str()) - 1); //set quest solves to variable NOTE: literal -1 is due to the intial start point of 1 on quest sovles instead of 0 due to the quest NPC stamping this.
-								auto strQuestSolves = std::to_string(intQuestSolves); //convert int to string
-
-								auto intMaxQsolves = member->InqQuestMax(kCountName.c_str()); //what is this quests max solves?
-								auto strMaxQsolves = std::to_string(intMaxQsolves); //Convert to string (we need integer value and string value)
-
-								if (intQuestSolves <= intMaxQsolves) //if quest solves are less than max execute inprogress msg.
-								{
-									auto text = "You have killed " + strQuestSolves + " " + mobName + "s. You must kill " + strMaxQsolves + " to complete your task!";
-
-									if (!text.empty())
-									{
-										member->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
-									}
-
-								}
-								else //send msg quest complete msg
-								{
-									auto text = "You have killed " + strMaxQsolves + " " + mobName + "s. Your task is complete!"; //NOTE: that the stamping functionality will exceed the max. so using questSolves instead of maxQsolves is prone to irregular numbers at completion.
-
-									if (!text.empty())
-									{
-										member->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
-									}
-								}
+								killTaskSub(mobName, kCountName, member); //execute stamping and messaging for this member of the fellow.
 							}
 						}
 					}
@@ -1392,4 +1359,29 @@ void EmoteManager::killTask(std::string, const char*, DWORD target_id)
 		}
 	}
 
+}
+
+void EmoteManager::killTaskSub(std::string &mobName, std::string &kCountName, CWeenieObject *targormember)
+{
+	targormember->StampQuest(kCountName.c_str()); //yes, stamp quest
+	int intQuestSolves = targormember->InqQuestSolves(kCountName.c_str()); //set quest solves to variable 
+	auto strQuestSolves = std::to_string(intQuestSolves); //convert int to string (we need integer value and string value)
+
+	int intMaxQsolves = targormember->InqQuestMax(kCountName.c_str()); //what is this quests max solves?
+	auto strMaxQsolves = std::to_string(intMaxQsolves); //Convert to string (we need integer value and string value)
+
+	std::string text;
+	if (intQuestSolves < intMaxQsolves) //if quest solves are less than max execute inprogress msg.
+	{
+		text = "You have killed " + strQuestSolves + " " + mobName + "s. You must kill " + strMaxQsolves + " to complete your task!";
+	}
+	else //send msg quest complete msg
+	{
+		text = "You have killed " + strMaxQsolves + " " + mobName + "s. Your task is complete!"; //NOTE: that the stamping functionality will exceed the max. so using questSolves instead of maxQsolves is prone to irregular numbers at completion.
+	}
+
+	if (!text.empty()) //send message
+	{
+		targormember->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
+	}
 }
