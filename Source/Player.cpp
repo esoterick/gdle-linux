@@ -824,7 +824,6 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 				NotifyIntStatUpdated(PLAYER_KILLER_STATUS_INT, false);
 				pkKill = 1;
 				NotifyWeenieError(WERROR_PK_SWITCH_RESPITE);
-				SendText("Bael'Zharon has granted you respite after your moment of weakness. You are temporarily no longer a player killer.", LTT_MAGIC);
 			}
 		}
 	}
