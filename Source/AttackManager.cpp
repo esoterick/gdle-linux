@@ -110,6 +110,23 @@ void CAttackEventData::MoveToAttack()
 	pWeenie->MoveToObject(_target_id, &params);
 }
 
+void CAttackEventData::TurnToAttack()
+{
+	auto pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	_move_to = true;
+
+	MovementParameters params;
+
+	pWeenie->last_move_was_autonomous = false;
+
+	pWeenie->TurnToObject(_target_id, &params);
+}
+
 void CAttackEventData::CheckTimeout()
 {
 	if (Timer::cur_time > _timeout)
@@ -743,6 +760,38 @@ void CMissileAttackEvent::Setup()
 	_max_attack_angle = MAX_MISSILE_ATTACK_CONE_ANGLE;
 	_timeout = Timer::cur_time + 15.0;
 	_use_sticky = false;
+	m_bTurned = false;
+}
+
+void CMissileAttackEvent::PostCharge()
+{
+	auto pWeenie = _weenie.lock();
+	if (!pWeenie)
+	{
+		return;
+	}
+
+	_attack_charge_time = -1.0;
+
+	if ((_max_attack_distance + F_EPSILON) < DistanceToTarget())
+	{
+		// out of range so just stop
+		if (auto pPlayer = pWeenie->AsPlayer())
+		{
+			pPlayer->NotifyAttackDone();
+			pPlayer->NotifyWeenieError(0x550);
+		}
+	}
+
+	if (m_bTurned)
+	{
+		OnReadyToAttack();
+	}
+	else
+	{
+		TurnToAttack();
+		m_bTurned = true;
+	}
 }
 
 void CMissileAttackEvent::OnReadyToAttack()
@@ -1275,7 +1324,6 @@ void AttackManager::OnAttackDone(DWORD error)
 
 		if (RepeatAttacks() && _attackData->IsValidTarget())
 		{
-			pWeenie->NotifyAttackDone();
 			
 			if (_queuedAttackData != NULL)
 			{
@@ -1285,12 +1333,9 @@ void AttackManager::OnAttackDone(DWORD error)
 				_queuedAttackData = NULL;
 			}
 			
-			if (_attackData->AsMissileAttackEvent())
+			if (!_attackData->AsMissileAttackEvent())
 			{
-				//This is needed for missile attacks otherwise the client won't start the next shot.
-				//Although this makes it so the client's power bar doesn't animate(it starts filled up to the attack power chosen).
-				//So we don't want it for melee weapons as those work correctly without this. Did missile attacks animate the power bar on retail?
-				pWeenie->NotifyCommenceAttack();
+				pWeenie->NotifyAttackDone();
 			}
 
 			_attackData->_attack_charge_time = Timer::cur_time + (_attackData->_attack_power);
@@ -1342,6 +1387,17 @@ void AttackManager::OnMotionDone(DWORD motion, BOOL success)
 	if (_attackData)
 	{
 		_attackData->OnMotionDone(motion, success);
+
+		if (motion == Motion_Reload)
+		{
+			if (auto pWeenie = _weenie.lock())
+			{
+				if (auto pPlayer = pWeenie->AsPlayer())
+				{
+					pPlayer->NotifyAttackDone();
+				}
+			}
+		}
 	}
 }
 
