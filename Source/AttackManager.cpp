@@ -1392,10 +1392,7 @@ void AttackManager::OnMotionDone(DWORD motion, BOOL success)
 		{
 			if (auto pWeenie = _weenie.lock())
 			{
-				if (auto pPlayer = pWeenie->AsPlayer())
-				{
-					pPlayer->NotifyAttackDone();
-				}
+				pWeenie->NotifyAttackDone();
 			}
 		}
 	}
