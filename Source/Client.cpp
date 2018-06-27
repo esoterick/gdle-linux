@@ -693,7 +693,6 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 					break;
 				}
 
-				startPos = Position(0xA9B00006, Vector(24.258204f, 123.777000f, 63.060749f), Quaternion(1, 0, 0, 0)); // holtburg
 				weenie->SetInitialPosition(startPos);
 				weenie->m_Qualities.SetPosition(SANCTUARY_POSITION, startPos);
 				weenie->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, 52 - max(0, min(52, numCreditsUsed)));
