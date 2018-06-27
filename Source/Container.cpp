@@ -1425,7 +1425,7 @@ void CContainerWeenie::InventoryTick()
 
 		if (!pItem)
 		{
-			m_Packs.erase(wielded);
+			m_Packs.erase(pack);
 		}
 		else
 		{
