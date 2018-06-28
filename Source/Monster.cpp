@@ -1392,7 +1392,7 @@ void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 				return;
 			}
 
-			if (m_MonsterAI && pSource->AsPlayer())
+			if (m_MonsterAI && m_MonsterAI->_toleranceType != TolerateEverything && pSource->AsPlayer())
 			{
 				m_MonsterAI->SetNewTarget(pSource);
 			}
