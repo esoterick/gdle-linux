@@ -631,7 +631,7 @@ bool MonsterAIManager::IsValidTarget(std::shared_ptr<CWeenieObject> pWeenie)
 	if (!pWeenie)
 		return false;
 
-	if (pWeenie == pWeenie)
+	if (m_pWeenie.lock() == pWeenie)
 		return false;
 
 	if (!pWeenie->_IsPlayer() && !monster_brawl) // only attack players unless monster fighting is on
