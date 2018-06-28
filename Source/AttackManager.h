@@ -10,7 +10,7 @@ public:
 	virtual void Setup();
 	void Begin();
 
-	void PostCharge();
+	virtual void PostCharge();
 	void CheckTimeout();
 	void CancelMoveTo();
 
@@ -27,6 +27,7 @@ public:
 
 	std::shared_ptr<CWeenieObject> GetTarget();
 	void MoveToAttack();
+	void TurnToAttack();
 
 	virtual void HandleMoveToDone(DWORD error);
 	virtual void HandleAttackHook(const AttackCone &cone) { }
@@ -94,6 +95,8 @@ class CMissileAttackEvent : public CAttackEventData
 public:
 	virtual void Setup() override;
 
+	virtual void PostCharge() override;
+
 	virtual void OnReadyToAttack() override;
 	virtual void OnAttackAnimSuccess(DWORD motion) override;
 	void Finish();
@@ -115,6 +118,7 @@ public:
 	Position _missile_target_position;
 	Vector _missile_velocity;
 	float _missile_dist_to_target = 0.0f;
+	bool m_bTurned;
 };
 
 class AttackManager
