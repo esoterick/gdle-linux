@@ -1975,37 +1975,37 @@ void CTreasureFactory::MutateCaster(std::shared_ptr<CWeenieObject> newItem, CWie
 			case acid:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, ACID_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_ACID);
-				newItem->m_Qualities.SetString(NAME_STRING, "Searing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Acid " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case cold:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, COLD_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_FROST);
-				newItem->m_Qualities.SetString(NAME_STRING, "Freezing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Frost " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case fire:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, FIRE_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_FIRE);
-				newItem->m_Qualities.SetString(NAME_STRING, "Flaming " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Fire " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case lightning:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, ELECTRIC_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_LIGHTNING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Zapping " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Electric " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case bludgeoning:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, BLUDGEON_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_BLUDGEONING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Smashing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Blunt " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case piercing:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, PIERCE_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_PIERCING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Prickly " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Piercing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case slashing:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, SLASH_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_SLASHING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Slicing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Slashing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			}
 		}
