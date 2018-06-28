@@ -6436,22 +6436,22 @@ void CWeenieObject::Remove()
 
 void CWeenieObject::DebugValidate()
 {
-#ifdef _DEBUG
+#if 0
 	assert(GetID());
-	assert(g_pWorld->FindObject(GetID()));
+	//assert(g_pWorld->FindObject(GetID()));
 
 	assert(!GetContainerID() || !GetWielderID());
 
 	if (GetContainerID())
 	{
-		assert(g_pWorld->FindObject(GetContainerID()));
+		//assert(g_pWorld->FindObject(GetContainerID()));
 		assert(!GetWielderID());
 		assert(!m_pBlock);
 	}
 
 	if (GetWielderID())
 	{
-		assert(g_pWorld->FindObject(GetWielderID()));
+		//assert(g_pWorld->FindObject(GetWielderID()));
 		assert(!GetContainerID());
 		assert(!m_pBlock);
 	}

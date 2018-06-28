@@ -833,7 +833,10 @@ void CContainerWeenie::InitPhysicsObj()
 		}
 
 #ifdef _DEBUG
-		assert(item->GetWielderID() == GetID());
+		if (std::shared_ptr<CWeenieObject> pItem = item.lock())
+		{
+			assert(pItem->GetWielderID() == GetID());
+		}
 #endif
 
 		int parentLocation = pItem->InqIntQuality(PARENT_LOCATION_INT, PARENT_ENUM::PARENT_NONE);
@@ -1522,20 +1525,29 @@ void CContainerWeenie::DebugValidate()
 	
 	for (auto wielded : m_Wielded)
 	{
-		assert(wielded->GetWielderID() == GetID());
-		wielded->DebugValidate();
+		if (std::shared_ptr<CWeenieObject> pWielded = wielded.lock())
+		{
+			assert(pWielded->GetWielderID() == GetID());
+			pWielded->DebugValidate();
+		}
 	}
 
 	for (auto item : m_Items)
 	{
-		assert(item->GetContainerID() == GetID());
-		item->DebugValidate();
+		if (std::shared_ptr<CWeenieObject> pItem = item.lock())
+		{
+			assert(pItem->GetContainerID() == GetID());
+			pItem->DebugValidate();
+		}
 	}
 
 	for (auto pack : m_Packs)
 	{
-		assert(pack->GetContainerID() == GetID());
-		pack->DebugValidate();
+		if (std::shared_ptr<CWeenieObject> pPack = pack.lock())
+		{
+			assert(pPack->GetContainerID() == GetID());
+			pPack->DebugValidate();
+		}
 	}
 #endif
 }

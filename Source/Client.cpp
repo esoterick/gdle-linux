@@ -622,14 +622,13 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				
 				weenie->m_Qualities.SetInt(AGE_INT, 0);
 
-				auto t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+				time_t t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
 				std::stringstream ss;
-				ss << std::put_time(std::gmtime(&t), "%d %B %Y");
-				std::string str = ss.str();
+				ss << "You were born on " << std::put_time(std::localtime(&t), "%m/%d/%y %I:%M:%S %p."); // convert time to a string of format '01/01/18 11:59:59 AM.'
 
 				weenie->m_Qualities.SetInt(CREATION_TIMESTAMP_INT, t);
-				weenie->m_Qualities.SetString(DATE_OF_BIRTH_STRING, str);
+				weenie->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
 
 				/*
 				cg.startArea = max(0, min(cgd->mStartAreaList.num_used - 1, cg.startArea));

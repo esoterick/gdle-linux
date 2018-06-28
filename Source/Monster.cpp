@@ -1699,11 +1699,11 @@ void CMonsterWeenie::DropAllLoot(std::shared_ptr<CCorpseWeenie> pCorpse)
 
 void CMonsterWeenie::GenerateDeathLoot(std::shared_ptr<CCorpseWeenie> pCorpse)
 {
-	if (m_Qualities._create_list)
-		g_pWeenieFactory->AddFromCreateList(pCorpse, m_Qualities._create_list, (DestinationType)(Contain_DestinationType | Treasure_DestinationType));
-
 	if (DWORD deathTreasureType = InqDIDQuality(DEATH_TREASURE_TYPE_DID, 0))
 		g_pWeenieFactory->GenerateFromTypeOrWcid(pCorpse, DestinationType::ContainTreasure_DestinationType, deathTreasureType);
+
+	if (m_Qualities._create_list)
+		g_pWeenieFactory->AddFromCreateList(pCorpse, m_Qualities._create_list, (DestinationType)(Contain_DestinationType | Treasure_DestinationType));
 
 	std::list<std::shared_ptr<CWeenieObject> > removeList;
 
@@ -1764,10 +1764,10 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 	if (xpForKill > 0)
 	{
 		// hand out xp proportionally
-		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
+		for (auto it : m_aDamageSources)
 		{
-			std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindObject(it->first);
-			double dPercentage = (double)it->second / m_totalDamageTaken;
+			std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindObject(it.first);
+			double dPercentage = (double)it.second / m_totalDamageTaken;
 
 			if (pSource)
 			{

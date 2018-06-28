@@ -200,6 +200,16 @@ public:
 	bool CheckPKActivity() { return m_iPKActivity > Timer::cur_time; }
 	void ClearPKActivity() { m_iPKActivity = Timer::cur_time; }
 
+	void AddCorpsePermission(std::shared_ptr<CPlayerWeenie> target);
+	void RemoveCorpsePermission(std::shared_ptr<CPlayerWeenie> target);
+	void UpdateCorpsePermissions();
+	void RemoveConsent(std::shared_ptr<CPlayerWeenie> target);
+	void DisplayConsent();
+	void ClearConsent();
+
+	std::unordered_map<std::shared_ptr<CPlayerWeenie>, int> m_umCorpsePermissions;
+	std::unordered_map<std::shared_ptr<CPlayerWeenie>, int> m_umConsentList;
+
 protected:
 	CClient *m_pClient;
 
@@ -207,7 +217,7 @@ protected:
 
 	double m_fNextMakeAwareCacheFlush = 0.0;
 	bool m_bAttackable = true;
-
+	double m_NextCorpsePermissionsUpdate = 0.0;
 	double m_NextSave = 0.0;
 
 	double m_NextHealthUpdate = 0.0;
