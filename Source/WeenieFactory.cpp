@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "WeenieFactory.h"
 #include "Door.h"
@@ -1008,6 +1007,7 @@ void CWeenieFactory::AddWeenieToDestination(std::shared_ptr<CWeenieObject> weeni
 	{
 	case Contain_RegenLocationType:
 	case ContainTreasure_RegenLocationType:
+	case Treasure_RegenLocationType:
 		if (std::shared_ptr<CContainerWeenie> container = parent->AsContainer())
 			container->SpawnInContainer(weenie);
 		break;
@@ -1084,8 +1084,6 @@ void CWeenieFactory::AddWeenieToDestination(std::shared_ptr<CWeenieObject> weeni
 		break;
 	case Shop_RegenLocationType:
 	case ShopTreasure_RegenLocationType:
-		break;
-	case Treasure_RegenLocationType:
 		break;
 	case Checkpoint_RegenLocationType:
 		break;
