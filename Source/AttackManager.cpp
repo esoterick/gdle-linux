@@ -630,7 +630,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 			if (pNearby->AsMonster())
 			{
 				// only cleave players if attacking a player
-				if (pNearby->AsPlayer() && !target->AsPlayer())
+				if (pNearby->AsPlayer() && !target->AsPlayer() && !(pWeenie->IsPK() && target->IsPK()) && !(pWeenie->IsPKLite() && target->IsPKLite())) 
 				{
 					continue;
 				}
