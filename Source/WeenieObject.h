@@ -301,8 +301,8 @@ public:
 
 	float DistanceTo(std::shared_ptr<CWeenieObject> other, bool bUseSpheres = false);
 	float DistanceSquared(std::shared_ptr<CWeenieObject> other);
-	float HeadingTo(std::shared_ptr<CWeenieObject> target, bool absolute = true);
-	float HeadingFrom(std::shared_ptr<CWeenieObject> target, bool absolute = true);
+	float HeadingTo(std::shared_ptr<CWeenieObject> target, bool relative = true);
+	float HeadingFrom(std::shared_ptr<CWeenieObject> target, bool relative = true);
 	float HeadingTo(DWORD targetId, bool relative = true);
 	float HeadingFrom(DWORD targetId, bool relative = true);
 

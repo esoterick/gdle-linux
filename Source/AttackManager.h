@@ -1,6 +1,7 @@
 
 #pragma once
 
+#define CLEAVING_ATTACK_ANGLE 178
 
 class CAttackEventData
 {
@@ -70,6 +71,7 @@ public:
 	void Finish();
 
 	virtual void HandleAttackHook(const AttackCone &cone) override;
+	void HandlePerformAttack(std::shared_ptr<CWeenieObject> target, DamageEventData dmgEvent);
 
 	virtual class CMeleeAttackEvent *AsMeleeAttackEvent() { return NULL; }
 	
