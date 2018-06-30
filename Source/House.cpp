@@ -321,7 +321,7 @@ bool CHouseWeenie::HasAccess(std::shared_ptr<CPlayerWeenie> requester)
 	if (houseData->_everyoneAccess)
 		return true;
 
-	if (requester->GetClient()->GetAccountInfo().id == houseData->_ownerAccount)
+	if (requester->GetClient() && requester->GetClient()->GetAccountInfo().id == houseData->_ownerAccount)
 		return true;
 
 	if (std::find(houseData->_accessList.begin(), houseData->_accessList.end(), requesterId) != houseData->_accessList.end())
@@ -359,7 +359,7 @@ bool CHouseWeenie::HasStorageAccess(std::shared_ptr<CPlayerWeenie> requester)
 	if (houseData->_everyoneStorageAccess)
 		return true;
 
-	if (requester->GetClient()->GetAccountInfo().id == houseData->_ownerAccount)
+	if (requester->GetClient() && requester->GetClient()->GetAccountInfo().id == houseData->_ownerAccount)
 		return true;
 
 	if (std::find(houseData->_storageAccessList.begin(), houseData->_storageAccessList.end(), requesterId) != houseData->_storageAccessList.end())
@@ -772,7 +772,7 @@ void CSlumLordWeenie::BuyHouse(std::shared_ptr<CPlayerWeenie> player, const Pack
 		CHouseData *houseData = house->GetHouseData();
 		houseData->ClearOwnershipData();
 		houseData->_ownerId = player->GetID();
-		houseData->_ownerAccount = player->GetClient()->GetAccountInfo().id;
+		houseData->_ownerAccount = player->GetClient() ? player->GetClient()->GetAccountInfo().id : NULL;
 		houseData->_purchaseTimestamp = timeStamp;
 		houseData->_currentMaintenancePeriod = g_pHouseManager->_currentHouseMaintenancePeriod;
 		houseData->_rent = prof._rent;

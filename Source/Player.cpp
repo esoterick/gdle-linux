@@ -3545,7 +3545,10 @@ void CPlayerWeenie::HandleItemManaRequest(DWORD itemId)
 	if (!item)
 		return;
 
-	m_pClient->SendNetMessage(ItemManaUpdate(item), PRIVATE_MSG, TRUE, TRUE);
+	if (m_pClient)
+	{
+		m_pClient->SendNetMessage(ItemManaUpdate(item), PRIVATE_MSG, TRUE, TRUE);
+	}
 }
 
 void CPlayerWeenie::UpdateModuleFromClient(PlayerModule &module)
@@ -3919,24 +3922,25 @@ void CPlayerWeenie::OnTeleported()
 
 DWORD CPlayerWeenie::GetAccountHouseId()
 {
-
-	for (auto &character : GetClient()->GetCharacters())
+	if (GetClient())
 	{
-		if (character.weenie_id == id)
+		for (auto &character : GetClient()->GetCharacters())
 		{
-			if (DWORD houseID = InqDIDQuality(HOUSEID_DID, 0))
-				return houseID;
-		}
-		else
-		{
-			std::shared_ptr<CWeenieObject> otherCharacter = CWeenieObject::Load(character.weenie_id);
-			if (DWORD houseID = otherCharacter->InqDIDQuality(HOUSEID_DID, 0))
+			if (character.weenie_id == id)
 			{
-				return houseID;
+				if (DWORD houseID = InqDIDQuality(HOUSEID_DID, 0))
+					return houseID;
+			}
+			else
+			{
+				std::shared_ptr<CWeenieObject> otherCharacter = CWeenieObject::Load(character.weenie_id);
+				if (DWORD houseID = otherCharacter->InqDIDQuality(HOUSEID_DID, 0))
+				{
+					return houseID;
+				}
 			}
 		}
 	}
-
 	return 0;
 }
 

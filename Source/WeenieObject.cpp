@@ -2381,7 +2381,7 @@ bool CWeenieObject::TeleportToHouse()
 		if (houseId)
 		{
 			CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-			if (houseData->_ownerAccount == player->GetClient()->GetAccountInfo().id)
+			if (player->GetClient() && houseData->_ownerAccount == player->GetClient()->GetAccountInfo().id)
 			{
 				if (houseData->_position.objcell_id)
 				{
