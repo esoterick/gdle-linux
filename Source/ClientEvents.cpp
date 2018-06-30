@@ -1618,7 +1618,7 @@ void CClientEvents::HouseRecall()
 	if (houseId)
 	{
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
-		if (houseData->_ownerAccount == pPlayer->GetClient()->GetAccountInfo().id)
+		if (pPlayer->GetClient() && houseData->_ownerAccount == pPlayer->GetClient()->GetAccountInfo().id)
 		{
 			if (!pPlayer->IsBusyOrInAction())
 				pPlayer->ExecuteUseEvent(new CHouseRecallUseEvent());

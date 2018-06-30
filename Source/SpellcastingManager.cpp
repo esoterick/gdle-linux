@@ -3183,7 +3183,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		randomizedComponents.CopyFrom(m_SpellCastData.spell->InqSpellFormula());
 
 		std::shared_ptr<CPlayerWeenie> player = pWeenie->AsPlayer();
-		if (player)
+		if (player && player->GetClient())
 			randomizedComponents.RandomizeForName(player->GetClient()->GetAccount(), m_SpellCastData.spell->_formula_version);
 
 		std::map<DWORD, DWORD> componentAmounts;
