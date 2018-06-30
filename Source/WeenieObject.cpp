@@ -840,8 +840,8 @@ float CWeenieObject::HeadingTo(std::shared_ptr<CWeenieObject> target, bool relat
 
 float CWeenieObject::HeadingFrom(std::shared_ptr<CWeenieObject> target, bool relative)
 {
-	if (target != NULL)
-		return target->HeadingTo(AsWeenie());
+	if (target)
+		return target->HeadingTo(AsWeenie(), relative);
 	return 0.0;
 }
 

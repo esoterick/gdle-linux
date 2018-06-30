@@ -597,6 +597,75 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 		}
 	}
 
+	DamageEventData dmgEvent;
+	dmgEvent.source = pWeenie;
+	dmgEvent.weapon = weapon;
+	dmgEvent.damage_form = DF_MELEE;
+	dmgEvent.damage_type = damageType;
+	dmgEvent.attackSkill = weaponSkill;
+	dmgEvent.attackSkillLevel = weaponSkillLevel;
+	dmgEvent.preVarianceDamage = preVarianceDamage;
+	dmgEvent.baseDamage = preVarianceDamage * (1.0f - Random::GenFloat(0.0f, variance)) * (0.5 + _attack_power);
+
+	HandlePerformAttack(target, dmgEvent);
+	
+	// cleaving
+	int iTargets = weapon->InqIntQuality(CLEAVING_INT, 1);
+
+	if (iTargets > 1)
+	{
+		std::list<std::shared_ptr<CWeenieObject>> lpNearby;
+
+		g_pWorld->EnumNearby(pWeenie, static_cast<float>(_max_attack_distance), &lpNearby);
+
+		std::list<std::shared_ptr<CWeenieObject>> lpTargets;
+
+		for (auto pNearby : lpNearby)
+		{
+			if (pNearby == target)
+			{
+				continue;
+			}
+
+			if (pNearby->AsMonster())
+			{
+				// only cleave players if attacking a player
+				if (pNearby->AsPlayer() && !target->AsPlayer())
+				{
+					continue;
+				}
+
+
+				double angle = pNearby->HeadingFrom(pWeenie, true);
+
+				if ( angle <= CLEAVING_ATTACK_ANGLE / 2 )
+				{
+					lpTargets.push_back(pNearby);
+				}
+			}
+		}
+
+		// we've already hit one
+		iTargets--;
+
+		while (iTargets && !lpTargets.empty())
+		{
+			auto it = lpTargets.begin();
+			std::advance(it, Random::GenUInt(0, lpTargets.size() - 1));
+
+			HandlePerformAttack(*it, dmgEvent);
+
+			lpTargets.erase(it);
+			iTargets--;
+		}
+	}
+}
+
+void CMeleeAttackEvent::HandlePerformAttack(std::shared_ptr<CWeenieObject> target, DamageEventData dmgEvent)
+{
+	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
+	// we can trust these pointers are set
+
 	// okay, we're attacking. check for pvp interactions
 	if (target->AsPlayer() && pWeenie->AsPlayer())
 	{
@@ -607,7 +676,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	DWORD meleeDefense = 0;
 	if (target->InqSkill(MELEE_DEFENSE_SKILL, meleeDefense, FALSE) && meleeDefense > 0)
 	{
-		if (target->TryMeleeEvade(weaponSkillLevel))
+		if (target->TryMeleeEvade(dmgEvent.attackSkillLevel))
 		{
 			target->OnEvadeAttack(pWeenie);
 
@@ -640,7 +709,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 		break;
 	}
 
-	double angle = pWeenie->HeadingFrom(_target_id, false);
+	double angle = pWeenie->HeadingFrom(target, false);
 	if (angle <= 45)
 		hitQuadrant = (DAMAGE_QUADRANT)(hitQuadrant | DAMAGE_QUADRANT::DQ_FRONT);
 	else if (angle > 45 && angle <= 135)
@@ -652,17 +721,8 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	else
 		hitQuadrant = (DAMAGE_QUADRANT)(hitQuadrant | DAMAGE_QUADRANT::DQ_FRONT);
 
-	DamageEventData dmgEvent;
-	dmgEvent.source = pWeenie;
 	dmgEvent.target = target;
-	dmgEvent.weapon = weapon;
-	dmgEvent.damage_form = DF_MELEE;
-	dmgEvent.damage_type = damageType;
 	dmgEvent.hit_quadrant = hitQuadrant;
-	dmgEvent.attackSkill = weaponSkill;
-	dmgEvent.attackSkillLevel = weaponSkillLevel;
-	dmgEvent.preVarianceDamage = preVarianceDamage;
-	dmgEvent.baseDamage = preVarianceDamage * (1.0f - Random::GenFloat(0.0f, variance)) * (0.5 + _attack_power);
 
 	CalculateCriticalHitData(&dmgEvent, NULL);
 	dmgEvent.wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent.critChance) ? true : false;
@@ -676,7 +736,6 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 	pWeenie->TryToDealDamage(dmgEvent);
 }
-
 
 void CMissileAttackEvent::Setup()
 {
