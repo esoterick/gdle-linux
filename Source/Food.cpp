@@ -84,7 +84,7 @@ int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 
 			if (other->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
 			{
-				other->AdjustHealth(currentStat);
+				other->AdjustHealth(boost_value);
 				other->NotifyAttribute2ndStatUpdated(statType);
 			}
 			else
