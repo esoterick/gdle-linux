@@ -102,9 +102,16 @@ void CUseEventData::MoveToUse()
 	_move_to = true;
 
 	MovementParameters params;
-	params.min_distance = _max_use_distance + 0.25f; //a little leeway on item move to range
+	params.min_distance = _max_use_distance;
 	params.action_stamp = ++pWeenie->m_wAnimSequence;
 	pWeenie->last_move_was_autonomous = false;
+	if (std::shared_ptr<CWeenieObject> target = GetTarget())
+	{
+		if (target->AsPortal())
+		{
+			params.use_spheres = 0; // if we're using a portal we want to get to the center of it, not collide with it's sphere
+		}
+	}
 	pWeenie->MoveToObject(_target_id, &params);
 }
 
@@ -159,7 +166,10 @@ double CUseEventData::DistanceToTarget()
 	std::shared_ptr<CWeenieObject> target = GetTarget();
 	if (!target)
 		return FLT_MAX;
-
+	if (target->AsPortal())
+	{
+		return pWeenie->DistanceTo(target, false);
+	}
 	return pWeenie->DistanceTo(target, true);
 }
 
@@ -195,7 +205,7 @@ bool CUseEventData::InUseRange()
 	if (target && (pWeenie->IsContainedWithinViewable(target->GetID())))
 		return true;
 
-	if ((_max_use_distance + F_EPSILON) < (DistanceToTarget() - 0.25f)) //a little leeway on item use range
+	if ((_max_use_distance + F_EPSILON) < DistanceToTarget())
 		return false;
 
 	return true;
