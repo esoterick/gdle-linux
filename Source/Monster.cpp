@@ -2445,7 +2445,7 @@ BOOL CMonsterWeenie::DoCollision(const class ObjCollisionProfile &prof)
 
 int CMonsterWeenie::AdjustHealth(int amount)
 {
-	CWeenieObject::AdjustHealth(amount);
+	int adjustedAmount = CWeenieObject::AdjustHealth(amount);
 
 	DWORD maxHealth = 0;
 	m_Qualities.InqAttribute2nd(MAX_HEALTH_ATTRIBUTE_2ND, maxHealth, FALSE);
@@ -2460,5 +2460,5 @@ int CMonsterWeenie::AdjustHealth(int amount)
 		m_totalDamageTaken = 0;
 	}
 
-	return amount;
+	return adjustedAmount;
 }
