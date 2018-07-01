@@ -6272,6 +6272,8 @@ int CWeenieObject::GetStackOrStructureNum()
 void CWeenieObject::DecrementStackOrStructureNum(int amount, bool bDestroyOnZero)
 {
 	int dummy;
+	if (m_Qualities.GetBool(UNLIMITED_USE_BOOL, 0) == TRUE)
+		return;
 	if (m_Qualities.InqInt(STRUCTURE_INT, dummy, TRUE))
 		DecrementStructureNum(amount, bDestroyOnZero);
 	else
