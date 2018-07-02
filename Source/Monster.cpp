@@ -1370,7 +1370,7 @@ void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 {
 	std::shared_ptr<CWeenieObject> pSource = damageData.source.lock();
 	
-	if (pSource && damageData.outputDamageFinal > 0)
+	if (pSource && damageData.outputDamageFinal > 0 && damageData.damage_type == HEALTH_DAMAGE_TYPE) // only interested in health damage
 	{
 		DWORD source = pSource->GetID();
 
@@ -1386,7 +1386,7 @@ void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 		{
 			m_highestDamageSource = source;
 
-			if (monster_brawl && m_MonsterAI && !(InqIntQuality(CREATURE_TYPE_INT, 0) == pSource->InqIntQuality(CREATURE_TYPE_INT, 0)))
+			if (monster_brawl && m_MonsterAI && !(InqIntQuality(CREATURE_TYPE_INT, 0) == pSource->InqIntQuality(CREATURE_TYPE_INT, 0))) // don't target own kind
 			{
 				m_MonsterAI->SetNewTarget(pSource);
 				return;
@@ -2445,7 +2445,7 @@ BOOL CMonsterWeenie::DoCollision(const class ObjCollisionProfile &prof)
 
 int CMonsterWeenie::AdjustHealth(int amount)
 {
-	CWeenieObject::AdjustHealth(amount);
+	int adjustedAmount = CWeenieObject::AdjustHealth(amount);
 
 	DWORD maxHealth = 0;
 	m_Qualities.InqAttribute2nd(MAX_HEALTH_ATTRIBUTE_2ND, maxHealth, FALSE);
@@ -2460,5 +2460,5 @@ int CMonsterWeenie::AdjustHealth(int amount)
 		m_totalDamageTaken = 0;
 	}
 
-	return amount;
+	return adjustedAmount;
 }
