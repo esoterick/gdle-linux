@@ -17,9 +17,11 @@
 #include <random>
 
 const float MAX_HEADING_TO_TARGET_FOR_CAST = 45.0f;
-const float MAX_TURN_TIME_FOR_CAST = 8.0f;
+const float MAX_TURN_TIME_FOR_CAST = 9999.0f;
 const float MAX_MOTION_TIME_FOR_CAST = 4.0f;
 const float MAX_PROJECTILE_CAST_RANGE = 100.0;
+const float CAST_UPDATE_RATE = 1.25f;
+
 
 CSpellcastingManager::CSpellcastingManager(std::shared_ptr<CWeenieObject> pWeenie)
 {
@@ -200,6 +202,7 @@ void CSpellcastingManager::BeginCast()
 	m_bCasting = true;
 	m_PendingMotions.clear();
 	m_bTurningToObject = false;
+	m_bTurned = false;
 
 	AddMotionsForSpell();
 
@@ -335,7 +338,7 @@ void CSpellcastingManager::BeginNextMotion()
 
 		if (m_PendingMotions.empty())
 		{
-			int error = LaunchSpellEffect();
+			int error = LaunchSpellEffect(FALSE);
 			EndCast(error);
 		}
 		else
@@ -817,7 +820,7 @@ void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 	}
 }
 
-int CSpellcastingManager::LaunchSpellEffect()
+int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 {
 	std::shared_ptr<CWeenieObject> pWeenie = m_pWeenie.lock();
 
@@ -844,12 +847,21 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 		return targetError;
 	}
+	else if (!bFizzled && pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
+	{
+		// fizzle
+		pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
+		pWeenie->AdjustMana(-5);
+		pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
+
+		bFizzled = true;
+	}
 
 	// cast source is assumed to be valid at this point
 
 	if (pWeenie->AsPlayer() && m_SpellCastData.uses_mana)
 	{
-		bool fizzled = false;
+	
 		double chance = GetMagicSkillChance(m_SpellCastData.current_skill, m_SpellCastData.spell->_power);
 		if (chance < Random::RollDice(0.0, 1.0))
 		{
@@ -857,17 +869,9 @@ int CSpellcastingManager::LaunchSpellEffect()
 			pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
 			pWeenie->AdjustMana(-5);
 
-			fizzled = true;
+			bFizzled = true;
 		}
-		else if (pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
-		{
-			// fizzle
-			pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
-			pWeenie->AdjustMana(-5);
-			pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
 
-			fizzled = true;
-		}
 
 		if (!m_UsedComponents.empty()) //we used components, so check if any need burning
 		{
@@ -876,7 +880,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 
 			SpellComponentTable *pSpellComponents = MagicSystem::GetSpellComponentTable();
 			float spellComponentLossMod = m_SpellCastData.spell->_component_loss;
-			if (fizzled)
+			if (bFizzled)
 				spellComponentLossMod *= 1.5; //made up value: 50% extra chance of burning components on fizzles.
 
 			if (pSpellComponents)
@@ -913,7 +917,7 @@ int CSpellcastingManager::LaunchSpellEffect()
 			}
 		}
 
-		if (fizzled)
+		if (bFizzled)
 			return WERROR_MAGIC_FIZZLE;
 
 		pWeenie->AdjustMana(-GenerateManaCost());
@@ -2884,7 +2888,7 @@ int CSpellcastingManager::CastSpellInstant(DWORD target_id, DWORD spell_id)
 
 	if (ResolveSpellBeingCasted())
 	{
-		LaunchSpellEffect();
+		LaunchSpellEffect(FALSE);
 	}
 	else
 	{
@@ -2929,7 +2933,7 @@ int CSpellcastingManager::CastSpellEquipped(DWORD target_id, DWORD spell_id, WOR
 
 	if (ResolveSpellBeingCasted())
 	{
-		LaunchSpellEffect();
+		LaunchSpellEffect(FALSE);
 	}
 	else
 	{
@@ -3351,31 +3355,44 @@ void CSpellcastingManager::Update()
 		m_bCasting = false;
 	}
 
-	if (m_bTurningToObject)
-	{
-		if (pWeenie->movement_manager->moveto_manager->movement_type != MovementTypes::TurnToObject)
+	if ((m_SpellCastData.next_update <= Timer::cur_time) && m_bTurned && pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
 		{
-			if (HeadingToTarget() <= MAX_HEADING_TO_TARGET_FOR_CAST)
-			{
-				// if (!pWeenie->get_minterp()->interpreted_state.turn_command)
-				{
-					BeginNextMotion();
-				}
-			}
-			else
-			{
-				if (!pWeenie->get_minterp()->interpreted_state.turn_command)
-				{
-					MovementParameters params;
-					params.speed = 1.0f;
-					params.action_stamp = ++pWeenie->m_wAnimSequence;
-					pWeenie->last_move_was_autonomous = false;
-					pWeenie->TurnToObject(m_SpellCastData.target_id, &params);
-					//m_bTurningToObject = true;
-					//m_fCastTimeout = Timer::cur_time + MAX_TURN_TIME_FOR_CAST;
-				}
-			}
+			// fizzle
+			pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
+			pWeenie->AdjustMana(-5);
+			pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
+
+			int error = LaunchSpellEffect(TRUE);
+			EndCast(error);
 		}
+
+		if (m_bTurningToObject)
+		{
+			if (pWeenie->movement_manager->moveto_manager->movement_type != MovementTypes::TurnToObject)
+			{
+				if (HeadingToTarget() <= MAX_HEADING_TO_TARGET_FOR_CAST)
+				{
+					// if (!m_pWeenie->get_minterp()->interpreted_state.turn_command)
+					{
+						BeginNextMotion();
+					}
+				}
+				else
+				{
+					if ((m_SpellCastData.next_update <= Timer::cur_time) && !pWeenie->get_minterp()->interpreted_state.turn_command)
+					{
+						MovementParameters params;
+						params.speed = 1.0f;
+						params.action_stamp = ++pWeenie->m_wAnimSequence;
+						pWeenie->last_move_was_autonomous = false;
+						pWeenie->TurnToObject(m_SpellCastData.target_id, &params);
+						m_bTurned = true;
+						m_SpellCastData.next_update = Timer::cur_time + CAST_UPDATE_RATE;
+						//m_bTurningToObject = true;
+						//m_fCastTimeout = Timer::cur_time + MAX_TURN_TIME_FOR_CAST;
+					}
+				}
+			}
 		else
 		{
 			/*

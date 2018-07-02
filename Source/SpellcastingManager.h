@@ -38,6 +38,7 @@ struct SpellCastData
 	bool uses_mana = true;
 	bool equipped = false;
 	WORD serial = 0;
+	double next_update = Timer::cur_time;
 };
 
 class CSpellcastingManager
@@ -82,7 +83,7 @@ public:
 	int LaunchRingProjectiles(DWORD wcid);
 	void PerformCastParticleEffects();
 	void PerformFellowCastParticleEffects(Fellowship *fellow);
-	int LaunchSpellEffect();
+	int LaunchSpellEffect(bool bFizzled);
 	bool DoTransferSpell(std::shared_ptr<CWeenieObject> other, const TransferSpellEx *meta);
 	bool AdjustVital(std::shared_ptr<CWeenieObject> target);
 	void SendAdjustVitalText(std::shared_ptr<CWeenieObject> target, int amount, const char *vitalName);
@@ -118,4 +119,5 @@ public:
 	std::list<SpellCastingMotion> m_PendingMotions;
 	std::map<DWORD, DWORD> m_UsedComponents;
 	bool m_bTurningToObject = false;
+	bool m_bTurned = false;
 };
