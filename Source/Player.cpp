@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "WeenieObject.h"
 #include "PhysicsObj.h"
@@ -3934,6 +3933,8 @@ DWORD CPlayerWeenie::GetAccountHouseId()
 			else
 			{
 				std::shared_ptr<CWeenieObject> otherCharacter = CWeenieObject::Load(character.weenie_id);
+				if(!otherCharacter)
+				    return 0;
 				if (DWORD houseID = otherCharacter->InqDIDQuality(HOUSEID_DID, 0))
 				{
 					return houseID;
