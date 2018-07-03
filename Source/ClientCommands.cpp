@@ -1695,6 +1695,53 @@ CLIENT_COMMAND(usecomponents, "<on/off>", "Allows you to cast spells without hav
 	return false;
 }
 
+CLIENT_COMMAND(learnschool, "school", "Adds all spells of the given school (war, life, item, creature).", ADMIN_ACCESS)
+{
+	if (argc < 1)
+		return true;
+
+	std::string school = argv[0];
+
+	int schoolNum = 0;
+
+	if (school == "war")
+	{
+		schoolNum = 1;
+	}
+	else if (school == "life")
+	{
+		schoolNum = 2;
+	}
+	else if (school == "item")
+	{
+		schoolNum = 3;
+	}
+	else if (school == "creature")
+	{
+		schoolNum = 4;
+	}
+	else
+	{
+		pPlayer->SendText("Invalid spell school.", LTT_DEFAULT);
+		return false;
+	}
+
+	CSpellTable* pSpellTable = MagicSystem::GetSpellTable();
+
+	for (auto spell : pSpellTable->_spellBaseHash)
+	{
+		if (spell.second._school == schoolNum)
+		{
+			unsigned int sp = spell.second._meta_spell._spell->_spell_id;
+			pPlayer->m_Qualities.AddSpell(sp);
+			BinaryWriter addSpellToSpellbook;
+			addSpellToSpellbook.Write<DWORD>(0x2C1);
+			addSpellToSpellbook.Write<DWORD>(sp);
+			pPlayer->SendNetMessage(&addSpellToSpellbook, PRIVATE_MSG, TRUE, FALSE);
+		}
+	}
+	return false;
+}
 
 CLIENT_COMMAND(addspellbyid, "id", "Adds a spell by ID", ADMIN_ACCESS)
 {

@@ -623,13 +623,13 @@ public:
 	MetaSpellEx _meta_spell;
 };
 
-class SpellSetTierList : public PackObj
+/*
+class SpellSetTierListEx : public PackObj
 {
 public:
 	DECLARE_PACKABLE()
 
-	unsigned int m_PieceCount;
-	std::list<unsigned long> m_SpellList;
+	PackableList<unsigned long> m_tierSpellList;
 };
 
 class SpellSetEx : public PackObj
@@ -638,7 +638,7 @@ public:
 	DECLARE_PACKABLE()
 
 	std::list<SpellSetTierList> m_countTiers;
-};
+};*/
 
 class CSpellTableEx : public PackObj, public PackableJson
 {
