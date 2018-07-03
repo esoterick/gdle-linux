@@ -2190,6 +2190,9 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 		}
 	}
 
+	if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 226))
+		EmitEffect(PS_WeddingBliss, 1.0f);
+
 	NotifySkillStatUpdated(key);
 
 	if (key == LEADERSHIP_SKILL || key == LOYALTY_SKILL)
