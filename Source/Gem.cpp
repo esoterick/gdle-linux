@@ -38,7 +38,13 @@ int CGemWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> player)
 
 	if (DWORD spell_did = InqDIDQuality(SPELL_DID, 0))
 	{
-		MakeSpellcastingManager()->CastSpellInstant(player->GetID(), spell_did);
+		if (cooldown < Timer::cur_time)
+		{
+			MakeSpellcastingManager()->CastSpellInstant(player->GetID(), spell_did);
+			cooldown = Timer::cur_time + InqFloatQuality(COOLDOWN_DURATION_FLOAT, 0, FALSE);
+		}
+		else
+			player->SendText("You can't do that yet!", LTT_ERROR);			
 	}
 
 	DecrementStackOrStructureNum();
