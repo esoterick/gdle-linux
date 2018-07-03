@@ -1796,6 +1796,13 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 								topLevelOwner->SendText(csprintf("You resist the spell cast by %s", pWeenie->GetName().c_str()), LTT_MAGIC);
 								pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
 								topLevelOwner->OnResistSpell(pWeenie);
+
+								// Cast on Strike
+								if (pWeenie != topLevelOwner)
+								{
+									pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+								}
+
 								continue;
 							}
 						}
@@ -1809,12 +1816,6 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 								if (pWeenie != topLevelOwner)
 								{
 									topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", pWeenie->GetName().c_str(), pWeenie->GetName().c_str()), LTT_MAGIC);
-								}
-								
-								// Cast on Strike
-								if (pWeenie != topLevelOwner)
-								{
-									pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
 								}
 
 								pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);

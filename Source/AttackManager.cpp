@@ -608,22 +608,6 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	dmgEvent.baseDamage = preVarianceDamage * (1.0f - Random::GenFloat(0.0f, variance)) * (0.5 + _attack_power);
 
 	HandlePerformAttack(target, dmgEvent);
-
-	//cast on strike
-	if (weapon->InqDIDQuality(PROC_SPELL_DID, 0))
-	{
-		double procChance = weapon->InqFloatQuality(PROC_SPELL_RATE_FLOAT, 0.0f);
-
-		bool proc = (Random::GenFloat(0.0, 1.0) < procChance) ? true : false;
-
-		if (proc && target)
-		{
-			DWORD targetid = target->GetID();
-			DWORD procspell = weapon->InqDIDQuality(PROC_SPELL_DID, 0);
-
-			weapon->TryCastSpell(targetid, procspell);
-		}
-	}
 	
 	// cleaving
 	int iTargets = weapon->InqIntQuality(CLEAVING_INT, 1);
@@ -747,6 +731,21 @@ void CMeleeAttackEvent::HandlePerformAttack(std::shared_ptr<CWeenieObject> targe
 		dmgEvent.baseDamage = dmgEvent.preVarianceDamage * (0.5 + _attack_power);//Recalculate baseDamage with no variance (uses max dmg on weapon)
 	}
 
+	//cast on strike
+	if (dmgEvent.weapon.lock()->InqDIDQuality(PROC_SPELL_DID, 0))
+	{
+		double procChance = dmgEvent.weapon.lock()->InqFloatQuality(PROC_SPELL_RATE_FLOAT, 0.0f);
+
+		bool proc = (Random::GenFloat(0.0, 1.0) < procChance) ? true : false;
+
+		if (proc && target)
+		{
+			DWORD targetid = target->GetID();
+			DWORD procspell = dmgEvent.weapon.lock()->InqDIDQuality(PROC_SPELL_DID, 0);
+
+			dmgEvent.weapon.lock()->TryCastSpell(targetid, procspell);
+		}
+	}
 
 	CalculateDamage(&dmgEvent);
 	pWeenie->TryToDealDamage(dmgEvent);

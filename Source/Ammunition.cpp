@@ -204,25 +204,22 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 						dmgEvent.baseDamage = dmgEvent.preVarianceDamage;//Recalculate baseDamage with no variance (uses max dmg on weapon)
 					}
 
-
-					CalculateDamage(&dmgEvent);
-
 					//cast on strike
-					if (weapon->InqDIDQuality(PROC_SPELL_DID, 0))
+					if (dmgEvent.weapon.lock()->InqDIDQuality(PROC_SPELL_DID, 0))
 					{
-						double procChance = weapon->InqFloatQuality(PROC_SPELL_RATE_FLOAT, 0.0f);
+						double procChance = dmgEvent.weapon.lock()->InqFloatQuality(PROC_SPELL_RATE_FLOAT, 0.0f);
 
 						bool proc = (Random::GenFloat(0.0, 1.0) < procChance) ? true : false;
 
-						if (proc && _targetID)
+						if (proc && target)
 						{
-							DWORD targetid = _targetID;
-							DWORD procspell = weapon->InqDIDQuality(PROC_SPELL_DID, 0);
+							DWORD procspell = dmgEvent.weapon.lock()->InqDIDQuality(PROC_SPELL_DID, 0);
 
-							weapon->TryCastSpell(targetid, procspell);
+							dmgEvent.weapon.lock()->TryCastSpell(_targetID, procspell);
 						}
 					}
 
+					CalculateDamage(&dmgEvent);
 
 					pSource->TryToDealDamage(dmgEvent);
 				}
