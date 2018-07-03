@@ -1154,6 +1154,7 @@ void CMissileAttackEvent::FireMissile()
 
 	missile->SetInitialPhysicsState(INELASTIC_PS | GRAVITY_PS | PATHCLIPPED_PS | ALIGNPATH_PS | MISSILE_PS | REPORT_COLLISIONS_PS);
 	missile->SetInitialPosition(pWeenie->GetPosition());
+	missile->SetPlacementFrame(Placement::MissileFlight, FALSE);
 	missile->InitPhysicsObj();
 
 	CalculateTargetPosition();
