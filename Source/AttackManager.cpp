@@ -592,7 +592,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 		if (!hadEnoughStamina)
 		{
-			pWeenie->NotifyWeenieError(WERROR_STAMINA_TOO_LOW);
+			pWeenie->SendText("You are too tired to do that!", LTT_ERROR);
 			weaponSkillLevel *= 0.5; //50% penalty to our attack skill when we don't have enough to perform it.
 		}
 	}
@@ -1241,7 +1241,7 @@ void CMissileAttackEvent::FireMissile()
 
 		if (!hadEnoughStamina)
 		{
-			pWeenie->NotifyWeenieError(WERROR_STAMINA_TOO_LOW);
+			pWeenie->SendText("You are too tired to do that!", LTT_ERROR);
 			missile->_weaponSkillLevel *= 0.5; //50% penalty to our attack skill when we don't have enough to perform it.
 		}
 	}
