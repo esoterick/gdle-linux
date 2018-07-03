@@ -922,6 +922,12 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 		pWeenie->AdjustMana(-GenerateManaCost());
 	}
+	else if ((pWeenie->AsMeleeWeapon() || pWeenie->AsMissileLauncher()) && m_SpellCastData.uses_mana)
+	{
+		// Drain mana from weapon on Cast on Strike
+		pWeenie->m_Qualities.SetInt(ITEM_CUR_MANA_INT, pWeenie->InqIntQuality(ITEM_CUR_MANA_INT, 0, 0) - m_SpellCastData.spell->_base_mana);
+	}
+
 
 	bool bSpellPerformed = false;
 
@@ -1803,6 +1809,12 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 								if (pWeenie != topLevelOwner)
 								{
 									topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", pWeenie->GetName().c_str(), pWeenie->GetName().c_str()), LTT_MAGIC);
+								}
+								
+								// Cast on Strike
+								if (pWeenie != topLevelOwner)
+								{
+									pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
 								}
 
 								pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
@@ -3131,7 +3143,12 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 	if (!pWeenie->m_Qualities.IsSpellKnown(spell_id))
 	{
 		// pWeenie->SendText(csprintf("DEBUG: Unlearned spell %d.", spell_id), LTT_ALL_CHANNELS);
-		return WERROR_MAGIC_UNLEARNED_SPELL;
+		// Don't return the unlearned spell error for Cast on Strike
+		if (!(pWeenie->AsMeleeWeapon() || pWeenie->AsMissileLauncher()) && spell_id != pWeenie->InqDIDQuality(PROC_SPELL_DID, 0))
+		{
+			return WERROR_MAGIC_UNLEARNED_SPELL;
+		}
+
 	}
 
 	if (Timer::cur_time < m_fNextCastTime)
@@ -3235,8 +3252,21 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		}
 	}
 
-	if (pWeenie->GetMana() < GenerateManaCost())
+	if (!(pWeenie->AsMeleeWeapon() || pWeenie->AsMissileLauncher()))
+	{
+		if (pWeenie->GetMana() < GenerateManaCost())
+			return WERROR_MAGIC_INSUFFICIENT_MANA;
+	}
+	else if (pWeenie->InqIntQuality(ITEM_CUR_MANA_INT, 0, 0) < GenerateManaCost())
 		return WERROR_MAGIC_INSUFFICIENT_MANA;
+	else
+	{
+		m_bCasting = true;
+		m_SpellCastData.current_skill = pWeenie->InqIntQuality(ITEM_SPELLCRAFT_INT, 0, 0);
+		int error = LaunchSpellEffect(FALSE);
+		EndCast(error);
+	}
+
 
 	BeginCast();
 	return WERROR_NONE;

@@ -833,9 +833,13 @@ bool CMonsterWeenie::FinishMoveItemToWield(std::shared_ptr<CWeenieObject> source
 			serial |= ((DWORD)GetEnchantmentSerialByteForMask(sourceItem->InqIntQuality(LOCATIONS_INT, 0, TRUE)) << (DWORD)0);
 			serial |= ((DWORD)GetEnchantmentSerialByteForMask(sourceItem->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE)) << (DWORD)8);
 
+			DWORD spellid = sourceItem->InqDIDQuality(PROC_SPELL_DID, 0);
+
 			for (auto &spellPage : sourceItem->m_Qualities._spell_book->_spellbook)
-			{
-				sourceItem->MakeSpellcastingManager()->CastSpellEquipped(GetID(), spellPage.first, (WORD)serial);
+			{	
+				//ignore the spell and don't cast if it's the Proc_spell_DID
+				if (spellid != spellPage.first)
+					sourceItem->MakeSpellcastingManager()->CastSpellEquipped(GetID(), spellPage.first, (WORD)serial);
 			}
 		}
 	}
