@@ -35,27 +35,27 @@ public:
 
 	void ClearSpawns();
 
-	void Insert(CWeenieObject *pEntity, WORD wOld = 0, BOOL bNew = FALSE, bool bMakeAware = true);
-	void Destroy(CWeenieObject *pEntity, bool bDoRelease = true);
-	void Release(CWeenieObject *pEntity);
-	void ExchangePVS(CWeenieObject *pSource, WORD old_block_id);
-	void ExchangeData(CWeenieObject *pSource);
-	void ExchangeDataForCellID(CWeenieObject *pSource, DWORD cell_id);
-	void ExchangeDataForStabChange(CWeenieObject *pSource, DWORD old_cell_id, DWORD new_cell_id);
+	void Insert(std::shared_ptr<CWeenieObject> pEntity, WORD wOld = 0, BOOL bNew = FALSE, bool bMakeAware = true);
+	void Destroy(std::shared_ptr<CWeenieObject> pEntity, bool bDoRelease = true);
+	void Release(std::shared_ptr<CWeenieObject> pEntity);
+	void ExchangePVS(std::shared_ptr<CWeenieObject> pSource, WORD old_block_id);
+	void ExchangeData(std::shared_ptr<CWeenieObject> pSource);
+	void ExchangeDataForCellID(std::shared_ptr<CWeenieObject> pSource, DWORD cell_id);
+	void ExchangeDataForStabChange(std::shared_ptr<CWeenieObject> pSource, DWORD old_cell_id, DWORD new_cell_id);
 
-	CPlayerWeenie* FindPlayer(DWORD dwGUID);
-	CWeenieObject* FindEntity(DWORD dwGUID);
+	std::shared_ptr<CPlayerWeenie> FindPlayer(DWORD dwGUID);
+	std::shared_ptr<CWeenieObject> FindEntity(DWORD dwGUID);
 
 	void Broadcast(void *_data, DWORD _len, WORD _group, DWORD ignore_ent, BOOL _game_event);
 
 	DWORD PlayerCount() { return (DWORD)m_PlayerList.size(); }
 	DWORD LiveCount() { return (DWORD)m_EntityList.size(); }
 
-	void EnumNearbyFastNoSphere(const Position &pos, float range, std::list<CWeenieObject *> *results);
-	void EnumNearby(const Position &pos, float range, std::list<CWeenieObject *> *results);
-	void EnumNearby(CWeenieObject *source, float range, std::list<CWeenieObject *> *results);
-	void EnumNearbyPlayers(const Position &pos, float range, std::list<CWeenieObject *> *results);
-	void EnumNearbyPlayers(CWeenieObject *source, float range, std::list<CWeenieObject *> *results);
+	void EnumNearbyFastNoSphere(const Position &pos, float range, std::list<std::shared_ptr<CWeenieObject> > *results);
+	void EnumNearby(const Position &pos, float range, std::list<std::shared_ptr<CWeenieObject> > *results);
+	void EnumNearby(std::shared_ptr<CWeenieObject> source, float range, std::list<std::shared_ptr<CWeenieObject> > *results);
+	void EnumNearbyPlayers(const Position &pos, float range, std::list<std::shared_ptr<CWeenieObject> > *results);
+	void EnumNearbyPlayers(std::shared_ptr<CWeenieObject> source, float range, std::list<std::shared_ptr<CWeenieObject> > *results);
 
 	class CObjCell *GetObjCell(WORD cell_id, bool bDoPostLoad = true); // , bool bActivate = false);
 
@@ -83,18 +83,25 @@ protected:
 
 	void ActivateLandblocksWithinPVS(DWORD cell_id);
 
+	/*
+	* Helper function that will remove an entity from the lists and maps
+	* Also removes any nullptrs
+	* @param pEntity The entity to remove
+	* @param bCheckEntityList Whether to run the remove over m_EntityList. For optimisation.
+	*/
+	void RemoveEntity(std::shared_ptr<CWeenieObject> pEntity, bool bCheckEntityList = true);
+
 	CWorld *m_pWorld;
 
 	WORD m_wHeader;
 
-	PlayerWeenieMap m_PlayerMap;
-	PlayerWeenieVector m_PlayerList; // Players, used for message broadcasting.
 
-	WeenieMap m_EntityMap;
-	WeenieVector m_EntitiesToAdd;
-	WeenieVector m_EntityList;
+	PlayerWeenieWeakMap m_PlayerMap;
+	PlayerWeenieWeakVector m_PlayerList; // Players, used for message broadcasting.
 
-	bool m_bThinking = false;
+	WeenieWeakMap m_EntityMap;
+	WeenieWeakVector m_EntitiesToAdd;
+	WeenieWeakVector m_EntityList;
 
 	class CLandBlock *m_LoadedLandBlock = NULL;
 	std::unordered_map<WORD, class CEnvCell *> m_LoadedEnvCells;
@@ -108,4 +115,5 @@ protected:
 	bool m_bTickingWithWorld = true;
 
 	bool _cached_any_seen_outside = true;
+
 };

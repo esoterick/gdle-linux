@@ -371,7 +371,7 @@ struct sItemCreationInfo
 
 struct SItemListCreationData
 {
-	CWeenieObject *parent;
+	std::weak_ptr<CWeenieObject> parent;
 	int destinationType;
 	bool isRegenLocationType;
 	DWORD treasureTypeOrWcid;
@@ -402,26 +402,26 @@ public:
 
 	void Initialize();
 
-	int GenerateFromTypeOrWcid(CWeenieObject *parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid = 0, float shade = 0.0f, const GeneratorProfile *profile = NULL);
-	int GenerateFromType(CTreasureType *type, CWeenieObject *parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid = 0, float shade = 0.0f, const GeneratorProfile *profile = NULL);
+	int GenerateFromTypeOrWcid(std::shared_ptr<CWeenieObject> parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid = 0, float shade = 0.0f, const GeneratorProfile *profile = NULL);
+	int GenerateFromType(CTreasureType *type, std::shared_ptr<CWeenieObject> parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid = 0, float shade = 0.0f, const GeneratorProfile *profile = NULL);
 
-	//bool AddTreasureToContainerInferred(CContainerWeenie *container, DWORD treasureType);
-	//CWeenieObject *GenerateMundaneItemInferred(int tierId, eTreasureCategory treasureCategory);
+	//bool AddTreasureToContainerInferred(std::shared_ptr<CContainerWeenie> container, DWORD treasureType);
+	//std::shared_ptr<CWeenieObject> GenerateMundaneItemInferred(int tierId, eTreasureCategory treasureCategory);
 
-	CWeenieObject *GenerateTreasure(int tier, eTreasureCategory treasureCategory, double qualityModifier = 0.0);
-	CWeenieObject *GenerateJunk();
-	CWeenieObject *GenerateMundaneItem(CTreasureTier *tier);
-	CWeenieObject *GenerateScroll(CTreasureTier *tier);
+	std::shared_ptr<CWeenieObject> GenerateTreasure(int tier, eTreasureCategory treasureCategory, double qualityModifier = 0.0);
+	std::shared_ptr<CWeenieObject> GenerateJunk();
+	std::shared_ptr<CWeenieObject> GenerateMundaneItem(CTreasureTier *tier);
+	std::shared_ptr<CWeenieObject> GenerateScroll(CTreasureTier *tier);
 
-	bool MutateItem(CWeenieObject *newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
+	bool MutateItem(std::shared_ptr<CWeenieObject> newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
 
-	void MutateWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
-	void MutateMeleeWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
-	void MutateMissileWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
-	void MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
-	void MutateGem(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
-	void MutateArmor(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
+	void MutateWeapon(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
+	void MutateMeleeWeapon(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
+	void MutateMissileWeapon(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
+	void MutateCaster(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
+	void MutateGem(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
+	void MutateArmor(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
 	std::vector<CPossibleSpells> MergeSpellLists(std::vector<CPossibleSpells> list1, std::vector<CPossibleSpells> list2);
-	void AddSpells(CWeenieObject *newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
-	void AddSpell(CWeenieObject * newItem, std::vector<CPossibleSpells> possibleSpellsTemplate, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
+	void AddSpells(std::shared_ptr<CWeenieObject> newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
+	void AddSpell(std::shared_ptr<CWeenieObject>  newItem, std::vector<CPossibleSpells> possibleSpellsTemplate, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry);
 };

@@ -30,7 +30,7 @@ public:
 	void clear_animations();
 	void clear_physics();
 
-	void set_object(CPhysicsObj *pPhysicsObj);
+	void set_object(std::shared_ptr<CPhysicsObj> pPhysicsObj);
 	void set_placement_frame(AnimFrame *PlacementFrame, DWORD ID);
 	void set_velocity(const Vector& Velocity);
 	void set_omega(const Vector& Omega);
@@ -62,7 +62,7 @@ public:
 	AnimSequenceNode* first_cyclic; // 0x0C
 	Vector velocity; // 0x10
 	Vector omega; // 0x1C
-	CPhysicsObj *hook_obj; // 0x28
+	std::weak_ptr<CPhysicsObj> hook_obj; // 0x28
 	double frame_number; // 0x30
 	AnimSequenceNode *curr_anim; // 0x38
 	AnimFrame *placement_frame; // 0x3C
@@ -77,9 +77,9 @@ public:
 	CPartArray();
 	~CPartArray();
 
-	static CPartArray *CreateMesh(CPhysicsObj *pPhysicsObj, DWORD ID);
-	static CPartArray *CreateSetup(CPhysicsObj *_owner, DWORD setup_did, BOOL bCreateParts);
-	static CPartArray *CreateParticle(CPhysicsObj *_owner, DWORD _num_parts, CSphere *sorting_sphere);
+	static CPartArray *CreateMesh(std::shared_ptr<CPhysicsObj> pPhysicsObj, DWORD ID);
+	static CPartArray *CreateSetup(std::shared_ptr<CPhysicsObj> _owner, DWORD setup_did, BOOL bCreateParts);
+	static CPartArray *CreateParticle(std::shared_ptr<CPhysicsObj> _owner, DWORD _num_parts, CSphere *sorting_sphere);
 
 	void Destroy();
 	void DestroySetup();
@@ -146,7 +146,7 @@ public:
 	void calc_cross_cells_static(CObjCell *cell, struct CELLARRAY *cell_array);
 
 	DWORD pa_state; // 0x00
-	CPhysicsObj* owner; // 0x04
+	std::weak_ptr<CPhysicsObj>  owner; // 0x04
 	CSequence sequence; // 0x08 -- size 0x48
 	MotionTableManager * motion_table_manager; // 0x50
 	CSetup* setup; // 0x54

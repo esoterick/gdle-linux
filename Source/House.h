@@ -54,7 +54,7 @@ public:
 
 	CHouseData *GetHouseData(DWORD houseId);
 	void SaveHouseData(DWORD houseId);
-	void SendHouseData(CPlayerWeenie *player, DWORD houseId);
+	void SendHouseData(std::shared_ptr<CPlayerWeenie> player, DWORD houseId);
 
 private:
 	PackableHashTable<DWORD, CHouseData> _houseDataMap;
@@ -65,21 +65,21 @@ class CHouseWeenie : public CWeenieObject
 public:
 	CHouseWeenie();
 
-	virtual class CHouseWeenie *AsHouse() { return this; }
+	virtual class std::shared_ptr<CHouseWeenie> AsHouse() { return std::static_pointer_cast<CHouseWeenie>(GetPointer()); }
 
-	virtual void EnsureLink(CWeenieObject *source) override;
+	virtual void EnsureLink(std::shared_ptr<CWeenieObject> source) override;
 
 	virtual bool ShouldSave() override { return true; }
 	
-	virtual bool HasAccess(CPlayerWeenie *requester);
-	virtual bool HasStorageAccess(CPlayerWeenie *requester);
+	virtual bool HasAccess(std::shared_ptr<CPlayerWeenie> requester);
+	virtual bool HasStorageAccess(std::shared_ptr<CPlayerWeenie> requester);
 
 	CHouseData *GetHouseData();
 	std::string GetHouseOwnerName();
 	DWORD GetHouseOwner();
 	DWORD GetHouseDID();
 	int GetHouseType();
-	CSlumLordWeenie *GetSlumLord();
+	std::shared_ptr<CSlumLordWeenie> GetSlumLord();
 
 	//std::set<DWORD> _hookList;
 	//DWORD _currentMaintenancePeriod;
@@ -99,15 +99,15 @@ public:
 
 	virtual void Tick() override;
 
-	virtual class CSlumLordWeenie *AsSlumLord() { return this; }
+	virtual class std::shared_ptr<CSlumLordWeenie> AsSlumLord() { return std::static_pointer_cast<CSlumLordWeenie>(GetPointer()); }
 
-	CHouseWeenie *GetHouse();
+	std::shared_ptr<CHouseWeenie> GetHouse();
 	void GetHouseProfile(HouseProfile &prof);
 
-	virtual int DoUseResponse(CWeenieObject *other) override;
+	virtual int DoUseResponse(std::shared_ptr<CWeenieObject> other) override;
 
-	void BuyHouse(CPlayerWeenie *player, const PackableList<DWORD> &items);
-	void RentHouse(CPlayerWeenie *player, const PackableList<DWORD> &items);
+	void BuyHouse(std::shared_ptr<CPlayerWeenie> player, const PackableList<DWORD> &items);
+	void RentHouse(std::shared_ptr<CPlayerWeenie> player, const PackableList<DWORD> &items);
 	void CheckRentPeriod();
 
 	bool _initialized = false;
@@ -119,7 +119,7 @@ class CHookWeenie : public CContainerWeenie
 public:
 	CHookWeenie();
 
-	virtual class CHookWeenie *AsHook() { return this; }
+	virtual class std::shared_ptr<CHookWeenie> AsHook() { return std::static_pointer_cast<CHookWeenie>(GetPointer()); }
 
 	virtual void Tick() override;
 
@@ -127,16 +127,16 @@ public:
 	virtual void SaveEx(class CWeenieSave &save) override;
 	virtual void LoadEx(class CWeenieSave &save) override;
 
-	int DoUseResponse(CWeenieObject *other) override;
-	void Identify(CWeenieObject *other, DWORD overrideId = 0) override;
+	int DoUseResponse(std::shared_ptr<CWeenieObject> other) override;
+	void Identify(std::shared_ptr<CWeenieObject> other, DWORD overrideId = 0) override;
 
-	virtual DWORD Container_InsertInventoryItem(DWORD dwCell, CWeenieObject *pItem, DWORD slot) override;
-	virtual void ReleaseContainedItemRecursive(CWeenieObject *item) override;
-	void UpdateHookedObject(CWeenieObject *hookedItem = NULL, bool sendUpdate = true);
+	virtual DWORD Container_InsertInventoryItem(DWORD dwCell, std::shared_ptr<CWeenieObject> pItem, DWORD slot) override;
+	virtual void ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObject> item) override;
+	void UpdateHookedObject(std::shared_ptr<CWeenieObject> hookedItem = NULL, bool sendUpdate = true);
 	void ClearHookedObject(bool sendUpdate = true);
 	void SetHookVisibility(bool newSetting);
 
-	CHouseWeenie *GetHouse();
+	std::shared_ptr<CHouseWeenie> GetHouse();
 	CHouseData *GetHouseData();
 
 	bool _initialized = false;
@@ -148,9 +148,9 @@ class CDeedWeenie : public CWeenieObject
 public:
 	CDeedWeenie();
 
-	virtual class CDeedWeenie *AsDeed() { return this; }
+	virtual class std::shared_ptr<CDeedWeenie> AsDeed() { return std::static_pointer_cast<CDeedWeenie>(GetPointer()); }
 
-	class CHouseWeenie *GetHouse();
+	class std::shared_ptr<CHouseWeenie> GetHouse();
 };
 
 class CBootSpotWeenie : public CWeenieObject
@@ -158,9 +158,9 @@ class CBootSpotWeenie : public CWeenieObject
 public:
 	CBootSpotWeenie();
 
-	virtual class CBootSpotWeenie *AsBootSpot() { return this; }
+	virtual class std::shared_ptr<CBootSpotWeenie> AsBootSpot() { return std::static_pointer_cast<CBootSpotWeenie>(GetPointer()); }
 
-	class CHouseWeenie *GetHouse();
+	class std::shared_ptr<CHouseWeenie> GetHouse();
 };
 
 class CHousePortalWeenie : public CPortal
@@ -168,12 +168,12 @@ class CHousePortalWeenie : public CPortal
 public:
 	CHousePortalWeenie();
 
-	virtual class CHousePortalWeenie *AsHousePortal() { return this; }
+	virtual class std::shared_ptr<CHousePortalWeenie> AsHousePortal() { return std::static_pointer_cast<CHousePortalWeenie>(GetPointer()); }
 	virtual void ApplyQualityOverrides() override;
 
-	class CHouseWeenie *GetHouse();
+	class std::shared_ptr<CHouseWeenie> GetHouse();
 
-	virtual int Use(CPlayerWeenie *other) override;
+	virtual int Use(std::shared_ptr<CPlayerWeenie> other) override;
 
 	virtual bool GetDestination(Position &position) override;
 };
@@ -183,12 +183,12 @@ class CStorageWeenie : public CChestWeenie
 public:
 	CStorageWeenie();
 
-	virtual class CStorageWeenie *AsStorage() { return this; }
+	virtual class std::shared_ptr<CStorageWeenie> AsStorage() { return std::static_pointer_cast<CStorageWeenie>(GetPointer()); }
 	virtual bool ShouldSave() override { return true; }
 
-	int DoUseResponse(CWeenieObject *other) override;
+	int DoUseResponse(std::shared_ptr<CWeenieObject> other) override;
 
-	class CHouseWeenie *GetHouse();
+	class std::shared_ptr<CHouseWeenie> GetHouse();
 };
 
 

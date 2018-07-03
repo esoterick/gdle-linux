@@ -1,6 +1,7 @@
 
 #pragma once
 
+#define CLEAVING_ATTACK_ANGLE 178
 
 class CAttackEventData
 {
@@ -10,7 +11,7 @@ public:
 	virtual void Setup();
 	void Begin();
 
-	void PostCharge();
+	virtual void PostCharge();
 	void CheckTimeout();
 	void CancelMoveTo();
 
@@ -25,8 +26,9 @@ public:
 	bool InAttackRange();
 	bool InAttackCone();
 
-	CWeenieObject *GetTarget();
+	std::shared_ptr<CWeenieObject> GetTarget();
 	void MoveToAttack();
+	void TurnToAttack();
 
 	virtual void HandleMoveToDone(DWORD error);
 	virtual void HandleAttackHook(const AttackCone &cone) { }
@@ -40,7 +42,7 @@ public:
 	virtual class CMissileAttackEvent *AsMissileAttackEvent() { return NULL; }
 
 	class AttackManager *_manager = NULL;
-	class CWeenieObject *_weenie = NULL;
+	class std::weak_ptr<CWeenieObject> _weenie;
 
 	DWORD _target_id = 0;
 	bool _move_to = false;
@@ -69,6 +71,7 @@ public:
 	void Finish();
 
 	virtual void HandleAttackHook(const AttackCone &cone) override;
+	void HandlePerformAttack(std::shared_ptr<CWeenieObject> target, DamageEventData dmgEvent);
 
 	virtual class CMeleeAttackEvent *AsMeleeAttackEvent() { return NULL; }
 	
@@ -94,6 +97,8 @@ class CMissileAttackEvent : public CAttackEventData
 public:
 	virtual void Setup() override;
 
+	virtual void PostCharge() override;
+
 	virtual void OnReadyToAttack() override;
 	virtual void OnAttackAnimSuccess(DWORD motion) override;
 	void Finish();
@@ -115,12 +120,13 @@ public:
 	Position _missile_target_position;
 	Vector _missile_velocity;
 	float _missile_dist_to_target = 0.0f;
+	bool m_bTurned;
 };
 
 class AttackManager
 {
 public:
-	AttackManager(class CWeenieObject *weenie);
+	AttackManager(class std::shared_ptr<CWeenieObject> weenie);
 	~AttackManager();
 
 	void Update();
@@ -146,7 +152,7 @@ public:
 	void MarkForCleanup(CAttackEventData *data);
 
 private:
-	class CWeenieObject *_weenie = NULL;
+	class std::weak_ptr<CWeenieObject> _weenie;
 
 	double _next_allowed_attack = 0.0;
 	CAttackEventData *_attackData = NULL;

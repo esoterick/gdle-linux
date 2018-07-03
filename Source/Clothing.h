@@ -8,13 +8,13 @@ class CClothingWeenie : public CWeenieObject
 public:
 	CClothingWeenie();
 
-	virtual class CClothingWeenie *AsClothing() { return this; }
+	virtual class std::shared_ptr<CClothingWeenie> AsClothing() { return std::static_pointer_cast<CClothingWeenie>(GetPointer()); }
 
 	virtual void ApplyQualityOverrides() override;
-	virtual int Use(CPlayerWeenie *other) override;
+	virtual int Use(std::shared_ptr<CPlayerWeenie> other) override;
 
 	virtual bool IsValidWieldLocation(DWORD location) override;
-	virtual bool CanEquipWith(CWeenieObject *other, DWORD otherLocation) override;
+	virtual bool CanEquipWith(std::shared_ptr<CWeenieObject> other, DWORD otherLocation) override;
 
 	bool CoversBodyPart(BODY_PART_ENUM part, float *factor);
 	virtual float GetEffectiveArmorLevel(DamageEventData &damageData, bool bIgnoreMagicArmor) override;

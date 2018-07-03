@@ -18,7 +18,7 @@ void CFoodWeenie::ApplyQualityOverrides()
 {
 }
 
-int CFoodWeenie::Use(CPlayerWeenie *pOther)
+int CFoodWeenie::Use(std::shared_ptr<CPlayerWeenie> pOther)
 {
 	if (!pOther->FindContainedItem(GetID()))
 		return WERROR_OBJECT_GONE;
@@ -31,7 +31,7 @@ int CFoodWeenie::Use(CPlayerWeenie *pOther)
 	return WERROR_NONE;
 }
 
-int CFoodWeenie::DoUseResponse(CWeenieObject *other)
+int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 {
 	if (!other->FindContainedItem(GetID()))
 		return WERROR_OBJECT_GONE;
@@ -44,7 +44,7 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 		other->EmitSound(Sound_Eat1, 1.0f);
 
 	DWORD boost_stat = InqIntQuality(BOOSTER_ENUM_INT, 0);
-	DWORD boost_value = InqIntQuality(BOOST_VALUE_INT, 0);
+	int boost_value = InqIntQuality(BOOST_VALUE_INT, 0);
 
 	switch (boost_stat)
 	{
@@ -58,24 +58,41 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 			DWORD statValue = 0, maxStatValue = 0;
 			other->m_Qualities.InqAttribute2nd(statType, statValue, FALSE);
 			other->m_Qualities.InqAttribute2nd(maxStatType, maxStatValue, FALSE);
+			
+			int currentMax = static_cast<int>(maxStatValue);
+			int currentStat = static_cast<int>(statValue);
+			int diff = 0;
 
-			DWORD newStatValue = min(statValue + boost_value, maxStatValue);
-
-			int statChange = newStatValue - statValue;
-			if (statChange)
+			if (boost_value + currentStat < currentMax)
 			{
-				if (other->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
+				if (boost_value + currentStat <= 0)
 				{
-					other->AdjustHealth(statChange);
-					other->NotifyAttribute2ndStatUpdated(statType);
+					diff = currentStat;
+					currentStat = 0;
 				}
 				else
 				{
-					other->m_Qualities.SetAttribute2nd(statType, newStatValue);
-					other->NotifyAttribute2ndStatUpdated(statType);
+					currentStat += boost_value;
+					diff = boost_value;
 				}
 			}
+			else
+			{
+				diff = currentMax - currentStat;
+				currentStat = currentMax;
+			}
 
+			if (other->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
+			{
+				other->AdjustHealth(boost_value);
+				other->NotifyAttribute2ndStatUpdated(statType);
+			}
+			else
+			{
+				other->m_Qualities.SetAttribute2nd(statType, currentStat);
+				other->NotifyAttribute2ndStatUpdated(statType);
+			}
+	
 			const char *vitalName = "";
 			switch (boost_stat)
 			{
@@ -83,15 +100,17 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 			case STAMINA_ATTRIBUTE_2ND: vitalName = "stamina"; break;
 			case MANA_ATTRIBUTE_2ND: vitalName = "mana"; break;
 			}
-
-			other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), max(0, statChange), vitalName), LTT_DEFAULT);
+			if(boost_value >= 0)
+				other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), diff, vitalName), LTT_DEFAULT);
+			else
+				other->SendText(csprintf("The %s takes %d points of your %s.", GetName().c_str(), diff, vitalName), LTT_DEFAULT);
 
 			if (boost_stat == HEALTH_ATTRIBUTE_2ND)
 			{
-				if (other->AsPlayer())
+				if (std::shared_ptr<CPlayerWeenie> pOtherPlayer = other->AsPlayer())
 				{
 					// update the target's health on the healing player asap
-					((CPlayerWeenie*)other)->RefreshTargetHealth();
+					pOtherPlayer->RefreshTargetHealth();
 				}
 			}
 			break;

@@ -16,14 +16,14 @@ void CChestWeenie::PostSpawn()
 	CContainerWeenie::PostSpawn();
 }
 
-void CChestWeenie::OnContainerOpened(CWeenieObject *other)
+void CChestWeenie::OnContainerOpened(std::shared_ptr<CWeenieObject> other)
 {
 	CContainerWeenie::OnContainerOpened(other);
 
 	DoForcedMotion(Motion_On);
 }
 
-void CChestWeenie::OnContainerClosed(CWeenieObject *other)
+void CChestWeenie::OnContainerClosed(std::shared_ptr<CWeenieObject> other)
 {
 	CContainerWeenie::OnContainerClosed(other);
 

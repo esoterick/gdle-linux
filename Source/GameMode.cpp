@@ -16,7 +16,6 @@ CGameMode::~CGameMode()
 
 CGameMode_Tag::CGameMode_Tag()
 {
-	m_pSelectedPlayer = NULL;
 }
 
 CGameMode_Tag::~CGameMode_Tag()
@@ -31,7 +30,7 @@ const char *CGameMode_Tag::GetName()
 
 void CGameMode_Tag::Think()
 {
-	if (!m_pSelectedPlayer)
+	if (!m_pSelectedPlayer.lock())
 	{
 		// Find a player to make "it."
 		PlayerWeenieMap *pPlayers = g_pWorld->GetPlayers();
@@ -43,7 +42,7 @@ void CGameMode_Tag::Think()
 
 		int index = Random::GenUInt(0, (unsigned int )(pPlayers->size() - 1));
 
-		CPlayerWeenie *pSelected = NULL;
+		std::shared_ptr<CPlayerWeenie> pSelected = NULL;
 		int i = 0;
 
 		for (auto& player : *pPlayers)
@@ -61,7 +60,7 @@ void CGameMode_Tag::Think()
 	}
 }
 
-void CGameMode_Tag::SelectPlayer(CPlayerWeenie *pPlayer)
+void CGameMode_Tag::SelectPlayer(std::shared_ptr<CPlayerWeenie> pPlayer)
 {
 	if (!pPlayer)
 	{
@@ -71,23 +70,23 @@ void CGameMode_Tag::SelectPlayer(CPlayerWeenie *pPlayer)
 
 	m_pSelectedPlayer = pPlayer;
 
-	m_pSelectedPlayer->EmitEffect(PS_HealthDownRed, 1.0f);
-	g_pWorld->BroadcastGlobal(ServerText(csprintf("%s is it!", m_pSelectedPlayer->GetName().c_str()), LTT_DEFAULT), PRIVATE_MSG);
+	pPlayer->EmitEffect(PS_HealthDownRed, 1.0f);
+	g_pWorld->BroadcastGlobal(ServerText(csprintf("%s is it!", pPlayer->GetName().c_str()), LTT_DEFAULT), PRIVATE_MSG);
 }
 
 void CGameMode_Tag::UnselectPlayer()
 {
-	if (!m_pSelectedPlayer)
+	if (!m_pSelectedPlayer.lock())
 	{
 		return;
 	}
 }
 
-void CGameMode_Tag::OnTargetAttacked(CWeenieObject *pTarget, CWeenieObject *pSource)
+void CGameMode_Tag::OnTargetAttacked(std::shared_ptr<CWeenieObject> pTarget, std::shared_ptr<CWeenieObject> pSource)
 {
-	if (pSource == m_pSelectedPlayer)
+	if (pSource == m_pSelectedPlayer.lock())
 	{
-		if (CPlayerWeenie *pTargetPlayer = pTarget->AsPlayer())
+		if (std::shared_ptr<CPlayerWeenie> pTargetPlayer = pTarget->AsPlayer())
 		{
 			UnselectPlayer();
 			SelectPlayer(pTargetPlayer);
@@ -95,14 +94,15 @@ void CGameMode_Tag::OnTargetAttacked(CWeenieObject *pTarget, CWeenieObject *pSou
 	}
 }
 
-void CGameMode_Tag::OnRemoveEntity(CWeenieObject *pEntity)
+void CGameMode_Tag::OnRemoveEntity(std::shared_ptr<CWeenieObject> pEntity)
 {
 	if (pEntity)
 	{
-		if (pEntity == m_pSelectedPlayer)
+		if (pEntity == m_pSelectedPlayer.lock())
 		{
 			UnselectPlayer();
-			m_pSelectedPlayer = NULL;
+			m_pSelectedPlayer = std::weak_ptr<CPlayerWeenie>();
+			;
 		}
 	}
 }

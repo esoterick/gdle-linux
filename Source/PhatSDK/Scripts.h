@@ -95,7 +95,7 @@ public:
 class ScriptManager
 {
 public:
-    ScriptManager(CPhysicsObj *pObject);
+    ScriptManager(std::shared_ptr<CPhysicsObj> pObject);
     ~ScriptManager();
 
     BOOL AddScript(DWORD ScriptID);
@@ -107,7 +107,7 @@ public:
     CAnimHook *NextHook();
 
 
-    CPhysicsObj *m_pOwner; // 0x00
+    std::weak_ptr<CPhysicsObj> m_pOwner; // 0x00
     ScriptManagerNode *m_pScriptsBegin; // 0x04
     ScriptManagerNode *m_pScriptsEnd; // 0x08
     long m_0C; // 0x0C

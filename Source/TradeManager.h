@@ -5,32 +5,29 @@
 class TradeManager
 {
 public:
-	static TradeManager* RegisterTrade(CPlayerWeenie *initiator, CPlayerWeenie *partner);
+	TradeManager(std::shared_ptr<CPlayerWeenie> initiator, std::shared_ptr<CPlayerWeenie> partner);
 
-	void CloseTrade(CPlayerWeenie *playerFrom, DWORD reason = 0x51);
-	void OnCloseTrade(CPlayerWeenie *player, DWORD reason = 0);
+	void CloseTrade(std::weak_ptr<CPlayerWeenie> playerFrom, DWORD reason = 0x51);
+	void OnCloseTrade(std::weak_ptr<CPlayerWeenie> player, DWORD reason = 0);
 
-	void AddToTrade(CPlayerWeenie *playerFrom, DWORD item);
-	//void RemoveFromTrade(CPlayerWeenie *playerFrom, DWORD item);
+	void AddToTrade(std::shared_ptr<CPlayerWeenie> playerFrom, DWORD item);
+	//void RemoveFromTrade(std::shared_ptr<CPlayerWeenie> playerFrom, DWORD item);
 
-	void AcceptTrade(CPlayerWeenie *playerFrom);
+	void AcceptTrade(std::shared_ptr<CPlayerWeenie> playerFrom);
 	bool OnTradeAccepted();
 
-	void DeclineTrade(CPlayerWeenie *playerFrom);
+	void DeclineTrade(std::shared_ptr<CPlayerWeenie> playerFrom);
 
-	void ResetTrade(CPlayerWeenie *playerFrom);
+	void ResetTrade(std::shared_ptr<CPlayerWeenie> playerFrom);
 
-	CPlayerWeenie* GetOtherPlayer(CPlayerWeenie *player);
+	std::shared_ptr<CPlayerWeenie> GetOtherPlayer(std::shared_ptr<CPlayerWeenie> player);
 
 	void CheckDistance();
 private:
-	// prevent anyone from initiating this outside of OpenTrade
-	TradeManager(CPlayerWeenie *initiator, CPlayerWeenie *partner);
-
 	void Delete();
 
-	CPlayerWeenie *_initiator;
-	CPlayerWeenie *_partner;
+	std::weak_ptr<CPlayerWeenie> _initiator;
+	std::weak_ptr<CPlayerWeenie> _partner;
 
 	bool m_bInitiatorAccepted = false;
 	bool m_bPartnerAccepted = false;

@@ -21,12 +21,21 @@ typedef struct TeleTownList_s
 	Position position;
 } TeleTownList_t;
 
-typedef std::unordered_map<DWORD, CPhysicsObj *> PhysObjMap;
-typedef std::vector<CWeenieObject *> PhysObjVector;
-typedef std::unordered_map<DWORD, CWeenieObject *> WeenieMap;
-typedef std::vector<CWeenieObject *> WeenieVector;
-typedef std::unordered_map<DWORD, CPlayerWeenie *> PlayerWeenieMap;
-typedef std::vector<CPlayerWeenie *> PlayerWeenieVector;
+typedef std::unordered_map<DWORD, std::shared_ptr<CPhysicsObj> > PhysObjMap;
+typedef std::vector<std::shared_ptr<CWeenieObject> > PhysObjVector;
+typedef std::unordered_map<DWORD, std::shared_ptr<CWeenieObject> > WeenieMap;
+typedef std::vector<std::shared_ptr<CWeenieObject> > WeenieVector;
+typedef std::unordered_map<DWORD, std::shared_ptr<CPlayerWeenie> > PlayerWeenieMap;
+typedef std::vector<std::shared_ptr<CPlayerWeenie> > PlayerWeenieVector;
+
+
+typedef std::unordered_map<DWORD, std::weak_ptr<CPhysicsObj> > PhysObjWeakMap;
+typedef std::vector<std::weak_ptr<CWeenieObject> > PhysObjWeakVector;
+typedef std::unordered_map<DWORD, std::weak_ptr<CWeenieObject> > WeenieWeakMap;
+typedef std::vector<std::weak_ptr<CWeenieObject> > WeenieWeakVector;
+typedef std::unordered_map<DWORD, std::weak_ptr<CPlayerWeenie> > PlayerWeenieWeakMap;
+typedef std::vector<std::weak_ptr<CPlayerWeenie> > PlayerWeenieWeakVector;
+
 
 typedef std::vector<TeleTownList_s> TeletownVector;
 typedef std::map<DWORD, Position> LocationMap;
@@ -52,24 +61,24 @@ public:
 	CWorld();
 	~CWorld();
 
-	bool CreateEntity(CWeenieObject *, bool bMakeAware = true);
+	bool CreateEntity(std::shared_ptr<CWeenieObject> , bool bMakeAware = true, bool bForceTakeControl = false);
 
 	void InsertTeleportLocation(TeleTownList_s l);
 	std::string GetTeleportList();
 	TeleTownList_s GetTeleportLocation(std::string location);
-	void InsertEntity(CWeenieObject *, BOOL bSilent = FALSE);
+	void InsertEntity(std::shared_ptr<CWeenieObject> , BOOL bSilent = FALSE);
 	void Test();
 
 	CWorldLandBlock *ActivateBlock(WORD wHeader);
 
-	void RemoveEntity(CWeenieObject *pWeenie);
+	void RemoveEntity(std::shared_ptr<CWeenieObject> pWeenie);
 
 	void Think();
 
 	void SendNetMessage(CNetDeliveryTargets *target, void *_data, DWORD _len, WORD _group = OBJECT_MSG, DWORD ignore_ent = 0, BOOL _game_event = 0);
 
-	void BroadcastPVS(CPhysicsObj *physobj, void *_data, DWORD _len, WORD _group = OBJECT_MSG, DWORD ignore_ent = 0, BOOL _game_event = 0);
-	void BroadcastPVS(CWeenieObject *weenie, void *_data, DWORD _len, WORD _group = OBJECT_MSG, DWORD ignore_ent = 0, BOOL _game_event = 0);
+	void BroadcastPVS(std::shared_ptr<CPhysicsObj> physobj, void *_data, DWORD _len, WORD _group = OBJECT_MSG, DWORD ignore_ent = 0, BOOL _game_event = 0);
+	void BroadcastPVS(std::shared_ptr<CWeenieObject> weenie, void *_data, DWORD _len, WORD _group = OBJECT_MSG, DWORD ignore_ent = 0, BOOL _game_event = 0);
 	void BroadcastPVS(const Position &pos, void *_data, DWORD _len, WORD _group = OBJECT_MSG, DWORD ignore_ent = 0, BOOL _game_event = 0);
 	void BroadcastPVS(DWORD dwCell, void *_data, DWORD _len, WORD _group = OBJECT_MSG, DWORD ignore_ent = 0, BOOL _game_event = 0);
 	void BroadcastGlobal(void *_data, DWORD _len, WORD _group, DWORD ignore_ent = 0, BOOL _game_event = 0);
@@ -88,21 +97,21 @@ public:
 	DungeonDesc_t* GetDungeonDesc(const char* szDungeonName);
 	void SetDungeonDesc(WORD wBlockID, const char* szDungeonName, const char* szAuthor, const char* szDescription, const Position &position);
 
-	void JuggleEntity(WORD, CWeenieObject* pEntity);
+	void JuggleEntity(WORD, std::shared_ptr<CWeenieObject> pEntity);
 
-	CWeenieObject *FindObject(DWORD object_id, bool allowLandblockActivation = false);
+	std::shared_ptr<CWeenieObject> FindObject(DWORD object_id, bool allowLandblockActivation = false);
 	bool FindObjectName(DWORD, std::string &name);
 	PlayerWeenieMap *GetPlayers();
 	DWORD GetNumPlayers();
 	std::string GetPlayerName(DWORD playerId, bool allowOffline = true);
 	DWORD GetPlayerId(const char *name, bool allowOffline = true);
-	CPlayerWeenie *FindPlayer(DWORD);
-	CPlayerWeenie *FindPlayer(const char *);
-	CWeenieObject *FindWithinPVS(CWeenieObject *pSource, DWORD dwGUID);
-	void EnumNearby(const Position &position, float fRange, std::list<CWeenieObject *> *pResults);
-	void EnumNearby(CWeenieObject *pSource, float fRange, std::list<CWeenieObject *> *pResults);
-	void EnumNearbyPlayers(const Position &position, float fRange, std::list<CWeenieObject *> *pResults);
-	void EnumNearbyPlayers(CWeenieObject *pSource, float fRange, std::list<CWeenieObject *> *pResults);
+	std::shared_ptr<CPlayerWeenie> FindPlayer(DWORD);
+	std::shared_ptr<CPlayerWeenie> FindPlayer(const char *);
+	std::shared_ptr<CWeenieObject> FindWithinPVS(std::shared_ptr<CWeenieObject> pSource, DWORD dwGUID);
+	void EnumNearby(const Position &position, float fRange, std::list<std::shared_ptr<CWeenieObject> > *pResults);
+	void EnumNearby(std::shared_ptr<CWeenieObject> pSource, float fRange, std::list<std::shared_ptr<CWeenieObject> > *pResults);
+	void EnumNearbyPlayers(const Position &position, float fRange, std::list<std::shared_ptr<CWeenieObject> > *pResults);
+	void EnumNearbyPlayers(std::shared_ptr<CWeenieObject> pSource, float fRange, std::list<std::shared_ptr<CWeenieObject> > *pResults);
 
 	void SaveWorld();
 
@@ -113,9 +122,9 @@ public:
 
 	DWORD GenerateGUID(eGUIDClass type);
 
-	void EnsureRemoved(CWeenieObject *pEntity);
+	void EnsureRemoved(std::shared_ptr<CWeenieObject> pEntity);
 
-	void BroadcastChatChannel(DWORD channel_id, CPlayerWeenie *sender, const std::string &message);
+	void BroadcastChatChannel(DWORD channel_id, std::shared_ptr<CPlayerWeenie> sender, const std::string &message);
 
 	void EnsureBlockIsTicking(CWorldLandBlock *pBlock);
 

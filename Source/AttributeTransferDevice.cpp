@@ -12,7 +12,7 @@ CAttributeTransferDeviceWeenie::~CAttributeTransferDeviceWeenie()
 {
 }
 
-int CAttributeTransferDeviceWeenie::Use(CPlayerWeenie *player)
+int CAttributeTransferDeviceWeenie::Use(std::shared_ptr<CPlayerWeenie> player)
 {
 	if (!player->FindContainedItem(GetID()))
 	{

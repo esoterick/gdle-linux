@@ -95,7 +95,7 @@ void CHouseManager::SaveHouseData(DWORD houseId)
 	houseData->Save();
 }
 
-void CHouseManager::SendHouseData(CPlayerWeenie *player, DWORD houseId)
+void CHouseManager::SendHouseData(std::shared_ptr<CPlayerWeenie> player, DWORD houseId)
 {
 	if (!player)
 		return;
@@ -185,12 +185,12 @@ void CHouseData::SetHookVisibility(bool newSetting)
 {
 	for (auto hook_id : _hookList)
 	{
-		CWeenieObject *hookWeenie = g_pWorld->FindObject(hook_id, true);
+		std::shared_ptr<CWeenieObject> hookWeenie = g_pWorld->FindObject(hook_id, true);
 
 		if (!hookWeenie)
 			continue;
 
-		CHookWeenie *hook = hookWeenie->AsHook();
+		std::shared_ptr<CHookWeenie> hook = hookWeenie->AsHook();
 
 		if (!hook)
 			continue;
@@ -201,7 +201,7 @@ void CHouseData::SetHookVisibility(bool newSetting)
 
 void CHouseData::AbandonHouse()
 {
-		CWeenieObject *owner = g_pWorld->FindObject(_ownerId);
+		std::shared_ptr<CWeenieObject> owner = g_pWorld->FindObject(_ownerId);
 		if (owner)
 		{
 			//if the player is offline we won't find him but that's okay, we will just update his housing data when he logins in UpdateHouseData()
@@ -212,11 +212,13 @@ void CHouseData::AbandonHouse()
 		ClearOwnershipData();
 		SetHookVisibility(_hooksVisible);
 
-		if(CWeenieObject *slumLord = g_pWorld->FindObject(_slumLordId))
+		if(std::shared_ptr<CWeenieObject> slumLord = g_pWorld->FindObject(_slumLordId))
 			slumLord->DoForcedMotion(Motion_Off);
 
 		if (owner)
 			g_pHouseManager->SendHouseData(owner->AsPlayer(), _houseId);
+
+		g_pHouseManager->SaveHouseData(_houseId);
 }
 
 void CHouseData::Save()
@@ -232,7 +234,7 @@ CHouseWeenie::CHouseWeenie()
 	m_bDontClear = true;
 }
 
-void CHouseWeenie::EnsureLink(CWeenieObject *source)
+void CHouseWeenie::EnsureLink(std::shared_ptr<CWeenieObject> source)
 {
 	source->m_Qualities.SetInstanceID(HOUSE_IID, GetID());
 
@@ -293,9 +295,9 @@ int CHouseWeenie::GetHouseType()
 	return InqIntQuality(HOUSE_TYPE_INT, 0);
 }
 
-CSlumLordWeenie *CHouseWeenie::GetSlumLord()
+std::shared_ptr<CSlumLordWeenie> CHouseWeenie::GetSlumLord()
 {
-	if (CWeenieObject *slumlord = g_pWorld->FindObject(InqIIDQuality(SLUMLORD_IID, 0), true))
+	if (std::shared_ptr<CWeenieObject> slumlord = g_pWorld->FindObject(InqIIDQuality(SLUMLORD_IID, 0), true))
 	{
 		return slumlord->AsSlumLord();
 	}
@@ -303,7 +305,7 @@ CSlumLordWeenie *CHouseWeenie::GetSlumLord()
 	return NULL;
 }
 
-bool CHouseWeenie::HasAccess(CPlayerWeenie *requester)
+bool CHouseWeenie::HasAccess(std::shared_ptr<CPlayerWeenie> requester)
 {
 	if (!requester)
 		return false;
@@ -319,7 +321,7 @@ bool CHouseWeenie::HasAccess(CPlayerWeenie *requester)
 	if (houseData->_everyoneAccess)
 		return true;
 
-	if (requester->GetClient()->GetAccountInfo().id == houseData->_ownerAccount)
+	if (requester->GetClient() && requester->GetClient()->GetAccountInfo().id == houseData->_ownerAccount)
 		return true;
 
 	if (std::find(houseData->_accessList.begin(), houseData->_accessList.end(), requesterId) != houseData->_accessList.end())
@@ -341,7 +343,7 @@ bool CHouseWeenie::HasAccess(CPlayerWeenie *requester)
 	return HasStorageAccess(requester); //storage access automatically grants access.
 }
 
-bool CHouseWeenie::HasStorageAccess(CPlayerWeenie *requester)
+bool CHouseWeenie::HasStorageAccess(std::shared_ptr<CPlayerWeenie> requester)
 {
 	if (!requester)
 		return false;
@@ -357,7 +359,7 @@ bool CHouseWeenie::HasStorageAccess(CPlayerWeenie *requester)
 	if (houseData->_everyoneStorageAccess)
 		return true;
 
-	if (requester->GetClient()->GetAccountInfo().id == houseData->_ownerAccount)
+	if (requester->GetClient() && requester->GetClient()->GetAccountInfo().id == houseData->_ownerAccount)
 		return true;
 
 	if (std::find(houseData->_storageAccessList.begin(), houseData->_storageAccessList.end(), requesterId) != houseData->_storageAccessList.end())
@@ -388,7 +390,7 @@ void CSlumLordWeenie::Tick()
 {
 	if (_initialized && _nextSave != -1.0 && _nextSave < Timer::cur_time)
 	{
-		CHouseWeenie *house = GetHouse();
+		std::shared_ptr<CHouseWeenie> house = GetHouse();
 		if (!house)
 			return;
 
@@ -403,7 +405,7 @@ void CSlumLordWeenie::Tick()
 
 			for (auto hook_id : houseData->_hookList)
 			{
-				CWeenieObject *hook = g_pWorld->FindObject(hook_id);
+				std::shared_ptr<CWeenieObject> hook = g_pWorld->FindObject(hook_id);
 
 				if (!hook)
 					continue;
@@ -422,7 +424,7 @@ void CSlumLordWeenie::Tick()
 		{
 			_nextHeartBeat = Timer::cur_time + Random::GenUInt(1, 10);
 
-			CHouseWeenie *house = GetHouse();
+			std::shared_ptr<CHouseWeenie> house = GetHouse();
 			if (!house)
 				return;
 
@@ -435,7 +437,7 @@ void CSlumLordWeenie::Tick()
 
 			for (auto hook_id : houseData->_hookList)
 			{
-				CWeenieObject *hook = g_pWorld->FindObject(hook_id, true);
+				std::shared_ptr<CWeenieObject> hook = g_pWorld->FindObject(hook_id, true);
 
 				if (!hook)
 					continue;
@@ -467,9 +469,9 @@ void CSlumLordWeenie::Tick()
 	}
 }
 
-CHouseWeenie *CSlumLordWeenie::GetHouse()
+std::shared_ptr<CHouseWeenie> CSlumLordWeenie::GetHouse()
 {
-	if (CWeenieObject *house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
+	if (std::shared_ptr<CWeenieObject> house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
 	{
 		return house->AsHouse();
 	}
@@ -524,7 +526,7 @@ void CSlumLordWeenie::GetHouseProfile(HouseProfile &prof)
 		}
 	}
 	
-	if (CHouseWeenie *house = GetHouse())
+	if (std::shared_ptr<CHouseWeenie> house = GetHouse())
 	{
 		prof._name = house->GetHouseOwnerName();
 		prof._owner = house->GetHouseOwner();
@@ -533,12 +535,12 @@ void CSlumLordWeenie::GetHouseProfile(HouseProfile &prof)
 	}
 }
 
-int CSlumLordWeenie::DoUseResponse(CWeenieObject *other)
+int CSlumLordWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 {
 	HouseProfile prof;
 	GetHouseProfile(prof);
 
-	if (CHouseWeenie *house = GetHouse())
+	if (std::shared_ptr<CHouseWeenie> house = GetHouse())
 	{
 		CHouseData *houseData = house->GetHouseData();
 		if (houseData && houseData->_ownerId)
@@ -553,9 +555,9 @@ int CSlumLordWeenie::DoUseResponse(CWeenieObject *other)
 	return WERROR_NONE;
 }
 
-void CSlumLordWeenie::BuyHouse(CPlayerWeenie *player, const PackableList<DWORD> &items)
+void CSlumLordWeenie::BuyHouse(std::shared_ptr<CPlayerWeenie> player, const PackableList<DWORD> &items)
 {
-	if (CHouseWeenie *house = GetHouse())
+	if (std::shared_ptr<CHouseWeenie> house = GetHouse())
 	{
 		if(player->GetAccountHouseId())
 		{
@@ -606,13 +608,13 @@ void CSlumLordWeenie::BuyHouse(CPlayerWeenie *player, const PackableList<DWORD> 
 		HouseProfile prof;
 		GetHouseProfile(prof);
 
-		std::map<CWeenieObject *, int> consumeList;
+		std::map<std::shared_ptr<CWeenieObject> , int> consumeList;
 
 		for (HousePayment &payment : prof._buy)
 		{
 			for (auto &itemID : items)
 			{
-				CWeenieObject *item = g_pWorld->FindObject(itemID);
+				std::shared_ptr<CWeenieObject> item = g_pWorld->FindObject(itemID);
 
 				if (!item || !player->FindContainedItem(itemID))
 					continue;
@@ -651,7 +653,7 @@ void CSlumLordWeenie::BuyHouse(CPlayerWeenie *player, const PackableList<DWORD> 
 
 		for (auto entry : consumeList)
 		{
-			CWeenieObject *item = entry.first;
+			std::shared_ptr<CWeenieObject> item = entry.first;
 			int amount = entry.second;
 
 			if (item->m_Qualities.id == W_COINSTACK_CLASS || item->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_PROMISSORY_NOTE)
@@ -770,7 +772,7 @@ void CSlumLordWeenie::BuyHouse(CPlayerWeenie *player, const PackableList<DWORD> 
 		CHouseData *houseData = house->GetHouseData();
 		houseData->ClearOwnershipData();
 		houseData->_ownerId = player->GetID();
-		houseData->_ownerAccount = player->GetClient()->GetAccountInfo().id;
+		houseData->_ownerAccount = player->GetClient() ? player->GetClient()->GetAccountInfo().id : NULL;
 		houseData->_purchaseTimestamp = timeStamp;
 		houseData->_currentMaintenancePeriod = g_pHouseManager->_currentHouseMaintenancePeriod;
 		houseData->_rent = prof._rent;
@@ -780,7 +782,7 @@ void CSlumLordWeenie::BuyHouse(CPlayerWeenie *player, const PackableList<DWORD> 
 
 		for (auto hook_id : houseData->_hookList)
 		{
-			CWeenieObject *hook = g_pWorld->FindObject(hook_id, true);
+			std::shared_ptr<CWeenieObject> hook = g_pWorld->FindObject(hook_id, true);
 
 			if (!hook)
 				continue;
@@ -806,7 +808,7 @@ void CSlumLordWeenie::BuyHouse(CPlayerWeenie *player, const PackableList<DWORD> 
 
 void CSlumLordWeenie::CheckRentPeriod()
 {
-	if (CHouseWeenie *house = GetHouse())
+	if (std::shared_ptr<CHouseWeenie> house = GetHouse())
 	{
 		CHouseData *houseData = house->GetHouseData();
 
@@ -821,7 +823,7 @@ void CSlumLordWeenie::CheckRentPeriod()
 			{
 				if (!allegianceNode || allegianceNode->_patronID)
 				{
-					if (CWeenieObject *player = g_pWorld->FindObject(houseData->_ownerId)) //todo: a way to inform the allegiance and the player if he is offline.
+					if (std::shared_ptr<CWeenieObject> player = g_pWorld->FindObject(houseData->_ownerId)) //todo: a way to inform the allegiance and the player if he is offline.
 						player->SendText("You no longer meet the monarch requirement for your dwelling so it has been abandoned.", LTT_DEFAULT); //made up message.
 					houseData->AbandonHouse();
 					return;
@@ -832,7 +834,7 @@ void CSlumLordWeenie::CheckRentPeriod()
 			{
 				if (!allegianceNode || allegianceNode->_rank < minAllegianceRank)
 				{
-					if (CWeenieObject *player = g_pWorld->FindObject(houseData->_ownerId)) //todo: a way to inform the allegiance and the player if he is offline.
+					if (std::shared_ptr<CWeenieObject> player = g_pWorld->FindObject(houseData->_ownerId)) //todo: a way to inform the allegiance and the player if he is offline.
 						player->SendText(csprintf("You no longer meet the allegiance rank requirement for your dwelling so it has been abandoned.", minAllegianceRank), LTT_DEFAULT); //made up message.
 					houseData->AbandonHouse();
 					return;
@@ -858,7 +860,7 @@ void CSlumLordWeenie::CheckRentPeriod()
 				houseData->_rent = prof._rent;
 				houseData->_buy = prof._buy;
 
-				if (CWeenieObject *owner = g_pWorld->FindObject(houseData->_ownerId))
+				if (std::shared_ptr<CWeenieObject> owner = g_pWorld->FindObject(houseData->_ownerId))
 					g_pHouseManager->SendHouseData(owner->AsPlayer(), house->GetHouseDID()); //update house's owner panel if the owner is online.
 			}
 			else
@@ -874,9 +876,9 @@ void CSlumLordWeenie::CheckRentPeriod()
 	}
 }
 
-void CSlumLordWeenie::RentHouse(CPlayerWeenie *player, const PackableList<DWORD> &items)
+void CSlumLordWeenie::RentHouse(std::shared_ptr<CPlayerWeenie> player, const PackableList<DWORD> &items)
 {
-	if (CHouseWeenie *house = GetHouse())
+	if (std::shared_ptr<CHouseWeenie> house = GetHouse())
 	{
 		CHouseData *houseData = house->GetHouseData();
 
@@ -902,13 +904,13 @@ void CSlumLordWeenie::RentHouse(CPlayerWeenie *player, const PackableList<DWORD>
 			return;
 		}
 
-		std::map<CWeenieObject *, int> consumeList;
+		std::map<std::shared_ptr<CWeenieObject> , int> consumeList;
 
 		for (HousePayment &payment : houseData->_rent)
 		{
 			for (auto &itemID : items)
 			{
-				CWeenieObject *item = g_pWorld->FindObject(itemID);
+				std::shared_ptr<CWeenieObject> item = g_pWorld->FindObject(itemID);
 
 				if (!item || !player->FindContainedItem(itemID))
 					continue;
@@ -938,7 +940,7 @@ void CSlumLordWeenie::RentHouse(CPlayerWeenie *player, const PackableList<DWORD>
 
 		for (auto entry : consumeList)
 		{
-			CWeenieObject *item = entry.first;
+			std::shared_ptr<CWeenieObject> item = entry.first;
 			int amount = entry.second;
 
 			if (item->m_Qualities.id == W_COINSTACK_CLASS || item->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_PROMISSORY_NOTE)
@@ -1048,7 +1050,7 @@ void CSlumLordWeenie::RentHouse(CPlayerWeenie *player, const PackableList<DWORD>
 		houseData->Save();
 
 
-		if (CWeenieObject *owner = g_pWorld->FindObject(houseData->_ownerId))
+		if (std::shared_ptr<CWeenieObject> owner = g_pWorld->FindObject(houseData->_ownerId))
 			g_pHouseManager->SendHouseData(owner->AsPlayer(), house->GetHouseDID()); //update house's owner panel if the owner is online.
 	}
 }
@@ -1110,9 +1112,9 @@ void CHookWeenie::LoadEx(CWeenieSave & save)
 	_nextInitCheck = Timer::cur_time;
 }
 
-int CHookWeenie::DoUseResponse(CWeenieObject *other)
+int CHookWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 {
-	CHouseWeenie *house = GetHouse();
+	std::shared_ptr<CHouseWeenie> house = GetHouse();
 	if (!house)
 		return WERROR_NO_HOUSE;
 
@@ -1135,11 +1137,11 @@ int CHookWeenie::DoUseResponse(CWeenieObject *other)
 		//if house hooks are off this means we're using the hooked item.
 		if (house->HasAccess(other->AsPlayer()))
 		{
-			CWeenieObject *hookedItem;
+			std::shared_ptr<CWeenieObject> hookedItem;
 			if (m_Items.empty())
 				return WERROR_OBJECT_GONE;
 
-			hookedItem = m_Items[0];
+			hookedItem = m_Items[0].lock();
 
 			if (!hookedItem)
 				return WERROR_OBJECT_GONE;
@@ -1160,7 +1162,7 @@ int CHookWeenie::DoUseResponse(CWeenieObject *other)
 	}
 }
 
-void CHookWeenie::Identify(CWeenieObject *other, DWORD overrideId)
+void CHookWeenie::Identify(std::shared_ptr<CWeenieObject> other, DWORD overrideId)
 {
 	CHouseData *houseData = GetHouseData();
 
@@ -1169,11 +1171,11 @@ void CHookWeenie::Identify(CWeenieObject *other, DWORD overrideId)
 	else
 	{
 		//if house hooks are off this means we're identifying the hooked item.
-		CWeenieObject *hookedItem;
+		std::shared_ptr<CWeenieObject> hookedItem;
 		if (m_Items.empty())
 			return;
 
-		hookedItem = m_Items[0];
+		hookedItem = m_Items[0].lock();
 
 		if (!hookedItem)
 			return;
@@ -1182,27 +1184,37 @@ void CHookWeenie::Identify(CWeenieObject *other, DWORD overrideId)
 	}
 }
 
-DWORD CHookWeenie::Container_InsertInventoryItem(DWORD dwCell, CWeenieObject *pItem, DWORD slot)
+DWORD CHookWeenie::Container_InsertInventoryItem(DWORD dwCell, std::shared_ptr<CWeenieObject> pItem, DWORD slot)
 {
 	UpdateHookedObject(pItem);
 	
 	return CContainerWeenie::Container_InsertInventoryItem(dwCell, pItem, slot);
 }
 
-void CHookWeenie::ReleaseContainedItemRecursive(CWeenieObject *item)
+void CHookWeenie::ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObject> item)
 {
 	ClearHookedObject();
 
 	CContainerWeenie::ReleaseContainedItemRecursive(item);
 }
 
-void CHookWeenie::UpdateHookedObject(CWeenieObject *hookedItem, bool sendUpdate)
+void CHookWeenie::UpdateHookedObject(std::shared_ptr<CWeenieObject> hookedItem, bool sendUpdate)
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = _phys_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+
 	if (!hookedItem && !m_Items.empty())
-		hookedItem = m_Items[0];
+	{
+		hookedItem = m_Items[0].lock();
+	}
 	
 	if (!hookedItem)
+	{
 		return;
+	}
 
 	DWORD value;
 
@@ -1223,7 +1235,7 @@ void CHookWeenie::UpdateHookedObject(CWeenieObject *hookedItem, bool sendUpdate)
 		m_Qualities.SetDataID(MOTION_TABLE_DID, value);
 		NotifyDIDStatUpdated(MOTION_TABLE_DID, false);
 
-		_phys_obj->SetMotionTableID(value);
+		pPhysObj->SetMotionTableID(value);
 	}
 	else
 	{
@@ -1267,14 +1279,14 @@ void CHookWeenie::UpdateHookedObject(CWeenieObject *hookedItem, bool sendUpdate)
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, floatValue);
 		NotifyFloatStatUpdated(DEFAULT_SCALE_FLOAT, false);
 
-		_phys_obj->SetScaleStatic(floatValue);
+		pPhysObj->SetScaleStatic(floatValue);
 	}
 	else
 	{
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.0);
 		NotifyFloatStatUpdated(DEFAULT_SCALE_FLOAT, false);
 
-		_phys_obj->SetScaleStatic(1.0);
+		pPhysObj->SetScaleStatic(1.0);
 	}
 
 	if (hookedItem->m_Qualities.InqFloat(TRANSLUCENCY_FLOAT, floatValue))
@@ -1282,14 +1294,14 @@ void CHookWeenie::UpdateHookedObject(CWeenieObject *hookedItem, bool sendUpdate)
 		m_Qualities.SetFloat(TRANSLUCENCY_FLOAT, floatValue);
 		NotifyFloatStatUpdated(TRANSLUCENCY_FLOAT, false);
 
-		_phys_obj->SetTranslucencyInternal(floatValue);
+		pPhysObj->SetTranslucencyInternal(floatValue);
 	}
 	else
 	{
 		m_Qualities.RemoveFloat(TRANSLUCENCY_FLOAT);
 		NotifyFloatStatUpdated(TRANSLUCENCY_FLOAT, false);
 
-		_phys_obj->SetTranslucencyInternal(0.0);
+		pPhysObj->SetTranslucencyInternal(0.0);
 	}
 
 	set_state(PhysicsState::LIGHTING_ON_PS | PhysicsState::REPORT_COLLISIONS_PS, TRUE);
@@ -1297,11 +1309,19 @@ void CHookWeenie::UpdateHookedObject(CWeenieObject *hookedItem, bool sendUpdate)
 	m_bObjDescOverride = true;
 	hookedItem->GetObjDesc(m_ObjDescOverride);
 	if (sendUpdate && InqBoolQuality(VISIBILITY_BOOL, true))
+	{
 		NotifyObjectUpdated(false);
+	}
 }
 
 void CHookWeenie::ClearHookedObject(bool sendUpdate)
 {
+	std::shared_ptr<CPhysicsObj> pPhysObj = _phys_obj.lock();
+	if (!pPhysObj)
+	{
+		return;
+	}
+
 	CWeenieDefaults *defaults = g_pWeenieFactory->GetWeenieDefaults(m_Qualities.id);
 
 	DWORD value;
@@ -1324,7 +1344,7 @@ void CHookWeenie::ClearHookedObject(bool sendUpdate)
 		m_Qualities.SetDataID(MOTION_TABLE_DID, value);
 		NotifyDIDStatUpdated(MOTION_TABLE_DID, false);
 
-		_phys_obj->SetMotionTableID(value);
+		pPhysObj->SetMotionTableID(value);
 	}
 	else
 	{
@@ -1368,14 +1388,14 @@ void CHookWeenie::ClearHookedObject(bool sendUpdate)
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, floatValue);
 		NotifyFloatStatUpdated(DEFAULT_SCALE_FLOAT, false);
 
-		_phys_obj->SetScaleStatic(floatValue);
+		pPhysObj->SetScaleStatic(floatValue);
 	}
 	else
 	{
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.0);
 		NotifyFloatStatUpdated(DEFAULT_SCALE_FLOAT, false);
 
-		_phys_obj->SetScaleStatic(1.0);
+		pPhysObj->SetScaleStatic(1.0);
 	}
 
 	if (defaults->m_Qualities.InqFloat(TRANSLUCENCY_FLOAT, floatValue))
@@ -1383,14 +1403,14 @@ void CHookWeenie::ClearHookedObject(bool sendUpdate)
 		m_Qualities.SetFloat(TRANSLUCENCY_FLOAT, floatValue);
 		NotifyFloatStatUpdated(TRANSLUCENCY_FLOAT, false);
 
-		_phys_obj->SetTranslucencyInternal(floatValue);
+		pPhysObj->SetTranslucencyInternal(floatValue);
 	}
 	else
 	{
 		m_Qualities.RemoveFloat(TRANSLUCENCY_FLOAT);
 		NotifyFloatStatUpdated(TRANSLUCENCY_FLOAT, false);
 
-		_phys_obj->SetTranslucencyInternal(0.0);
+		pPhysObj->SetTranslucencyInternal(0.0);
 	}
 
 	set_state(ETHEREAL_PS | IGNORE_COLLISIONS_PS, TRUE);
@@ -1398,8 +1418,10 @@ void CHookWeenie::ClearHookedObject(bool sendUpdate)
 	m_bObjDescOverride = false;
 	m_ObjDescOverride.Clear();
 
-	if(sendUpdate && InqBoolQuality(VISIBILITY_BOOL, true))
+	if (sendUpdate && InqBoolQuality(VISIBILITY_BOOL, true))
+	{
 		NotifyObjectUpdated(false);
+	}
 }
 
 void CHookWeenie::SetHookVisibility(bool newSetting)
@@ -1411,7 +1433,7 @@ void CHookWeenie::SetHookVisibility(bool newSetting)
 
 	if (!m_Items.empty())
 	{
-		CWeenieObject *hookedItem = m_Items[0];
+		std::shared_ptr<CWeenieObject> hookedItem = m_Items[0].lock();
 
 		if (!hookedItem)
 			return;
@@ -1449,7 +1471,7 @@ void CHookWeenie::SetHookVisibility(bool newSetting)
 			else
 				SafeDelete(m_Qualities._emote_table);
 
-			if (CWeenieObject *hookedItem = m_Items[0])
+			if (std::shared_ptr<CWeenieObject> hookedItem = m_Items[0].lock())
 			{
 				m_Qualities.SetString(NAME_STRING, hookedItem->GetName());
 				m_Qualities.SetInt(ITEMS_CAPACITY_INT, hookedItem->m_Qualities.GetInt(ITEMS_CAPACITY_INT, 0));
@@ -1476,9 +1498,9 @@ void CHookWeenie::SetHookVisibility(bool newSetting)
 }
 
 
-CHouseWeenie *CHookWeenie::GetHouse()
+std::shared_ptr<CHouseWeenie> CHookWeenie::GetHouse()
 {
-	if (CWeenieObject *house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
+	if (std::shared_ptr<CWeenieObject> house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
 	{
 		return house->AsHouse();
 	}
@@ -1488,7 +1510,7 @@ CHouseWeenie *CHookWeenie::GetHouse()
 
 CHouseData *CHookWeenie::GetHouseData()
 {
-	CHouseWeenie *house = GetHouse();
+	std::shared_ptr<CHouseWeenie> house = GetHouse();
 	if (house)
 		return house->GetHouseData();
 	else
@@ -1499,9 +1521,9 @@ CDeedWeenie::CDeedWeenie()
 {
 }
 
-CHouseWeenie *CDeedWeenie::GetHouse()
+std::shared_ptr<CHouseWeenie> CDeedWeenie::GetHouse()
 {
-	if (CWeenieObject *house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
+	if (std::shared_ptr<CWeenieObject> house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
 	{
 		return house->AsHouse();
 	}
@@ -1514,9 +1536,9 @@ CBootSpotWeenie::CBootSpotWeenie()
 	m_bDontClear = true;
 }
 
-CHouseWeenie *CBootSpotWeenie::GetHouse()
+std::shared_ptr<CHouseWeenie> CBootSpotWeenie::GetHouse()
 {
-	if (CWeenieObject *house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
+	if (std::shared_ptr<CWeenieObject> house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
 	{
 		return house->AsHouse();
 	}
@@ -1534,9 +1556,9 @@ void CHousePortalWeenie::ApplyQualityOverrides()
 	SetRadarBlipColor(Portal_RadarBlipEnum);
 }
 
-CHouseWeenie *CHousePortalWeenie::GetHouse()
+std::shared_ptr<CHouseWeenie> CHousePortalWeenie::GetHouse()
 {
-	if (CWeenieObject *house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
+	if (std::shared_ptr<CWeenieObject> house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
 	{
 		return house->AsHouse();
 	}
@@ -1544,9 +1566,9 @@ CHouseWeenie *CHousePortalWeenie::GetHouse()
 	return NULL;
 }
 
-int CHousePortalWeenie::Use(CPlayerWeenie *other)
+int CHousePortalWeenie::Use(std::shared_ptr<CPlayerWeenie> other)
 {
-	CHouseWeenie *house = GetHouse();
+	std::shared_ptr<CHouseWeenie> house = GetHouse();
 	if (!house)
 	{
 		other->NotifyUseDone();
@@ -1566,7 +1588,7 @@ int CHousePortalWeenie::Use(CPlayerWeenie *other)
 
 bool CHousePortalWeenie::GetDestination(Position &dest)
 {
-	if (CHouseWeenie *house = GetHouse())
+	if (std::shared_ptr<CHouseWeenie> house = GetHouse())
 	{
 		if (Position *pos = g_pPortalDataEx->GetHousePortalDest(house->GetHouseDID(), m_Position.objcell_id))
 		{
@@ -1583,9 +1605,9 @@ CStorageWeenie::CStorageWeenie()
 	m_bDontClear = true;
 }
 
-int CStorageWeenie::DoUseResponse(CWeenieObject *other)
+int CStorageWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 {
-	CHouseWeenie *house = GetHouse();
+	std::shared_ptr<CHouseWeenie> house = GetHouse();
 	if (!house)
 		return WERROR_NO_HOUSE;
 
@@ -1598,9 +1620,9 @@ int CStorageWeenie::DoUseResponse(CWeenieObject *other)
 	}
 }
 
-CHouseWeenie *CStorageWeenie::GetHouse()
+std::shared_ptr<CHouseWeenie> CStorageWeenie::GetHouse()
 {
-	if (CWeenieObject *house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
+	if (std::shared_ptr<CWeenieObject> house = g_pWorld->FindObject(InqIIDQuality(HOUSE_IID, 0), true))
 	{
 		return house->AsHouse();
 	}

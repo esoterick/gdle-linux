@@ -13,7 +13,7 @@ CGemWeenie::~CGemWeenie()
 {
 }
 
-int CGemWeenie::Use(CPlayerWeenie *player)
+int CGemWeenie::Use(std::shared_ptr<CPlayerWeenie> player)
 {
 	if (!player->FindContainedItem(GetID()))
 	{
@@ -28,7 +28,7 @@ int CGemWeenie::Use(CPlayerWeenie *player)
 	return WERROR_NONE;
 }
 
-int CGemWeenie::DoUseResponse(CWeenieObject *player)
+int CGemWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> player)
 {
 	if (InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_FOOD)
 	{
@@ -38,7 +38,13 @@ int CGemWeenie::DoUseResponse(CWeenieObject *player)
 
 	if (DWORD spell_did = InqDIDQuality(SPELL_DID, 0))
 	{
-		MakeSpellcastingManager()->CastSpellInstant(player->GetID(), spell_did);
+		if (cooldown < Timer::cur_time)
+		{
+			MakeSpellcastingManager()->CastSpellInstant(player->GetID(), spell_did);
+			cooldown = Timer::cur_time + InqFloatQuality(COOLDOWN_DURATION_FLOAT, 0, FALSE);
+		}
+		else
+			player->SendText("You can't do that yet!", LTT_ERROR);			
 	}
 
 	DecrementStackOrStructureNum();

@@ -8,7 +8,9 @@ double GetImbueMultiplier(double currentSkill, double minEffectivenessSkill, dou
 	double multiplier = (currentSkill - minEffectivenessSkill) / (maxEffectivenessSkill - minEffectivenessSkill);
 	double value = multiplier * maxMultiplier;
 	if (!allowNegative)
+	{
 		value = max(value, 0.0);
+	}
 	value = min(value, maxMultiplier);
 	return value;
 }
@@ -16,12 +18,16 @@ double GetImbueMultiplier(double currentSkill, double minEffectivenessSkill, dou
 void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 {
 	if (!dmgEvent)
+	{
 		return;
+	}
+	std::shared_ptr<CWeenieObject> pSource = dmgEvent->source.lock();
+	if (!pSource)
+	{
+		return;
+	}
 
 	dmgEvent->damageBeforeMitigation = dmgEvent->damageAfterMitigation = dmgEvent->baseDamage;
-
-	if (!dmgEvent->source)
-		return;
 
 	CalculateRendingAndMiscData(dmgEvent);
 	CalculateAttributeDamageBonus(dmgEvent);
@@ -30,24 +36,25 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 
 
 	double damageCalc = dmgEvent->baseDamage;
-		damageCalc += dmgEvent->attributeDamageBonus;
-		damageCalc += dmgEvent->skillDamageBonus;
-		damageCalc += dmgEvent->slayerDamageBonus;
+	damageCalc += dmgEvent->attributeDamageBonus;
+	damageCalc += dmgEvent->skillDamageBonus;
+	damageCalc += dmgEvent->slayerDamageBonus;
 
-		if (dmgEvent->wasCrit)
+	dmgEvent->wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent->critChance) ? true : false;
+	if (dmgEvent->wasCrit)
+	{
+		damageCalc += damageCalc * dmgEvent->critMultiplier; //Leave the old formula for Melee/Missile crits.
+
+		if (dmgEvent->damage_form == DF_MAGIC) //Multiply base spell damage by the critMultiplier before adding skill and slayer damage bonuses for Magic.
 		{
-			damageCalc += damageCalc * dmgEvent->critMultiplier; //Leave the old formula for Melee/Missile crits.
-			
-			if (dmgEvent->damage_form == DF_MAGIC) //Multiply base spell damage by the critMultiplier before adding skill and slayer damage bonuses for Magic.
-			{
-				damageCalc = dmgEvent->baseDamage;
-				damageCalc += damageCalc * dmgEvent->critMultiplier;
-				damageCalc += dmgEvent->skillDamageBonus;
-				damageCalc += dmgEvent->slayerDamageBonus;
-			}
+			damageCalc = dmgEvent->baseDamage;
+			damageCalc += damageCalc * dmgEvent->critMultiplier;
+			damageCalc += dmgEvent->skillDamageBonus;
+			damageCalc += dmgEvent->slayerDamageBonus;
 		}
+	}
 
-	if (dmgEvent->damage_form == DF_MAGIC && !dmgEvent->source->AsPlayer())
+	if (dmgEvent->damage_form == DF_MAGIC && !pSource->AsPlayer())
 		damageCalc /= 2; //creatures do half magic damage. Unconfirmed but feels right. Should this be projectile spells only?
 
 
@@ -57,9 +64,14 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 {
 	if (!dmgEvent)
+	{
 		return;
-	if (!dmgEvent->source)
+	}
+	std::shared_ptr<CWeenieObject> pSource = dmgEvent->source.lock();
+	if (!pSource)
+	{
 		return;
+	}
 
 	switch (dmgEvent->damage_form)
 	{
@@ -67,19 +79,24 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 	case DF_MISSILE:
 	{
 		DWORD attrib = 0;
-		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL)			dmgEvent->source->m_Qualities.InqAttribute(COORDINATION_ATTRIBUTE, attrib, FALSE);
+		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL)
+		{
+			pSource->m_Qualities.InqAttribute(COORDINATION_ATTRIBUTE, attrib, FALSE);
+		}
 		else
-			dmgEvent->source->m_Qualities.InqAttribute(STRENGTH_ATTRIBUTE, attrib, FALSE);
+		{
+			pSource->m_Qualities.InqAttribute(STRENGTH_ATTRIBUTE, attrib, FALSE);
+		}
 
 		double attribDamageMod;
-		if(attrib >= 1000000) //this makes /godly characters use the old formula(huge damage!)
+		if (attrib >= 1000000) //this makes /godly characters use the old formula(huge damage!)
 			attribDamageMod = ((int)attrib - 55.0) / 33.0;
 		else
 			attribDamageMod = 6.75*(1.0 - exp(-0.005*((int)attrib - 55)));
 		if (attribDamageMod < 0 || dmgEvent->ignoreMagicArmor || dmgEvent->ignoreMagicResist) //half attribute bonus for hollow weapons.
-			dmgEvent->attributeDamageBonus = dmgEvent->preVarianceDamage * (attribDamageMod / 2.0);
+			dmgEvent->attributeDamageBonus = dmgEvent->baseDamage * (attribDamageMod / 2.0);
 		else
-			dmgEvent->attributeDamageBonus = dmgEvent->preVarianceDamage * (attribDamageMod - 1.0);
+			dmgEvent->attributeDamageBonus = dmgEvent->baseDamage * (attribDamageMod - 1.0);
 		break;
 	}
 	case DF_MAGIC:
@@ -90,9 +107,14 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 void CalculateSkillDamageBonus(DamageEventData *dmgEvent, SpellCastData *spellData)
 {
 	if (!dmgEvent)
+	{
 		return;
-	if (!dmgEvent->source)
+	}
+	std::shared_ptr<CWeenieObject> pSource = dmgEvent->source.lock();
+	if (!pSource)
+	{
 		return;
+	}
 
 	switch (dmgEvent->damage_form)
 	{
@@ -109,7 +131,7 @@ void CalculateSkillDamageBonus(DamageEventData *dmgEvent, SpellCastData *spellDa
 			//Skill based damage bonus: This additional damage will be a constant percentage of the minimum damage value.
 			//The percentage is determined by comparing the level of the spell against the buffed war magic skill of the character.
 			//Note that creatures do not receive this bonus.
-			if (dmgEvent->source->AsPlayer())
+			if (pSource->AsPlayer())
 			{
 				float minDamage = (float)meta->_baseIntensity;
 
@@ -131,11 +153,24 @@ void CalculateSkillDamageBonus(DamageEventData *dmgEvent, SpellCastData *spellDa
 void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellData)
 {
 	if (!dmgEvent)
+	{
 		return;
-	if (!dmgEvent->source)
+	}
+	std::shared_ptr<CWeenieObject> pSource = dmgEvent->source.lock();
+	if (!pSource)
+	{
 		return;
-	if (!dmgEvent->target)
+	}
+	std::shared_ptr<CWeenieObject> pTarget = dmgEvent->target.lock();
+	if (!pTarget)
+	{
 		return;
+	}
+	std::shared_ptr<CWeenieObject> pWeapon = dmgEvent->weapon.lock();
+	if (!pWeapon)
+	{
+		return;
+	}
 
 	DWORD imbueEffects;
 
@@ -145,16 +180,16 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 		dmgEvent->critChance = 0.1;
 		dmgEvent->critMultiplier = 1.0;
 
-		if (!dmgEvent->weapon)
+		if (!pWeapon)
 			return;
 
-		imbueEffects = dmgEvent->weapon->GetImbueEffects();
+		imbueEffects = pWeapon->GetImbueEffects();
 
-		if (dmgEvent->weapon->GetBitingStrikeFrequency())
-			dmgEvent->critChance = dmgEvent->weapon->GetBitingStrikeFrequency();
+		if (pWeapon->GetBitingStrikeFrequency())
+			dmgEvent->critChance = pWeapon->GetBitingStrikeFrequency();
 
-		if (dmgEvent->weapon->GetCrushingBlowMultiplier())
-			dmgEvent->critMultiplier += dmgEvent->weapon->GetCrushingBlowMultiplier();
+		if (pWeapon->GetCrushingBlowMultiplier())
+			dmgEvent->critMultiplier += pWeapon->GetCrushingBlowMultiplier();
 
 		if (imbueEffects & CriticalStrike_ImbuedEffectType)
 			dmgEvent->critChance += GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 0.5);
@@ -169,16 +204,16 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 		dmgEvent->critChance = 0.1;
 		dmgEvent->critMultiplier = 1.0;
 
-		if (!dmgEvent->weapon)
+		if (!pWeapon)
 			return;
 
-		imbueEffects = dmgEvent->weapon->GetImbueEffects();
+		imbueEffects = pWeapon->GetImbueEffects();
 
-		if (dmgEvent->weapon->GetBitingStrikeFrequency())
-			dmgEvent->critChance = dmgEvent->weapon->GetBitingStrikeFrequency();
+		if (pWeapon->GetBitingStrikeFrequency())
+			dmgEvent->critChance = pWeapon->GetBitingStrikeFrequency();
 
-		if (dmgEvent->weapon->GetCrushingBlowMultiplier())
-			dmgEvent->critMultiplier += dmgEvent->weapon->GetCrushingBlowMultiplier();
+		if (pWeapon->GetCrushingBlowMultiplier())
+			dmgEvent->critMultiplier += pWeapon->GetCrushingBlowMultiplier();
 
 		if (imbueEffects & CriticalStrike_ImbuedEffectType)
 			dmgEvent->critChance += GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 0.5);
@@ -193,18 +228,22 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 		dmgEvent->critChance = 0.05;
 		dmgEvent->critMultiplier = 0.5;
 
-		if (!dmgEvent->weapon)
+		if (!pWeapon)
+		{
 			return;
+		}
 		if (!spellData)
+		{
 			return;
+		}
 
-		imbueEffects = dmgEvent->weapon->GetImbueEffects();
+		imbueEffects = pWeapon->GetImbueEffects();
 
-		if(dmgEvent->weapon->GetBitingStrikeFrequency())
-		dmgEvent->critChance = dmgEvent->weapon->GetBitingStrikeFrequency();
+		if (pWeapon->GetBitingStrikeFrequency())
+			dmgEvent->critChance = pWeapon->GetBitingStrikeFrequency();
 
-		if(dmgEvent->weapon->GetCrushingBlowMultiplier())
-		dmgEvent->critMultiplier += dmgEvent->weapon->GetCrushingBlowMultiplier();
+		if (pWeapon->GetCrushingBlowMultiplier())
+			dmgEvent->critMultiplier += pWeapon->GetCrushingBlowMultiplier();
 
 		if (dmgEvent->attackSkill == WAR_MAGIC_SKILL)
 		{
@@ -212,7 +251,7 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 			//Imbue and slayer effects for War Magic now scale from minimum effectiveness at 125 to 
 			//maximum effectiveness at 360 skill instead of from 150 to 400 skill(PvM only).
 
-			bool isPvP = dmgEvent->source->AsPlayer() && dmgEvent->target->AsPlayer();
+			bool isPvP = pSource->AsPlayer() && pTarget->AsPlayer();
 
 			if (imbueEffects & CriticalStrike_ImbuedEffectType)
 			{
@@ -245,21 +284,34 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 void CalculateSlayerData(DamageEventData *dmgEvent)
 {
 	if (!dmgEvent)
+	{
 		return;
-	if (!dmgEvent->source)
+	}
+	std::shared_ptr<CWeenieObject> pSource = dmgEvent->source.lock();
+	if (!pSource)
+	{
 		return;
-	if (!dmgEvent->target)
+	}
+	std::shared_ptr<CWeenieObject> pTarget = dmgEvent->target.lock();
+	if (!pTarget)
+	{
 		return;
-	if (!dmgEvent->weapon)
+	}
+	std::shared_ptr<CWeenieObject> pWeapon = dmgEvent->weapon.lock();
+	if (!pWeapon)
+	{
 		return;
+	}
 
 	if (dmgEvent->damage_form == DF_MAGIC && !dmgEvent->isProjectileSpell)
+	{
 		return; //non projectile spells do not benefit from the slayer property.
+	}
 
 	double slayerDamageMod = 0.0;
-	int slayerType = dmgEvent->weapon->InqIntQuality(SLAYER_CREATURE_TYPE_INT, 0, TRUE);
-	if (slayerType && slayerType == dmgEvent->target->InqIntQuality(CREATURE_TYPE_INT, 0, TRUE))
-		slayerDamageMod = dmgEvent->weapon->InqFloatQuality(SLAYER_DAMAGE_BONUS_FLOAT, 0.0, FALSE);
+	int slayerType = pWeapon->InqIntQuality(SLAYER_CREATURE_TYPE_INT, 0, TRUE);
+	if (slayerType && slayerType == pTarget->InqIntQuality(CREATURE_TYPE_INT, 0, TRUE))
+		slayerDamageMod = pWeapon->InqFloatQuality(SLAYER_DAMAGE_BONUS_FLOAT, 0.0, FALSE);
 
 	if (slayerDamageMod > 0.0)
 		dmgEvent->slayerDamageBonus = dmgEvent->baseDamage * (slayerDamageMod - 1.0);
@@ -268,59 +320,91 @@ void CalculateSlayerData(DamageEventData *dmgEvent)
 void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 {
 	if (!dmgEvent)
+	{
 		return;
-	if (!dmgEvent->source)
+	}
+	std::shared_ptr<CWeenieObject> pSource = dmgEvent->source.lock();
+	if (!pSource)
+	{
 		return;
+	}
+	if (!pSource)
+		return;
+	std::shared_ptr<CWeenieObject> pWeapon = dmgEvent->weapon.lock();
+	if (!pWeapon)
+	{
+		return;
+	}
 
-	dmgEvent->ignoreMagicResist = dmgEvent->source->InqBoolQuality(IGNORE_MAGIC_RESIST_BOOL, FALSE);
-	dmgEvent->ignoreMagicArmor = dmgEvent->source->InqBoolQuality(IGNORE_MAGIC_ARMOR_BOOL, FALSE);
 
-	if (!dmgEvent->weapon)
-		return;
+	dmgEvent->ignoreMagicResist = pSource->InqBoolQuality(IGNORE_MAGIC_RESIST_BOOL, FALSE);
+	dmgEvent->ignoreMagicArmor = pSource->InqBoolQuality(IGNORE_MAGIC_ARMOR_BOOL, FALSE);
 
 	if (!dmgEvent->ignoreMagicResist)
-		dmgEvent->ignoreMagicResist = dmgEvent->weapon->InqBoolQuality(IGNORE_MAGIC_RESIST_BOOL, FALSE);
+	{
+		dmgEvent->ignoreMagicResist = pWeapon->InqBoolQuality(IGNORE_MAGIC_RESIST_BOOL, FALSE);
+	}
 
 	if (!dmgEvent->ignoreMagicArmor)
-		dmgEvent->ignoreMagicArmor =dmgEvent->weapon->InqBoolQuality(IGNORE_MAGIC_ARMOR_BOOL, FALSE);
+	{
+		dmgEvent->ignoreMagicArmor = pWeapon->InqBoolQuality(IGNORE_MAGIC_ARMOR_BOOL, FALSE);
+	}
 
-	DWORD imbueEffects = dmgEvent->weapon->GetImbueEffects();
+	DWORD imbueEffects = pWeapon->GetImbueEffects();
 
 	if (imbueEffects & IgnoreAllArmor_ImbuedEffectType)
+	{
 		dmgEvent->ignoreArmorEntirely = true;
+	}
 
 	if (imbueEffects & ArmorRending_ImbuedEffectType)
+	{
 		dmgEvent->isArmorRending = true;
+	}
 
 	switch (dmgEvent->damage_type)
 	{
 	case SLASH_DAMAGE_TYPE:
 		if (imbueEffects & SlashRending_ImbuedEffectType)
+		{
 			dmgEvent->isElementalRending = true;
+		}
 		break;
 	case PIERCE_DAMAGE_TYPE:
 		if (imbueEffects & PierceRending_ImbuedEffectType)
+		{
 			dmgEvent->isElementalRending = true;
+		}
 		break;
 	case BLUDGEON_DAMAGE_TYPE:
 		if (imbueEffects & BludgeonRending_ImbuedEffectType)
+		{
 			dmgEvent->isElementalRending = true;
+		}
 		break;
 	case COLD_DAMAGE_TYPE:
 		if (imbueEffects & ColdRending_ImbuedEffectType)
+		{
 			dmgEvent->isElementalRending = true;
+		}
 		break;
 	case FIRE_DAMAGE_TYPE:
 		if (imbueEffects & FireRending_ImbuedEffectType)
+		{
 			dmgEvent->isElementalRending = true;
+		}
 		break;
 	case ACID_DAMAGE_TYPE:
 		if (imbueEffects & AcidRending_ImbuedEffectType)
+		{
 			dmgEvent->isElementalRending = true;
+		}
 		break;
 	case ELECTRIC_DAMAGE_TYPE:
 		if (imbueEffects & ElectricRending_ImbuedEffectType)
+		{
 			dmgEvent->isElementalRending = true;
+		}
 		break;
 	}
 

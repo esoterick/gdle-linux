@@ -25,13 +25,12 @@ CBuildingObj::~CBuildingObj()
 	// num_shadow = 0;  unused
 }
 
-CBuildingObj *CBuildingObj::makeBuilding(DWORD data_id, unsigned int _num_portals, CBldPortal **_portals, unsigned int _num_leaves)
+std::shared_ptr<CBuildingObj> CBuildingObj::makeBuilding(DWORD data_id, unsigned int _num_portals, CBldPortal **_portals, unsigned int _num_leaves)
 {
-	CBuildingObj *building = new CBuildingObj();
+	std::shared_ptr<CBuildingObj> building = (new CBuildingObj())->GetPointer(true)->AsBuilding();
 
 	if (!building->InitObjectBegin(0, FALSE) || !building->InitPartArrayObject(data_id, TRUE))
 	{
-		delete building;
 		return NULL;
 	}
 
@@ -47,7 +46,6 @@ CBuildingObj *CBuildingObj::makeBuilding(DWORD data_id, unsigned int _num_portal
 	
 	if (!building->InitObjectEnd())
 	{
-		delete building;
 		return NULL;
 	}
 
@@ -56,13 +54,13 @@ CBuildingObj *CBuildingObj::makeBuilding(DWORD data_id, unsigned int _num_portal
 
 void CBuildingObj::remove()
 {
-	((CSortCell *)cell)->remove_building(this);
+	((CSortCell *)cell)->remove_building(AsBuilding());
 
 	set_cell_id(0);
 	cell = NULL;
 }
 
-CPhysicsObj *CBuildingObj::get_object(DWORD obj_iid)
+std::shared_ptr<CPhysicsObj> CBuildingObj::get_object(DWORD obj_iid)
 {
 	PackableHashTable<unsigned long, int> visited_cells;
 
@@ -75,7 +73,7 @@ CPhysicsObj *CBuildingObj::get_object(DWORD obj_iid)
 				CEnvCell *pOtherCell = portals[i]->GetOtherCell();
 				if (pOtherCell)
 				{
-					CPhysicsObj *pObject = pOtherCell->recursively_get_object(obj_iid, &visited_cells);
+					std::shared_ptr<CPhysicsObj> pObject = pOtherCell->recursively_get_object(obj_iid, &visited_cells);
 					if (pObject)
 					{
 						return pObject;
@@ -90,7 +88,7 @@ CPhysicsObj *CBuildingObj::get_object(DWORD obj_iid)
 
 void CBuildingObj::add_to_cell(CSortCell *new_cell)
 {
-	new_cell->add_building(this);
+	new_cell->add_building(AsBuilding());
 
 	set_cell_id(new_cell->GetID());
 	cell = new_cell;

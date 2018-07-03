@@ -12,7 +12,7 @@ BOOL ScriptAndModData::UnPack(BYTE **ppData, ULONG iSize)
     return TRUE;
 }
 
-ScriptManager::ScriptManager(CPhysicsObj *pObject)
+ScriptManager::ScriptManager(std::shared_ptr<CPhysicsObj> pObject)
 {
     m_pOwner = pObject;
 
@@ -147,8 +147,13 @@ void ScriptManager::UpdateScripts()
     {
         CAnimHook *pNextHook = NextHook();
 
-        if (pNextHook)
-            pNextHook->Execute(m_pOwner);
+		if (pNextHook)
+		{
+			if (std::shared_ptr<CPhysicsObj> pOwner = m_pOwner.lock())
+			{
+				pNextHook->Execute(pOwner);
+			}
+		}
         else
         {
             ScriptManagerNode *pOldNode = m_pScriptsBegin;

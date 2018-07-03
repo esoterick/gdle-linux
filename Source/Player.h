@@ -29,7 +29,7 @@ public:
 
 	virtual void Tick() override;
 	
-	virtual class CPlayerWeenie *AsPlayer() { return this; }
+	virtual class std::shared_ptr<CPlayerWeenie> AsPlayer() { return std::static_pointer_cast<CPlayerWeenie>(GetPointer()); }
 
 	virtual bool IsAdvocate() override;
 	virtual bool IsSentinel() override;
@@ -38,7 +38,7 @@ public:
 
 	virtual void PreSpawnCreate() override;
 
-	void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD killerID);
+	void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pCorpse, DWORD killerID);
 
 	virtual void OnDeathAnimComplete() override;
 	virtual void OnDeath(DWORD killerID) override;
@@ -58,15 +58,15 @@ public:
 	virtual void NotifyInventoryFailedEvent(DWORD object_id, int error) override;
 	std::string ToUpperCase(std::string tName);
 
-	CWeenieObject *m_pCraftingTool;
-	CWeenieObject *m_pCraftingTarget;
+	std::weak_ptr<CWeenieObject> m_pCraftingTool;
+	std::weak_ptr<CWeenieObject> m_pCraftingTarget;
 
-	virtual int UseEx(CWeenieObject *pTool, CWeenieObject *pTarget);
+	virtual int UseEx(std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<CWeenieObject> pTarget);
 	virtual int UseEx(bool bConfirmed = false);
 
-	virtual bool CheckUseRequirements(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget);
-	virtual void PerformUseModifications(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem);
-	virtual void PerformUseModificationScript(DWORD scriptId, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem);
+	virtual bool CheckUseRequirements(int index, CCraftOperation *op, std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<CWeenieObject> pTarget);
+	virtual void PerformUseModifications(int index, CCraftOperation *op, std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<CWeenieObject> pTarget, std::shared_ptr<CWeenieObject> pCreatedItem);
+	virtual void PerformUseModificationScript(DWORD scriptId, CCraftOperation *op, std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<CWeenieObject> pTarget, std::shared_ptr<CWeenieObject> pCreatedItem);
 	virtual int CPlayerWeenie::GetMaterialMod(int material);
 
 	void PerformSalvaging(DWORD toolId, PackableList<DWORD> items);
@@ -79,14 +79,6 @@ public:
 
 	void HandleItemManaRequest(DWORD itemId);
 
-	//base virtuals
-
-	virtual void MarkForDestroy()
-	{
-		m_pClient = NULL;
-		CMonsterWeenie::MarkForDestroy();
-	}
-
 	//Movement overrides
 	//...
 
@@ -94,7 +86,7 @@ public:
 	//...
 
 	//Control events.
-	virtual void MakeAware(CWeenieObject *, bool bForceUpdate = false);
+	virtual void MakeAware(std::shared_ptr<CWeenieObject> , bool bForceUpdate = false);
 
 	void AddSpellByID(DWORD id);
 
@@ -108,7 +100,7 @@ public:
 	
 	virtual bool IsDead() override;
 
-	virtual DWORD OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot) override;
+	virtual DWORD OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> item, DWORD desired_slot) override;
 
 	void SetLastHealthRequest(DWORD guid);
 	void RemoveLastHealthRequest();
@@ -147,7 +139,7 @@ public:
 	bool ShareFellowshipXP() { return GetCharacterOptions() & FellowshipShareXP_CharacterOption ? true : false; }
 	bool ShareFellowshipLoot() { return GetCharacterOptions() & FellowshipShareLoot_CharacterOption ? true : false; }
 
-	virtual bool ImmuneToDamage(class CWeenieObject *other) override;
+	virtual bool ImmuneToDamage(class std::shared_ptr<CWeenieObject> other) override;
 
 	bool m_bAdminVision = false;
 	bool m_bPrivacyMode = false;
@@ -194,19 +186,29 @@ public:
 	virtual bool IsBusy() override;
 	virtual void OnTeleported() override;
 
-	CCorpseWeenie *_pendingCorpse = NULL;
+	std::weak_ptr<CCorpseWeenie> _pendingCorpse;
 	DWORD GetAccountHouseId();
 	
-	TradeManager *GetTradeManager();
-	void SetTradeManager(TradeManager *tradeManager);
+	std::shared_ptr<TradeManager> GetTradeManager();
+	void SetTradeManager(std::shared_ptr<TradeManager> tradeManager);
 
-	virtual void CPlayerWeenie::ReleaseContainedItemRecursive(CWeenieObject *item) override;
+	virtual void CPlayerWeenie::ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObject> item) override;
 
 	virtual void ChangeCombatMode(COMBAT_MODE mode, bool playerRequested) override;
 
 	void UpdatePKActivity() { m_iPKActivity = Timer::cur_time + 20; }
 	bool CheckPKActivity() { return m_iPKActivity > Timer::cur_time; }
 	void ClearPKActivity() { m_iPKActivity = Timer::cur_time; }
+
+	void AddCorpsePermission(std::shared_ptr<CPlayerWeenie> target);
+	void RemoveCorpsePermission(std::shared_ptr<CPlayerWeenie> target);
+	void UpdateCorpsePermissions();
+	void RemoveConsent(std::shared_ptr<CPlayerWeenie> target);
+	void DisplayConsent();
+	void ClearConsent();
+
+	std::unordered_map<std::shared_ptr<CPlayerWeenie>, int> m_umCorpsePermissions;
+	std::unordered_map<std::shared_ptr<CPlayerWeenie>, int> m_umConsentList;
 
 protected:
 	CClient *m_pClient;
@@ -215,7 +217,7 @@ protected:
 
 	double m_fNextMakeAwareCacheFlush = 0.0;
 	bool m_bAttackable = true;
-
+	double m_NextCorpsePermissionsUpdate = 0.0;
 	double m_NextSave = 0.0;
 
 	double m_NextHealthUpdate = 0.0;
@@ -226,7 +228,7 @@ protected:
 	Position _recallPos;
 	bool _isFirstPortalInSession = true;
 
-	TradeManager *m_pTradeManager = NULL;
+	std::shared_ptr<TradeManager> m_pTradeManager;
 	double m_fNextTradeCheck = 0;
 
 private:

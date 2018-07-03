@@ -919,9 +919,9 @@ void CTreasureFactory::Initialize()
 	SERVER_INFO << "Finished loading treasure generation profile";
 }
 
-CWeenieObject *CreateFromEntry(PackableList<TreasureEntry>::iterator entry, unsigned int ptid, float shade)
+std::shared_ptr<CWeenieObject> CreateFromEntry(PackableList<TreasureEntry>::iterator entry, unsigned int ptid, float shade)
 {
-	if (CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(entry->_wcid))
+	if (std::shared_ptr<CWeenieObject> newItem = g_pWeenieFactory->CreateWeenieByClassID(entry->_wcid))
 	{
 		if (entry->_amount > 1)
 		{
@@ -990,9 +990,14 @@ int ProcessList(PackableList<TreasureEntry> *treasureList, int index, SItemListC
 
 		if (diceRoll <= chance)
 		{
-			if (CWeenieObject *newItem = CreateFromEntry(entry, creationData.ptid, creationData.shade))
+			if (std::shared_ptr<CWeenieObject> newItem = CreateFromEntry(entry, creationData.ptid, creationData.shade))
 			{
-				g_pWeenieFactory->AddWeenieToDestination(newItem, creationData.parent, creationData.destinationType, creationData.isRegenLocationType, creationData.profile);
+				std::shared_ptr<CWeenieObject> pParent = std::shared_ptr<CWeenieObject>(creationData.parent.lock());
+				if (!pParent)
+				{
+					continue;
+				}
+				g_pWeenieFactory->AddWeenieToDestination(newItem, pParent, creationData.destinationType, creationData.isRegenLocationType, creationData.profile);
 				creationData.amountCreated++;
 				alreadySpawnedInThisSet = true;
 
@@ -1038,7 +1043,7 @@ int ProcessList(PackableList<TreasureEntry> *treasureList, int index, SItemListC
 	return (int)treasureList->size();
 }
 
-int CTreasureFactory::GenerateFromTypeOrWcid(CWeenieObject *parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid, float shade, const GeneratorProfile *profile)
+int CTreasureFactory::GenerateFromTypeOrWcid(std::shared_ptr<CWeenieObject> parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid, float shade, const GeneratorProfile *profile)
 {
 	int amountCreated = 0;
 	bool isTreasureType = false;
@@ -1105,7 +1110,7 @@ int CTreasureFactory::GenerateFromTypeOrWcid(CWeenieObject *parent, int destinat
 	else
 	{
 		//we're a wcid
-		if (CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(treasureTypeOrWcid))
+		if (std::shared_ptr<CWeenieObject> newItem = g_pWeenieFactory->CreateWeenieByClassID(treasureTypeOrWcid))
 		{
 			g_pWeenieFactory->AddWeenieToDestination(newItem, parent, destinationType, isRegenLocationType, profile);
 			amountCreated++;
@@ -1115,7 +1120,7 @@ int CTreasureFactory::GenerateFromTypeOrWcid(CWeenieObject *parent, int destinat
 	return amountCreated;
 }
 
-int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid, float shade, const GeneratorProfile * profile)
+int CTreasureFactory::GenerateFromType(CTreasureType *type, std::shared_ptr<CWeenieObject>  parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid, float shade, const GeneratorProfile * profile)
 {
 	int amountCreated = 0;
 	int tierId = type->tier;
@@ -1208,7 +1213,7 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * pare
 	{
 		if (getRandomNumberExclusive(100) < lootChance * 100)
 		{
-			if (CWeenieObject *newItem = GenerateTreasure(tierId, tier->GetRandomTreasureCategory(), qualityModifier))
+			if (std::shared_ptr<CWeenieObject> newItem = GenerateTreasure(tierId, tier->GetRandomTreasureCategory(), qualityModifier))
 			{
 				g_pWeenieFactory->AddWeenieToDestination(newItem, parent, destinationType, isRegenLocationType, profile);
 				amountCreated++;
@@ -1220,7 +1225,7 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * pare
 	{
 		if (getRandomNumberExclusive(100) < mundaneLootChance * 100)
 		{
-			if (CWeenieObject *newItem = GenerateMundaneItem(tier))
+			if (std::shared_ptr<CWeenieObject> newItem = GenerateMundaneItem(tier))
 			{
 				g_pWeenieFactory->AddWeenieToDestination(newItem, parent, destinationType, isRegenLocationType, profile);
 				amountCreated++;
@@ -1230,7 +1235,7 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * pare
 
 	if (getRandomNumberExclusive(100) < tier->scrollLootChance * 100)
 	{
-		if (CWeenieObject *newItem = GenerateScroll(tier))
+		if (std::shared_ptr<CWeenieObject> newItem = GenerateScroll(tier))
 		{
 			g_pWeenieFactory->AddWeenieToDestination(newItem, parent, destinationType, isRegenLocationType, profile);
 			amountCreated++;
@@ -1239,7 +1244,7 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * pare
 	return amountCreated;
 }
 
-CWeenieObject *CTreasureFactory::GenerateMundaneItem(CTreasureTier *tier)
+std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateMundaneItem(CTreasureTier *tier)
 {
 	int miscItemWcid = 0;
 	if (tier->miscItemsCategories.size() == 0)
@@ -1261,7 +1266,7 @@ CWeenieObject *CTreasureFactory::GenerateMundaneItem(CTreasureTier *tier)
 	return NULL;
 }
 
-CWeenieObject *CTreasureFactory::GenerateScroll(CTreasureTier *tier)
+std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateScroll(CTreasureTier *tier)
 {
 	int scrollWcid = 0;
 	if (tier->scrollCategories.size() == 0)
@@ -1283,7 +1288,7 @@ CWeenieObject *CTreasureFactory::GenerateScroll(CTreasureTier *tier)
 	return NULL;
 }
 
-CWeenieObject *CTreasureFactory::GenerateJunk()
+std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateJunk()
 {
 	int miscItemWcid = 0;
 	std::string miscCategory;
@@ -1307,7 +1312,7 @@ CWeenieObject *CTreasureFactory::GenerateJunk()
 	return NULL;
 }
 
-CWeenieObject *CTreasureFactory::GenerateTreasure(int tierId, eTreasureCategory treasureCategory, double qualityModifier)
+std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateTreasure(int tierId, eTreasureCategory treasureCategory, double qualityModifier)
 {
 	if (!_TreasureProfile)
 		return NULL;
@@ -1375,7 +1380,7 @@ CWeenieObject *CTreasureFactory::GenerateTreasure(int tierId, eTreasureCategory 
 
 		CItemTreasureProfileEntry *entry = &category->entries[getRandomNumberExclusive((int)category->entries.size())];
 
-		CWeenieObject *weenie;
+		std::shared_ptr<CWeenieObject> weenie;
 		if (weenie = g_pWeenieFactory->CreateWeenieByClassID(entry->wcid))
 		{
 			if (MutateItem(weenie, creationInfo, tier, category, entry))
@@ -1386,7 +1391,7 @@ CWeenieObject *CTreasureFactory::GenerateTreasure(int tierId, eTreasureCategory 
 	return NULL;
 }
 
-bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+bool CTreasureFactory::MutateItem(std::shared_ptr<CWeenieObject> newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	ITEM_TYPE itemType = (ITEM_TYPE)newItem->InqIntQuality(ITEM_TYPE_INT, TYPE_UNDEF, true);
 
@@ -1728,7 +1733,7 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 	return true;
 }
 
-void CTreasureFactory::MutateWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateWeapon(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	if (entry->weaponSkill != UNDEF_SKILL)
 	{
@@ -1779,7 +1784,7 @@ void CTreasureFactory::MutateWeapon(CWeenieObject *newItem, CWieldTier *wieldTie
 	}
 }
 
-void CTreasureFactory::MutateMeleeWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateMeleeWeapon(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	newItem->m_Qualities.SetInt(DAMAGE_INT, newItem->InqIntQuality(DAMAGE_INT, 0, TRUE) + getRandomNumber(wieldTier->minDamageBonus, wieldTier->maxDamageBonus, eRandomFormula::favorMid, 2, creationInfo.qualityModifier));
 	newItem->m_Qualities.SetFloat(DAMAGE_VARIANCE_FLOAT, round(getRandomDouble(1.f - wieldTier->highVariance, 1.f - wieldTier->lowVariance, eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2));
@@ -1843,7 +1848,7 @@ void CTreasureFactory::MutateMeleeWeapon(CWeenieObject *newItem, CWieldTier *wie
 	}
 }
 
-void CTreasureFactory::MutateMissileWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateMissileWeapon(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	newItem->m_Qualities.SetFloat(DAMAGE_MOD_FLOAT, round(newItem->InqFloatQuality(DAMAGE_MOD_FLOAT, 1.0, TRUE) + getRandomDouble(wieldTier->minDamageModBonus, wieldTier->maxDamageModBonus, eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2));
 
@@ -1907,7 +1912,7 @@ void CTreasureFactory::MutateMissileWeapon(CWeenieObject *newItem, CWieldTier *w
 	}
 }
 
-void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateCaster(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	if (wieldTier->weaponSkillRequired > 0)
 	{
@@ -1970,37 +1975,37 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 			case acid:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, ACID_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_ACID);
-				newItem->m_Qualities.SetString(NAME_STRING, "Searing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Acid " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case cold:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, COLD_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_FROST);
-				newItem->m_Qualities.SetString(NAME_STRING, "Freezing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Frost " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case fire:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, FIRE_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_FIRE);
-				newItem->m_Qualities.SetString(NAME_STRING, "Flaming " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Fire " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case lightning:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, ELECTRIC_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_LIGHTNING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Zapping " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Electric " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case bludgeoning:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, BLUDGEON_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_BLUDGEONING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Smashing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Blunt " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case piercing:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, PIERCE_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_PIERCING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Prickly " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Piercing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			case slashing:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, SLASH_DAMAGE_TYPE);
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_SLASHING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Slicing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
+				newItem->m_Qualities.SetString(NAME_STRING, "Slashing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
 			}
 		}
@@ -2018,7 +2023,7 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 }
 
 
-void CTreasureFactory::MutateGem(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateGem(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {	
 	if (!entry->elementalVariants.empty())
 	{
@@ -2039,7 +2044,7 @@ void CTreasureFactory::MutateGem(CWeenieObject *newItem, CWieldTier *wieldTier, 
 	}
 }
 
-void CTreasureFactory::MutateArmor(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateArmor(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	int encumbValue = newItem->InqIntQuality(ENCUMB_VAL_INT, 0, TRUE);
 	if (encumbValue)
@@ -2158,7 +2163,7 @@ std::vector<CPossibleSpells> CTreasureFactory::MergeSpellLists(std::vector<CPoss
 	return mergedList;
 }
 
-void CTreasureFactory::AddSpells(CWeenieObject *newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::AddSpells(std::shared_ptr<CWeenieObject> newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	ITEM_TYPE itemType = (ITEM_TYPE)newItem->InqIntQuality(ITEM_TYPE_INT, TYPE_UNDEF, true);
 	INVENTORY_LOC coveredAreas = (INVENTORY_LOC)newItem->InqIntQuality(LOCATIONS_INT, NONE_LOC, TRUE);
@@ -2325,7 +2330,7 @@ void CTreasureFactory::AddSpells(CWeenieObject *newItem, sItemCreationInfo &crea
 	}
 }
 
-void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpells> possibleSpellsTemplate, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::AddSpell(std::shared_ptr<CWeenieObject> newItem, std::vector<CPossibleSpells> possibleSpellsTemplate, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	if (possibleSpellsTemplate.size() == 0)
 		return;
@@ -2553,7 +2558,7 @@ void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpe
 	}
 }
 
-//bool CTreasureFactory::AddTreasureToContainerInferred(CContainerWeenie *container, DWORD treasureType)
+//bool CTreasureFactory::AddTreasureToContainerInferred(std::shared_ptr<CContainerWeenie> container, DWORD treasureType)
 //{
 //	TreasureEntry2 *entry = g_pPortalDataEx->_treasureTableData.GetTreasureGenerationProfile(treasureType);
 //	if (!entry)
@@ -2567,7 +2572,7 @@ void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpe
 //	int itemCount = getRandomNumber(entry->_itemMinAmount, entry->_itemMaxAmount);
 //	for (int i = 0; i < itemCount; i++)
 //	{
-//		CWeenieObject *newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(0, entry->_itemTreasureTypeSelectionChances), qualityModifier);
+//		std::shared_ptr<CWeenieObject> newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(0, entry->_itemTreasureTypeSelectionChances), qualityModifier);
 //		if (newItem)
 //		{
 //			g_pWorld->CreateEntity(newItem);
@@ -2579,7 +2584,7 @@ void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpe
 //	int magicItemCount = getRandomNumber(entry->_magicItemMinAmount, entry->_magicItemMaxAmount);
 //	for (int i = 0; i < magicItemCount; i++)
 //	{
-//		CWeenieObject *newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(1, entry->_magicItemTreasureTypeSelectionChances), qualityModifier);
+//		std::shared_ptr<CWeenieObject> newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(1, entry->_magicItemTreasureTypeSelectionChances), qualityModifier);
 //		if (newItem)
 //		{
 //			g_pWorld->CreateEntity(newItem);
@@ -2591,7 +2596,7 @@ void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpe
 //	int mundaneItemCount = getRandomNumber(entry->_mundaneItemMinAmount, entry->_mundaneItemMaxAmount);
 //	for (int i = 0; i < mundaneItemCount; i++)
 //	{
-//		CWeenieObject *newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(2, entry->_mundaneItemTypeSelectionChances), qualityModifier);
+//		std::shared_ptr<CWeenieObject> newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(2, entry->_mundaneItemTypeSelectionChances), qualityModifier);
 //		if (newItem)
 //		{
 //			g_pWorld->CreateEntity(newItem);
@@ -2603,7 +2608,7 @@ void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpe
 //	return true;
 //}
 //
-//CWeenieObject *CTreasureFactory::GenerateMundaneItemInferred(int tierId, eTreasureCategory treasureCategory)
+//std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateMundaneItemInferred(int tierId, eTreasureCategory treasureCategory)
 //{
 //	DWORD wcid = 0;
 //	switch (treasureCategory)
