@@ -1374,7 +1374,7 @@ void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 {
 	std::shared_ptr<CWeenieObject> pSource = damageData.source.lock();
 	
-	if (pSource && damageData.outputDamageFinal > 0 && damageData.damage_type == HEALTH_DAMAGE_TYPE) // only interested in health damage
+	if (pSource && damageData.outputDamageFinal > 0 && damageData.damage_type != STAMINA_DAMAGE_TYPE && damageData.damage_type != MANA_DAMAGE_TYPE) // only interested in damage done to HP
 	{
 		DWORD source = pSource->GetID();
 
