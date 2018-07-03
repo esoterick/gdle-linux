@@ -759,7 +759,7 @@ void CSpellcastingManager::PerformCastParticleEffects()
 	// target effect
 	if (m_SpellCastData.spell->_target_effect)
 	{
-		if ((m_SpellCastData.spell->_school == 3) && (GetCastSource() == GetCastTarget()))
+		if ((m_SpellCastData.spell->_category == 162 || m_SpellCastData.spell->_category == 164 || m_SpellCastData.spell->_category == 166 || m_SpellCastData.spell->_category == 168 || m_SpellCastData.spell->_category == 170 || m_SpellCastData.spell->_category == 172 || m_SpellCastData.spell->_category == 174 || m_SpellCastData.spell->_category == 160) && (m_SpellCastData.source_id == m_SpellCastData.target_id))
 		{
 			return;
 		}
@@ -1878,6 +1878,12 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 								target->SendText(csprintf("%s cast %s on you", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 							else
 								topLevelOwner->SendText(csprintf("%s cast %s on %s", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+
+							// Cast on Strike
+							if (pWeenie != topLevelOwner)
+							{
+								pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+							}
 						}
 					}
 
