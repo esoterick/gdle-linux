@@ -1870,7 +1870,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 					}
 					else
 					{
-						pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+						// pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 
 						if (pWeenie != topLevelOwner)
 						{
@@ -1879,11 +1879,8 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 							else
 								topLevelOwner->SendText(csprintf("%s cast %s on %s", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 
-							// Cast on Strike
-							if (pWeenie != topLevelOwner)
-							{
+							// Cast on Strike and other buffs
 								pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
-							}
 						}
 					}
 

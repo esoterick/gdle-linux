@@ -126,6 +126,11 @@ struct DamageEventData
 	double armorRendingMultiplier = 0.0;
 	bool isElementalRending = false;
 	double rendingMultiplier = 0.0;
+	bool isResistanceCleaving = false;
+	double cleavingModifier = 0.0;
+	int cleavingType = 0;
+	bool isArmorCleaving = false;
+	double armorCleavingModifier = 0.0;
 
 	std::string GetSourceName();
 	std::string GetTargetName();

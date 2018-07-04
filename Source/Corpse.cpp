@@ -44,17 +44,18 @@ int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
 	{
 		DWORD killerId = InqIIDQuality(KILLER_IID, 0);
 		DWORD victimId = InqIIDQuality(VICTIM_IID, 0);
+		bool killedByPK = m_Qualities.GetBool(PK_KILLER_BOOL, 0);
 		if (killerId == other->GetID() || victimId == other->GetID())
 		{
 			return WERROR_NONE;
 		}
-		if (_begin_destroy_at - (CORPSE_EXIST_TIME/2) <= Timer::cur_time) // If the corpse hasn't been opened after half its life, open to anyone
+		if (!killedByPK && _begin_destroy_at - (CORPSE_EXIST_TIME/2) <= Timer::cur_time) // If the corpse hasn't been opened after half its life, open to anyone
 		{
 			return WERROR_NONE;
 		}
 		std::shared_ptr<CPlayerWeenie> owner = g_pWorld->FindPlayer(victimId);
 		std::shared_ptr<CPlayerWeenie> looter = other->AsPlayer();
-		bool killedByPK = m_Qualities.GetBool(PK_KILLER_BOOL, 0);
+
 		if (owner && !killedByPK && looter) // Make sure we're both players & don't let corpse permissions work on PK kills
 		{
 			if (!owner->m_umCorpsePermissions.empty()) // if the corpse owner has players on their permissions list
