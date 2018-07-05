@@ -72,14 +72,15 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 	{
 		return;
 	}
-
+	
+	std::shared_ptr<CWeenieObject> weapon = dmgEvent->weapon.lock();
 	switch (dmgEvent->damage_form)
 	{
 	case DF_MELEE:
 	case DF_MISSILE:
 	{
 		DWORD attrib = 0;
-		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL)
+		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL && (weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) !=  Atlatl_CombatStyle) && (weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle) && (weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownShield_CombatStyle))
 		{
 			pSource->m_Qualities.InqAttribute(COORDINATION_ATTRIBUTE, attrib, FALSE);
 		}
