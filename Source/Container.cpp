@@ -1387,7 +1387,7 @@ void CContainerWeenie::InventoryTick()
 
 		if (!pItem)
 		{
-			m_Wielded.erase(wielded);
+			wielded = m_Wielded.erase(wielded);
 		}
 		else
 		{
@@ -1396,9 +1396,8 @@ void CContainerWeenie::InventoryTick()
 #ifdef _DEBUG
 			pItem->DebugValidate();
 #endif
+			wielded++;
 		}
-
-		wielded++;
 	}
 
 	auto item = m_Items.begin();
@@ -1408,7 +1407,7 @@ void CContainerWeenie::InventoryTick()
 
 		if (!pItem)
 		{
-			m_Items.erase(item);
+			item = m_Items.erase(item);
 		}
 		else
 		{
@@ -1417,8 +1416,8 @@ void CContainerWeenie::InventoryTick()
 #ifdef _DEBUG
 			pItem->DebugValidate();
 #endif
+			item++;
 		}
-		item++;
 	}
 
 	auto pack = m_Packs.begin();
@@ -1428,7 +1427,7 @@ void CContainerWeenie::InventoryTick()
 
 		if (!pItem)
 		{
-			m_Packs.erase(pack);
+			pack = m_Packs.erase(pack);
 		}
 		else
 		{
@@ -1437,9 +1436,8 @@ void CContainerWeenie::InventoryTick()
 #ifdef _DEBUG
 			pItem->DebugValidate();
 #endif
+			pack++;
 		}
-
-		pack++;
 	}
 }
 
