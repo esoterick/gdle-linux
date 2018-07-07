@@ -1870,8 +1870,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 					}
 					else
 					{
-						// pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
-
+						 
 						if (pWeenie != topLevelOwner)
 						{
 							if (target == topLevelOwner)
@@ -1882,6 +1881,8 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 							// Cast on Strike and other buffs
 								pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 						}
+						else
+							pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 					}
 
 					bSpellPerformed = true;
@@ -3387,6 +3388,16 @@ void CSpellcastingManager::Update()
 	{
 		EndCast(WERROR_MAGIC_GENERAL_FAILURE);
 		m_bCasting = false;
+	}
+
+	if (pWeenie->IsInPeaceMode())
+	{
+		// fizzle if you're no longer in combat mode.
+		pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
+		pWeenie->AdjustMana(-5);
+
+		int error = LaunchSpellEffect(TRUE);
+		EndCast(error);
 	}
 
 	if ((m_SpellCastData.next_update <= Timer::cur_time) && m_bTurned && pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
