@@ -72,14 +72,15 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 	{
 		return;
 	}
-
+	
+	std::shared_ptr<CWeenieObject> weapon = dmgEvent->weapon.lock();
 	switch (dmgEvent->damage_form)
 	{
 	case DF_MELEE:
 	case DF_MISSILE:
 	{
 		DWORD attrib = 0;
-		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL)
+		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL && (weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) !=  Atlatl_CombatStyle) && (weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle) && (weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownShield_CombatStyle))
 		{
 			pSource->m_Qualities.InqAttribute(COORDINATION_ATTRIBUTE, attrib, FALSE);
 		}
@@ -426,6 +427,27 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		}
 	}
 
+	if (pWeapon->InqIntQuality(RESISTANCE_MODIFIER_TYPE_INT, 0, FALSE))
+		dmgEvent->isResistanceCleaving = TRUE;
+
+	if (dmgEvent->isResistanceCleaving)
+	{
+		switch (dmgEvent->damage_form)
+		{
+		case DF_MELEE:
+			dmgEvent->rendingMultiplier = 2.5;
+			break;
+		case DF_MISSILE:
+			dmgEvent->rendingMultiplier = 2.25;
+			break;
+		case DF_MAGIC:
+			dmgEvent->rendingMultiplier = 2.25;
+			break;
+		default:
+			return;
+		}
+	}
+
 	if (dmgEvent->isArmorRending)
 	{
 		switch (dmgEvent->damage_form)
@@ -434,6 +456,24 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 			dmgEvent->armorRendingMultiplier = 1.0 / max(GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 400, 2.5), 1.0f);
 		case DF_MISSILE:
 			dmgEvent->armorRendingMultiplier = 1.0 / max(0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 360, 2.25), 1.0f);
+			break;
+		case DF_MAGIC:
+		default:
+			return;
+		}
+	}
+
+	if (pWeapon->InqFloatQuality(IGNORE_ARMOR_FLOAT, 0, FALSE))
+		dmgEvent->isArmorCleaving = TRUE;
+
+	if (dmgEvent->isArmorCleaving)
+	{
+		switch (dmgEvent->damage_form)
+		{
+		case DF_MELEE:
+			dmgEvent->armorRendingMultiplier = 1.0 /  2.5;
+		case DF_MISSILE:
+			dmgEvent->armorRendingMultiplier = 1.0 / 2.25;
 			break;
 		case DF_MAGIC:
 		default:

@@ -132,7 +132,7 @@ void CObjCell::remove_object(std::shared_ptr<CPhysicsObj> pObject)
 void CObjCell::add_shadow_object(CShadowObj *_object, unsigned int num_shadow_cells)
 {
 	shadow_object_list.ensure_space(num_shadow_objects + 1, 5);
-	shadow_object_list.data[num_shadow_objects] = _object;
+	shadow_object_list.array_data[num_shadow_objects] = _object;
 	num_shadow_objects++;
 	_object->cell = this;
 }
@@ -430,7 +430,7 @@ int CObjCell::check_collisions(std::shared_ptr<CPhysicsObj> object)
 {
 	for (DWORD i = 0; i < num_shadow_objects; i++)
 	{
-		std::shared_ptr<CPhysicsObj> pobj = shadow_object_list.data[i]->physobj.lock();
+		std::shared_ptr<CPhysicsObj> pobj = shadow_object_list.array_data[i]->physobj.lock();
 		if (!pobj->parent.lock() && pobj != object && pobj->check_collision(object))
 			return 1;
 	}
@@ -442,7 +442,7 @@ void CObjCell::release_objects()
 {
 	while (num_shadow_objects)
 	{
-		CShadowObj *obj = shadow_object_list.data[0];
+		CShadowObj *obj = shadow_object_list.array_data[0];
 		remove_shadow_object(obj);
 
 		if (std::shared_ptr<CPhysicsObj> pPhysObj = obj->physobj.lock())
@@ -462,7 +462,7 @@ void CObjCell::release_objects()
 
 		for (DWORD i = 0; i < num_objects; i++)
 		{
-			if (std::shared_ptr<CPhysicsObj> pObj = object_list.data[i].lock())
+			if (std::shared_ptr<CPhysicsObj> pObj = object_list.array_data[i].lock())
 			{
 				objs_to_leave.push_back(pObj);
 			}

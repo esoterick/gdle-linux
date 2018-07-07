@@ -627,10 +627,10 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 				continue;
 			}
 
-			if (pNearby->AsMonster())
+			if (pNearby->AsMonster() && !pNearby->m_Qualities.GetInt(RADARBLIP_COLOR_INT, 0) == 8)
 			{
 				// only cleave players if attacking a player
-				if (pNearby->AsPlayer() && !target->AsPlayer() && !(pWeenie->IsPK() && target->IsPK()) && !(pWeenie->IsPKLite() && target->IsPKLite())) 
+				if (pNearby->AsPlayer() && !target->AsPlayer() && !(pWeenie->IsPK() && target->IsPK()) && !(pWeenie->IsPKLite() && target->IsPKLite()))
 				{
 					continue;
 				}
@@ -638,11 +638,13 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 				double angle = pNearby->HeadingFrom(pWeenie, true);
 
-				if ( angle <= CLEAVING_ATTACK_ANGLE / 2 )
+				if (angle <= CLEAVING_ATTACK_ANGLE / 2)
 				{
 					lpTargets.push_back(pNearby);
 				}
 			}
+			else
+				continue;
 		}
 
 		// we've already hit one

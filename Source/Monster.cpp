@@ -2155,6 +2155,12 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 
 DWORD CMonsterWeenie::OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> item, DWORD desired_slot)
 {
+	if (GetName() == "Garbage Barrel")
+	{
+		g_pWorld->RemoveEntity(item);
+		return 0;
+	}
+
 	if (source != AsWeenie())
 	{
 		bool accepted = false;
