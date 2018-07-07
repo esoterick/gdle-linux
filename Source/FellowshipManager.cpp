@@ -41,6 +41,7 @@ DEFINE_PACK(Fellowship)
 	pWriter->Write<int>(_locked);
 
 	_fellows_departed.Pack(pWriter);
+	LockedFellowshipList.Pack(pWriter);
 
 }
 
