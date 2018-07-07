@@ -321,13 +321,13 @@ public:
 	MetaSpell _meta_spell;
 };
 
-/*
 class SpellSetTierList : public PackObj
 {
+public:
 	DECLARE_PACKABLE()
 
-	unsigned int m_PieceCount;
-	std::list<unsigned long> m_SpellList;
+	// list of spells for a given set count/level
+	PackableList<unsigned long> m_tierSpellList;
 };
 
 class SpellSet : public PackObj
@@ -335,9 +335,10 @@ class SpellSet : public PackObj
 public:
 	DECLARE_PACKABLE()
 
-	std::list<SpellSetTierList> m_countTiers;
+	// key is level/number of pieces, value is a list of spell ids
+	PackableHashTable<unsigned long, SpellSetTierList> m_spellSetTiers;
 };
-*/
+
 
 class CSpellTable : public PackObj, public DBObj
 {
@@ -351,9 +352,11 @@ public:
 
 	void Destroy(); // custom
 
+	const SpellSet *GetSpellSet(DWORD set_id);
 	const CSpellBase *GetSpellBase(DWORD spell_id);
 
 	PackableHashTable<unsigned long, CSpellBase> _spellBaseHash;
+	PackableHashTable<unsigned long, SpellSet> _spellSetHash;
 	// don't do this for now PHashTable<unsigned long, SpellSet> m_SpellSetHash;
 
 #if PHATSDK_IS_SERVER
