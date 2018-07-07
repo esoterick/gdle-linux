@@ -344,7 +344,7 @@ void CPlayerWeenie::MakeAware(std::shared_ptr<CWeenieObject> pEntity, bool bForc
 			{
 				if (std::shared_ptr<CWeenieObject> pChildWeenie = pChild->AsWeenie())
 				{
-					if (BinaryWriter *CM = pEntity->CreateMessage())
+					if (BinaryWriter *CM = pChildWeenie->CreateMessage())
 					{
 						SendNetMessage(CM, OBJECT_MSG);
 					}
