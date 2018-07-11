@@ -53,7 +53,6 @@ int getRandomNumberWithFavoredValue(int minInclusive, int maxInclusive, double f
 		return min(max(minInclusive, dReturn), maxInclusive);
 	}
 
-
 	// Okay, so here goes nothing!
 	// 1/a^abs(x-m) is a function that grows exponentially towards m either side of it on the x-axis
 	// where a = 1 + favorStrength^2/(maxInclusive-minInclusive)
@@ -90,6 +89,7 @@ int getRandomNumberWithFavoredValue(int minInclusive, int maxInclusive, double f
 	}
 
 	return min(max(minInclusive, iReturn), maxInclusive);
+	// the equations chosen are simply what was here before, but calculated with a bit more elegance...
 }
 
 int getRandomNumberExclusive(int maxExclusive)

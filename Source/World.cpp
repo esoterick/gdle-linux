@@ -472,7 +472,7 @@ bool CWorld::CreateEntity(std::shared_ptr<CWeenieObject> pEntity, bool bMakeAwar
 	}
 
 #ifdef _DEBUG
-	DEBUG_DATA << "Spawned ID" << pEntity->GetID() << "- " << pEntity->GetName().c_str() << "memory object @" << (DWORD64)&*pEntity;
+	//DEBUG_DATA << "Spawned ID" << pEntity->GetID() << "- " << pEntity->GetName().c_str() << "memory object @" << (DWORD64)pEntity;
 #endif
 
 	return true;
@@ -955,7 +955,7 @@ void CWorld::RemoveEntity(std::shared_ptr<CWeenieObject> pEntity)
 				target->NotifyGeneratedDeath(pEntity);
 		}
 
-		EnsureRemoved(pEntity);
+		//DELETE_ENTITY(pEntity);
 	}
 	else
 	{
@@ -1364,7 +1364,8 @@ void CWorld::EnumNearby(std::shared_ptr<CWeenieObject> pSource, float fRange, st
 	}
 }
 
-void CWorld::EnumNearbyPlayers(std::shared_ptr<CWeenieObject> pSource, float fRange, std::list<std::shared_ptr<CWeenieObject> > *pResults)
+
+void CWorld::EnumNearbyPlayers(CWeenieObject *pSource, float fRange, std::list<CWeenieObject *> *pResults)
 {
 	// Enumerate nearby world objects
 	if (pSource != NULL && !pSource->HasOwner())

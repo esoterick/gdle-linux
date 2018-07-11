@@ -131,6 +131,7 @@ struct DamageEventData
 	int cleavingType = 0;
 	bool isArmorCleaving = false;
 	double armorCleavingModifier = 0.0;
+	int cleaveTargets = 1;
 
 	std::string GetSourceName();
 	std::string GetTargetName();
@@ -304,10 +305,10 @@ public:
 
 	void SendText(const char* szText, long lColor);
 
-	float DistanceTo(std::shared_ptr<CWeenieObject> other, bool bUseSpheres = false);
-	float DistanceSquared(std::shared_ptr<CWeenieObject> other);
-	float HeadingTo(std::shared_ptr<CWeenieObject> target, bool relative = true);
-	float HeadingFrom(std::shared_ptr<CWeenieObject> target, bool relative = true);
+	float DistanceTo(CWeenieObject *other, bool bUseSpheres = false);
+	float DistanceSquared(CWeenieObject *other);
+	float HeadingTo(CWeenieObject *target, bool relative = true);
+	float HeadingFrom(CWeenieObject *target, bool relative = true);
 	float HeadingTo(DWORD targetId, bool relative = true);
 	float HeadingFrom(DWORD targetId, bool relative = true);
 

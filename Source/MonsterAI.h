@@ -132,4 +132,3 @@ public:
 };
 
 extern bool monster_brawl;
-

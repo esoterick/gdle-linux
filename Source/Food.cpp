@@ -63,6 +63,10 @@ int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 			int currentStat = static_cast<int>(statValue);
 			int diff = 0;
 
+			int currentMax = static_cast<int>(maxStatValue);
+			int currentStat = static_cast<int>(statValue);
+			int diff = 0;
+
 			if (boost_value + currentStat < currentMax)
 			{
 				if (boost_value + currentStat <= 0)
@@ -84,7 +88,7 @@ int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 
 			if (other->AsPlayer() && statType == HEALTH_ATTRIBUTE_2ND)
 			{
-				other->AdjustHealth(boost_value);
+				other->SetHealth(currentStat);
 				other->NotifyAttribute2ndStatUpdated(statType);
 			}
 			else
@@ -92,7 +96,7 @@ int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 				other->m_Qualities.SetAttribute2nd(statType, currentStat);
 				other->NotifyAttribute2ndStatUpdated(statType);
 			}
-	
+			
 			const char *vitalName = "";
 			switch (boost_stat)
 			{
@@ -100,7 +104,8 @@ int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 			case STAMINA_ATTRIBUTE_2ND: vitalName = "stamina"; break;
 			case MANA_ATTRIBUTE_2ND: vitalName = "mana"; break;
 			}
-			if(boost_value >= 0)
+
+			if (boost_value >= 0)
 				other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), diff, vitalName), LTT_DEFAULT);
 			else
 				other->SendText(csprintf("The %s takes %d points of your %s.", GetName().c_str(), diff, vitalName), LTT_DEFAULT);

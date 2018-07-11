@@ -11,8 +11,8 @@ public:
 
 	virtual std::shared_ptr<CGemWeenie> AsGem() override { return std::static_pointer_cast<CGemWeenie>(GetPointer()); }
 
-	virtual int Use(std::shared_ptr<CPlayerWeenie> pOther) override;
-	virtual int DoUseResponse(std::shared_ptr<CWeenieObject> player) override;
+	virtual int Use(CPlayerWeenie *pOther) override;
+	virtual int DoUseResponse(CWeenieObject *player) override;
 	double cooldown = 0;
 };
 

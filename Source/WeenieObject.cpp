@@ -840,8 +840,8 @@ float CWeenieObject::HeadingTo(std::shared_ptr<CWeenieObject> target, bool relat
 
 float CWeenieObject::HeadingFrom(std::shared_ptr<CWeenieObject> target, bool relative)
 {
-	if (target)
-		return target->HeadingTo(AsWeenie(), relative);
+	if (target != NULL)
+		return target->HeadingTo(this, relative);
 	return 0.0;
 }
 
@@ -2192,6 +2192,7 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 
 	if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 226))
 		EmitEffect(PS_WeddingBliss, 1.0f);
+
 
 	NotifySkillStatUpdated(key);
 
@@ -3851,6 +3852,7 @@ void CWeenieObject::TryToDealDamage(DamageEventData &data)
 		}
 	}
 
+
 	if (data.damage_form & DF_PHYSICAL)
 	{
 		std::list<long> bodyParts;
@@ -3884,8 +3886,7 @@ void CWeenieObject::TryToDealDamage(DamageEventData &data)
 		else
 			data.hitPart = GetRandomBodyPartByDamageQuadrant(data.hit_quadrant);
 	}
-
-	pTarget->TakeDamage(data);
+	data.target->TakeDamage(data);
 }
 
 
@@ -4188,7 +4189,7 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 	EnchantedQualityDetails buffDetails;
 	bool isEnchanted = false;
 
-	switch (damageData.damage_type)
+		switch (damageData.damage_type)
 	{
 	case SLASH_DAMAGE_TYPE:
 		isEnchanted = GetFloatEnchantmentDetails(RESIST_SLASH_FLOAT, 1.0, &buffDetails);
@@ -6274,6 +6275,8 @@ int CWeenieObject::GetStackOrStructureNum()
 
 void CWeenieObject::DecrementStackOrStructureNum(int amount, bool bDestroyOnZero)
 {
+	if (m_Qualities.GetBool(UNLIMITED_USE_BOOL, 0) == TRUE)
+		return;
 	int dummy;
 	if (m_Qualities.GetBool(UNLIMITED_USE_BOOL, 0) == TRUE)
 		return;
@@ -6441,61 +6444,61 @@ void CWeenieObject::Remove()
 
 void CWeenieObject::DebugValidate()
 {
-#if 0
-	assert(GetID());
-	//assert(g_pWorld->FindObject(GetID()));
-
-	assert(!GetContainerID() || !GetWielderID());
-
-	if (GetContainerID())
-	{
-		//assert(g_pWorld->FindObject(GetContainerID()));
-		assert(!GetWielderID());
-		assert(!m_pBlock);
-	}
-
-	if (GetWielderID())
-	{
-		//assert(g_pWorld->FindObject(GetWielderID()));
-		assert(!GetContainerID());
-		assert(!m_pBlock);
-	}
-	else
-	{
-		/*
-		if (cell)
-		{
-		assert(m_pBlock);
-		assert(m_pBlock->GetHeader() == (cell->id >> 16));
-		}
-		*/
-	}
-
-	if (!GetContainerID() && !GetWielderID())
-	{
-		// assert(m_pBlock);
-	}
-
-	int parentInt = InqIntQuality(PARENT_LOCATION_INT, 0);
-
-	if (parentInt)
-	{
-		// assert(parent);
-		assert(GetWielderID());
-	}
-	else
-	{
-		assert(!parent.lock());
-	}
-
-	int placement = InqIntQuality(PLACEMENT_POSITION_INT, 0);
-
-	if (!placement)
-	{
-		assert(!parent.lock());
-	}
-
-#endif
+//#ifdef _DEBUG
+//	assert(GetID());
+//	assert(g_pWorld->FindObject(GetID()));
+//
+//	assert(!GetContainerID() || !GetWielderID());
+//
+//	if (GetContainerID())
+//	{
+//		assert(g_pWorld->FindObject(GetContainerID()));
+//		assert(!GetWielderID());
+//		assert(!m_pBlock);
+//	}
+//
+//	if (GetWielderID())
+//	{
+//		assert(g_pWorld->FindObject(GetWielderID()));
+//		assert(!GetContainerID());
+//		assert(!m_pBlock);
+//	}
+//	else
+//	{
+//		/*
+//		if (cell)
+//		{
+//		assert(m_pBlock);
+//		assert(m_pBlock->GetHeader() == (cell->id >> 16));
+//		}
+//		*/
+//	}
+//
+//	if (!GetContainerID() && !GetWielderID())
+//	{
+//		// assert(m_pBlock);
+//	}
+//
+//	int parentInt = InqIntQuality(PARENT_LOCATION_INT, 0);
+//
+//	if (parentInt)
+//	{
+//		// assert(parent);
+//		assert(GetWielderID());
+//	}
+//	else
+//	{
+//		assert(!parent);
+//	}
+//
+//	int placement = InqIntQuality(PLACEMENT_POSITION_INT, 0);
+//
+//	if (!placement)
+//	{
+//		assert(!parent);
+//	}
+//
+//#endif
 }
 
 BOOL CWeenieObject::InqSkill(STypeSkill key, DWORD &value, BOOL raw)

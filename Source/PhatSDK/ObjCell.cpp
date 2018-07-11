@@ -222,7 +222,7 @@ TransitionState CObjCell::find_obj_collisions(CTransition *transition)
 		{
 			std::shared_ptr<CPhysicsObj> pobj = shadow_object_list.array_data[i]->physobj.lock();
 
-			if (pobj && !pobj->parent.lock() && pobj != transition->object_info.object.lock())
+			if (pobj && !pobj->parent && pobj != transition->object_info.object)
 			{
 				ts = pobj->FindObjCollisions(transition);
 				if (ts != OK_TS)

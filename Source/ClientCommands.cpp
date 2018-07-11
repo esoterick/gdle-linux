@@ -110,6 +110,45 @@ CLIENT_COMMAND(skillspendexp, "<skillID> <exp>", "Attempts to spend the input ex
 }
 #endif
 
+CLIENT_COMMAND(testchat, "", "Sends hello back in all chat channel formats.", ADMIN_ACCESS)
+{
+	pPlayer->SendText("Sending text via LTT_DEFAULT", LTT_DEFAULT);
+	pPlayer->SendText("Sending text via LTT_ALL_CHANNELS", LTT_ALL_CHANNELS);
+	pPlayer->SendText("Sending text via LTT_SPEECH", LTT_SPEECH);
+	pPlayer->SendText("Sending text via LTT_SPEECH_DIRECT", LTT_SPEECH_DIRECT);
+	pPlayer->SendText("Sending text via LTT_SPEECH_DIRECT_SEND", LTT_SPEECH_DIRECT_SEND);
+	pPlayer->SendText("Sending text via LTT_SYSTEM_EVENT", LTT_SYSTEM_EVENT);
+	pPlayer->SendText("Sending text via LTT_COMBAT", LTT_COMBAT);
+	pPlayer->SendText("Sending text via LTT_MAGIC", LTT_MAGIC);
+	pPlayer->SendText("Sending text via LTT_CHANNEL", LTT_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_CHANNEL_SEND", LTT_CHANNEL_SEND);
+	pPlayer->SendText("Sending text via LTT_SOCIAL_CHANNEL", LTT_SOCIAL_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_SOCIAL_CHANNEL_SEND", LTT_SOCIAL_CHANNEL_SEND);
+	pPlayer->SendText("Sending text via LTT_EMOTE", LTT_EMOTE);
+	pPlayer->SendText("Sending text via LTT_ADVANCEMENT", LTT_ADVANCEMENT);
+	pPlayer->SendText("Sending text via LTT_ABUSE_CHANNEL", LTT_ABUSE_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_HELP_CHANNEL", LTT_HELP_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_APPRAISAL_CHANNEL", LTT_APPRAISAL_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_MAGIC_CASTING_CHANNEL", LTT_MAGIC_CASTING_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_ALLEGIENCE_CHANNEL", LTT_ALLEGIENCE_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_FELLOWSHIP_CHANNEL", LTT_FELLOWSHIP_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_WORLD_BROADCAST", LTT_WORLD_BROADCAST);
+	pPlayer->SendText("Sending text via LTT_COMBAT_ENEMY", LTT_COMBAT_ENEMY);
+	pPlayer->SendText("Sending text via LTT_COMBAT_SELF", LTT_COMBAT_SELF);
+	pPlayer->SendText("Sending text via LTT_RECALL", LTT_RECALL);
+	pPlayer->SendText("Sending text via LTT_CRAFT", LTT_CRAFT);
+	pPlayer->SendText("Sending text via LTT_SALVAGING", LTT_SALVAGING);
+	pPlayer->SendText("Sending text via LTT_ERROR", LTT_ERROR);
+	pPlayer->SendText("Sending text via LTT_GENERAL_CHANNEL", LTT_GENERAL_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_TRADE_CHANNEL", LTT_TRADE_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_LFG_CHANNEL", LTT_LFG_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_ROLEPLAY_CHANNEL", LTT_ROLEPLAY_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_SPEECH_DIRECT_ADMIN", LTT_SPEECH_DIRECT_ADMIN);
+	pPlayer->SendText("Sending text via LTT_SOCIETY_CHANNEL", LTT_SOCIETY_CHANNEL);
+	pPlayer->SendText("Sending text via LTT_OLTHOI_CHANNEL", LTT_OLTHOI_CHANNEL);
+
+	return false;
+}
 
 #ifndef PUBLIC_BUILD
 CLIENT_COMMAND(simulateaccess, "<level>", "Simulate access level.", ADMIN_ACCESS)
@@ -953,18 +992,15 @@ CLIENT_COMMAND(monsterbrawl, "", "Toggle monsters fighting each other.", ADMIN_A
 
 CLIENT_COMMAND(damagesources, "", "Lists all damage sources and values for the last assessed target if it's a monster.", ADMIN_ACCESS)
 {
-	std::shared_ptr<CWeenieObject> target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
 	if (!target)
-	{
 		return false;
-	}
-
-	if (std::shared_ptr<CMonsterWeenie> pMonster = target->AsMonster())
+	if (target->AsMonster())
 	{
 		std::string info;
-		for (std::map<DWORD, int>::iterator it = pMonster->m_aDamageSources.begin(), ite = pMonster->m_aDamageSources.end(); it != ite; ++it)
+		for (std::map<DWORD, int>::iterator it = target->AsMonster()->m_aDamageSources.begin(), ite = target->AsMonster()->m_aDamageSources.end(); it != ite; ++it)
 		{
-			std::shared_ptr<CWeenieObject> source = g_pWorld->FindObject(it->first);
+			CWeenieObject *source = g_pWorld->FindObject(it->first);
 			info += csprintf("%s has done %d damage.\n", source->GetName(), it->second);
 		}
 
@@ -1742,6 +1778,8 @@ CLIENT_COMMAND(learnschool, "school", "Adds all spells of the given school (war,
 	}
 	return false;
 }
+
+
 
 CLIENT_COMMAND(addspellbyid, "id", "Adds a spell by ID", ADMIN_ACCESS)
 {

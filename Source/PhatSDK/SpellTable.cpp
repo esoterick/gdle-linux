@@ -400,7 +400,6 @@ DEFINE_PACK(SpellSetTierList)
 DEFINE_UNPACK(SpellSetTierList)
 {
 	m_tierSpellList.UnPack(pReader);
-
 	return true;
 }
 
@@ -412,7 +411,6 @@ DEFINE_PACK(SpellSet)
 DEFINE_UNPACK(SpellSet)
 {
 	m_spellSetTiers.UnPack(pReader);
-
 	return true;
 }
 
@@ -462,9 +460,10 @@ DEFINE_UNPACK(CSpellTable) // type 0x0E00000E
 				SERVER_INFO << "Set spells: " << it3;
 			}
 		}
-		
+
 	}
 #endif
+
 
 #if PHATSDK_IS_SERVER
 	_categoryToResearchableSpellsMap.clear();

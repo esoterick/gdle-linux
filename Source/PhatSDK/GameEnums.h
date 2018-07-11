@@ -1043,7 +1043,7 @@ enum WErrorType
 	WERROR_HOUSE_NOT_A_MONARCH, // You must be a monarch to purchase this dwelling.\n
 	WERROR_HOUSE_UNDER_MIN_RANK, // You must be above allegiance rank %s to purchase this dwelling.\n
 	WERROR_HOUSE_OVER_MAX_RANK, // You must be at or below allegiance rank %s to purchase this dwelling.\n
-	WERROR_ALLEGIANCE_DECLINED, 
+	WERROR_ALLEGIANCE_DECLINED,
 	WERROR_ALLEGIANCE_TIMEOUT, // Your offer of Allegiance has been ignored.
 	WERROR_CONFIRMATION_IN_PROGRESS, // You are already involved in something!
 	WERROR_MONARCH_ONLY, // You must be a monarch to use this command.
@@ -1071,7 +1071,7 @@ enum WErrorType
 	WERROR_PORTAL_TELEPORT_FAILED, // You fail to teleport!\n
 	WERROR_PORTAL_TOO_RECENTLY, // You have been teleported too recently!\n
 	WERROR_PORTAL_ADVOCATE_ONLY, // You must be an Advocate to interact with that portal.\n
-	WERROR_PORTAL_AIS_NOT_ALLOWED, 
+	WERROR_PORTAL_AIS_NOT_ALLOWED,
 	WERROR_PORTAL_PLAYERS_NOT_ALLOWED, // Players may not interact with that portal.\n
 	WERROR_PORTAL_LEVEL_TOO_LOW, // You are not powerful enough to interact with that portal!\n
 	WERROR_PORTAL_LEVEL_TOO_HIGH, // You are too powerful to interact with that portal!\n
@@ -2416,139 +2416,139 @@ enum Command
 	Motion_OffhandPunchSlowMed = 0x10000199,
 	Motion_OffhandPunchSlowLow = 0x1000019a
 
-		/*
-	Motion_SnowAngelState = 0x43000115,
-	Motion_WarmHands = 0x13000116,
-	Motion_CurtseyState = 0x43000117,
-	Motion_AFKState = 0x43000118,
-	Motion_MeditateState = 0x43000119,
-	Command_TradePanel = 0x900011a,
-	Motion_LogOut = 0x1000011b,
-	Motion_DoubleSlashLow = 0x1000011c,
-	Motion_DoubleSlashMed = 0x1000011d,
-	Motion_DoubleSlashHigh = 0x1000011e,
-	Motion_TripleSlashLow = 0x1000011f,
-	Motion_TripleSlashMed = 0x10000120,
-	Motion_TripleSlashHigh = 0x10000121,
-	Motion_DoubleThrustLow = 0x10000122,
-	Motion_DoubleThrustMed = 0x10000123,
-	Motion_DoubleThrustHigh = 0x10000124,
-	Motion_TripleThrustLow = 0x10000125,
-	Motion_TripleThrustMed = 0x10000126,
-	Motion_TripleThrustHigh = 0x10000127,
-	Motion_MagicPowerUp01Purple = 0x10000128,
-	Motion_MagicPowerUp02Purple = 0x10000129,
-	Motion_MagicPowerUp03Purple = 0x1000012a,
-	Motion_MagicPowerUp04Purple = 0x1000012b,
-	Motion_MagicPowerUp05Purple = 0x1000012c,
-	Motion_MagicPowerUp06Purple = 0x1000012d,
-	Motion_MagicPowerUp07Purple = 0x1000012e,
-	Motion_MagicPowerUp08Purple = 0x1000012f,
-	Motion_MagicPowerUp09Purple = 0x10000130,
-	Motion_MagicPowerUp10Purple = 0x10000131,
-	Motion_Helper = 0x13000132,
-	Motion_Pickup5 = 0x40000133,
-	Motion_Pickup10 = 0x40000134,
-	Motion_Pickup15 = 0x40000135,
-	Motion_Pickup20 = 0x40000136,
-	Motion_HouseRecall = 0x10000137,
-	Motion_AtlatlCombat = 0x80000138,
-	Motion_ThrownShieldCombat = 0x80000139,
-	Motion_SitState = 0x4300013a,
-	Motion_SitCrossleggedState = 0x4300013b,
-	Motion_SitBackState = 0x4300013c,
-	Motion_PointLeftState = 0x4300013d,
-	Motion_PointRightState = 0x4300013e,
-	Motion_TalktotheHandState = 0x4300013f,
-	Motion_PointDownState = 0x43000140,
-	Motion_DrudgeDanceState = 0x43000141,
-	Motion_PossumState = 0x43000142,
-	Motion_ReadState = 0x43000143,
-	Motion_ThinkerState = 0x43000144,
-	Motion_HaveASeatState = 0x43000145,
-	Motion_AtEaseState = 0x43000146,
-	Motion_NudgeLeft = 0x13000147,
-	Motion_NudgeRight = 0x13000148,
-	Motion_PointLeft = 0x13000149,
-	Motion_PointRight = 0x1300014a,
-	Motion_PointDown = 0x1300014b,
-	Motion_Knock = 0x1300014c,
-	Motion_ScanHorizon = 0x1300014d,
-	Motion_DrudgeDance = 0x1300014e,
-	Motion_HaveASeat = 0x1300014f,
-	Motion_LifestoneRecall = 0x10000150,
-	Command_CharacterOptionsPanel = 0x9000151,
-	Command_SoundAndGraphicsPanel = 0x9000152,
-	Command_HelpfulSpellsPanel = 0x9000153,
-	Command_HarmfulSpellsPanel = 0x9000154,
-	Command_CharacterInformationPanel = 0x9000155,
-	Command_LinkStatusPanel = 0x9000156,
-	Command_VitaePanel = 0x9000157,
-	Command_ShareFellowshipXP = 0x9000158,
-	Command_ShareFellowshipLoot = 0x9000159,
-	Command_AcceptCorpseLooting = 0x900015a,
-	Command_IgnoreTradeRequests = 0x900015b,
-	Command_DisableWeather = 0x900015c,
-	Command_DisableHouseEffect = 0x900015d,
-	Command_SideBySideVitals = 0x900015e,
-	Command_ShowRadarCoordinates = 0x900015f,
-	Command_ShowSpellDurations = 0x9000160,
-	Command_MuteOnLosingFocus = 0x9000161,
-	Motion_Fishing = 0x10000162,
-	Motion_MarketplaceRecall = 0x10000163,
-	Motion_EnterPKLite = 0x10000164,
-	Command_AllegianceChat = 0x9000165,
-	Command_AutomaticallyAcceptFellowshipRequests = 0x9000166,
-	Command_Reply = 0x9000167,
-	Command_MonarchReply = 0x9000168,
-	Command_PatronReply = 0x9000169,
-	Command_ToggleCraftingChanceOfSuccessDialog = 0x900016a,
-	Command_UseClosestUnopenedCorpse = 0x900016b,
-	Command_UseNextUnopenedCorpse = 0x900016c,
-	Command_IssueSlashCommand = 0x900016d,
-	Motion_AllegianceHometownRecall = 0x1000016e,
-	Motion_PKArenaRecall = 0x1000016f,
-	Motion_OffhandSlashHigh = 0x10000170,
-	Motion_OffhandSlashMed = 0x10000171,
-	Motion_OffhandSlashLow = 0x10000172,
-	Motion_OffhandThrustHigh = 0x10000173,
-	Motion_OffhandThrustMed = 0x10000174,
-	Motion_OffhandThrustLow = 0x10000175,
-	Motion_OffhandDoubleSlashLow = 0x10000176,
-	Motion_OffhandDoubleSlashMed = 0x10000177,
-	Motion_OffhandDoubleSlashHigh = 0x10000178,
-	Motion_OffhandTripleSlashLow = 0x10000179,
-	Motion_OffhandTripleSlashMed = 0x1000017a,
-	Motion_OffhandTripleSlashHigh = 0x1000017b,
-	Motion_OffhandDoubleThrustLow = 0x1000017c,
-	Motion_OffhandDoubleThrustMed = 0x1000017d,
-	Motion_OffhandDoubleThrustHigh = 0x1000017e,
-	Motion_OffhandTripleThrustLow = 0x1000017f,
-	Motion_OffhandTripleThrustMed = 0x10000180,
-	Motion_OffhandTripleThrustHigh = 0x10000181,
-	Motion_OffhandKick = 0x10000182,
-	Motion_AttackHigh4 = 0x10000183,
-	Motion_AttackMed4 = 0x10000184,
-	Motion_AttackLow4 = 0x10000185,
-	Motion_AttackHigh5 = 0x10000186,
-	Motion_AttackMed5 = 0x10000187,
-	Motion_AttackLow5 = 0x10000188,
-	Motion_AttackHigh6 = 0x10000189,
-	Motion_AttackMed6 = 0x1000018a,
-	Motion_AttackLow6 = 0x1000018b,
-	Motion_PunchFastHigh = 0x1000018c,
-	Motion_PunchFastMed = 0x1000018d,
-	Motion_PunchFastLow = 0x1000018e,
-	Motion_PunchSlowHigh = 0x1000018f,
-	Motion_PunchSlowMed = 0x10000190,
-	Motion_PunchSlowLow = 0x10000191,
-	Motion_OffhandPunchFastHigh = 0x10000192,
-	Motion_OffhandPunchFastMed = 0x10000193,
-	Motion_OffhandPunchFastLow = 0x10000194,
-	Motion_OffhandPunchSlowHigh = 0x10000195,
-	Motion_OffhandPunchSlowMed = 0x10000196,
-	Motion_OffhandPunchSlowLow = 0x10000197
-	*/
+	/*
+Motion_SnowAngelState = 0x43000115,
+Motion_WarmHands = 0x13000116,
+Motion_CurtseyState = 0x43000117,
+Motion_AFKState = 0x43000118,
+Motion_MeditateState = 0x43000119,
+Command_TradePanel = 0x900011a,
+Motion_LogOut = 0x1000011b,
+Motion_DoubleSlashLow = 0x1000011c,
+Motion_DoubleSlashMed = 0x1000011d,
+Motion_DoubleSlashHigh = 0x1000011e,
+Motion_TripleSlashLow = 0x1000011f,
+Motion_TripleSlashMed = 0x10000120,
+Motion_TripleSlashHigh = 0x10000121,
+Motion_DoubleThrustLow = 0x10000122,
+Motion_DoubleThrustMed = 0x10000123,
+Motion_DoubleThrustHigh = 0x10000124,
+Motion_TripleThrustLow = 0x10000125,
+Motion_TripleThrustMed = 0x10000126,
+Motion_TripleThrustHigh = 0x10000127,
+Motion_MagicPowerUp01Purple = 0x10000128,
+Motion_MagicPowerUp02Purple = 0x10000129,
+Motion_MagicPowerUp03Purple = 0x1000012a,
+Motion_MagicPowerUp04Purple = 0x1000012b,
+Motion_MagicPowerUp05Purple = 0x1000012c,
+Motion_MagicPowerUp06Purple = 0x1000012d,
+Motion_MagicPowerUp07Purple = 0x1000012e,
+Motion_MagicPowerUp08Purple = 0x1000012f,
+Motion_MagicPowerUp09Purple = 0x10000130,
+Motion_MagicPowerUp10Purple = 0x10000131,
+Motion_Helper = 0x13000132,
+Motion_Pickup5 = 0x40000133,
+Motion_Pickup10 = 0x40000134,
+Motion_Pickup15 = 0x40000135,
+Motion_Pickup20 = 0x40000136,
+Motion_HouseRecall = 0x10000137,
+Motion_AtlatlCombat = 0x80000138,
+Motion_ThrownShieldCombat = 0x80000139,
+Motion_SitState = 0x4300013a,
+Motion_SitCrossleggedState = 0x4300013b,
+Motion_SitBackState = 0x4300013c,
+Motion_PointLeftState = 0x4300013d,
+Motion_PointRightState = 0x4300013e,
+Motion_TalktotheHandState = 0x4300013f,
+Motion_PointDownState = 0x43000140,
+Motion_DrudgeDanceState = 0x43000141,
+Motion_PossumState = 0x43000142,
+Motion_ReadState = 0x43000143,
+Motion_ThinkerState = 0x43000144,
+Motion_HaveASeatState = 0x43000145,
+Motion_AtEaseState = 0x43000146,
+Motion_NudgeLeft = 0x13000147,
+Motion_NudgeRight = 0x13000148,
+Motion_PointLeft = 0x13000149,
+Motion_PointRight = 0x1300014a,
+Motion_PointDown = 0x1300014b,
+Motion_Knock = 0x1300014c,
+Motion_ScanHorizon = 0x1300014d,
+Motion_DrudgeDance = 0x1300014e,
+Motion_HaveASeat = 0x1300014f,
+Motion_LifestoneRecall = 0x10000150,
+Command_CharacterOptionsPanel = 0x9000151,
+Command_SoundAndGraphicsPanel = 0x9000152,
+Command_HelpfulSpellsPanel = 0x9000153,
+Command_HarmfulSpellsPanel = 0x9000154,
+Command_CharacterInformationPanel = 0x9000155,
+Command_LinkStatusPanel = 0x9000156,
+Command_VitaePanel = 0x9000157,
+Command_ShareFellowshipXP = 0x9000158,
+Command_ShareFellowshipLoot = 0x9000159,
+Command_AcceptCorpseLooting = 0x900015a,
+Command_IgnoreTradeRequests = 0x900015b,
+Command_DisableWeather = 0x900015c,
+Command_DisableHouseEffect = 0x900015d,
+Command_SideBySideVitals = 0x900015e,
+Command_ShowRadarCoordinates = 0x900015f,
+Command_ShowSpellDurations = 0x9000160,
+Command_MuteOnLosingFocus = 0x9000161,
+Motion_Fishing = 0x10000162,
+Motion_MarketplaceRecall = 0x10000163,
+Motion_EnterPKLite = 0x10000164,
+Command_AllegianceChat = 0x9000165,
+Command_AutomaticallyAcceptFellowshipRequests = 0x9000166,
+Command_Reply = 0x9000167,
+Command_MonarchReply = 0x9000168,
+Command_PatronReply = 0x9000169,
+Command_ToggleCraftingChanceOfSuccessDialog = 0x900016a,
+Command_UseClosestUnopenedCorpse = 0x900016b,
+Command_UseNextUnopenedCorpse = 0x900016c,
+Command_IssueSlashCommand = 0x900016d,
+Motion_AllegianceHometownRecall = 0x1000016e,
+Motion_PKArenaRecall = 0x1000016f,
+Motion_OffhandSlashHigh = 0x10000170,
+Motion_OffhandSlashMed = 0x10000171,
+Motion_OffhandSlashLow = 0x10000172,
+Motion_OffhandThrustHigh = 0x10000173,
+Motion_OffhandThrustMed = 0x10000174,
+Motion_OffhandThrustLow = 0x10000175,
+Motion_OffhandDoubleSlashLow = 0x10000176,
+Motion_OffhandDoubleSlashMed = 0x10000177,
+Motion_OffhandDoubleSlashHigh = 0x10000178,
+Motion_OffhandTripleSlashLow = 0x10000179,
+Motion_OffhandTripleSlashMed = 0x1000017a,
+Motion_OffhandTripleSlashHigh = 0x1000017b,
+Motion_OffhandDoubleThrustLow = 0x1000017c,
+Motion_OffhandDoubleThrustMed = 0x1000017d,
+Motion_OffhandDoubleThrustHigh = 0x1000017e,
+Motion_OffhandTripleThrustLow = 0x1000017f,
+Motion_OffhandTripleThrustMed = 0x10000180,
+Motion_OffhandTripleThrustHigh = 0x10000181,
+Motion_OffhandKick = 0x10000182,
+Motion_AttackHigh4 = 0x10000183,
+Motion_AttackMed4 = 0x10000184,
+Motion_AttackLow4 = 0x10000185,
+Motion_AttackHigh5 = 0x10000186,
+Motion_AttackMed5 = 0x10000187,
+Motion_AttackLow5 = 0x10000188,
+Motion_AttackHigh6 = 0x10000189,
+Motion_AttackMed6 = 0x1000018a,
+Motion_AttackLow6 = 0x1000018b,
+Motion_PunchFastHigh = 0x1000018c,
+Motion_PunchFastMed = 0x1000018d,
+Motion_PunchFastLow = 0x1000018e,
+Motion_PunchSlowHigh = 0x1000018f,
+Motion_PunchSlowMed = 0x10000190,
+Motion_PunchSlowLow = 0x10000191,
+Motion_OffhandPunchFastHigh = 0x10000192,
+Motion_OffhandPunchFastMed = 0x10000193,
+Motion_OffhandPunchFastLow = 0x10000194,
+Motion_OffhandPunchSlowHigh = 0x10000195,
+Motion_OffhandPunchSlowMed = 0x10000196,
+Motion_OffhandPunchSlowLow = 0x10000197
+*/
 };
 
 enum EmoteType
@@ -4099,8 +4099,9 @@ enum ClientEventsEnum
 	BOOK_DELETE_PAGE = 0x00AD,
 	BOOK_PAGE_DATA = 0x00AE,
 	GIVE_OBJECT = 0x00CD, // Give someone an item
+	PUT_OBJECT_IN_CONTAINER = 0x00CD, // Put object in container
 	INSCRIBE = 0x00BF, // "Inscribe"
-	IDENTIFY = 0x00C8, // Identify
+	APPRAISE = 0x00C8, // Identify
 	ADMIN_TELEPORT = 0x00D6, // Advocate teleport (triggered by having an admin flag set, // clicking the mini-map)
 	ABUSE_LOG_REQUEST = 0x0140,
 	CHANNEL_ADD = 0x0145,
@@ -4108,15 +4109,18 @@ enum ClientEventsEnum
 	CHANNEL_TEXT = 0x0147, // Channel Text
 	CHANNEL_LIST = 0x0148,
 	CHANNEL_INDEX = 0x0149,
+	TEXT_CHANNEL = 0x0147, // Channel Text
 	NO_LONGER_VIEWING_CONTAINER = 0x0195, // No longer viewing contents
 	ADD_ITEM_SHORTCUT = 0x019C, // Add item to shortcut bar
 	REMOVE_ITEM_SHORTCUT = 0x019D, // Remove item to shortcut bar
 	CHARACTER_OPTIONS = 0x01A1, // 
 	SPELLBOOK_REMOVE = 0x01A8, // Delete spell from spellbook
+	TOGGLE_SHOW_HELM = 0x01A1, // Toggle show helm?
 	CANCEL_ATTACK = 0x01B7, // Cancel attack
 	QUERY_HEALTH = 0x01BF, // Request health update
 	QUERY_AGE = 0x01C2,
 	QUERY_BIRTH = 0x01C4,
+	HEALTH_UPDATE_REQUEST = 0x01BF, // Request health update
 	TEXT_INDIRECT = 0x01DF, // Indirect Text (@me)
 	TEXT_EMOTE = 0x01E1, // Emote Text (*laugh* sends 'laughs')
 	ADD_TO_SPELLBAR = 0x01E3, // Add item to spell bar
@@ -4128,11 +4132,11 @@ enum ClientEventsEnum
 	TRADE_ACCEPT = 0x1FA, // Accept trade
 	TRADE_DECLINE = 0x1FB, // Decline trade
 	TRADE_RESET = 0x204, // Reset trade
-	CONSENT_LIST_CLEAR = 0x0216, // Clears the player's corpse looting consent list, /consent clear
-	CONSENT_LIST_SHOW = 0x0217, // Display the player's corpse looting consent list, /consent who 
-	CONSENT_LIST_REMOVE = 0x0218, // Remove your corpse looting permission for the given player, /consent remove 
-	CORPSE_PERMIT_ADD = 0x0219, // Grants a player corpse looting permission, /permit add
-	CORPSE_PERMIT_REMOVE = 0x021A, // Revokes a player's corpse looting permission, /permit remove
+	CLEAR_PLAYER_CONSENT_LIST = 0x0216, // Clears the player's corpse looting consent list, /consent clear
+	DISPLAY_PLAYER_CONSENT_LIST = 0x0217, // Display the player's corpse looting consent list, /consent who 
+	REMOVE_FROM_PLAYER_CONSENT_LIST = 0x0218, // Remove your corpse looting permission for the given player, /consent remove 
+	ADD_PLAYER_PERMISSION = 0x0219, // Grants a player corpse looting permission, /permit add
+	REMOVE_PLAYER_PERMISSION = 0x021A, // Revokes a player's corpse looting permission, /permit remove
 	HOUSE_BUY = 0x021C, // House_BuyHouse 
 	HOUSE_ABANDON = 0x021F, // House_AbandonHouse 
 	HOUSE_OF_PLAYER_QUERY = 0x21E, // Query your house info, during signin 
@@ -4148,6 +4152,7 @@ enum ClientEventsEnum
 	ALLEGIANCE_QUERY_MOTD = 0x0255, // Query the motd, /allegiance motd
 	ALLEGIANCE_CLEAR_MOTD = 0x0256, // Clear the motd, /allegiance motd clear
 	HOUSE_QUERY_SLUMLORD = 0x0258, // Gets SlumLord info, sent after getting a failed house transaction
+	ALLEGIANCE_MOTD = 0x0255, // Request allegiance MOTD
 	HOUSE_SET_OPEN_STORAGE_ACCESS = 0x025C, // House_AddAllStoragePermission
 	HOUSE_REMOVE_ALL_GUESTS = 0x025E, // House_RemoveAllPermanentGuests
 	HOUSE_BOOT_ALL = 0x025F, // Boot everyone from your house, /house boot -all
@@ -4189,9 +4194,10 @@ enum ClientEventsEnum
 	MOVEMENT_AUTONOMY_LEVEL = 0xF752, // Sets an autonomy level
 	MOVEMENT_AUTONOMOUS_POSITION = 0xF753, // Sends an autonomous position
 	MOVEMENT_JUMP_NON_AUTONOMOUS = 0xF7C9 // Performs a non autonomous jump
+
 };
 
-enum ItemSet 
+enum ItemSet
 {
 	Invalid_ItemSet,
 	Test_ItemSet,

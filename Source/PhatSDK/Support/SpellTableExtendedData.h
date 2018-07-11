@@ -623,22 +623,22 @@ public:
 	MetaSpellEx _meta_spell;
 };
 
-/*
-class SpellSetTierListEx : public PackObj
-{
-public:
-	DECLARE_PACKABLE()
-
-	PackableList<unsigned long> m_tierSpellList;
-};
-
-class SpellSetEx : public PackObj
-{
-public:
-	DECLARE_PACKABLE()
-
-	std::list<SpellSetTierList> m_countTiers;
-};*/
+//class SpellSetTierList : public PackObj
+//{
+//public:
+//	DECLARE_PACKABLE()
+//
+//	unsigned int m_PieceCount;
+//	std::list<unsigned long> m_SpellList;
+//};
+//
+//class SpellSetEx : public PackObj
+//{
+//public:
+//	DECLARE_PACKABLE()
+//
+//	std::list<SpellSetTierList> m_countTiers;
+//};
 
 class CSpellTableEx : public PackObj, public PackableJson
 {

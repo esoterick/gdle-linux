@@ -84,14 +84,14 @@ public:
 	void PerformCastParticleEffects();
 	void PerformFellowCastParticleEffects(Fellowship *fellow);
 	int LaunchSpellEffect(bool bFizzled);
-	bool DoTransferSpell(std::shared_ptr<CWeenieObject> other, const TransferSpellEx *meta);
-	bool AdjustVital(std::shared_ptr<CWeenieObject> target);
-	void SendAdjustVitalText(std::shared_ptr<CWeenieObject> target, int amount, const char *vitalName);
-	void TransferVitalPercent(std::shared_ptr<CWeenieObject> target, float drainPercent, float infusePercent, STypeAttribute2nd attribute);
-	void SendTransferVitalPercentText(std::shared_ptr<CWeenieObject> target, int drained, int infused, bool reversed, const char *vitalName);
-	//void SendAdjustedVitalText(std::shared_ptr<CWeenieObject> target, unsigned int amount, STypeAttribute2nd attribute, bool beneficial);
-	Position GetSpellProjectileSpawnPosition(std::shared_ptr<CSpellProjectile> pProjectile, std::shared_ptr<CWeenieObject> pTarget, float *pDistToTarget, double dDir, bool bRing);
-	Vector GetSpellProjectileSpawnVelocity(Position *pSpawnPosition, std::shared_ptr<CWeenieObject> pTarget, float speed, bool tracked, bool gravity, Vector *pTargetDir, double dDir, bool bRing);
+	bool DoTransferSpell(CWeenieObject *other, const TransferSpellEx *meta);
+	bool AdjustVital(CWeenieObject *target);
+	void SendAdjustVitalText(CWeenieObject *target, int amount, const char *vitalName);
+	void TransferVitalPercent(CWeenieObject *target, float drainPercent, float infusePercent, STypeAttribute2nd attribute);
+	void SendTransferVitalPercentText(CWeenieObject *target, int drained, int infused, bool reversed, const char *vitalName);
+	//void SendAdjustedVitalText(CWeenieObject *target, unsigned int amount, STypeAttribute2nd attribute, bool beneficial);
+	Position GetSpellProjectileSpawnPosition(CSpellProjectile *pProjectile, CWeenieObject *pTarget, float *pDistToTarget, double dDir, bool bRing);
+	Vector GetSpellProjectileSpawnVelocity(Position *pSpawnPosition, CWeenieObject *pTarget, float speed, bool tracked, bool gravity, Vector *pTargetDir, double dDir, bool bRing);
 	void Update();
 
 	DWORD DetermineSkillLevelForSpell();

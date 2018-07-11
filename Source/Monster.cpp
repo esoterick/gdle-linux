@@ -834,12 +834,12 @@ bool CMonsterWeenie::FinishMoveItemToWield(std::shared_ptr<CWeenieObject> source
 			serial |= ((DWORD)GetEnchantmentSerialByteForMask(sourceItem->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE)) << (DWORD)8);
 
 			DWORD spellid = sourceItem->InqDIDQuality(PROC_SPELL_DID, 0);
-
 			for (auto &spellPage : sourceItem->m_Qualities._spell_book->_spellbook)
-			{	
+			{
 				//ignore the spell and don't cast if it's the Proc_spell_DID
 				if (spellid != spellPage.first)
 					sourceItem->MakeSpellcastingManager()->CastSpellEquipped(GetID(), spellPage.first, (WORD)serial);
+
 			}
 		}
 	}
@@ -1372,9 +1372,7 @@ void CMonsterWeenie::OnTookDamage(DamageEventData &damageData)
 
 void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 {
-	std::shared_ptr<CWeenieObject> pSource = damageData.source.lock();
-	
-	if (pSource && damageData.outputDamageFinal > 0 && damageData.damage_type != STAMINA_DAMAGE_TYPE && damageData.damage_type != MANA_DAMAGE_TYPE) // only interested in damage done to HP
+	if (damageData.source && damageData.outputDamageFinal > 0 && damageData.damage_type != STAMINA_DAMAGE_TYPE && damageData.damage_type != MANA_DAMAGE_TYPE)
 	{
 		DWORD source = pSource->GetID();
 
@@ -1386,21 +1384,22 @@ void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 		m_aDamageSources[source] += damageData.outputDamageFinal;
 		m_totalDamageTaken += damageData.outputDamageFinal;
 
-		if (m_highestDamageSource == 0 || m_aDamageSources[source] > m_aDamageSources[m_highestDamageSource])
+		if (m_highestDamageSource == 0 || m_aDamageSources[source] > m_aDamageSources[m_highestDamageSource] && damageData.damage_type == HEALTH_DAMAGE_TYPE)
 		{
 			m_highestDamageSource = source;
 
-			if (monster_brawl && m_MonsterAI && !(InqIntQuality(CREATURE_TYPE_INT, 0) == pSource->InqIntQuality(CREATURE_TYPE_INT, 0))) // don't target own kind
+			if (monster_brawl && m_MonsterAI && !(InqIntQuality(CREATURE_TYPE_INT, 0) == damageData.source->InqIntQuality(CREATURE_TYPE_INT, 0)))
 			{
-				m_MonsterAI->SetNewTarget(pSource);
+				m_MonsterAI->SetNewTarget(damageData.source);
 				return;
 			}
 
-			if (m_MonsterAI && m_MonsterAI->_toleranceType != TolerateEverything && pSource->AsPlayer())
+			if (m_MonsterAI && m_MonsterAI->_toleranceType != TolerateEverything && damageData.source->AsPlayer())  // TODO: maths to determine when to setnewtarget not just per attack as it would allow ping-ponging mobs
 			{
-				m_MonsterAI->SetNewTarget(pSource);
+				m_MonsterAI->SetNewTarget(damageData.source);
 			}
 		}
+
 	}
 }
 
@@ -1419,6 +1418,7 @@ void CMonsterWeenie::OnRegen(STypeAttribute2nd currentAttrib, int newAmount)
 			m_aDamageSources.clear();
 			m_highestDamageSource = 0;
 			m_totalDamageTaken = 0;
+
 		}
 	}
 }
@@ -1709,7 +1709,7 @@ void CMonsterWeenie::GenerateDeathLoot(std::shared_ptr<CCorpseWeenie> pCorpse)
 	if (m_Qualities._create_list)
 		g_pWeenieFactory->AddFromCreateList(pCorpse, m_Qualities._create_list, (DestinationType)(Contain_DestinationType | Treasure_DestinationType));
 
-	std::list<std::shared_ptr<CWeenieObject> > removeList;
+	std::list<CWeenieObject *> removeList;
 
 	for each(auto item in pCorpse->m_Items)
 	{
@@ -1770,7 +1770,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 		// hand out xp proportionally
 		for (auto it : m_aDamageSources)
 		{
-			std::shared_ptr<CWeenieObject> pSource = g_pWorld->FindObject(it.first);
+			CWeenieObject *pSource = g_pWorld->FindObject(it.first);
 			double dPercentage = (double)it.second / m_totalDamageTaken;
 
 			if (pSource)
@@ -1806,7 +1806,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 	if (g_pConfig->HardcoreMode() && _IsPlayer())
 	{
-		if (std::shared_ptr<CWeenieObject> pKiller = g_pWorld->FindObject(m_highestDamageSource))
+		if (CWeenieObject *pKiller = g_pWorld->FindObject(m_highestDamageSource))
 		{
 			if (!g_pConfig->HardcoreModePlayersOnly() || pKiller->_IsPlayer())
 			{
@@ -2161,7 +2161,7 @@ DWORD CMonsterWeenie::OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> sour
 		return 0;
 	}
 
-	if (source != AsWeenie())
+	if (source != this)
 	{
 		bool accepted = false;
 		// Use our emote table to determine what to do with this item.
@@ -2468,6 +2468,7 @@ int CMonsterWeenie::AdjustHealth(int amount)
 		m_aDamageSources.clear();
 		m_highestDamageSource = 0;
 		m_totalDamageTaken = 0;
+
 	}
 
 	return adjustedAmount;

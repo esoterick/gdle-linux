@@ -1008,7 +1008,7 @@ void CWeenieFactory::AddWeenieToDestination(std::shared_ptr<CWeenieObject> weeni
 	case Contain_RegenLocationType:
 	case ContainTreasure_RegenLocationType:
 	case Treasure_RegenLocationType:
-		if (std::shared_ptr<CContainerWeenie> container = parent->AsContainer())
+		if (CContainerWeenie *container = parent->AsContainer())
 			container->SpawnInContainer(weenie);
 		break;
 	case Wield_RegenLocationType:

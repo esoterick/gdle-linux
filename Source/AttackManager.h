@@ -1,6 +1,5 @@
 
 #pragma once
-
 #define CLEAVING_ATTACK_ANGLE 178
 
 class CAttackEventData
@@ -29,7 +28,6 @@ public:
 	std::shared_ptr<CWeenieObject> GetTarget();
 	void MoveToAttack();
 	void TurnToAttack();
-
 	virtual void HandleMoveToDone(DWORD error);
 	virtual void HandleAttackHook(const AttackCone &cone) { }
 	virtual void OnReadyToAttack() = 0;
@@ -71,10 +69,9 @@ public:
 	void Finish();
 
 	virtual void HandleAttackHook(const AttackCone &cone) override;
-	void HandlePerformAttack(std::shared_ptr<CWeenieObject> target, DamageEventData dmgEvent);
+	void HandlePerformAttack(CWeenieObject *target, DamageEventData dmgEvent);
 
 	virtual class CMeleeAttackEvent *AsMeleeAttackEvent() { return NULL; }
-	
 	DWORD _do_attack_animation = 0;
 };
 
@@ -96,9 +93,7 @@ class CMissileAttackEvent : public CAttackEventData
 {
 public:
 	virtual void Setup() override;
-
 	virtual void PostCharge() override;
-
 	virtual void OnReadyToAttack() override;
 	virtual void OnAttackAnimSuccess(DWORD motion) override;
 	void Finish();

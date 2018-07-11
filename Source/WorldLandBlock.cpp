@@ -766,6 +766,8 @@ void CWorldLandBlock::Destroy(std::shared_ptr<CWeenieObject> pEntity, bool bDoRe
 		if (target)
 			target->NotifyGeneratedDeath(pEntity);
 	}
+
+	//DELETE_ENTITY(pEntity);
 }
 
 BOOL CWorldLandBlock::Think()
