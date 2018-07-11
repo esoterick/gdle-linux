@@ -321,7 +321,7 @@ bool CHouseWeenie::HasAccess(std::shared_ptr<CPlayerWeenie> requester)
 	if (houseData->_everyoneAccess)
 		return true;
 
-	if (requester->GetClient() && requester->GetClient()->GetAccountInfo().id == houseData->_ownerAccount)
+	if (requester->GetClient() &&  requester->GetClient()->GetAccountInfo().id == houseData->_ownerAccount)
 		return true;
 
 	if (std::find(houseData->_accessList.begin(), houseData->_accessList.end(), requesterId) != houseData->_accessList.end())

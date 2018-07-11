@@ -42,7 +42,6 @@ DEFINE_PACK(Fellowship)
 
 	_fellows_departed.Pack(pWriter);
 	LockedFellowshipList.Pack(pWriter);
-
 }
 
 DEFINE_UNPACK(Fellowship)
@@ -425,7 +424,7 @@ void Fellowship::Chat(DWORD sender_id, const char *text)
 	std::shared_ptr<CWeenieObject> sender_weenie = g_pWorld->FindPlayer(sender_id);
 	if (sender_weenie)
 	{
-		sender_weenie->SendNetMessage(ServerText(csprintf("You say to your fellowship, \"%s\"", text), LTT_FELLOWSHIP_CHANNEL), PRIVATE_MSG, FALSE, TRUE);
+		sender_weenie->SendNetMessage(ServerText(csprintf("You say, \"%s\"", text), LTT_FELLOWSHIP_CHANNEL), PRIVATE_MSG, FALSE, TRUE);
 
 		std::string sender_name = sender_weenie->GetName();
 		for (auto &entry : _fellowship_table)
@@ -434,7 +433,7 @@ void Fellowship::Chat(DWORD sender_id, const char *text)
 			{
 				std::shared_ptr<CPlayerWeenie> player = g_pWorld->FindPlayer(entry.first);
 				if (player)
-					player->SendNetMessage(ServerText(csprintf("%s says to your fellowship, \"%s\"", sender_name.c_str(), text), LTT_FELLOWSHIP_CHANNEL), PRIVATE_MSG, FALSE, TRUE);
+					player->SendNetMessage(ServerText(csprintf("%s says, \"%s\"", sender_name.c_str(), text), LTT_FELLOWSHIP_CHANNEL), PRIVATE_MSG, FALSE, TRUE);
 			}
 		}
 	}

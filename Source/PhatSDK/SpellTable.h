@@ -321,6 +321,7 @@ public:
 	MetaSpell _meta_spell;
 };
 
+
 class SpellSetTierList : public PackObj
 {
 public:
@@ -357,7 +358,6 @@ public:
 
 	PackableHashTable<unsigned long, CSpellBase> _spellBaseHash;
 	PackableHashTable<unsigned long, SpellSet> _spellSetHash;
-	// don't do this for now PHashTable<unsigned long, SpellSet> m_SpellSetHash;
 
 #if PHATSDK_IS_SERVER
 	DWORD ChangeSpellToDifferentLevel(DWORD spell_id, DWORD spell_level);

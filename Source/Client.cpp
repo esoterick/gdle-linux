@@ -619,7 +619,15 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 					else if (cg.skillAdvancementClasses[i] == SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 						weenie->m_Qualities.SetSkillLevel((STypeSkill)i, 5);
 				}
-				
+
+				time_t t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+				std::stringstream ss;
+				ss << std::put_time(std::localtime(&t), "%m/%d/%y %I:%M:%S %p."); // convert time to a string of format '01/01/18 11:59:59 AM.'
+				std::string str = ss.str();
+
+				weenie->m_Qualities.SetInt(CREATION_TIMESTAMP_INT, t);
+				weenie->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
 				weenie->m_Qualities.SetInt(AGE_INT, 0);
 
 				time_t t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());

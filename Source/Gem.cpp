@@ -44,7 +44,7 @@ int CGemWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> player)
 			cooldown = Timer::cur_time + InqFloatQuality(COOLDOWN_DURATION_FLOAT, 0, FALSE);
 		}
 		else
-			player->SendText("You can't do that yet!", LTT_ERROR);			
+			player->SendText("You can't do that yet!", LTT_ERROR);
 	}
 
 	DecrementStackOrStructureNum();

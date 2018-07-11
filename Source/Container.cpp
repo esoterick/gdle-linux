@@ -1518,36 +1518,27 @@ void CContainerWeenie::DebugValidate()
 {
 	CWeenieObject::DebugValidate();
 
-#ifdef _DEBUG
-	assert(!GetWielderID());
-	
-	for (auto wielded : m_Wielded)
-	{
-		if (std::shared_ptr<CWeenieObject> pWielded = wielded.lock())
-		{
-			assert(pWielded->GetWielderID() == GetID());
-			pWielded->DebugValidate();
-		}
-	}
-
-	for (auto item : m_Items)
-	{
-		if (std::shared_ptr<CWeenieObject> pItem = item.lock())
-		{
-			assert(pItem->GetContainerID() == GetID());
-			pItem->DebugValidate();
-		}
-	}
-
-	for (auto pack : m_Packs)
-	{
-		if (std::shared_ptr<CWeenieObject> pPack = pack.lock())
-		{
-			assert(pPack->GetContainerID() == GetID());
-			pPack->DebugValidate();
-		}
-	}
-#endif
+//#ifdef _DEBUG
+//	assert(!GetWielderID());
+//	
+//	for (auto wielded : m_Wielded)
+//	{
+//		assert(wielded->GetWielderID() == GetID());
+//		wielded->DebugValidate();
+//	}
+//
+//	for (auto item : m_Items)
+//	{
+//		assert(item->GetContainerID() == GetID());
+//		item->DebugValidate();
+//	}
+//
+//	for (auto pack : m_Packs)
+//	{
+//		assert(pack->GetContainerID() == GetID());
+//		pack->DebugValidate();
+//	}
+//#endif
 }
 
 DWORD CContainerWeenie::RecalculateCoinAmount()

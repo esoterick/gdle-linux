@@ -4,7 +4,7 @@
 #include "DatabaseIO.h"
 #include "WorldLandBlock.h"
 
-#define CORPSE_EXIST_TIME 300.0 // how long before a corpse disappears in seconds
+#define CORPSE_EXIST_TIME 300
 
 CCorpseWeenie::CCorpseWeenie()
 {
@@ -44,6 +44,8 @@ int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
 	{
 		DWORD killerId = InqIIDQuality(KILLER_IID, 0);
 		DWORD victimId = InqIIDQuality(VICTIM_IID, 0);
+		CPlayerWeenie *owner = g_pWorld->FindPlayer(victimId);
+		CPlayerWeenie *looter = other->AsPlayer();
 		bool killedByPK = m_Qualities.GetBool(PK_KILLER_BOOL, 0);
 		if (killerId == other->GetID() || victimId == other->GetID())
 		{
@@ -56,18 +58,35 @@ int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
 		std::shared_ptr<CPlayerWeenie> owner = g_pWorld->FindPlayer(victimId);
 		std::shared_ptr<CPlayerWeenie> looter = other->AsPlayer();
 
+		if (_begin_destroy_at - (CORPSE_EXIST_TIME / 2) <= Timer::cur_time || other->GetID() == killerId) // If the corpse hasn't been opened after half its life, open to anyone
+		{
+			return WERROR_NONE;
+		}
+		
 		if (owner && !killedByPK && looter) // Make sure we're both players & don't let corpse permissions work on PK kills
 		{
 			if (!owner->m_umCorpsePermissions.empty()) // if the corpse owner has players on their permissions list
 			{
-				if (owner->m_umCorpsePermissions.find(looter) != owner->m_umCorpsePermissions.end()) // if the looter is on the owners permissions list
+				if (!owner->HasPermission(looter))
 				{
-					owner->RemoveCorpsePermission(looter); // revoke permission now you've looted 1 corpse
-					looter->RemoveConsent(owner); // remove from looter consent list
+					other->SendText("You do not have permission to loot that corpse!", LTT_ERROR);
+					return WERROR_FROZEN;
+				}
+				else
+				{
+					owner->RemoveCorpsePermission(looter);
+					looter->RemoveConsent(owner);
 					return WERROR_NONE;
 				}
 			}
 		}
+
+		if (owner != looter)
+		{
+			other->SendText("You do not have permission to loot that corpse!", LTT_ERROR);
+			return WERROR_FROZEN;
+		}
+
 		if (Fellowship *fellowship = other->GetFellowship())
 		{
 			if (fellowship->_share_loot)
@@ -77,21 +96,11 @@ int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
 					if (killerId == entry.first)
 						return WERROR_NONE;
 				}
-
-				for (auto &entry : fellowship->_fellows_departed)
-				{
-					if (killerId == entry.first)
-						return WERROR_NONE;
-				}
 			}
 		}
 	}
-	else
-		return WERROR_NONE;
 
-	other->SendText("You do not have permission to loot that corpse!", LTT_ERROR);
-
-	return WERROR_CHEST_WRONG_KEY;
+	return WERROR_NONE;
 }
 
 void CCorpseWeenie::OnContainerOpened(std::shared_ptr<CWeenieObject> other)

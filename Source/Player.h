@@ -200,15 +200,18 @@ public:
 	bool CheckPKActivity() { return m_iPKActivity > Timer::cur_time; }
 	void ClearPKActivity() { m_iPKActivity = Timer::cur_time; }
 
-	void AddCorpsePermission(std::shared_ptr<CPlayerWeenie> target);
-	void RemoveCorpsePermission(std::shared_ptr<CPlayerWeenie> target);
+	void AddCorpsePermission(CPlayerWeenie * target);
+	void RemoveCorpsePermission(CPlayerWeenie * target);
+	bool HasPermission(CPlayerWeenie * target);
 	void UpdateCorpsePermissions();
-	void RemoveConsent(std::shared_ptr<CPlayerWeenie> target);
+	void ClearPermissions(); // TODO: Add call on logout
+	void RemoveConsent(CPlayerWeenie * target);
 	void DisplayConsent();
-	void ClearConsent();
+	void ClearConsent(bool onLogout); // TODO: Add call on logout
+	std::unordered_map<int, int> m_umCorpsePermissions;
+	std::unordered_map<int, int> m_umConsentList;
 
-	std::unordered_map<std::shared_ptr<CPlayerWeenie>, int> m_umCorpsePermissions;
-	std::unordered_map<std::shared_ptr<CPlayerWeenie>, int> m_umConsentList;
+
 
 protected:
 	CClient *m_pClient;

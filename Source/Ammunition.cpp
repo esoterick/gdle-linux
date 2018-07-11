@@ -205,22 +205,22 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 					}
 
 					//cast on strike
-					if (dmgEvent.weapon.lock()->InqDIDQuality(PROC_SPELL_DID, 0))
+					if (weapon->InqDIDQuality(PROC_SPELL_DID, 0))
 					{
-						double procChance = dmgEvent.weapon.lock()->InqFloatQuality(PROC_SPELL_RATE_FLOAT, 0.0f);
+						double procChance = weapon->InqFloatQuality(PROC_SPELL_RATE_FLOAT, 0.0f);
 
 						bool proc = (Random::GenFloat(0.0, 1.0) < procChance) ? true : false;
 
-						if (proc && target)
+						if (proc && _targetID)
 						{
-							DWORD procspell = dmgEvent.weapon.lock()->InqDIDQuality(PROC_SPELL_DID, 0);
+							DWORD targetid = _targetID;
+							DWORD procspell = weapon->InqDIDQuality(PROC_SPELL_DID, 0);
 
-							dmgEvent.weapon.lock()->TryCastSpell(_targetID, procspell);
+							weapon->TryCastSpell(targetid, procspell);
 						}
 					}
 
 					CalculateDamage(&dmgEvent);
-
 					pSource->TryToDealDamage(dmgEvent);
 				}
 			}

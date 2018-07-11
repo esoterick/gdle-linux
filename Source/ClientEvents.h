@@ -136,6 +136,8 @@ private:
 	unsigned int _num_chat_sent = 0;
 
 	double _next_allowed_identify = 0.0;
+
+	int last_age_update;
 };
 
 

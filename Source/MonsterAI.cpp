@@ -9,6 +9,7 @@
 
 bool monster_brawl = 0;
 #define DEFAULT_AWARENESS_RANGE 40.0
+bool monster_brawl = 0;
 
 MonsterAIManager::MonsterAIManager(std::shared_ptr<CMonsterWeenie> pWeenie, const Position &HomePos)
 {
@@ -212,13 +213,12 @@ void MonsterAIManager::BeginIdle()
 	}
 
 	m_fNextPVSCheck = Timer::cur_time;
-
-	pWeenie->ChangeCombatMode(COMBAT_MODE::NONCOMBAT_COMBAT_MODE, false);
-
+	m_pWeenie->ChangeCombatMode(COMBAT_MODE::NONCOMBAT_COMBAT_MODE, false);
 	if (monster_brawl)
 	{
-		_toleranceType = TolerateNothing;
+		m_pWeenie->m_MonsterAI->_toleranceType = TolerateNothing;
 	}
+
 }
 
 void MonsterAIManager::EndIdle()
@@ -245,7 +245,15 @@ bool MonsterAIManager::SeekTarget()
 	{
 		m_fNextPVSCheck = Timer::cur_time + 2.0f;
 
-		std::list<std::shared_ptr<CWeenieObject> > results;
+		std::list<CWeenieObject *> results;
+		if (monster_brawl)
+		{
+			g_pWorld->EnumNearby(m_pWeenie, _cachedVisualAwarenessRange, &results);
+		}
+		else
+		{
+			g_pWorld->EnumNearbyPlayers(m_pWeenie, _cachedVisualAwarenessRange, &results);
+		}
 
 		if (monster_brawl)
 		{
@@ -256,17 +264,16 @@ bool MonsterAIManager::SeekTarget()
 			g_pWorld->EnumNearbyPlayers(pWeenie, _cachedVisualAwarenessRange, &results);
 		}
 
-		std::list<std::shared_ptr<CWeenieObject> > validTargets;
 
 		for (auto weenie : results)
 		{
-			if (monster_brawl && pWeenie->InqIntQuality(CREATURE_TYPE_INT, 0) == weenie->InqIntQuality(CREATURE_TYPE_INT, 0)) // if monster fighting is on, don't fight your own kind
-				continue;
-			
-			if (weenie == pWeenie)
+			if (monster_brawl && m_pWeenie->InqIntQuality(CREATURE_TYPE_INT, 0) == weenie->InqIntQuality(CREATURE_TYPE_INT, 0)) // if monster fighting is on, don't fight your own kind
 				continue;
 
-			if (!weenie->_IsPlayer() && !monster_brawl) // only attack players unless monster fighting is enabled
+			if (weenie == m_pWeenie)
+				continue;
+
+			if (!weenie->_IsPlayer() && !monster_brawl) // only attack players
 				continue;
 
 			if (!weenie->IsAttackable())
@@ -276,6 +283,7 @@ bool MonsterAIManager::SeekTarget()
 				continue;
 
 			validTargets.push_back(weenie);
+
 		}
 
 		if (!validTargets.empty())
@@ -345,6 +353,7 @@ bool MonsterAIManager::ShouldSeekNewTarget()
 	{
 		return true; // we always want a new target
 	}
+
 	if (DistanceToHome() >= m_fMaxHomeRange)
 		return false;
 
@@ -634,7 +643,7 @@ bool MonsterAIManager::IsValidTarget(std::shared_ptr<CWeenieObject> pWeenie)
 	if (m_pWeenie.lock() == pWeenie)
 		return false;
 
-	if (!pWeenie->_IsPlayer() && !monster_brawl) // only attack players unless monster fighting is on
+	if (!pWeenie->_IsPlayer() && !monster_brawl) // only attack players
 		return false;
 
 	if (pWeenie->ImmuneToDamage(pWeenie)) // only attackable players (not dead, not in portal space, etc.

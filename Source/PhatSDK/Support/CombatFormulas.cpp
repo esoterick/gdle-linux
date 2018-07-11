@@ -80,10 +80,10 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 	case DF_MISSILE:
 	{
 		DWORD attrib = 0;
-		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL && (weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) !=  Atlatl_CombatStyle) && (weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle) && (weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownShield_CombatStyle))
-		{
-			pSource->m_Qualities.InqAttribute(COORDINATION_ATTRIBUTE, attrib, FALSE);
-		}
+		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL && 
+			(dmgEvent->weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != Atlatl_CombatStyle) && (dmgEvent->weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownWeapon_CombatStyle) &&
+			(dmgEvent->weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != ThrownShield_CombatStyle))
+			dmgEvent->source->m_Qualities.InqAttribute(COORDINATION_ATTRIBUTE, attrib, FALSE);
 		else
 		{
 			pSource->m_Qualities.InqAttribute(STRENGTH_ATTRIBUTE, attrib, FALSE);
@@ -427,7 +427,7 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		}
 	}
 
-	if (pWeapon->InqIntQuality(RESISTANCE_MODIFIER_TYPE_INT, 0, FALSE))
+	if (dmgEvent->weapon->InqIntQuality(RESISTANCE_MODIFIER_TYPE_INT, 0, FALSE))
 		dmgEvent->isResistanceCleaving = TRUE;
 
 	if (dmgEvent->isResistanceCleaving)
@@ -463,7 +463,7 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		}
 	}
 
-	if (pWeapon->InqFloatQuality(IGNORE_ARMOR_FLOAT, 0, FALSE))
+	if (dmgEvent->weapon->InqFloatQuality(IGNORE_ARMOR_FLOAT, 0, FALSE))
 		dmgEvent->isArmorCleaving = TRUE;
 
 	if (dmgEvent->isArmorCleaving)
@@ -471,7 +471,7 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		switch (dmgEvent->damage_form)
 		{
 		case DF_MELEE:
-			dmgEvent->armorRendingMultiplier = 1.0 /  2.5;
+			dmgEvent->armorRendingMultiplier = 1.0 / 2.5;
 		case DF_MISSILE:
 			dmgEvent->armorRendingMultiplier = 1.0 / 2.25;
 			break;
@@ -480,4 +480,5 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 			return;
 		}
 	}
+
 }

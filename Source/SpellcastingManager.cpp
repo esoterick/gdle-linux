@@ -48,6 +48,7 @@ void CSpellcastingManager::EndCast(int error)
 	m_SpellCastData = SpellCastData();
 	m_PendingMotions.clear();
 	m_bTurningToObject = false;
+	m_bTurned = false;
 }
 
 bool CSpellcastingManager::ResolveSpellBeingCasted()
@@ -338,7 +339,7 @@ void CSpellcastingManager::BeginNextMotion()
 
 		if (m_PendingMotions.empty())
 		{
-			int error = LaunchSpellEffect(FALSE);
+			int error = LaunchSpellEffect(false);
 			EndCast(error);
 		}
 		else
@@ -584,7 +585,13 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 		case HEALTH_DAMAGE_TYPE:
 		{
 			int amount = round((float)pSource->GetHealth() * drainPercentage);
-			selfDrainedAmount = abs(pSource->AdjustHealth(-amount));
+			if (amount >= pSource->GetHealth())
+			{
+				selfDrainedAmount = pSource->GetHealth() - 1;
+				pSource->SetHealth(1);
+			}
+			else
+				selfDrainedAmount = abs(pSource->AdjustHealth(-amount));
 			break;
 		}
 		case STAMINA_DAMAGE_TYPE:
@@ -600,7 +607,6 @@ bool CSpellcastingManager::LaunchProjectileSpell(ProjectileSpellEx *meta)
 			break;
 		}
 		}
-		pSource->CheckDeath(pSource, damageType);
 	}
 
 	bool bAngled = meta->_spreadAngle > 0 && numX > 1;
@@ -759,8 +765,9 @@ void CSpellcastingManager::PerformCastParticleEffects()
 	// target effect
 	if (m_SpellCastData.spell->_target_effect)
 	{
-		if ((m_SpellCastData.spell->_category == 162 || m_SpellCastData.spell->_category == 164 || m_SpellCastData.spell->_category == 166 || m_SpellCastData.spell->_category == 168 || m_SpellCastData.spell->_category == 170 || m_SpellCastData.spell->_category == 172 || m_SpellCastData.spell->_category == 174 || m_SpellCastData.spell->_category == 160) && (m_SpellCastData.source_id == m_SpellCastData.target_id))
-		{
+		if ((m_SpellCastData.spell->_category == 162 || m_SpellCastData.spell->_category == 164 || m_SpellCastData.spell->_category == 166 || m_SpellCastData.spell->_category == 168 || 
+			m_SpellCastData.spell->_category == 170 || m_SpellCastData.spell->_category == 172 || m_SpellCastData.spell->_category == 174 || m_SpellCastData.spell->_category == 160) && 
+			(m_SpellCastData.source_id == m_SpellCastData.target_id))
 			return;
 		}
 		else
@@ -847,12 +854,12 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 		return targetError;
 	}
-	else if (!bFizzled && pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
+	else if (!bFizzled && m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
 	{
 		// fizzle
-		pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
-		pWeenie->AdjustMana(-5);
-		pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
+		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
+		m_pWeenie->AdjustMana(-5);
+		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
 
 		bFizzled = true;
 	}
@@ -861,7 +868,6 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 	if (pWeenie->AsPlayer() && m_SpellCastData.uses_mana)
 	{
-	
 		double chance = GetMagicSkillChance(m_SpellCastData.current_skill, m_SpellCastData.spell->_power);
 		if (chance < Random::RollDice(0.0, 1.0))
 		{
@@ -871,7 +877,6 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 			bFizzled = true;
 		}
-
 
 		if (!m_UsedComponents.empty()) //we used components, so check if any need burning
 		{
@@ -927,6 +932,12 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 		// Drain mana from weapon on Cast on Strike
 		pWeenie->m_Qualities.SetInt(ITEM_CUR_MANA_INT, pWeenie->InqIntQuality(ITEM_CUR_MANA_INT, 0, 0) - m_SpellCastData.spell->_base_mana);
 	}
+	else if ((m_pWeenie->AsMeleeWeapon() || m_pWeenie->AsMissileLauncher()) && m_SpellCastData.uses_mana)
+	{
+		// Drain mana from weapon on Cast on Strike
+		m_pWeenie->m_Qualities.SetInt(ITEM_CUR_MANA_INT, m_pWeenie->InqIntQuality(ITEM_CUR_MANA_INT, 0, 0) - m_SpellCastData.spell->_base_mana);
+	}
+
 
 
 	bool bSpellPerformed = false;
@@ -1793,14 +1804,14 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 							if (topLevelOwner->TryMagicResist(m_SpellCastData.current_skill))
 							{
 								topLevelOwner->EmitSound(Sound_ResistSpell, 1.0f, false);
-								topLevelOwner->SendText(csprintf("You resist the spell cast by %s", pWeenie->GetName().c_str()), LTT_MAGIC);
-								pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-								topLevelOwner->OnResistSpell(pWeenie);
+								topLevelOwner->SendText(csprintf("You resist the spell cast by %s", m_pWeenie->GetName().c_str()), LTT_MAGIC);
+								m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+								topLevelOwner->OnResistSpell(m_pWeenie);
 
 								// Cast on Strike
-								if (pWeenie != topLevelOwner)
+								if (m_pWeenie != topLevelOwner)
 								{
-									pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+									m_pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
 								}
 
 								continue;
@@ -1850,8 +1861,9 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 									topLevelOwner->SendText(csprintf("%s resists the spell cast by %s", pWeenie->GetName().c_str(), pWeenie->GetName().c_str()), LTT_MAGIC);
 								}
 
-								pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
-								target->OnResistSpell(pWeenie);
+								m_pWeenie->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
+								target->OnResistSpell(m_pWeenie);
+
 								continue;
 							}
 						}
@@ -1870,19 +1882,18 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 					}
 					else
 					{
-						 
-						if (pWeenie != topLevelOwner)
+						if (m_pWeenie != topLevelOwner)
 						{
 							if (target == topLevelOwner)
 								target->SendText(csprintf("%s cast %s on you", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
 							else
-								topLevelOwner->SendText(csprintf("%s cast %s on %s", pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
-
+								topLevelOwner->SendText(csprintf("%s cast %s on %s", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), target->GetName()), LTT_MAGIC);
+							
 							// Cast on Strike and other buffs
-								pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+							m_pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 						}
 						else
-							pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+							m_pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
 					}
 
 					bSpellPerformed = true;
@@ -2846,13 +2857,13 @@ int CSpellcastingManager::CreatureBeginCast(DWORD target_id, DWORD spell_id)
 	}
 
 	// if the spell uses mana and we use mana then check we've got enough
-	if (m_SpellCastData.uses_mana && pWeenie->InqBoolQuality(AI_USES_MANA_BOOL, 1) && pWeenie->GetMana() < m_SpellCastData.spell->_base_mana)
+	if (m_SpellCastData.uses_mana && m_pWeenie->InqBoolQuality(AI_USES_MANA_BOOL, 1) && m_pWeenie->GetMana() < m_SpellCastData.spell->_base_mana)
 	{
 		return WERROR_MAGIC_INSUFFICIENT_MANA;
 	}
 
 	// if we're at max hp, no need to cast self heals
-	if (m_SpellCastData.spell->_category == 67 && (pWeenie->GetHealth() == pWeenie->GetMaxHealth()))
+	if (m_SpellCastData.spell->_category == 67 && (m_pWeenie->GetHealth() == m_pWeenie->GetMaxHealth()))
 	{
 		return WERROR_NONE;
 	}
@@ -2865,9 +2876,9 @@ int CSpellcastingManager::CreatureBeginCast(DWORD target_id, DWORD spell_id)
 	m_SpellCastData.power_level_of_power_component = m_SpellCastData.spell_formula.GetPowerLevelOfPowerComponent();
 
 	// if we use our mana pool then adjust it for the spell cost
-	if (m_SpellCastData.uses_mana && pWeenie->InqBoolQuality(AI_USES_MANA_BOOL, 1))
+	if (m_SpellCastData.uses_mana && m_pWeenie->InqBoolQuality(AI_USES_MANA_BOOL, 1))
 	{
-		pWeenie->AdjustMana(-(m_SpellCastData.spell->_base_mana)); //should this use GetManaCost to adjust for skill/mana c?
+		m_pWeenie->AdjustMana(-(m_SpellCastData.spell->_base_mana)); //should this use GetManaCost to adjust for skill/mana c?
 	}
 
 	BeginNextMotion();
@@ -2905,7 +2916,7 @@ int CSpellcastingManager::CastSpellInstant(DWORD target_id, DWORD spell_id)
 
 	if (ResolveSpellBeingCasted())
 	{
-		LaunchSpellEffect(FALSE);
+		LaunchSpellEffect(false);
 	}
 	else
 	{
@@ -2950,7 +2961,7 @@ int CSpellcastingManager::CastSpellEquipped(DWORD target_id, DWORD spell_id, WOR
 
 	if (ResolveSpellBeingCasted())
 	{
-		LaunchSpellEffect(FALSE);
+		LaunchSpellEffect(false);
 	}
 	else
 	{
@@ -3147,13 +3158,11 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 
 	if (!pWeenie->m_Qualities.IsSpellKnown(spell_id))
 	{
-		// pWeenie->SendText(csprintf("DEBUG: Unlearned spell %d.", spell_id), LTT_ALL_CHANNELS);
 		// Don't return the unlearned spell error for Cast on Strike
-		if (!(pWeenie->AsMeleeWeapon() || pWeenie->AsMissileLauncher()) && spell_id != pWeenie->InqDIDQuality(PROC_SPELL_DID, 0))
+		if (!(m_pWeenie->AsMeleeWeapon() || m_pWeenie->AsMissileLauncher()) && spell_id != m_pWeenie->InqDIDQuality(PROC_SPELL_DID, 0))
 		{
 			return WERROR_MAGIC_UNLEARNED_SPELL;
 		}
-
 	}
 
 	if (Timer::cur_time < m_fNextCastTime)
@@ -3208,7 +3217,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		SpellFormula randomizedComponents;
 		randomizedComponents.CopyFrom(m_SpellCastData.spell->InqSpellFormula());
 
-		std::shared_ptr<CPlayerWeenie> player = pWeenie->AsPlayer();
+		CPlayerWeenie *player = m_pWeenie->AsPlayer();
 		if (player && player->GetClient())
 			randomizedComponents.RandomizeForName(player->GetClient()->GetAccount(), m_SpellCastData.spell->_formula_version);
 
@@ -3257,22 +3266,21 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		}
 	}
 
-	if (!(pWeenie->AsMeleeWeapon() || pWeenie->AsMissileLauncher()))
+	if (!(m_pWeenie->AsMeleeWeapon() || m_pWeenie->AsMissileLauncher()))
 	{
-		if (pWeenie->GetMana() < GenerateManaCost())
+		if (m_pWeenie->GetMana() < GenerateManaCost())
 			return WERROR_MAGIC_INSUFFICIENT_MANA;
 	}
-	else if (pWeenie->InqIntQuality(ITEM_CUR_MANA_INT, 0, 0) < GenerateManaCost())
+	else if (m_pWeenie->InqIntQuality(ITEM_CUR_MANA_INT, 0, 0) < GenerateManaCost())
 		return WERROR_MAGIC_INSUFFICIENT_MANA;
 	else
 	{
 		m_bCasting = true;
-		m_SpellCastData.current_skill = pWeenie->InqIntQuality(ITEM_SPELLCRAFT_INT, 0, 0);
+		m_SpellCastData.current_skill = m_pWeenie->InqIntQuality(ITEM_SPELLCRAFT_INT, 0, 0);
 		int error = LaunchSpellEffect(FALSE);
 		EndCast(error);
 	}
-
-
+	
 	BeginCast();
 	return WERROR_NONE;
 }
@@ -3390,7 +3398,28 @@ void CSpellcastingManager::Update()
 		m_bCasting = false;
 	}
 
-	if (pWeenie->IsInPeaceMode())
+	if (m_pWeenie->IsInPeaceMode())
+	{
+		// fizzle if you're no longer in combat mode.
+		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
+		m_pWeenie->AdjustMana(-5);
+
+		int error = LaunchSpellEffect(TRUE);
+		EndCast(error);
+	}
+
+	if ((m_SpellCastData.next_update <= Timer::cur_time) && m_bTurned && m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
+	{
+		// fizzle
+		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
+		m_pWeenie->AdjustMana(-5);
+		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
+
+		int error = LaunchSpellEffect(TRUE);
+		EndCast(error);
+	}
+
+	if (m_bTurningToObject)
 	{
 		// fizzle if you're no longer in combat mode.
 		pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
@@ -3422,20 +3451,18 @@ void CSpellcastingManager::Update()
 						BeginNextMotion();
 					}
 				}
-				else
+			}
+			else
+			{
+				if ((m_SpellCastData.next_update <= Timer::cur_time) && !m_pWeenie->get_minterp()->interpreted_state.turn_command)
 				{
-					if ((m_SpellCastData.next_update <= Timer::cur_time) && !pWeenie->get_minterp()->interpreted_state.turn_command)
-					{
-						MovementParameters params;
-						params.speed = 1.0f;
-						params.action_stamp = ++pWeenie->m_wAnimSequence;
-						pWeenie->last_move_was_autonomous = false;
-						pWeenie->TurnToObject(m_SpellCastData.target_id, &params);
-						m_bTurned = true;
-						m_SpellCastData.next_update = Timer::cur_time + CAST_UPDATE_RATE;
-						//m_bTurningToObject = true;
-						//m_fCastTimeout = Timer::cur_time + MAX_TURN_TIME_FOR_CAST;
-					}
+					MovementParameters params;
+					params.speed = 1.0f;
+					params.action_stamp = ++m_pWeenie->m_wAnimSequence;
+					m_pWeenie->last_move_was_autonomous = false;
+					m_pWeenie->TurnToObject(m_SpellCastData.target_id, &params);
+					m_bTurned = true;
+					m_SpellCastData.next_update = Timer::cur_time + CAST_UPDATE_RATE;
 				}
 			}
 		else
