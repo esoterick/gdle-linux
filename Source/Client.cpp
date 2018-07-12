@@ -703,6 +703,13 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				weenie->m_Qualities._create_list->clear(); //Clear the create list as we don't want what's in it.
 				g_pWorld->CreateEntity(weenie); //Briefly add the weenie to the world so we don't get errors when adding the starting gear.
 
+				//set scale on Lugian and Empyrean characters
+				if (cg.heritageGroup == Lugian_HeritageGroup)
+					weenie->m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.3);
+
+				if (cg.heritageGroup == Empyrean_HeritageGroup)
+					weenie->m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+
 				//add starter gear
 				GenerateStarterGear(weenie, cg, scg);
 

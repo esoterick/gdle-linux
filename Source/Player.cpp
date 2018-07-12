@@ -3382,6 +3382,14 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 				m_Qualities.SetSkillLevel(entry->first, 0);
 		}
 	}
+
+	//set scale on Lugian and Empyrean characters and Setup DID on Olthoi
+	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Lugian_HeritageGroup)
+		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.3);
+
+	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Empyrean_HeritageGroup)
+		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+
 	//End of temporary code
 
 	g_pAllegianceManager->SetWeenieAllegianceQualities(this);
