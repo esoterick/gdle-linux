@@ -439,7 +439,7 @@ DEFINE_PACK(CSpellTable)
 {
 	pWriter->Write<DWORD>(id);
 	_spellBaseHash.Pack(pWriter);
-	//_spellSetHash.Pack(pWriter);
+	// m_SpellSetHash....
 }
 
 DEFINE_UNPACK(CSpellTable) // type 0x0E00000E
@@ -517,6 +517,7 @@ DEFINE_UNPACK(CSpellTable) // type 0x0E00000E
 	}
 
 #endif
+
 	return true;
 }
 

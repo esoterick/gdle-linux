@@ -10,7 +10,7 @@ public:
 	CVendorItem();
 	~CVendorItem();
 
-	std::weak_ptr<CWeenieObject> weenie;
+	CWeenieObject *weenie = NULL;
 	int amount = -1;
 };
 
@@ -20,15 +20,15 @@ public:
 	CVendor();
 	virtual ~CVendor() override;
 
-	virtual class std::shared_ptr<CVendor> AsVendor() { return std::static_pointer_cast<CVendor>(GetPointer()); }
+	virtual class CVendor *AsVendor() { return this; }
 
-	virtual int DoUseResponse(std::shared_ptr<CWeenieObject> player) override;
+	virtual int DoUseResponse(CWeenieObject *player) override;
 
 	void DoVendorEmote(int type, DWORD target_id);
 
 	virtual void PreSpawnCreate() override;
 
-	void SendVendorInventory(std::shared_ptr<CWeenieObject> other);
+	void SendVendorInventory(CWeenieObject *other);
 
 	void ResetItems();
 	void GenerateItems();
@@ -37,12 +37,12 @@ public:
 	void AddVendorItem(DWORD wcid, int ptid, float shade, int amount);
 	void AddVendorItem(DWORD wcid, int amount);
 	void AddVendorItemByAllMatchingNames(const char *name);
-	std::shared_ptr<CVendorItem> FindVendorItem(DWORD item_id);
-	int TrySellItemsToPlayer(std::shared_ptr<CPlayerWeenie> buyer, const std::list<class ItemProfile *> &desiredItems);
-	int TryBuyItemsFromPlayer(std::shared_ptr<CPlayerWeenie> seller, const std::list<ItemProfile *> &desiredItems);
+	CVendorItem *FindVendorItem(DWORD item_id);
+	int TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<class ItemProfile *> &desiredItems);
+	int TryBuyItemsFromPlayer(CPlayerWeenie *seller, const std::list<ItemProfile *> &desiredItems);
 
 	VendorProfile profile;
-	std::list<std::shared_ptr<CVendorItem>> m_Items;
+	std::list<CVendorItem *> m_Items;
 };
 
 class CAvatarVendor : public CVendor

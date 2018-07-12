@@ -9,8 +9,8 @@ public:
 	CSkillAlterationDeviceWeenie();
 	virtual ~CSkillAlterationDeviceWeenie() override;
 
-	virtual std::shared_ptr<CSkillAlterationDeviceWeenie> AsSkillAlterationDevice() override { return std::static_pointer_cast<CSkillAlterationDeviceWeenie>(GetPointer()); }
+	virtual CSkillAlterationDeviceWeenie *AsSkillAlterationDevice() override { return this; }
 
-	virtual int Use(std::shared_ptr<CPlayerWeenie> pOther) override;
+	virtual int Use(CPlayerWeenie *pOther) override;
 };
 

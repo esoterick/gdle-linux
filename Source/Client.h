@@ -60,7 +60,7 @@ private:
 	void ExitWorld();
 	void DeleteCharacter(BinaryReader *);
 	void CreateCharacter(BinaryReader *);
-	void GenerateStarterGear(std::shared_ptr<CWeenieObject> weenie, ACCharGenResult cg, Sex_CG *scg);
+	void GenerateStarterGear(CWeenieObject *weenie, ACCharGenResult cg, Sex_CG *scg);
 
 	void SendLandblock(DWORD dwFileID);
 	void SendLandblockInfo(DWORD dwFileID);

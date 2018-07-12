@@ -44,10 +44,10 @@ public:
 		DWORD jump_error_code; // 0x0C
 	};
 
-	CMotionInterp(std::shared_ptr<CPhysicsObj> pPObject, std::shared_ptr<CWeenieObject> pWObject);
+	CMotionInterp(CPhysicsObj *pPObject, CWeenieObject *pWObject);
 	~CMotionInterp();
 
-	static CMotionInterp* Create(std::shared_ptr<CPhysicsObj> pPObject, std::shared_ptr<CWeenieObject> pWObject);
+	static CMotionInterp* Create(CPhysicsObj *pPObject, CWeenieObject *pWObject);
 	void Destroy();
 
 	void HandleExitWorld();
@@ -58,8 +58,8 @@ public:
 	void MotionDone(BOOL success);
 	DWORD PerformMovement(MovementStruct &mvs);
 	void SetHoldKey(HoldKey key, BOOL cancel_moveto);
-	void SetPhysicsObject(std::shared_ptr<CPhysicsObj> pObject);
-	void SetWeenieObject(std::shared_ptr<CWeenieObject> pObject);
+	void SetPhysicsObject(CPhysicsObj *pObject);
+	void SetWeenieObject(CWeenieObject *pObject);
 	DWORD StopCompletely();
 	DWORD StopMotion(DWORD MotionID, MovementParameters *Params);
 	DWORD StopInterpretedMotion(DWORD mid, MovementParameters *params);
@@ -87,8 +87,8 @@ public:
 	DWORD InqStyle() { return interpreted_state.current_style; }
 
 	DWORD initted; // 0x00
-	std::weak_ptr<CWeenieObject> weenie_obj; // 0x04
-	std::weak_ptr<CPhysicsObj> physics_obj; // 0x08
+	CWeenieObject *weenie_obj; // 0x04
+	CPhysicsObj *physics_obj; // 0x08
 	RawMotionState raw_state; // 0x0C
 	InterpretedMotionState interpreted_state; // 0x44
 
@@ -107,7 +107,7 @@ public:
 	MoveToManager();
 	~MoveToManager();
 
-	static MoveToManager *Create(std::shared_ptr<CPhysicsObj> pPhysicsObj, std::shared_ptr<CWeenieObject> pWeenieObj);
+	static MoveToManager *Create(CPhysicsObj *pPhysicsObj, CWeenieObject *pWeenieObj);
 
 	void Destroy();
 
@@ -121,8 +121,8 @@ public:
 	void InitializeLocalVariables();
 	void LeaveGround();
 	DWORD PerformMovement(MovementStruct &mvs);
-	void SetPhysicsObject(std::shared_ptr<CPhysicsObj> pPhysicsObj);
-	void SetWeenieObject(std::shared_ptr<CWeenieObject> pWeenie);
+	void SetPhysicsObject(CPhysicsObj *pPhysicsObj);
+	void SetWeenieObject(CWeenieObject *pWeenie);
 	double GetCurrentDistance();
 	void MoveToPosition(Position *p, MovementParameters *params);
 	void AddTurnToHeadingNode(float global_heading);
@@ -173,8 +173,8 @@ public:
 	int moving_away = 0; // 0x144
 	BOOL initialized = FALSE; // 0x148
 	std::list<MovementNode> pending_actions; // 0x14C
-	std::weak_ptr<CPhysicsObj>  physics_obj; // 0x154
-	std::weak_ptr<CWeenieObject>  weenie_obj; // 0x158
+	CPhysicsObj * physics_obj; // 0x154
+	CWeenieObject * weenie_obj; // 0x158
 };
 
 class MovementManager
@@ -183,7 +183,7 @@ public:
 	MovementManager();
 	virtual ~MovementManager();
 
-	static MovementManager *Create(std::shared_ptr<CPhysicsObj> pPObject, std::shared_ptr<CWeenieObject> pWObject);
+	static MovementManager *Create(CPhysicsObj *pPObject, CWeenieObject *pWObject);
 
 	CMotionInterp *get_minterp();
 	BOOL motions_pending();
@@ -201,14 +201,14 @@ public:
 	void MakeMoveToManager();
 	void MotionDone(DWORD motion, BOOL success);
 	DWORD PerformMovement(MovementStruct &mvs);
-	void SetPhysicsObject(std::shared_ptr<CPhysicsObj> pObject);
-	void SetWeenieObject(std::shared_ptr<CWeenieObject> pObject);
+	void SetPhysicsObject(CPhysicsObj *pObject);
+	void SetWeenieObject(CWeenieObject *pObject);
 	void UseTime();
 	void HandleEnterWorld();
 
 	CMotionInterp *motion_interpreter; // 0x00
 	MoveToManager *moveto_manager; // 0x04
-	std::weak_ptr<CPhysicsObj>  physics_obj; // 0x08
-	std::weak_ptr<CWeenieObject> weenie_obj; // 0x0C
+	CPhysicsObj * physics_obj; // 0x08
+	CWeenieObject *weenie_obj; // 0x0C
 };
 

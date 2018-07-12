@@ -28,7 +28,7 @@ public:
 	void Destroy();
 	BOOL UnPack(BYTE **ppData, ULONG iSize);
 
-	void add_static_object(std::shared_ptr<CPhysicsObj> pObject);
+	void add_static_object(CPhysicsObj *pObject);
 	void destroy_static_objects();
 	void destroy_buildings();
 	void get_land_limits();
@@ -53,9 +53,9 @@ public:
 	BoundingType in_view; // 0xC8 / 0xD4
 	class CLandBlockInfo *lbi; // 0xCC / 0xD8
 	DWORD num_static_objects; // 0xD0 / 0xDC
-	DArray<std::shared_ptr<CPhysicsObj> > static_objects; // 0xD4 / 0xE0
-	DWORD num_buildings = 0; // 0xE4 / 0xF0
-	std::shared_ptr<CBuildingObj> *buildings = NULL; // 0xE8 / 0xF4
+	DArray<CPhysicsObj *> static_objects; // 0xD4 / 0xE0
+	DWORD num_buildings; // 0xE4 / 0xF0
+	class CBuildingObj **buildings; // 0xE8 / 0xF4
 	DWORD stab_num; // 0xEC / 0xF8
 	DWORD *stablist; // 0xF0 / 0xFC
 	class CLandCell **draw_array; // 0xFC / 0x108

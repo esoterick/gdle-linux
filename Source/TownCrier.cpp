@@ -42,7 +42,7 @@ std::string CTownCrier::GetNewsText(bool paid)
 	return phrases[Random::GenInt(0, (DWORD)(phrases.size() - 1))];
 }
 
-int CTownCrier::DoUseResponse(std::shared_ptr<CWeenieObject> player)
+int CTownCrier::DoUseResponse(CWeenieObject *player)
 {
 	if (!IsCompletelyIdle())
 	{
@@ -61,7 +61,7 @@ int CTownCrier::DoUseResponse(std::shared_ptr<CWeenieObject> player)
 	return WERROR_NONE;
 }
 
-int CTownCrier::Use(std::shared_ptr<CPlayerWeenie> pOther)
+int CTownCrier::Use(CPlayerWeenie *pOther)
 {
 	CGenericUseEvent *useEvent = new CGenericUseEvent();
 	useEvent->_target_id = GetID();
@@ -76,7 +76,7 @@ void CTownCrier::HandleMoveToDone(DWORD error)
 {
 	CWeenieObject::HandleMoveToDone(error);
 	
-	if (std::shared_ptr<CWeenieObject> pOther = g_pWorld->FindObject(m_LastUsedBy))
+	if (CWeenieObject *pOther = g_pWorld->FindObject(m_LastUsedBy))
 	{
 		pOther->SendNetMessage(DirectChat(GetNewsText(false).c_str(), GetName().c_str(), GetID(), pOther->GetID(), LTT_SPEECH_DIRECT), PRIVATE_MSG, TRUE);
 		
@@ -141,7 +141,7 @@ void CTownCrier::HandleMoveToDone(DWORD error)
 	}
 }
 
-DWORD CTownCrier::OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> item, DWORD desired_slot)
+DWORD CTownCrier::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot)
 {
 	if (item->m_Qualities.id == W_COINSTACK_CLASS)
 		DoUseResponse(source);

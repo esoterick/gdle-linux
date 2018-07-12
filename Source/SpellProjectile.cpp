@@ -41,11 +41,11 @@ CSpellProjectile::~CSpellProjectile()
 
 void CSpellProjectile::Tick()
 {
-	if (!ShouldDestroy())
+	if (!m_bDestroyMe)
 	{
 		if (!InValidCell() || (m_fDestroyTime <= Timer::cur_time))
 		{
-			g_pWorld->RemoveEntity(AsWeenie());
+			MarkForDestroy();
 		}
 		// not destroyed yet and distance/time exceeded
 		else if (m_fDestroyTime > Timer::cur_time + 10 && (m_Position.distance(m_CachedSpellCastData.initial_cast_position) > m_CachedSpellCastData.max_range || (m_fSpawnTime + MAX_SPELL_PROJECTILE_LIFETIME - 1) <= Timer::cur_time))
@@ -86,10 +86,10 @@ BOOL CSpellProjectile::DoCollision(const class EnvCollisionProfile &prof)
 
 BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 {
-	std::shared_ptr<CWeenieObject> pHit = g_pWorld->FindWithinPVS(AsWeenie(), prof.id);
+	CWeenieObject *pHit = g_pWorld->FindWithinPVS(this, prof.id);
 	if (pHit && (!m_TargetID || m_TargetID == pHit->GetID()) && (pHit->GetID() != m_SourceID))
 	{
-		std::shared_ptr<CWeenieObject> pSource = NULL;
+		CWeenieObject *pSource = NULL;
 		if (m_SourceID)
 			pSource = g_pWorld->FindObject(m_SourceID);
 
@@ -130,7 +130,7 @@ BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 
 			if (!bResisted)
 			{
-				std::shared_ptr<CWeenieObject> wand = g_pWorld->FindObject(m_CachedSpellCastData.wand_id);
+				CWeenieObject *wand = g_pWorld->FindObject(m_CachedSpellCastData.wand_id);
 
 				int preVarianceDamage;
 				double baseDamage;
@@ -180,13 +180,10 @@ BOOL CSpellProjectile::DoCollision(const class AtkCollisionProfile &prof)
 
 				pHit->TryToDealDamage(dmgEvent);
 
-				if (pSource)
+				if (pSource && pSource->AsPlayer())
 				{
-					if (std::shared_ptr<CPlayerWeenie> pPlayer = pSource->AsPlayer())
-					{
-						// update the target's health on the casting player asap
-						pPlayer->RefreshTargetHealth();
-					}
+					// update the target's health on the casting player asap
+					((CPlayerWeenie*)pSource)->RefreshTargetHealth();
 				}
 			}
 		}

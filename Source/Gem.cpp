@@ -13,7 +13,7 @@ CGemWeenie::~CGemWeenie()
 {
 }
 
-int CGemWeenie::Use(std::shared_ptr<CPlayerWeenie> player)
+int CGemWeenie::Use(CPlayerWeenie *player)
 {
 	if (!player->FindContainedItem(GetID()))
 	{
@@ -28,7 +28,7 @@ int CGemWeenie::Use(std::shared_ptr<CPlayerWeenie> player)
 	return WERROR_NONE;
 }
 
-int CGemWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> player)
+int CGemWeenie::DoUseResponse(CWeenieObject *player)
 {
 	if (InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_FOOD)
 	{

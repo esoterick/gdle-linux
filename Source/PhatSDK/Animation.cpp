@@ -81,7 +81,7 @@ BOOL AnimSequenceNode::UnPack(BYTE **ppData, ULONG iSize)
 
 float AnimSequenceNode::get_framerate()
 {
-	return framerate;
+    return framerate;
 }
 
 BOOL AnimSequenceNode::has_anim()

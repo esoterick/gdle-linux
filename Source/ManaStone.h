@@ -15,10 +15,10 @@ public:
 	CManaStoneWeenie();
 	virtual ~CManaStoneWeenie() override;
 
-	virtual class std::shared_ptr<CManaStoneWeenie> AsManaStone() { return std::static_pointer_cast<CManaStoneWeenie>(GetPointer()); }
+	virtual class CManaStoneWeenie *AsManaStone() { return this; }
 
 	virtual void ApplyQualityOverrides() override;
-	virtual int UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared_ptr<CWeenieObject> with) override;
+	virtual int UseWith(CPlayerWeenie *player, CWeenieObject *with) override;
 
 protected:
 };

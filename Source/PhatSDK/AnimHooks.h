@@ -14,7 +14,7 @@ public:
 
 	static CAnimHook *UnPackHook(BYTE** ppData, ULONG iSize);
 
-	virtual void Execute(std::shared_ptr<CPhysicsObj> pOwner) = 0;
+	virtual void Execute(CPhysicsObj *pOwner) = 0;
 	virtual int GetType() = 0;
 	virtual void GetDataRecursion(LPVOID);
 	virtual ULONG pack_size() = 0;
@@ -73,7 +73,7 @@ class NOOPHook : public CAnimHook
 public:
 	NOOPHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -85,7 +85,7 @@ class NoDrawHook : public CAnimHook
 public:
 	NoDrawHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -99,7 +99,7 @@ class DefaultScriptHook : public CAnimHook
 public:
 	DefaultScriptHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -111,7 +111,7 @@ class DefaultScriptPartHook : public CAnimHook
 public:
 	DefaultScriptPartHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -125,7 +125,7 @@ class SoundHook : public CAnimHook
 public:
 	SoundHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	void GetDataRecursion(LPVOID);
 	ULONG pack_size();
@@ -140,7 +140,7 @@ class SoundTableHook : public CAnimHook
 public:
 	SoundTableHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -154,7 +154,7 @@ class AnimDoneHook : public CAnimHook
 public:
 	AnimDoneHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -167,7 +167,7 @@ public:
 	ReplaceObjectHook();
 	~ReplaceObjectHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	void GetDataRecursion(LPVOID);
 	ULONG pack_size();
@@ -183,7 +183,7 @@ class TransparentHook : public CAnimHook
 public:
 	TransparentHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -199,7 +199,7 @@ class TransparentPartHook : public CAnimHook
 public:
 	TransparentPartHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -216,7 +216,7 @@ class LuminousPartHook : public CAnimHook
 public:
 	LuminousPartHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -233,7 +233,7 @@ class LuminousHook : public CAnimHook
 public:
 	LuminousHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -249,7 +249,7 @@ class DiffusePartHook : public CAnimHook
 public:
 	DiffusePartHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -266,7 +266,7 @@ class DiffuseHook : public CAnimHook
 public:
 	DiffuseHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -282,7 +282,7 @@ class ScaleHook : public CAnimHook
 public:
 	ScaleHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -297,7 +297,7 @@ class CreateParticleHook : public CAnimHook
 public:
 	CreateParticleHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	void GetDataRecursion(LPVOID);
 	ULONG pack_size();
@@ -315,7 +315,7 @@ class CreateBlockingParticleHook : public CreateParticleHook
 public:
 	CreateBlockingParticleHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 };
 
@@ -324,7 +324,7 @@ class DestroyParticleHook : public CAnimHook
 public:
 	DestroyParticleHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -338,7 +338,7 @@ class StopParticleHook : public CAnimHook
 public:
 	StopParticleHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -352,7 +352,7 @@ class CallPESHook : public CAnimHook
 public:
 	CallPESHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	void GetDataRecursion(LPVOID);
 	ULONG pack_size();
@@ -369,7 +369,7 @@ public:
 	SoundTweakedHook();
 	~SoundTweakedHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	void GetDataRecursion(LPVOID);
 	ULONG pack_size();
@@ -387,7 +387,7 @@ class SetOmegaHook : public CAnimHook
 public:
 	SetOmegaHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -401,7 +401,7 @@ class TextureVelocityHook : public CAnimHook
 public:
 	TextureVelocityHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -416,7 +416,7 @@ class TextureVelocityPartHook : public CAnimHook
 public:
 	TextureVelocityPartHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -432,7 +432,7 @@ class SetLightHook : public CAnimHook
 public:
 	SetLightHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -463,7 +463,7 @@ class AttackHook : public CAnimHook
 public:
 	AttackHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);
@@ -477,7 +477,7 @@ class EtherealHook : public CAnimHook
 public:
 	EtherealHook();
 
-	void Execute(std::shared_ptr<CPhysicsObj> pOwner);
+	void Execute(CPhysicsObj *pOwner);
 	int GetType();
 	ULONG pack_size();
 	ULONG Pack(BYTE** ppData, ULONG iSize);

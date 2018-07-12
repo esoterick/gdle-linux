@@ -13,7 +13,7 @@ class CommandInterpreter;
 class LScape;
 class Ambient;
 class CPhysics;
-//class CObjectMaint;
+class CObjectMaint;
 
 enum ObjectSelectStatus
 {
@@ -39,7 +39,7 @@ public:
 	CameraManager *camera_manager;
 	CellManager *cell_manager;
 	CPhysics *physics;
-	//CObjectMaint *m_pObjMaint;
+	CObjectMaint *m_pObjMaint;
 	LScape *lscape;
 	Ambient *ambient_sounds;
 	CommandInterpreter *cmdinterp;
@@ -58,13 +58,13 @@ public:
 	void *netblob_list; //NIList<NetBlob *> *netblob_list;
 	void *position_and_movement_file; //_iobuf *position_and_movement_file;
 	unsigned int player_id;
-	std::weak_ptr<CPhysicsObj> player;
+	CPhysicsObj *player;
 	unsigned int target_object_id;
 	void (__cdecl *target_callback)(unsigned int, ObjectSelectStatus, tagRECT *, const float);
 	unsigned int num_cells;
 	CEnvCell **cells;
 	unsigned int num_objects;
-	//std::vector<std::shared_ptr<CPhysicsObj>> objects;
+	CPhysicsObj **objects;
 	void(__cdecl *m_renderingCallback)();
 
 	static CSphere viewer_sphere;

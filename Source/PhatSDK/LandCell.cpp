@@ -257,10 +257,9 @@ TransitionState CLandCell::find_env_collisions(CTransition *transition)
 		CPolygon *walkable = NULL;
 		if (find_terrain_poly(local_point, &walkable))
 		{
-			std::shared_ptr<CPhysicsObj> pObject = transition->object_info.object.lock();
 			if (get_block_water_type() == LandDefs::WaterType::ENTIRELY_WATER
 				&& !(transition->object_info.state & OBJECTINFO::IS_VIEWER_OI)
-				&& pObject && !(pObject->m_PhysicsState & MISSILE_PS))
+				&& !(transition->object_info.object->m_PhysicsState & MISSILE_PS))
 			{
 				return COLLIDED_TS;
 			}

@@ -62,7 +62,7 @@ public:
 		float min_time;
 	};
 
-	CSpellcastingManager(class std::shared_ptr<CWeenieObject> pWeenie);
+	CSpellcastingManager(class CWeenieObject *pWeenie);
 	virtual ~CSpellcastingManager();
 
 	int CreatureBeginCast(DWORD target_id, DWORD spell_id);
@@ -74,9 +74,9 @@ public:
 	bool MotionRequiresHeading();
 	bool AddMotionsForSpell();
 	bool ResolveSpellBeingCasted();
-	std::shared_ptr<CWeenieObject> GetCastTarget();
-	std::shared_ptr<CWeenieObject> GetCastCaster();
-	std::shared_ptr<CWeenieObject> GetCastSource();
+	CWeenieObject *GetCastTarget();
+	CWeenieObject *GetCastCaster();
+	CWeenieObject *GetCastSource();
 	float HeadingToTarget();
 	void BeginNextMotion();
 	int LaunchBoltProjectile(DWORD wcid);
@@ -107,10 +107,10 @@ public:
 	void OnDeath(DWORD killer_id);
 	void HandleMotionDone(DWORD motion, BOOL success);
 
-	std::map<DWORD, DWORD> FindComponentInContainer(std::shared_ptr<CContainerWeenie> container, unsigned int componentId, int amountNeeded);
-	std::shared_ptr<CWeenieObject> FindFociInContainer(std::shared_ptr<CContainerWeenie> container, DWORD fociWcid);
+	std::map<DWORD, DWORD> FindComponentInContainer(CContainerWeenie *container, unsigned int componentId, int amountNeeded);
+	CWeenieObject *FindFociInContainer(CContainerWeenie *container, DWORD fociWcid);
 
-	std::weak_ptr<CWeenieObject> m_pWeenie;
+	CWeenieObject *m_pWeenie;
 	bool m_bCasting = false;
 	double m_fNextCastTime = 0.0;
 

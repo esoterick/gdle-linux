@@ -12,7 +12,7 @@ CLockpickWeenie::~CLockpickWeenie()
 {
 }
 
-int CLockpickWeenie::UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared_ptr<CWeenieObject> with)
+int CLockpickWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 {
 	CGenericUseEvent *useEvent = new CGenericUseEvent;
 	useEvent->_target_id = with->GetID();
@@ -23,9 +23,9 @@ int CLockpickWeenie::UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared_
 	return WERROR_NONE;
 }
 
-int CLockpickWeenie::DoUseWithResponse(std::shared_ptr<CWeenieObject> player, std::shared_ptr<CWeenieObject> with)
+int CLockpickWeenie::DoUseWithResponse(CWeenieObject *player, CWeenieObject *with)
 {
-	if (std::shared_ptr<CPlayerWeenie> player_weenie = player->AsPlayer())
+	if (CPlayerWeenie *player_weenie = player->AsPlayer())
 	{
 		if (!with->IsLocked())
 		{

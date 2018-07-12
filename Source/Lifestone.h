@@ -8,11 +8,11 @@ public:
 	CBaseLifestone();
 	virtual ~CBaseLifestone() override;
 
-	virtual class std::shared_ptr<CBaseLifestone> AsLifestone() { return std::static_pointer_cast<CBaseLifestone>(GetPointer()); }
+	virtual class CBaseLifestone *AsLifestone() { return this; }
 
 	virtual void ApplyQualityOverrides() override;
-	virtual int Use(std::shared_ptr<CPlayerWeenie> ) override;
-	virtual int DoUseResponse(std::shared_ptr<CWeenieObject> player) override;
+	virtual int Use(CPlayerWeenie *) override;
+	virtual int DoUseResponse(CWeenieObject *player) override;
 
 protected:
 };

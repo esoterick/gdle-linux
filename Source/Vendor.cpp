@@ -12,11 +12,8 @@ CVendorItem::CVendorItem()
 
 CVendorItem::~CVendorItem()
 {
-	std::shared_ptr<CWeenieObject> pWeenie = weenie.lock();
-	if (pWeenie)
-	{
-		g_pWorld->EnsureRemoved(pWeenie);
-	}
+	g_pWorld->EnsureRemoved(weenie);
+	SafeDelete(weenie);
 }
 
 CVendor::CVendor()
@@ -31,12 +28,17 @@ CVendor::~CVendor()
 
 void CVendor::ResetItems()
 {
+	for (auto item : m_Items)
+	{
+		delete item;
+	}
+
 	m_Items.clear();
 }
 
 void CVendor::AddVendorItem(DWORD wcid, int ptid, float shade, int amount)
 {
-	std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid);
+	CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid);
 
 	if (!weenie)
 		return;
@@ -50,7 +52,7 @@ void CVendor::AddVendorItem(DWORD wcid, int ptid, float shade, int amount)
 	if (!g_pWorld->CreateEntity(weenie))
 		return;
 
-	std::shared_ptr<CVendorItem> item = std::shared_ptr<CVendorItem>(new CVendorItem());
+	CVendorItem *item = new CVendorItem();
 	item->weenie = weenie;
 	item->amount = amount;
 	m_Items.push_back(item);
@@ -58,7 +60,7 @@ void CVendor::AddVendorItem(DWORD wcid, int ptid, float shade, int amount)
 
 void CVendor::AddVendorItem(DWORD wcid, int amount)
 {
-	std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid);
+	CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid);
 		
 	if (!weenie)
 		return;
@@ -66,25 +68,24 @@ void CVendor::AddVendorItem(DWORD wcid, int amount)
 	if (!g_pWorld->CreateEntity(weenie))
 		return;
 
-	std::shared_ptr<CVendorItem> item = std::shared_ptr<CVendorItem>(new CVendorItem());
+	CVendorItem *item = new CVendorItem();
 	item->weenie = weenie;
 	item->amount = amount;
 	m_Items.push_back(item);
 }
 
-std::shared_ptr<CVendorItem> CVendor::FindVendorItem(DWORD item_id)
+CVendorItem *CVendor::FindVendorItem(DWORD item_id)
 {
 	for (auto item : m_Items)
 	{
-		std::shared_ptr<CWeenieObject> pWeenie = item->weenie.lock();
-		if (pWeenie && pWeenie->GetID() == item_id)
+		if (item->weenie->GetID() == item_id)
 			return item;
 	}
 
 	return NULL;
 }
 
-int CVendor::TrySellItemsToPlayer(std::shared_ptr<CPlayerWeenie> buyer, const std::list<ItemProfile *> &desiredItems)
+int CVendor::TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<ItemProfile *> &desiredItems)
 {
 	const DWORD MAX_COIN_PURCHASE = 2000000000; // // limit to purchases less than 2 billion pyreal
 
@@ -100,7 +101,7 @@ int CVendor::TrySellItemsToPlayer(std::shared_ptr<CPlayerWeenie> buyer, const st
 	DWORD totalSlotsRequired = 0;
 	for (auto desiredItem : desiredItems)
 	{
-		std::shared_ptr<CVendorItem> vendorItem = FindVendorItem(desiredItem->iid);
+		CVendorItem *vendorItem = FindVendorItem(desiredItem->iid);
 		if (!vendorItem)
 			return WERROR_NO_OBJECT;
 		if (vendorItem->amount >= 0 && vendorItem->amount < desiredItem->amount)
@@ -108,21 +109,15 @@ int CVendor::TrySellItemsToPlayer(std::shared_ptr<CPlayerWeenie> buyer, const st
 		if (desiredItem->amount == 0)
 			continue;
 
-		std::shared_ptr<CWeenieObject> pWeenie = vendorItem->weenie.lock();
-		if (!pWeenie)
-		{
-			continue;
-		}
-
-		int maxStackSize = pWeenie->InqIntQuality(MAX_STACK_SIZE_INT, 1);
+		int maxStackSize = vendorItem->weenie->InqIntQuality(MAX_STACK_SIZE_INT, 1);
 		if (maxStackSize < 1)
 			maxStackSize = 1;
 		totalSlotsRequired += (desiredItem->amount / maxStackSize);
 
-		if (pWeenie->InqIntQuality(ITEM_TYPE_INT, TYPE_UNDEF) == TYPE_PROMISSORY_NOTE)
-			totalCost += (DWORD)round((pWeenie->GetValue() * 1.15) * desiredItem->amount);
+		if (vendorItem->weenie->InqIntQuality(ITEM_TYPE_INT, TYPE_UNDEF) == TYPE_PROMISSORY_NOTE)
+			totalCost += (DWORD)round((vendorItem->weenie->GetValue() * 1.15) * desiredItem->amount);
 		else
-			totalCost += (DWORD)round((pWeenie->GetValue() * profile.sell_price) * desiredItem->amount);
+			totalCost += (DWORD)round((vendorItem->weenie->GetValue() * profile.sell_price) * desiredItem->amount);
 
 	}
 
@@ -172,10 +167,8 @@ int CVendor::TrySellItemsToPlayer(std::shared_ptr<CPlayerWeenie> buyer, const st
 	// clone the weenie
 	for (auto desiredItem : desiredItems)
 	{
-		if (std::shared_ptr<CWeenieObject> originalWeenie = FindVendorItem(desiredItem->iid)->weenie.lock())
-		{
-			buyer->SpawnCloneInContainer(originalWeenie, desiredItem->amount);
-		}
+		CWeenieObject *originalWeenie = FindVendorItem(desiredItem->iid)->weenie;
+		buyer->SpawnCloneInContainer(originalWeenie, desiredItem->amount);
 	}
 
 	DoVendorEmote(Buy_VendorTypeEmote, buyer->GetID());
@@ -183,7 +176,7 @@ int CVendor::TrySellItemsToPlayer(std::shared_ptr<CPlayerWeenie> buyer, const st
 	return WERROR_NONE;
 }
 
-int CVendor::TryBuyItemsFromPlayer(std::shared_ptr<CPlayerWeenie> seller, const std::list<ItemProfile *> &desiredItems)
+int CVendor::TryBuyItemsFromPlayer(CPlayerWeenie *seller, const std::list<ItemProfile *> &desiredItems)
 {
 	const DWORD MAX_COIN_PURCHASE = 1000000000; // limit to purchases less than 1 billion pyreal
 	const DWORD MAX_COIN_ALLOWED = 2000000000; // limit to max amount of coin to less than 2 billion pyreal
@@ -196,7 +189,7 @@ int CVendor::TryBuyItemsFromPlayer(std::shared_ptr<CPlayerWeenie> seller, const 
 	UINT64 totalValue = 0;
 	for (auto desiredItem : desiredItems)
 	{
-		std::shared_ptr<CWeenieObject> sellerItem = seller->FindContainedItem(desiredItem->iid);
+		CWeenieObject *sellerItem = seller->FindContainedItem(desiredItem->iid);
 		if (!sellerItem)
 			return WERROR_NO_OBJECT;
 		if (sellerItem->InqIntQuality(STACK_SIZE_INT, 1) < desiredItem->amount)
@@ -248,7 +241,7 @@ int CVendor::TryBuyItemsFromPlayer(std::shared_ptr<CPlayerWeenie> seller, const 
 		//In fact it will request an item split in inventory before adding partial stacks and once in the sell list 
 		//will give the user an error message stating you can't sell partial stacks. So this makes it easier for us.
 
-		std::shared_ptr<CWeenieObject> weenie = seller->FindContainedItem(desiredItem->iid);
+		CWeenieObject *weenie = seller->FindContainedItem(desiredItem->iid);
 		if (!weenie)
 			continue;
 		weenie->Remove(); //todo: maybe add vendors relisting loot items like they used to way back.
@@ -311,7 +304,7 @@ void CVendor::PreSpawnCreate()
 	}
 }
 
-void CVendor::SendVendorInventory(std::shared_ptr<CWeenieObject> other)
+void CVendor::SendVendorInventory(CWeenieObject *other)
 {
 	ValidateItems();
 
@@ -324,14 +317,8 @@ void CVendor::SendVendorInventory(std::shared_ptr<CWeenieObject> other)
 		profile.trade_num = other->RecalculateAltCoinAmount(profile.trade_id);
 		for (auto item : m_Items)
 		{
-			std::shared_ptr<CWeenieObject> pWeenie = item->weenie.lock();
-			if (!pWeenie)
-			{
-				continue;
-			}
-
-			if (pWeenie->m_Qualities.GetID() == profile.trade_id)
-				profile.trade_name = pWeenie->GetName();
+			if (item->weenie->m_Qualities.GetID() == profile.trade_id)
+				profile.trade_name = item->weenie->GetName();
 		}
 	}
 	profile.Pack(&vendorInfo);
@@ -339,16 +326,10 @@ void CVendor::SendVendorInventory(std::shared_ptr<CWeenieObject> other)
 	vendorInfo.Write<DWORD>(m_Items.size());
 	for (auto item : m_Items)
 	{
-		std::shared_ptr<CWeenieObject> pWeenie = item->weenie.lock();
-		if (!pWeenie)
-		{
-			continue;
-		}
-
 		ItemProfile itemProfile;
 		itemProfile.amount = item->amount;
-		itemProfile.iid = pWeenie->GetID(); // for now, use the WCID plus arbitrary number to reference this item
-		itemProfile.pwd = PublicWeenieDesc::CreateFromQualities(&pWeenie->m_Qualities);
+		itemProfile.iid = item->weenie->GetID(); // for now, use the WCID plus arbitrary number to reference this item
+		itemProfile.pwd = PublicWeenieDesc::CreateFromQualities(&item->weenie->m_Qualities);
 		itemProfile.pwd->_containerID = GetID();
 		itemProfile.Pack(&vendorInfo);
 	}
@@ -384,7 +365,7 @@ void CVendor::DoVendorEmote(int type, DWORD target_id)
 	}
 }
 
-int CVendor::DoUseResponse(std::shared_ptr<CWeenieObject> player)
+int CVendor::DoUseResponse(CWeenieObject *player)
 {
 	if (IsCompletelyIdle())
 	{

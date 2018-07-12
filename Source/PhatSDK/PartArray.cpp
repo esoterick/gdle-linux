@@ -20,6 +20,7 @@ CSequence::CSequence()
 	first_cyclic = NULL;
 	velocity = Vector(0, 0, 0);
 	omega = Vector(0, 0, 0);
+	hook_obj = NULL; // 0x28
 	frame_number = 0.0;
 	curr_anim = NULL;
 	placement_frame = NULL;
@@ -33,7 +34,7 @@ CSequence::~CSequence()
 		anim_list.DestroyContents();
 }
 
-void CSequence::set_object(std::shared_ptr<CPhysicsObj> pPhysicsObj)
+void CSequence::set_object(CPhysicsObj *pPhysicsObj)
 {
 	hook_obj = pPhysicsObj;
 }
@@ -299,14 +300,14 @@ iterate_anim:
 
 	if (var_28)
 	{
-		if (std::shared_ptr<CPhysicsObj> pHookObj = hook_obj.lock())
+		if (hook_obj)
 		{
 			AnimSequenceNode *pNode = static_cast<AnimSequenceNode *>(anim_list.head_);
 
 			if (pNode != first_cyclic)
 			{
 				static AnimDoneHook anim_done_hook;
-				pHookObj->add_anim_hook(&anim_done_hook);
+				hook_obj->add_anim_hook(&anim_done_hook);
 			}
 		}
 
@@ -319,14 +320,14 @@ iterate_anim:
 
 void CSequence::execute_hooks(AnimFrame *pAnimFrame, int dir)
 {
-	if (std::shared_ptr<CPhysicsObj> pHookObj = hook_obj.lock())
+	if (hook_obj)
 	{
 		CAnimHook *pHook = pAnimFrame->hooks;
 
 		while (pHook)
 		{
 			if (pHook->direction_ == CAnimHook::BOTH_ANIMHOOK || pHook->direction_ == dir)
-				pHookObj->add_anim_hook(pHook);
+				hook_obj->add_anim_hook(pHook);
 
 			pHook = pHook->next_hook;
 		}
@@ -449,6 +450,7 @@ void CSequence::append_animation(AnimData *pAnimData)
 CPartArray::CPartArray()
 {
 	pa_state = 0;
+	owner = NULL;
 	motion_table_manager = NULL;
 	setup = NULL;
 	num_parts = 0;
@@ -480,10 +482,10 @@ void CPartArray::Destroy()
 	sequence.set_object(NULL);
 
 	pa_state = 0;
-	owner = std::weak_ptr<CWeenieObject>();
+	owner = NULL;
 }
 
-CPartArray *CPartArray::CreateMesh(std::shared_ptr<CPhysicsObj> pPhysicsObj, DWORD ID)
+CPartArray *CPartArray::CreateMesh(CPhysicsObj *pPhysicsObj, DWORD ID)
 {
 	CPartArray *pPartArray = new CPartArray();
 
@@ -501,7 +503,7 @@ CPartArray *CPartArray::CreateMesh(std::shared_ptr<CPhysicsObj> pPhysicsObj, DWO
 	return pPartArray;
 }
 
-CPartArray *CPartArray::CreateSetup(std::shared_ptr<CPhysicsObj> _owner, DWORD setup_did, BOOL bCreateParts)
+CPartArray *CPartArray::CreateSetup(CPhysicsObj *_owner, DWORD setup_did, BOOL bCreateParts)
 {
 	CPartArray *pPartArray = new CPartArray();
 
@@ -518,7 +520,7 @@ CPartArray *CPartArray::CreateSetup(std::shared_ptr<CPhysicsObj> _owner, DWORD s
 	return pPartArray;
 }
 
-CPartArray *CPartArray::CreateParticle(std::shared_ptr<CPhysicsObj> _owner, DWORD _num_parts, CSphere *sorting_sphere)
+CPartArray *CPartArray::CreateParticle(CPhysicsObj *_owner, DWORD _num_parts, CSphere *sorting_sphere)
 {
 	CPartArray *pPartArray = new CPartArray();
 
@@ -664,28 +666,20 @@ void CPartArray::DestroyPals()
 
 void CPartArray::DestroyLights()
 {
-	std::shared_ptr<CPhysicsObj> pOwner = owner.lock();
-
-	if (!pOwner || !lights)
-	{
+	if (!owner || !lights)
 		return;
-	}
 
-	RemoveLightsFromCell(pOwner->cell);
+	RemoveLightsFromCell(owner->cell);
 
 	if (lights)
-	{
 		delete lights;
-	}
 
 	lights = NULL;
 }
 
 BOOL CPartArray::InitLights()
 {
-	std::shared_ptr<CPhysicsObj> pOwner = owner.lock();
-
-	if (pOwner && (setup->num_lights > 0))
+	if (owner && (setup->num_lights > 0))
 	{
 		lights = new LIGHTLIST(setup->num_lights);
 
@@ -694,11 +688,11 @@ BOOL CPartArray::InitLights()
 			// Init the lights
 			lights->m_Lights[i].lightinfo = &setup->lights[i];
 
-			if (pOwner->m_PhysicsState & STATIC_PS)
+			if (owner->m_PhysicsState & STATIC_PS)
 				lights->m_Lights[i].state |= 1;
 		}
 
-		AddLightsToCell(pOwner->cell);
+		AddLightsToCell(owner->cell);
 	}
 
 	return TRUE;
@@ -706,8 +700,6 @@ BOOL CPartArray::InitLights()
 
 void CPartArray::InitDefaults()
 {
-	std::shared_ptr<CPhysicsObj> pOwner = owner.lock();
-
 	if (setup->default_anim_id)
 	{
 		sequence.clear_animations();
@@ -721,10 +713,8 @@ void CPartArray::InitDefaults()
 		sequence.append_animation(&DefaultAnim);
 	}
 
-	if (pOwner)
-	{
-		pOwner->InitDefaults(setup);
-	}
+	if (owner)
+		owner->InitDefaults(setup);
 }
 
 BOOL CPartArray::InitParts()
@@ -732,21 +722,15 @@ BOOL CPartArray::InitParts()
 	num_parts = setup->num_parts;
 
 	if (!num_parts)
-	{
 		return FALSE;
-	}
 
 	parts = new CPhysicsPart*[num_parts];
 
 	if (!parts)
-	{
 		return FALSE;
-	}
 
 	for (DWORD i = 0; i < num_parts; i++)
-	{
 		parts[i] = NULL;
-	}
 
 	if (setup->parts)
 	{
@@ -757,15 +741,11 @@ BOOL CPartArray::InitParts()
 			parts[i] = CPhysicsPart::makePhysicsPart(setup->parts[i]);
 
 			if (!parts[i])
-			{
 				break;
-			}
 		}
 
 		if (i != num_parts)
-		{
 			return FALSE;
-		}
 
 		for (i = 0; i < num_parts; i++)
 		{
@@ -809,9 +789,7 @@ BOOL CPartArray::SetPlacementFrame(DWORD ID)
 			return FALSE;
 		}
 		else
-		{
 			sequence.set_placement_frame(&pt->m_AnimFrame, 0);
-		}
 	}
 	else
 		sequence.set_placement_frame(&pt->m_AnimFrame, ID);
@@ -1063,10 +1041,7 @@ BOOL CPartArray::SetMotionTableID(DWORD ID)
 		if (!motion_table_manager)
 			return FALSE;
 
-		if (std::shared_ptr<CPhysicsObj> pOwner = owner.lock())
-		{
-			motion_table_manager->SetPhysicsObject(pOwner);
-		}
+		motion_table_manager->SetPhysicsObject(owner);
 	}
 
 	return TRUE;

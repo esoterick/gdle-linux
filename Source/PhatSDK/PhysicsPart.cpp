@@ -18,6 +18,7 @@ CPhysicsPart::CPhysicsPart()
     gfxobj = NULL;
     gfxobj_scale = Vector(1.0f, 1.0f, 1.0f);
 
+    physobj = NULL;
     physobj_index = -1;
     original_palette_id = 0;
 
@@ -331,8 +332,7 @@ void CPhysicsPart::SetTranslucency(float Amount)
 // Probably inlined.
 DWORD CPhysicsPart::GetObjectIID(void) const
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physobj.lock();
-    return (pPhysObj ? pPhysObj->GetID() : 0);
+    return (physobj ? physobj->GetID() : 0);
 }
 
 #if PHATSDK_RENDER_AVAILABLE

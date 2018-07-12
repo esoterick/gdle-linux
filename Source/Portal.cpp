@@ -50,11 +50,11 @@ void CPortal::Tick()
 	CWeenieObject::Tick();
 }
 
-void CPortal::CheckedTeleport(std::shared_ptr<CWeenieObject> pOther)
+void CPortal::CheckedTeleport(CWeenieObject *pOther)
 {
 	if (pOther && !(pOther->m_PhysicsState & PhysicsState::HIDDEN_PS))
 	{
-		if (std::shared_ptr<CPlayerWeenie> player = pOther->AsPlayer())
+		if (CPlayerWeenie *player = pOther->AsPlayer())
 		{
 			if (player->CheckPKActivity())
 			{
@@ -68,7 +68,7 @@ void CPortal::CheckedTeleport(std::shared_ptr<CWeenieObject> pOther)
 		std::string restriction;
 		if (m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction))
 		{
-			if (std::shared_ptr<CPlayerWeenie> player = pOther->AsPlayer())
+			if (CPlayerWeenie *player = pOther->AsPlayer())
 			{
 				if (!player->InqQuest(restriction.c_str()))
 				{
@@ -113,7 +113,7 @@ bool CPortal::GetDestination(Position &dest)
 	return !!m_Qualities.InqPosition(DESTINATION_POSITION, dest) && dest.objcell_id;
 }
 
-void CPortal::Teleport(std::shared_ptr<CWeenieObject> pTarget)
+void CPortal::Teleport(CWeenieObject *pTarget)
 {
 	Position dest;
 	if (GetDestination(dest))
@@ -129,7 +129,7 @@ void CPortal::Teleport(std::shared_ptr<CWeenieObject> pTarget)
 		std::string questName;
 		if (m_Qualities.InqString(QUEST_STRING, questName))
 		{
-			if (std::shared_ptr<CPlayerWeenie> player = pTarget->AsPlayer())
+			if (CPlayerWeenie *player = pTarget->AsPlayer())
 			{
 				player->StampQuest(questName.c_str());
 			}
@@ -153,12 +153,12 @@ void CPortal::ProximityThink()
 		m_fLastCacheClear = g_pGlobals->Time();
 	}
 
-	std::list<std::shared_ptr<CWeenieObject> > nearbyObjects;
+	std::list<CWeenieObject *> nearbyObjects;
 	g_pWorld->EnumNearby(this, PORTAL_TRIGGER_DISTANCE, &nearbyObjects);
 
-	for (std::list<std::shared_ptr<CWeenieObject> >::iterator i = nearbyObjects.begin(); i != nearbyObjects.end(); i++)
+	for (std::list<CWeenieObject *>::iterator i = nearbyObjects.begin(); i != nearbyObjects.end(); i++)
 	{
-		std::shared_ptr<CWeenieObject> pOther = *i;
+		CWeenieObject *pOther = *i;
 
 		if (pOther->_IsPlayer() && !(pOther->m_PhysicsState & PhysicsState::LIGHTING_ON_PS))
 		{
@@ -172,7 +172,7 @@ void CPortal::ProximityThink()
 }
 #endif
 
-int CPortal::Use(std::shared_ptr<CPlayerWeenie> pOther)
+int CPortal::Use(CPlayerWeenie *pOther)
 {
 	CPortalUseEvent *useEvent = new CPortalUseEvent;
 	useEvent->_target_id = GetID();
@@ -182,23 +182,14 @@ int CPortal::Use(std::shared_ptr<CPlayerWeenie> pOther)
 
 void CPortalUseEvent::OnReadyToUse()
 {
-	std::shared_ptr<CWeenieObject> target = GetTarget();
+	CWeenieObject *target = GetTarget();
 	if (!target)
 	{
 		Cancel(WERROR_OBJECT_GONE);
 		return;
 	}
 
-	std::shared_ptr<CPortal> pPortal = target->AsPortal();
-
-	if (pPortal)
-	{
-		if (std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock())
-		{
-			target->AsPortal()->CheckedTeleport(pWeenie);
-		}
-	}
-
+	((CPortal *)target)->CheckedTeleport(_weenie);
 	Done();
 }
 

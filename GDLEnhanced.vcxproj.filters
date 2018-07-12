@@ -603,9 +603,6 @@
     <ClCompile Include="Source\EnumUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\PhatSDK\SmartArray.cpp">
-      <Filter>PhatSDK</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\crcwheel.h">
@@ -876,9 +873,6 @@
       <Filter>PhatSDK</Filter>
     </ClInclude>
     <ClInclude Include="Source\PhatSDK\SkyDesc.h">
-      <Filter>PhatSDK</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\PhatSDK\SmartArray.h">
       <Filter>PhatSDK</Filter>
     </ClInclude>
     <ClInclude Include="Source\PhatSDK\SmartBox.h">
@@ -1225,6 +1219,9 @@
     </ClInclude>
     <ClInclude Include="Source\EnumUtil.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\PhatSDK\SmartArray.h">
+      <Filter>PhatSDK</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

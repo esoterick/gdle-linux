@@ -23,7 +23,7 @@ SmartBox::SmartBox(void *_in_queue)
 	camera_manager = 0;
 	cell_manager = 0;
 	physics = 0;
-	//m_pObjMaint = 0;
+	m_pObjMaint = 0;
 	lscape = 0;
 	ambient_sounds = 0;
 	cmdinterp = 0;
@@ -40,11 +40,13 @@ SmartBox::SmartBox(void *_in_queue)
 	netblob_list = 0;
 	position_and_movement_file = 0;
 	player_id = 0;
+	player = 0;
 	target_object_id = 0;
 	target_callback = 0;
 	num_cells = 0;
 	cells = 0;
 	num_objects = 0;
+	objects = 0;
 	m_renderingCallback = 0;
 	viewer_sphere = CSphere(Vector(0, 0, 0), 0.30000001f);
 

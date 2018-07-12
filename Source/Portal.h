@@ -16,15 +16,15 @@ public:
 	CPortal();
 	virtual ~CPortal();
 
-	virtual class std::shared_ptr<CPortal> AsPortal() { return std::static_pointer_cast<CPortal>(GetPointer()); }
+	virtual class CPortal *AsPortal() { return this; }
 
-	virtual int Use(std::shared_ptr<CPlayerWeenie> ) override;
+	virtual int Use(CPlayerWeenie *) override;
 	virtual void Tick() override;
 
 	virtual int DoCollision(const class ObjCollisionProfile &prof) override;
 
-	void CheckedTeleport(std::shared_ptr<CWeenieObject> pOther);
-	void Teleport(std::shared_ptr<CWeenieObject> pTarget);
+	void CheckedTeleport(CWeenieObject *pOther);
+	void Teleport(CWeenieObject *pTarget);
 
 #if 0 // deprecated
 	void ProximityThink();

@@ -22,7 +22,7 @@ public:
 
 	// not sent to the client:
 	BOOL _updates = TRUE;
-	std::weak_ptr<CWeenieObject> _cachedWeenie;
+	CWeenieObject *_cachedWeenie = NULL;
 	double splitPercent = 1.0;
 };
 
@@ -52,10 +52,10 @@ public:
 	void SendUpdate(int updateType);
 	void UpdateData();
 	void TickUpdate();
-	void GiveXP(std::shared_ptr<CWeenieObject> source, long long amount, bool bShowText);
+	void GiveXP(CWeenieObject *source, long long amount, bool bShowText);
 	unsigned int CalculateExperienceProportionSum();
 	void Chat(DWORD sender_id, const char *text);
-	double CalculateDegradeMod(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> target);
+	double CalculateDegradeMod(CWeenieObject *source, CWeenieObject *target);
 
 	PackableHashTable<unsigned long, Fellow> _fellowship_table;
 

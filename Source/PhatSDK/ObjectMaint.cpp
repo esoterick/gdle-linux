@@ -7,17 +7,17 @@ CObjectMaint::CObjectMaint() : object_table(128), null_object_table(16), weenie_
 {
 }
 
-void CObjectMaint::AddObject(std::shared_ptr<CPhysicsObj> object)
+void CObjectMaint::AddObject(CPhysicsObj *object)
 {
-	//object_table.add(object);
+	object_table.add(object);
 }
 
-void CObjectMaint::GotoLostCell(class std::shared_ptr<CPhysicsObj> , unsigned long)
+void CObjectMaint::GotoLostCell(class CPhysicsObj *, unsigned long)
 {
 	// UNFINISHED();
 }
 
-void CObjectMaint::RemoveFromLostCell(class std::shared_ptr<CPhysicsObj> )
+void CObjectMaint::RemoveFromLostCell(class CPhysicsObj *)
 {
 	// UNFINISHED();
 }
@@ -32,7 +32,7 @@ void CObjectMaint::RemoveObjectToBeDestroyed(unsigned long)
 	// UNFINISHED();
 }
 
-std::shared_ptr<CPhysicsObj> CObjectMaint::GetObject(DWORD object_id)
+CPhysicsObj *CObjectMaint::GetObject(DWORD object_id)
 {
-	return NULL;// object_table.lookup(object_id);
+	return object_table.lookup(object_id);
 }

@@ -322,7 +322,7 @@ check_version:
 			{
 				// Close your eyes and pretend this isn't here.
 				// This was probably a bug on their part
-				DWORD NamePackSize = 2 + (DWORD)(((terrainType->terrain_name.m_str.length()) >= 0xFFFF) ? 4 : 0) + (terrainType->terrain_name.m_str.length());
+				DWORD NamePackSize = 2 + (((terrainType->terrain_name.m_str.length()) >= 0xFFFF) ? 4 : 0) + (terrainType->terrain_name.m_str.length());
 				if (NamePackSize & 3)
 					NamePackSize += 4 - (NamePackSize & 3);
 				iSize -= NamePackSize;

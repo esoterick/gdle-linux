@@ -919,9 +919,9 @@ void CTreasureFactory::Initialize()
 	SERVER_INFO << "Finished loading treasure generation profile";
 }
 
-std::shared_ptr<CWeenieObject> CreateFromEntry(PackableList<TreasureEntry>::iterator entry, unsigned int ptid, float shade)
+CWeenieObject *CreateFromEntry(PackableList<TreasureEntry>::iterator entry, unsigned int ptid, float shade)
 {
-	if (std::shared_ptr<CWeenieObject> newItem = g_pWeenieFactory->CreateWeenieByClassID(entry->_wcid))
+	if (CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(entry->_wcid))
 	{
 		if (entry->_amount > 1)
 		{
@@ -990,14 +990,9 @@ int ProcessList(PackableList<TreasureEntry> *treasureList, int index, SItemListC
 
 		if (diceRoll <= chance)
 		{
-			if (std::shared_ptr<CWeenieObject> newItem = CreateFromEntry(entry, creationData.ptid, creationData.shade))
+			if (CWeenieObject *newItem = CreateFromEntry(entry, creationData.ptid, creationData.shade))
 			{
-				std::shared_ptr<CWeenieObject> pParent = std::shared_ptr<CWeenieObject>(creationData.parent.lock());
-				if (!pParent)
-				{
-					continue;
-				}
-				g_pWeenieFactory->AddWeenieToDestination(newItem, pParent, creationData.destinationType, creationData.isRegenLocationType, creationData.profile);
+				g_pWeenieFactory->AddWeenieToDestination(newItem, creationData.parent, creationData.destinationType, creationData.isRegenLocationType, creationData.profile);
 				creationData.amountCreated++;
 				alreadySpawnedInThisSet = true;
 
@@ -1043,7 +1038,7 @@ int ProcessList(PackableList<TreasureEntry> *treasureList, int index, SItemListC
 	return (int)treasureList->size();
 }
 
-int CTreasureFactory::GenerateFromTypeOrWcid(std::shared_ptr<CWeenieObject> parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid, float shade, const GeneratorProfile *profile)
+int CTreasureFactory::GenerateFromTypeOrWcid(CWeenieObject *parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid, float shade, const GeneratorProfile *profile)
 {
 	int amountCreated = 0;
 	bool isTreasureType = false;
@@ -1110,7 +1105,7 @@ int CTreasureFactory::GenerateFromTypeOrWcid(std::shared_ptr<CWeenieObject> pare
 	else
 	{
 		//we're a wcid
-		if (std::shared_ptr<CWeenieObject> newItem = g_pWeenieFactory->CreateWeenieByClassID(treasureTypeOrWcid))
+		if (CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(treasureTypeOrWcid))
 		{
 			g_pWeenieFactory->AddWeenieToDestination(newItem, parent, destinationType, isRegenLocationType, profile);
 			amountCreated++;
@@ -1120,7 +1115,7 @@ int CTreasureFactory::GenerateFromTypeOrWcid(std::shared_ptr<CWeenieObject> pare
 	return amountCreated;
 }
 
-int CTreasureFactory::GenerateFromType(CTreasureType *type, std::shared_ptr<CWeenieObject>  parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid, float shade, const GeneratorProfile * profile)
+int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid, float shade, const GeneratorProfile * profile)
 {
 	int amountCreated = 0;
 	int tierId = type->tier;
@@ -1213,7 +1208,7 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, std::shared_ptr<CWee
 	{
 		if (getRandomNumberExclusive(100) < lootChance * 100)
 		{
-			if (std::shared_ptr<CWeenieObject> newItem = GenerateTreasure(tierId, tier->GetRandomTreasureCategory(), qualityModifier))
+			if (CWeenieObject *newItem = GenerateTreasure(tierId, tier->GetRandomTreasureCategory(), qualityModifier))
 			{
 				g_pWeenieFactory->AddWeenieToDestination(newItem, parent, destinationType, isRegenLocationType, profile);
 				amountCreated++;
@@ -1225,7 +1220,7 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, std::shared_ptr<CWee
 	{
 		if (getRandomNumberExclusive(100) < mundaneLootChance * 100)
 		{
-			if (std::shared_ptr<CWeenieObject> newItem = GenerateMundaneItem(tier))
+			if (CWeenieObject *newItem = GenerateMundaneItem(tier))
 			{
 				g_pWeenieFactory->AddWeenieToDestination(newItem, parent, destinationType, isRegenLocationType, profile);
 				amountCreated++;
@@ -1235,7 +1230,7 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, std::shared_ptr<CWee
 
 	if (getRandomNumberExclusive(100) < tier->scrollLootChance * 100)
 	{
-		if (std::shared_ptr<CWeenieObject> newItem = GenerateScroll(tier))
+		if (CWeenieObject *newItem = GenerateScroll(tier))
 		{
 			g_pWeenieFactory->AddWeenieToDestination(newItem, parent, destinationType, isRegenLocationType, profile);
 			amountCreated++;
@@ -1244,7 +1239,7 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, std::shared_ptr<CWee
 	return amountCreated;
 }
 
-std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateMundaneItem(CTreasureTier *tier)
+CWeenieObject *CTreasureFactory::GenerateMundaneItem(CTreasureTier *tier)
 {
 	int miscItemWcid = 0;
 	if (tier->miscItemsCategories.size() == 0)
@@ -1266,7 +1261,7 @@ std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateMundaneItem(CTreasureTi
 	return NULL;
 }
 
-std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateScroll(CTreasureTier *tier)
+CWeenieObject *CTreasureFactory::GenerateScroll(CTreasureTier *tier)
 {
 	int scrollWcid = 0;
 	if (tier->scrollCategories.size() == 0)
@@ -1288,7 +1283,7 @@ std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateScroll(CTreasureTier *t
 	return NULL;
 }
 
-std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateJunk()
+CWeenieObject *CTreasureFactory::GenerateJunk()
 {
 	int miscItemWcid = 0;
 	std::string miscCategory;
@@ -1312,7 +1307,7 @@ std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateJunk()
 	return NULL;
 }
 
-std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateTreasure(int tierId, eTreasureCategory treasureCategory, double qualityModifier)
+CWeenieObject *CTreasureFactory::GenerateTreasure(int tierId, eTreasureCategory treasureCategory, double qualityModifier)
 {
 	if (!_TreasureProfile)
 		return NULL;
@@ -1380,7 +1375,7 @@ std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateTreasure(int tierId, eT
 
 		CItemTreasureProfileEntry *entry = &category->entries[getRandomNumberExclusive((int)category->entries.size())];
 
-		std::shared_ptr<CWeenieObject> weenie;
+		CWeenieObject *weenie;
 		if (weenie = g_pWeenieFactory->CreateWeenieByClassID(entry->wcid))
 		{
 			if (MutateItem(weenie, creationInfo, tier, category, entry))
@@ -1391,7 +1386,7 @@ std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateTreasure(int tierId, eT
 	return NULL;
 }
 
-bool CTreasureFactory::MutateItem(std::shared_ptr<CWeenieObject> newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	ITEM_TYPE itemType = (ITEM_TYPE)newItem->InqIntQuality(ITEM_TYPE_INT, TYPE_UNDEF, true);
 
@@ -1733,7 +1728,7 @@ bool CTreasureFactory::MutateItem(std::shared_ptr<CWeenieObject> newItem, sItemC
 	return true;
 }
 
-void CTreasureFactory::MutateWeapon(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	if (entry->weaponSkill != UNDEF_SKILL)
 	{
@@ -1784,7 +1779,7 @@ void CTreasureFactory::MutateWeapon(std::shared_ptr<CWeenieObject> newItem, CWie
 	}
 }
 
-void CTreasureFactory::MutateMeleeWeapon(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateMeleeWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	newItem->m_Qualities.SetInt(DAMAGE_INT, newItem->InqIntQuality(DAMAGE_INT, 0, TRUE) + getRandomNumber(wieldTier->minDamageBonus, wieldTier->maxDamageBonus, eRandomFormula::favorMid, 2, creationInfo.qualityModifier));
 	newItem->m_Qualities.SetFloat(DAMAGE_VARIANCE_FLOAT, round(getRandomDouble(1.f - wieldTier->highVariance, 1.f - wieldTier->lowVariance, eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2));
@@ -1848,7 +1843,7 @@ void CTreasureFactory::MutateMeleeWeapon(std::shared_ptr<CWeenieObject> newItem,
 	}
 }
 
-void CTreasureFactory::MutateMissileWeapon(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateMissileWeapon(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	newItem->m_Qualities.SetFloat(DAMAGE_MOD_FLOAT, round(newItem->InqFloatQuality(DAMAGE_MOD_FLOAT, 1.0, TRUE) + getRandomDouble(wieldTier->minDamageModBonus, wieldTier->maxDamageModBonus, eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2));
 
@@ -1912,7 +1907,7 @@ void CTreasureFactory::MutateMissileWeapon(std::shared_ptr<CWeenieObject> newIte
 	}
 }
 
-void CTreasureFactory::MutateCaster(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	if (wieldTier->weaponSkillRequired > 0)
 	{
@@ -2023,7 +2018,7 @@ void CTreasureFactory::MutateCaster(std::shared_ptr<CWeenieObject> newItem, CWie
 }
 
 
-void CTreasureFactory::MutateGem(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateGem(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {	
 	if (!entry->elementalVariants.empty())
 	{
@@ -2044,7 +2039,7 @@ void CTreasureFactory::MutateGem(std::shared_ptr<CWeenieObject> newItem, CWieldT
 	}
 }
 
-void CTreasureFactory::MutateArmor(std::shared_ptr<CWeenieObject> newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::MutateArmor(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	int encumbValue = newItem->InqIntQuality(ENCUMB_VAL_INT, 0, TRUE);
 	if (encumbValue)
@@ -2163,7 +2158,7 @@ std::vector<CPossibleSpells> CTreasureFactory::MergeSpellLists(std::vector<CPoss
 	return mergedList;
 }
 
-void CTreasureFactory::AddSpells(std::shared_ptr<CWeenieObject> newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::AddSpells(CWeenieObject *newItem, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	ITEM_TYPE itemType = (ITEM_TYPE)newItem->InqIntQuality(ITEM_TYPE_INT, TYPE_UNDEF, true);
 	INVENTORY_LOC coveredAreas = (INVENTORY_LOC)newItem->InqIntQuality(LOCATIONS_INT, NONE_LOC, TRUE);
@@ -2330,7 +2325,7 @@ void CTreasureFactory::AddSpells(std::shared_ptr<CWeenieObject> newItem, sItemCr
 	}
 }
 
-void CTreasureFactory::AddSpell(std::shared_ptr<CWeenieObject> newItem, std::vector<CPossibleSpells> possibleSpellsTemplate, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
+void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpells> possibleSpellsTemplate, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
 	if (possibleSpellsTemplate.size() == 0)
 		return;
@@ -2558,7 +2553,7 @@ void CTreasureFactory::AddSpell(std::shared_ptr<CWeenieObject> newItem, std::vec
 	}
 }
 
-//bool CTreasureFactory::AddTreasureToContainerInferred(std::shared_ptr<CContainerWeenie> container, DWORD treasureType)
+//bool CTreasureFactory::AddTreasureToContainerInferred(CContainerWeenie *container, DWORD treasureType)
 //{
 //	TreasureEntry2 *entry = g_pPortalDataEx->_treasureTableData.GetTreasureGenerationProfile(treasureType);
 //	if (!entry)
@@ -2572,7 +2567,7 @@ void CTreasureFactory::AddSpell(std::shared_ptr<CWeenieObject> newItem, std::vec
 //	int itemCount = getRandomNumber(entry->_itemMinAmount, entry->_itemMaxAmount);
 //	for (int i = 0; i < itemCount; i++)
 //	{
-//		std::shared_ptr<CWeenieObject> newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(0, entry->_itemTreasureTypeSelectionChances), qualityModifier);
+//		CWeenieObject *newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(0, entry->_itemTreasureTypeSelectionChances), qualityModifier);
 //		if (newItem)
 //		{
 //			g_pWorld->CreateEntity(newItem);
@@ -2584,7 +2579,7 @@ void CTreasureFactory::AddSpell(std::shared_ptr<CWeenieObject> newItem, std::vec
 //	int magicItemCount = getRandomNumber(entry->_magicItemMinAmount, entry->_magicItemMaxAmount);
 //	for (int i = 0; i < magicItemCount; i++)
 //	{
-//		std::shared_ptr<CWeenieObject> newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(1, entry->_magicItemTreasureTypeSelectionChances), qualityModifier);
+//		CWeenieObject *newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(1, entry->_magicItemTreasureTypeSelectionChances), qualityModifier);
 //		if (newItem)
 //		{
 //			g_pWorld->CreateEntity(newItem);
@@ -2596,7 +2591,7 @@ void CTreasureFactory::AddSpell(std::shared_ptr<CWeenieObject> newItem, std::vec
 //	int mundaneItemCount = getRandomNumber(entry->_mundaneItemMinAmount, entry->_mundaneItemMaxAmount);
 //	for (int i = 0; i < mundaneItemCount; i++)
 //	{
-//		std::shared_ptr<CWeenieObject> newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(2, entry->_mundaneItemTypeSelectionChances), qualityModifier);
+//		CWeenieObject *newItem = GenerateTreasure(tier, g_pPortalDataEx->_treasureTableData.RollTreasureCategory(2, entry->_mundaneItemTypeSelectionChances), qualityModifier);
 //		if (newItem)
 //		{
 //			g_pWorld->CreateEntity(newItem);
@@ -2608,7 +2603,7 @@ void CTreasureFactory::AddSpell(std::shared_ptr<CWeenieObject> newItem, std::vec
 //	return true;
 //}
 //
-//std::shared_ptr<CWeenieObject> CTreasureFactory::GenerateMundaneItemInferred(int tierId, eTreasureCategory treasureCategory)
+//CWeenieObject *CTreasureFactory::GenerateMundaneItemInferred(int tierId, eTreasureCategory treasureCategory)
 //{
 //	DWORD wcid = 0;
 //	switch (treasureCategory)

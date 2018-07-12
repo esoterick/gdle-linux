@@ -40,12 +40,12 @@ int CPressurePlateWeenie::Activate(DWORD activator_id)
 {
 	CWeenieObject::Activate(activator_id);
 
-	std::shared_ptr<CWeenieObject> activator_weenie = g_pWorld->FindObject(activator_id);
+	CWeenieObject *activator_weenie = g_pWorld->FindObject(activator_id);
 	if (activator_weenie && activator_weenie->_IsPlayer())
 	{
 		if (DWORD use_sound_did = InqDIDQuality(USE_SOUND_DID, 0))
 		{
-			std::shared_ptr<CWeenieObject> weenie = g_pWorld->FindObject(activator_id);
+			CWeenieObject *weenie = g_pWorld->FindObject(activator_id);
 
 			if (weenie)
 			{			
@@ -55,7 +55,7 @@ int CPressurePlateWeenie::Activate(DWORD activator_id)
 
 		if (DWORD activation_target_id = InqIIDQuality(ACTIVATION_TARGET_IID, 0))
 		{
-			std::shared_ptr<CWeenieObject> activation_target = g_pWorld->FindObject(activation_target_id);
+			CWeenieObject *activation_target = g_pWorld->FindObject(activation_target_id);
 			if (activation_target)
 				activation_target->Activate(activator_id);
 		}
@@ -111,7 +111,7 @@ int CPressurePlateWeenie::Activate(DWORD activator_id)
 
 					for (int i = 0; i < numToSpawn; i++)
 					{
-						g_pWeenieFactory->GenerateFromTypeOrWcid(AsWeenie(), &entry);
+						g_pWeenieFactory->GenerateFromTypeOrWcid(this, &entry);
 					}
 				}
 			}

@@ -3,11 +3,12 @@
 #include "PhatSDK.h"
 #include "PositionManager.h"
 
-PositionManager::PositionManager(std::shared_ptr<CPhysicsObj> _physics_obj)
+PositionManager::PositionManager(CPhysicsObj *_physics_obj)
 {
-	interpolation_manager = NULL;
-	sticky_manager = NULL;
-	constraint_manager = NULL;
+	interpolation_manager = 0;
+	sticky_manager = 0;
+	constraint_manager = 0;
+	physics_obj = 0;
 
 	SetPhysicsObject(_physics_obj);
 }
@@ -29,12 +30,12 @@ void PositionManager::Destroy()
 		delete constraint_manager;
 }
 
-PositionManager *PositionManager::Create(std::shared_ptr<CPhysicsObj> _physics_obj)
+PositionManager *PositionManager::Create(CPhysicsObj *_physics_obj)
 {
 	return new PositionManager(_physics_obj);
 }
 
-void PositionManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> _physics_obj)
+void PositionManager::SetPhysicsObject(CPhysicsObj *_physics_obj)
 {
 	physics_obj = _physics_obj;
 	if (interpolation_manager)
@@ -54,12 +55,8 @@ BOOL PositionManager::IsInterpolating()
 
 void PositionManager::StickTo(DWORD object_id, float radius, float height)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-
 	if (!sticky_manager)
-	{
-		sticky_manager = StickyManager::Create(pPhysObj);
-	}
+		sticky_manager = StickyManager::Create(physics_obj);
 
 	sticky_manager->StickTo(object_id, radius, height);
 }
@@ -110,10 +107,8 @@ void PositionManager::adjust_offset(Frame *offset, double quantum)
 
 void PositionManager::ConstrainTo(Position *p, float start_distance, float max_distance)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-
 	if (!constraint_manager)
-		constraint_manager = ConstraintManager::Create(pPhysObj);
+		constraint_manager = ConstraintManager::Create(physics_obj);
 
 	if (constraint_manager)
 		constraint_manager->ConstrainTo(p, start_distance, max_distance);
@@ -135,17 +130,15 @@ BOOL PositionManager::IsFullyConstrained()
 
 void PositionManager::InterpolateTo(Position *p, int keep_heading)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-
 	if (!interpolation_manager)
-		interpolation_manager = InterpolationManager::Create(pPhysObj);
+		interpolation_manager = InterpolationManager::Create(physics_obj);
 
 	interpolation_manager->InterpolateTo(p, keep_heading);
 }
 
 const float BIG_DISTANCE = 999999.0;
 
-InterpolationManager::InterpolationManager(std::shared_ptr<CPhysicsObj> new_physobj)
+InterpolationManager::InterpolationManager(CPhysicsObj *new_physobj)
 {
 	original_distance = BIG_DISTANCE;
 	frame_counter = 0;
@@ -164,7 +157,7 @@ void InterpolationManager::Destroy()
 	position_queue.clear();
 }
 
-InterpolationManager *InterpolationManager::Create(std::shared_ptr<CPhysicsObj> _physics_obj)
+InterpolationManager *InterpolationManager::Create(CPhysicsObj *_physics_obj)
 {
 	return new InterpolationManager(_physics_obj);
 }
@@ -181,9 +174,7 @@ void InterpolationManager::StopInterpolating()
 
 void InterpolationManager::UseTime()
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-
-	if (!pPhysObj)
+	if (!physics_obj)
 		return;
 
 	if (node_fail_counter > 3 || position_queue.empty())
@@ -201,7 +192,7 @@ void InterpolationManager::UseTime()
 		if (backNode.type != 2 && backNode.type != 3)
 		{
 			Position pos = backNode.p;
-			if (pPhysObj->SetPositionSimple(&pos, TRUE))
+			if (physics_obj->SetPositionSimple(&pos, TRUE))
 			{
 				return;
 			}
@@ -235,18 +226,18 @@ void InterpolationManager::UseTime()
 			if (v7)
 			{
 				Position pos = backNode.p;
-				if (pPhysObj->SetPositionSimple(&pos, TRUE))
+				if (physics_obj->SetPositionSimple(&pos, TRUE))
 				{
 					return;
 				}
 
-				pPhysObj->set_velocity(v, TRUE);
+				physics_obj->set_velocity(v, TRUE);
 				StopInterpolating();
 				return;
 			}
 		}
 
-		if (pPhysObj->SetPositionSimple(&blipto_position, TRUE))
+		if (physics_obj->SetPositionSimple(&blipto_position, TRUE))
 			return;
 
 		StopInterpolating();
@@ -260,7 +251,7 @@ void InterpolationManager::UseTime()
 		NodeCompleted(TRUE);
 		break;
 	case 3:
-		pPhysObj->set_velocity(currentNode.v, TRUE);
+		physics_obj->set_velocity(currentNode.v, TRUE);
 		NodeCompleted(TRUE);
 		break;
 	}
@@ -268,8 +259,7 @@ void InterpolationManager::UseTime()
 
 void InterpolationManager::NodeCompleted(BOOL success)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-	if (!pPhysObj)
+	if (!physics_obj)
 	{
 		return;
 	}
@@ -290,7 +280,7 @@ void InterpolationManager::NodeCompleted(BOOL success)
 
 		if (nextNode->type == 1)
 		{
-			original_distance = pPhysObj->m_Position.distance(nextNode->p);
+			original_distance = physics_obj->m_Position.distance(nextNode->p);
 		}
 		else if (!success)
 		{
@@ -326,8 +316,7 @@ double MAX_INTERPOLATED_VELOCITY = 7.5;
 
 void InterpolationManager::adjust_offset(Frame *offset, double quantum)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-	if (position_queue.empty() || !pPhysObj || !(pPhysObj->transient_state & CONTACT_TS))
+	if (position_queue.empty() || !physics_obj || !(physics_obj->transient_state & CONTACT_TS))
 	{
 		return;
 	}
@@ -338,7 +327,7 @@ void InterpolationManager::adjust_offset(Frame *offset, double quantum)
 		return;
 	}
 	
-	float curr_distance = pPhysObj->m_Position.distance(headNode->p);
+	float curr_distance = physics_obj->m_Position.distance(headNode->p);
 	if (curr_distance < 0.05)
 	{
 		NodeCompleted(TRUE);
@@ -346,17 +335,17 @@ void InterpolationManager::adjust_offset(Frame *offset, double quantum)
 	}
 
 	float my_max_speed = 0.0;
-	if (pPhysObj->get_minterp())
+	if (physics_obj->get_minterp())
 	{
 		double max_speed;
 
 		if (InterpolationManager::fUseAdjustedSpeed_)
 		{
-			max_speed = pPhysObj->get_minterp()->get_adjusted_max_speed();
+			max_speed = physics_obj->get_minterp()->get_adjusted_max_speed();
 		}
 		else
 		{
-			max_speed = pPhysObj->get_minterp()->get_max_speed();
+			max_speed = physics_obj->get_minterp()->get_max_speed();
 		}
 		my_max_speed = max_speed * 2.0;
 	}
@@ -369,7 +358,7 @@ void InterpolationManager::adjust_offset(Frame *offset, double quantum)
 	float progress_made = original_distance - curr_distance;
 
 	if (frame_counter < 5 ||
-		(pPhysObj->get_sticky_object_id() ||
+		(physics_obj->get_sticky_object_id() ||
 		  (progress_made >= F_EPSILON && ((progress_made / progress_quantum) / my_max_speed) >= 0.3)))
 	{
 		if (frame_counter >= 5)
@@ -379,7 +368,7 @@ void InterpolationManager::adjust_offset(Frame *offset, double quantum)
 			original_distance = curr_distance;
 		}
 
-		Frame adjustment = headNode->p.subtract2(&pPhysObj->m_Position);
+		Frame adjustment = headNode->p.subtract2(&physics_obj->m_Position);
 
 		float progress_madea = my_max_speed * quantum;
 
@@ -415,8 +404,7 @@ void InterpolationManager::adjust_offset(Frame *offset, double quantum)
 
 void InterpolationManager::InterpolateTo(Position *p, int _keep_heading)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-	if (!pPhysObj)
+	if (!physics_obj)
 	{
 		return;
 	}
@@ -425,13 +413,13 @@ void InterpolationManager::InterpolateTo(Position *p, int _keep_heading)
 	if (!position_queue.empty() && position_queue.back().type == 1)
 		destPos = &position_queue.back().p;
 	else
-		destPos = &pPhysObj->m_Position;
+		destPos = &physics_obj->m_Position;
 
 	float dist = destPos->distance(*p);
 
-	if (pPhysObj->GetAutonomyBlipDistance() >= dist)
+	if (physics_obj->GetAutonomyBlipDistance() >= dist)
 	{
-		if (pPhysObj->m_Position.distance(*p) > 0.05)
+		if (physics_obj->m_Position.distance(*p) > 0.05)
 		{
 			while (!position_queue.empty())
 			{
@@ -454,7 +442,7 @@ void InterpolationManager::InterpolateTo(Position *p, int _keep_heading)
 			newNode.p = *p;
 			if (keep_heading)
 			{
-				newNode.p.frame.set_heading(pPhysObj->get_heading());
+				newNode.p.frame.set_heading(physics_obj->get_heading());
 			}
 
 			position_queue.push_back(newNode);
@@ -463,7 +451,7 @@ void InterpolationManager::InterpolateTo(Position *p, int _keep_heading)
 		{
 			if (!_keep_heading)
 			{
-				pPhysObj->set_heading(p->frame.get_heading(), TRUE);
+				physics_obj->set_heading(p->frame.get_heading(), TRUE);
 			}
 
 			StopInterpolating();
@@ -476,7 +464,7 @@ void InterpolationManager::InterpolateTo(Position *p, int _keep_heading)
 		newNode.p = *p;
 		if (keep_heading)
 		{
-			newNode.p.frame.set_heading(pPhysObj->get_heading());
+			newNode.p.frame.set_heading(physics_obj->get_heading());
 		}
 
 		position_queue.push_back(newNode);
@@ -489,15 +477,16 @@ BOOL InterpolationManager::IsInterpolating()
 	return !position_queue.empty();
 }
 
-void InterpolationManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> new_physobj)
+void InterpolationManager::SetPhysicsObject(CPhysicsObj *new_physobj)
 {
 	physics_obj = new_physobj;
 }
 
-StickyManager::StickyManager(std::shared_ptr<CPhysicsObj> _physics_obj)
+StickyManager::StickyManager(CPhysicsObj *_physics_obj)
 {
 	target_id = 0;
 	target_radius = 0;
+	physics_obj = 0;
 	initialized = 0;
 
 	SetPhysicsObject(_physics_obj);
@@ -510,25 +499,22 @@ StickyManager::~StickyManager()
 
 void StickyManager::Destroy()
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-
-	if (pPhysObj && target_id)
-		pPhysObj->clear_target();
+	if (target_id)
+		physics_obj->clear_target();
 
 	target_id = 0;
 	target_position = Position();
 	initialized = 0;
 }
 
-StickyManager *StickyManager::Create(std::shared_ptr<CPhysicsObj> _physics_obj)
+StickyManager *StickyManager::Create(CPhysicsObj *_physics_obj)
 {
 	return new StickyManager(_physics_obj);
 }
 
-void StickyManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> new_physobj)
+void StickyManager::SetPhysicsObject(CPhysicsObj *new_physobj)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-	if (pPhysObj)
+	if (physics_obj)
 	{
 		Destroy();
 		physics_obj = new_physobj;
@@ -541,16 +527,12 @@ void StickyManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> new_physobj)
 
 void StickyManager::HandleExitWorld()
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
 	if (target_id)
 	{
 		target_id = 0;
 		initialized = 0;
-		if (pPhysObj)
-		{
-			pPhysObj->clear_target();
-			pPhysObj->cancel_moveto();
-		}
+		physics_obj->clear_target();
+		physics_obj->cancel_moveto();
 	}
 }
 
@@ -567,60 +549,44 @@ void StickyManager::HandleUpdateTarget(TargetInfo target_info)
 		{
 			target_id = 0;
 			initialized = 0;
-
-			std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-			if (pPhysObj)
-			{
-				pPhysObj->clear_target();
-				pPhysObj->cancel_moveto();
-			}
+			physics_obj->clear_target();
+			physics_obj->cancel_moveto();
 		}
 	}
 }
 
 void StickyManager::StickTo(unsigned int _target_id, float _target_radius, float _target_height)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-
 	if (target_id)
 	{
 		target_id = 0;
 		initialized = 0;
-		if (pPhysObj)
-		{
-			pPhysObj->clear_target();
-			pPhysObj->cancel_moveto();
-		}
-	}
-
-	if (!pPhysObj)
-	{
-		return;
+		physics_obj->clear_target();
+		physics_obj->cancel_moveto();
 	}
 
 	target_radius = _target_radius;
 	target_id = _target_id;
 	initialized = 0;
 	sticky_timeout_time = Timer::cur_time + 1.0;
-	pPhysObj->set_target(0, _target_id, 0.5, 0.5);
+	physics_obj->set_target(0, _target_id, 0.5, 0.5);
 }
 
 const float STICKY_RADIUS = 0.3f;
 
 void StickyManager::adjust_offset(Frame *offset, double quantum)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-	if (pPhysObj && target_id && initialized)
+	if (target_id && initialized)
 	{
-		std::shared_ptr<CPhysicsObj> target = CPhysicsObj::GetObject(target_id);
+		CPhysicsObj *target = CPhysicsObj::GetObject(target_id);
 		Position *targetPosition = target ? &target->m_Position : &target_position;
 
-		offset->m_origin = pPhysObj->m_Position.get_offset(*targetPosition);
-		offset->m_origin = pPhysObj->m_Position.globaltolocalvec(offset->m_origin);
+		offset->m_origin = physics_obj->m_Position.get_offset(*targetPosition);
+		offset->m_origin = physics_obj->m_Position.globaltolocalvec(offset->m_origin);
 		offset->m_origin.z = 0;
 
-		float r1 = pPhysObj->GetRadius();
-		float mag = Position::cylinder_distance_no_z(r1, pPhysObj->m_Position, target_radius, *targetPosition) - STICKY_RADIUS;
+		float r1 = physics_obj->GetRadius();
+		float mag = Position::cylinder_distance_no_z(r1, physics_obj->m_Position, target_radius, *targetPosition) - STICKY_RADIUS;
 
 		// -- inlined
 		if (offset->m_origin.normalize_check_small())
@@ -629,8 +595,8 @@ void StickyManager::adjust_offset(Frame *offset, double quantum)
 
 		// -- surely inlined
 		float adjSpeed;
-		if (pPhysObj->get_minterp())
-			adjSpeed = pPhysObj->get_minterp()->get_max_speed() * 5.0;
+		if (physics_obj->get_minterp())
+			adjSpeed = physics_obj->get_minterp()->get_max_speed() * 5.0;
 		else
 			adjSpeed = 0.0;
 		// --
@@ -644,7 +610,7 @@ void StickyManager::adjust_offset(Frame *offset, double quantum)
 
 		offset->m_origin *= deltaSpeed;
 
-		float sought_heading = pPhysObj->m_Position.heading(*targetPosition) - pPhysObj->m_Position.frame.get_heading();
+		float sought_heading = physics_obj->m_Position.heading(*targetPosition) - physics_obj->m_Position.frame.get_heading();
 		if (fabs(sought_heading) < F_EPSILON)
 			sought_heading = 0.0;
 		if (-F_EPSILON > sought_heading)
@@ -662,19 +628,15 @@ void StickyManager::UseTime()
 		{
 			target_id = 0;
 			initialized = 0;
-
-			std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-			if (pPhysObj)
-			{
-				pPhysObj->clear_target();
-				pPhysObj->cancel_moveto();
-			}
+			physics_obj->clear_target();
+			physics_obj->cancel_moveto();
 		}
 	}
 }
 
-ConstraintManager::ConstraintManager(std::shared_ptr<CPhysicsObj> physobj)
+ConstraintManager::ConstraintManager(CPhysicsObj *physobj)
 {
+	physics_obj = 0;
 	is_constrained = 0;
 	constraint_pos_offset = 0;
 	constraint_distance_start = 0;
@@ -687,17 +649,16 @@ ConstraintManager::~ConstraintManager()
 {
 }
 
-ConstraintManager *ConstraintManager::Create(std::shared_ptr<CPhysicsObj> physobj)
+ConstraintManager *ConstraintManager::Create(CPhysicsObj *physobj)
 {
 	return new ConstraintManager(physobj);
 }
 
-void ConstraintManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> new_physobj)
+void ConstraintManager::SetPhysicsObject(CPhysicsObj *new_physobj)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-	if (pPhysObj)
+	if (physics_obj)
 	{
-		physics_obj = std::weak_ptr<CPhysicsObj>();
+		physics_obj = NULL;
 		is_constrained = 0;
 		constraint_pos_offset = 0;
 		physics_obj = new_physobj;
@@ -710,18 +671,12 @@ void ConstraintManager::SetPhysicsObject(std::shared_ptr<CPhysicsObj> new_physob
 
 void ConstraintManager::ConstrainTo(Position *p, float start_distance, float max_distance)
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-	if (!pPhysObj)
-	{
-		return;
-	}
-
 	is_constrained = 1;
 
 	constraint_pos = *p;
 	constraint_distance_start = start_distance;
 	constraint_distance_max = max_distance;
-	constraint_pos_offset = p->distance(pPhysObj->m_Position);
+	constraint_pos_offset = p->distance(physics_obj->m_Position);
 }
 
 BOOL ConstraintManager::IsFullyConstrained()
@@ -743,11 +698,9 @@ void ConstraintManager::adjust_offset(Frame *offset, double quantum)
 {
 	float _rhs;
 
-	std::shared_ptr<CPhysicsObj> pPhysObj = physics_obj.lock();
-
-	if (pPhysObj && is_constrained)
+	if (physics_obj && is_constrained)
 	{
-		if (pPhysObj->transient_state & CONTACT_TS)
+		if (physics_obj->transient_state & CONTACT_TS)
 		{
 			if (constraint_pos_offset < (double)constraint_distance_max)
 			{

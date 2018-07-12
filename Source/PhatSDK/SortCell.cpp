@@ -4,33 +4,33 @@
 
 CSortCell::CSortCell()
 {
-	building = std::shared_ptr<CBuildingObj>();
+	building = NULL;
 }
 
-void CSortCell::add_building(std::shared_ptr<CBuildingObj> _object)
+void CSortCell::add_building(CBuildingObj *_object)
 {
-	if (!building.lock())
+	if (!building)
 		building = _object;
 }
 
-void CSortCell::remove_building(std::shared_ptr<CBuildingObj> _object)
+void CSortCell::remove_building(CBuildingObj *_object)
 {
-	building = std::shared_ptr<CBuildingObj>();
+	building = NULL;
 }
 
 BOOL CSortCell::has_building()
 {
-	return (!building.lock());
+	return (building != NULL);
 }
 
-std::shared_ptr<CPhysicsObj> CSortCell::get_object(DWORD obj_iid)
+CPhysicsObj *CSortCell::get_object(DWORD obj_iid)
 {
-	std::shared_ptr<CPhysicsObj> result = CObjCell::get_object(obj_iid);
+	CPhysicsObj *result = CObjCell::get_object(obj_iid);
 
 	if (!result)
 	{
-		if (std::shared_ptr<CBuildingObj> pBuilding = building.lock())
-			result = pBuilding->get_object(obj_iid);
+		if (building)
+			result = building->get_object(obj_iid);
 	}
 
 	return result;
@@ -38,9 +38,9 @@ std::shared_ptr<CPhysicsObj> CSortCell::get_object(DWORD obj_iid)
 
 TransitionState CSortCell::find_collisions(CTransition *transit)
 {
-	if (std::shared_ptr<CBuildingObj> pBuilding = building.lock())
+	if (building)
 	{
-		return pBuilding->find_building_collisions(transit);
+		return building->find_building_collisions(transit);
 	}
 
 	return OK_TS;
@@ -48,16 +48,16 @@ TransitionState CSortCell::find_collisions(CTransition *transit)
 
 void CSortCell::find_transit_cells(const unsigned int num_parts, CPhysicsPart **parts, CELLARRAY *cell_array)
 {
-	if (std::shared_ptr<CBuildingObj> pBuilding = building.lock())
+	if (building)
 	{
-		pBuilding->find_building_transit_cells(num_parts, parts, cell_array);
+		building->find_building_transit_cells(num_parts, parts, cell_array);
 	}
 }
 
 void CSortCell::find_transit_cells(Position *p, const unsigned int num_sphere, CSphere *sphere, CELLARRAY *cell_array, SPHEREPATH *path)
 {
-	if (std::shared_ptr<CBuildingObj> pBuilding = building.lock())
+	if (building)
 	{
-		pBuilding->find_building_transit_cells(p, num_sphere, sphere, cell_array, path);
+		building->find_building_transit_cells(p, num_sphere, sphere, cell_array, path);
 	}
 }

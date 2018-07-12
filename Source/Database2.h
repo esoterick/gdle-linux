@@ -235,7 +235,7 @@ public:
 
 	void SpawnBSD();
 
-	class std::shared_ptr<CWeenieObject> CreateFromCapturedData(CCapturedWorldObjectInfo *pObjectInfo);
+	class CWeenieObject *CreateFromCapturedData(CCapturedWorldObjectInfo *pObjectInfo);
 
 protected:
 

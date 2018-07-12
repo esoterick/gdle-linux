@@ -230,7 +230,7 @@ NOOPHook::NOOPHook()
 {
 }
 
-void NOOPHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void NOOPHook::Execute(CPhysicsObj *pOwner)
 {
 }
 
@@ -262,7 +262,7 @@ NoDrawHook::NoDrawHook()
 {
 }
 
-void NoDrawHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void NoDrawHook::Execute(CPhysicsObj *pOwner)
 {
     pOwner->set_nodraw(_no_draw, 0);
 }
@@ -303,7 +303,7 @@ DefaultScriptHook::DefaultScriptHook()
 {
 }
 
-void DefaultScriptHook::Execute(std::shared_ptr<CPhysicsObj> pOwner) {
+void DefaultScriptHook::Execute(CPhysicsObj *pOwner) {
     // UNFINISHED_LEGACY("DefaultScriptHook::Execute");
 }
 
@@ -335,7 +335,7 @@ DefaultScriptPartHook::DefaultScriptPartHook()
 {
 }
 
-void DefaultScriptPartHook::Execute(std::shared_ptr<CPhysicsObj> pOwner) {
+void DefaultScriptPartHook::Execute(CPhysicsObj *pOwner) {
     // UNFINISHED_LEGACY("DefaultScriptPartHook::Execute");
 }
 
@@ -376,7 +376,7 @@ SoundHook::SoundHook()
     gid_ = 0;
 }
 
-void SoundHook::Execute(std::shared_ptr<CPhysicsObj> pOwner) {
+void SoundHook::Execute(CPhysicsObj *pOwner) {
     // DEBUGOUT("Unfinished SoundHook::Execute\r\n"); // __asm int 3;
 }
 
@@ -424,7 +424,7 @@ SoundTableHook::SoundTableHook()
     sound_type_ = 0;
 }
 
-void SoundTableHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void SoundTableHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("SoundTableHook::Execute");
 }
@@ -463,7 +463,7 @@ AnimDoneHook::AnimDoneHook()
 {
 }
 
-void AnimDoneHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void AnimDoneHook::Execute(CPhysicsObj *pOwner)
 {
     pOwner->Hook_AnimDone();
 }
@@ -500,7 +500,7 @@ ReplaceObjectHook::~ReplaceObjectHook()
 {
 }
 
-void ReplaceObjectHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void ReplaceObjectHook::Execute(CPhysicsObj *pOwner)
 {
 }
 
@@ -539,7 +539,7 @@ TransparentHook::TransparentHook()
 {
 }
 
-void TransparentHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void TransparentHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("TransparentHook::Execute");
 }
@@ -585,7 +585,7 @@ TransparentPartHook::TransparentPartHook()
 {
 }
 
-void TransparentPartHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void TransparentPartHook::Execute(CPhysicsObj *pOwner)
 {
 	// UNFINISHED_WARNING_LEGACY("TransparentPartHook::Execute");
 }
@@ -633,7 +633,7 @@ LuminousPartHook::LuminousPartHook()
 {
 }
 
-void LuminousPartHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void LuminousPartHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("LuminousPartHook::Execute");
 }
@@ -681,7 +681,7 @@ LuminousHook::LuminousHook()
 {
 }
 
-void LuminousHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void LuminousHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("LuminousHook::Execute");
 }
@@ -727,7 +727,7 @@ DiffusePartHook::DiffusePartHook()
 {
 }
 
-void DiffusePartHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void DiffusePartHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("DiffusePartHook::Execute");
 }
@@ -775,7 +775,7 @@ DiffuseHook::DiffuseHook()
 {
 }
 
-void DiffuseHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void DiffuseHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("DiffuseHook::Execute");
 }
@@ -821,7 +821,7 @@ ScaleHook::ScaleHook()
 {
 }
 
-void ScaleHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void ScaleHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("ScaleHook::Execute");
 }
@@ -865,7 +865,7 @@ CreateParticleHook::CreateParticleHook()
 {
 }
 
-void CreateParticleHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void CreateParticleHook::Execute(CPhysicsObj *pOwner)
 {
 #if PHATSDK_RENDER_AVAILABLE
     pOwner->create_particle_emitter(emitter_info_id, part_index, &offset, emitter_id);
@@ -922,7 +922,7 @@ CreateBlockingParticleHook::CreateBlockingParticleHook()
 {
 }
 
-void CreateBlockingParticleHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void CreateBlockingParticleHook::Execute(CPhysicsObj *pOwner)
 {
 #if PHATSDK_RENDER_AVAILABLE
     UNFINISHED_LEGACY("CreateBlockingParticleHook::Execute");
@@ -942,7 +942,7 @@ DestroyParticleHook::DestroyParticleHook()
 {
 }
 
-void DestroyParticleHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void DestroyParticleHook::Execute(CPhysicsObj *pOwner)
 {
 #if PHATSDK_RENDER_AVAILABLE
     UNFINISHED_LEGACY("DestroyParticleHook::Execute");
@@ -986,7 +986,7 @@ StopParticleHook::StopParticleHook()
 {
 }
 
-void StopParticleHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void StopParticleHook::Execute(CPhysicsObj *pOwner)
 {
 #if PHATSDK_RENDER_AVAILABLE
     UNFINISHED_LEGACY("StopParticleHook::Execute");
@@ -1030,7 +1030,7 @@ CallPESHook::CallPESHook()
 {
 }
 
-void CallPESHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void CallPESHook::Execute(CPhysicsObj *pOwner)
 {
 #if PHATSDK_RENDER_AVAILABLE
     UNFINISHED_LEGACY("CallPESHook::Execute");
@@ -1094,7 +1094,7 @@ SoundTweakedHook::~SoundTweakedHook()
     // __asm int 3;
 }
 
-void SoundTweakedHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void SoundTweakedHook::Execute(CPhysicsObj *pOwner)
 {
     // MISSING CODE HERE
     // __asm int 3;
@@ -1149,7 +1149,7 @@ SetOmegaHook::SetOmegaHook()
 {
 }
 
-void SetOmegaHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void SetOmegaHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("SetOmegaHook::Execute");
 }
@@ -1192,7 +1192,7 @@ TextureVelocityHook::TextureVelocityHook()
     v_speed = 0.0f;
 }
 
-void TextureVelocityHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void TextureVelocityHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("TextureVelocityHook::Execute");
 }
@@ -1239,7 +1239,7 @@ TextureVelocityPartHook::TextureVelocityPartHook()
     v_speed = 0.0f;
 }
 
-void TextureVelocityPartHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void TextureVelocityPartHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("TextureVelocityPartHook::Execute");
 }
@@ -1285,7 +1285,7 @@ SetLightHook::SetLightHook()
 {
 }
 
-void SetLightHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void SetLightHook::Execute(CPhysicsObj *pOwner)
 {
     // UNFINISHED_LEGACY("SetLightHook::Execute");
 }
@@ -1367,7 +1367,7 @@ AttackHook::AttackHook()
 {
 }
 
-void AttackHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void AttackHook::Execute(CPhysicsObj *pOwner)
 {
 #if PHATSDK_IS_SERVER
     // UNFINISHED_LEGACY("AttackHook::Execute");
@@ -1413,7 +1413,7 @@ EtherealHook::EtherealHook()
 {
 }
 
-void EtherealHook::Execute(std::shared_ptr<CPhysicsObj> pOwner)
+void EtherealHook::Execute(CPhysicsObj *pOwner)
 {
 	pOwner->set_ethereal(ethereal, 0);
 }

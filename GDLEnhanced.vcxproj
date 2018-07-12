@@ -463,7 +463,6 @@
     <ClCompile Include="Source\easylogging++.cpp" />
     <ClCompile Include="Source\EnumUtil.cpp" />
     <ClCompile Include="Source\ManaStone.cpp" />
-    <ClCompile Include="Source\PhatSDK\SmartArray.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\CombatFormulas.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\Random.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\RandomRange.cpp" />
@@ -655,6 +654,7 @@
     <ClInclude Include="Source\BindStone.h" />
     <ClInclude Include="Source\easylogging++.h" />
     <ClInclude Include="Source\ManaStone.h" />
+    <ClInclude Include="Source\PhatSDK\SmartArray.h" />
     <ClInclude Include="Source\PhatSDK\Support\CombatFormulas.h" />
     <ClInclude Include="Source\PhatSDK\Support\Random.h" />
     <ClInclude Include="Source\PhatSDK\Support\RandomRange.h" />
@@ -759,7 +759,6 @@
     <ClInclude Include="Source\PhatSDK\Setup.h" />
     <ClInclude Include="Source\PhatSDK\SkillTable.h" />
     <ClInclude Include="Source\PhatSDK\SkyDesc.h" />
-    <ClInclude Include="Source\PhatSDK\SmartArray.h" />
     <ClInclude Include="Source\PhatSDK\SmartBox.h" />
     <ClInclude Include="Source\PhatSDK\SortCell.h" />
     <ClInclude Include="Source\PhatSDK\SoundDesc.h" />

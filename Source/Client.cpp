@@ -481,7 +481,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				startPos = Position(0xD3380005, Vector(5.500000f, 109.800003f, 168.463333f), Quaternion(1.000000f, 0.000000f, 0.000000f, 0.000000f));
 
 				// WCID "1" is always a player weenie
-				std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(1, &startPos, false);
+				CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(1, &startPos, false);
 
 				if(!weenie)
 					goto BadData;
@@ -630,14 +630,6 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				weenie->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
 				weenie->m_Qualities.SetInt(AGE_INT, 0);
 
-				time_t t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-
-				std::stringstream ss;
-				ss << "You were born on " << std::put_time(std::localtime(&t), "%m/%d/%y %I:%M:%S %p."); // convert time to a string of format '01/01/18 11:59:59 AM.'
-
-				weenie->m_Qualities.SetInt(CREATION_TIMESTAMP_INT, t);
-				weenie->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
-
 				/*
 				cg.startArea = max(0, min(cgd->mStartAreaList.num_used - 1, cg.startArea));
 
@@ -757,9 +749,9 @@ BadData:
 	}
 }
 
-void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, ACCharGenResult cg, Sex_CG *scg)
+void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult cg, Sex_CG *scg)
 {
-	std::shared_ptr<CMonsterWeenie> weenie = weenieObject->AsMonster();
+	CMonsterWeenie *weenie = weenieObject->AsMonster();
 	if (weenie == NULL)
 		return;
 
@@ -1076,13 +1068,12 @@ void CClient::GenerateStarterGear(std::shared_ptr<CWeenieObject> weenieObject, A
 	weenie->SpawnInContainer(W_SACK_CLASS, 1);
 	weenie->SpawnInContainer(W_CALLINGSTONE_CLASS, 1);
 
-	std::shared_ptr<CContainerWeenie> sack = NULL;
+	CContainerWeenie *sack = NULL;
 	for (auto pack : weenie->m_Packs)
 	{
-		std::shared_ptr<CWeenieObject> pPack = pack.lock();
-		if (pPack && pPack->AsContainer())
+		if (pack->AsContainer())
 		{
-			sack = pPack->AsContainer();
+			sack = pack->AsContainer();
 			break;
 		}
 	}
@@ -1384,11 +1375,11 @@ void CClient::ProcessMessage(BYTE *data, DWORD length, WORD group)
 				DWORD dwEID = in.ReadDWORD();
 				if (in.GetLastError()) break;
 
-				std::shared_ptr<CPlayerWeenie> pPlayer;
+				CPlayerWeenie *pPlayer;
 
 				if ((m_pEvents) && (pPlayer = m_pEvents->GetPlayer()))
 				{
-					std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(pPlayer, dwEID);
+					CWeenieObject *pTarget = g_pWorld->FindWithinPVS(pPlayer, dwEID);
 									
 					if (pTarget)
 						pPlayer->MakeAware(pTarget);

@@ -27,19 +27,19 @@ public:
 };
 
 template<class T>
-DArray<T>::DArray(DWORD initial_size, DWORD dw_grow_size)
+DArray<T>::DArray(DWORD initial_size, DWORD grow_size)
 {
 	array_data = new T[initial_size];
-	grow_size = dw_grow_size;
+	grow_size = grow_size;
 	num_used = 0;
 	alloc_size = initial_size;
 }
 
 template<class T>
-DArray<T>::DArray(DWORD dw_grow_size)
+DArray<T>::DArray(DWORD grow_size)
 {
-	array_data = NULL;
-	grow_size = dw_grow_size;
+	array_data = new T[0]; // NULL;
+	grow_size = grow_size;
 	num_used = 0;
 	alloc_size = 0;
 }
@@ -47,10 +47,7 @@ DArray<T>::DArray(DWORD dw_grow_size)
 template<class T>
 DArray<T>::~DArray()
 {
-	if (array_data)
-	{
-		delete[] array_data;
-	}
+	delete[] array_data;
 }
 
 template<class T>

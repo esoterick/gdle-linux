@@ -38,7 +38,7 @@ void CBaseLifestone::ApplyQualityOverrides()
 	SetRadarBlipColor(LifeStone_RadarBlipEnum);
 }
 
-int CBaseLifestone::Use(std::shared_ptr<CPlayerWeenie> pOther)
+int CBaseLifestone::Use(CPlayerWeenie *pOther)
 {
 	CGenericUseEvent *useEvent = new CGenericUseEvent;
 	useEvent->_target_id = GetID();
@@ -48,7 +48,7 @@ int CBaseLifestone::Use(std::shared_ptr<CPlayerWeenie> pOther)
 	return WERROR_NONE;
 }
 
-int CBaseLifestone::DoUseResponse(std::shared_ptr<CWeenieObject> player)
+int CBaseLifestone::DoUseResponse(CWeenieObject *player)
 {
 	player->m_Qualities.SetPosition(SANCTUARY_POSITION, player->m_Position);
 	return WERROR_NONE;

@@ -8,10 +8,10 @@ public:
 	CBookWeenie();
 	virtual ~CBookWeenie() override;
 
-	virtual class std::shared_ptr<CBookWeenie> AsBook() { return std::static_pointer_cast<CBookWeenie>(GetPointer()); }
+	virtual class CBookWeenie *AsBook() { return this; }
 
 	virtual void ApplyQualityOverrides() override;
-	virtual int Use(std::shared_ptr<CPlayerWeenie> ) override;
+	virtual int Use(CPlayerWeenie *) override;
 
 protected:
 };

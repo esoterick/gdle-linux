@@ -12,7 +12,7 @@ CKeyWeenie::~CKeyWeenie()
 {
 }
 
-int CKeyWeenie::UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared_ptr<CWeenieObject> with)
+int CKeyWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 {
 	CGenericUseEvent *useEvent = new CGenericUseEvent;
 	useEvent->_target_id = with->GetID();
@@ -23,9 +23,9 @@ int CKeyWeenie::UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared_ptr<C
 	return WERROR_NONE;
 }
 
-int CKeyWeenie::DoUseWithResponse(std::shared_ptr<CWeenieObject> player, std::shared_ptr<CWeenieObject> with)
+int CKeyWeenie::DoUseWithResponse(CWeenieObject *player, CWeenieObject *with)
 {
-	if (std::shared_ptr<CPlayerWeenie> player_weenie = player->AsPlayer())
+	if (CPlayerWeenie *player_weenie = player->AsPlayer())
 	{
 		if (!with->IsLocked())
 		{

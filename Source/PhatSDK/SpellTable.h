@@ -353,8 +353,8 @@ public:
 
 	void Destroy(); // custom
 
-	const SpellSet *GetSpellSet(DWORD set_id);
 	const CSpellBase *GetSpellBase(DWORD spell_id);
+	const SpellSet *GetSpellSet(DWORD set_id);
 
 	PackableHashTable<unsigned long, CSpellBase> _spellBaseHash;
 	PackableHashTable<unsigned long, SpellSet> _spellSetHash;

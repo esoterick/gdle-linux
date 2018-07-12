@@ -67,9 +67,9 @@ public:
 
 #if !PHATSDK_USE_WEENIE_STUB
 	// custom
-	static DWORD CalculateBitfieldFromWeenie(std::shared_ptr<CWeenieObject> weenie);
+	static DWORD CalculateBitfieldFromWeenie(CWeenieObject *weenie);
 	static DWORD CalculateBitfieldFromQualities(CACQualities *qualities);
-	static PublicWeenieDesc *CreateFromWeenie(std::shared_ptr<CWeenieObject> weenie);
+	static PublicWeenieDesc *CreateFromWeenie(CWeenieObject *weenie);
 	static PublicWeenieDesc *CreateFromQualities(CACQualities *qualities);
 	// end of custom
 #endif

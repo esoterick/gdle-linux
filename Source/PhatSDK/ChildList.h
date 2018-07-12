@@ -9,13 +9,13 @@ public:
 	CHILDLIST();
 	~CHILDLIST();
 
-	void add_child(std::shared_ptr<CPhysicsObj> pObj, Frame *pFrame, DWORD part_number, DWORD location_id);
-	void remove_child(std::shared_ptr<CPhysicsObj> pChild);
+	void add_child(CPhysicsObj *pObj, Frame *pFrame, DWORD part_number, DWORD location_id);
+	void remove_child(CPhysicsObj *pChild);
 
-	BOOL FindChildIndex(std::shared_ptr<CPhysicsObj> pObj, WORD *Index);
+	BOOL FindChildIndex(CPhysicsObj *pObj, WORD *Index);
 
 	WORD num_objects;
-	SArray<std::weak_ptr<CPhysicsObj> > objects;
+	SArray<CPhysicsObj *> objects;
 	SArray<Frame> frames;
 	SArray<DWORD> part_numbers;
 	SArray<DWORD> location_ids;

@@ -82,7 +82,7 @@ public:
 	BOOL SetMotionTableID(DWORD ID);
 
 	void CheckForCompletedMotions();
-	void SetPhysicsObject(std::shared_ptr<CPhysicsObj> pPhysicsObj);
+	void SetPhysicsObject(CPhysicsObj *pPhysicsObj);
 	void HandleEnterWorld(CSequence *pSequence);
 	void HandleExitWorld();
 
@@ -98,7 +98,7 @@ public:
 
 	void UseTime();
 
-	std::weak_ptr<CPhysicsObj> physics_obj; // 0x00
+	CPhysicsObj *physics_obj; // 0x00
 	CMotionTable *table; // 0x04
 	MotionState state; // 0x08
 	DWORD animation_counter;

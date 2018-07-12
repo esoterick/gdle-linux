@@ -3,7 +3,6 @@
 #include "WeenieObject.h"
 #include "Scroll.h"
 #include "Player.h"
-#include "World.h"
 
 CScrollWeenie::CScrollWeenie()
 {
@@ -32,7 +31,7 @@ const CSpellBase *CScrollWeenie::GetSpellBase()
 	return NULL;
 }
 
-int CScrollWeenie::Use(std::shared_ptr<CPlayerWeenie> player)
+int CScrollWeenie::Use(CPlayerWeenie *player)
 {
 	const CSpellBase *spell = GetSpellBase();
 
@@ -95,28 +94,21 @@ void CScrollUseEvent::OnReadyToUse()
 
 void CScrollUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	std::shared_ptr<CWeenieObject> target = GetTarget();
+	CWeenieObject *target = GetTarget();
 
 	if (target)
 	{
-		if (pWeenie->LearnSpell(target->InqDIDQuality(SPELL_DID, 0), true))
+		if (_weenie->LearnSpell(target->InqDIDQuality(SPELL_DID, 0), true))
 		{
 			// destroy it if the spell was learned
-			pWeenie->ReleaseFromAnyWeenieParent();
-			pWeenie->NotifyContainedItemRemoved(target->GetID());
+			target->ReleaseFromAnyWeenieParent();
+			_weenie->NotifyContainedItemRemoved(target->GetID());
 
-			g_pWorld->RemoveEntity(target);
+			target->MarkForDestroy();
 		}
 	}
 
-	pWeenie->DoForcedStopCompletely();
+	_weenie->DoForcedStopCompletely();
 
 	Done();
 }

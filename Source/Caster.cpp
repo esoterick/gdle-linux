@@ -10,7 +10,7 @@ void CCasterWeenie::ApplyQualityOverrides()
 {
 }
 
-int CCasterWeenie::Use(std::shared_ptr<CPlayerWeenie> other)
+int CCasterWeenie::Use(CPlayerWeenie *other)
 {
 	return CWeenieObject::Use(other);
 }

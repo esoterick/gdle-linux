@@ -23,6 +23,9 @@
 #include "easylogging++.h"
 #include "Util.h"
 #include <chrono>
+#include <algorithm>
+#include <functional>
+
 
 #define PLAYER_SAVE_INTERVAL 180.0
 #define PLAYER_HEALTH_POLL_INTERVAL 5.0
@@ -78,12 +81,11 @@ CPlayerWeenie::CPlayerWeenie(CClient *pClient, DWORD dwGUID, WORD instance_ts)
 
 CPlayerWeenie::~CPlayerWeenie()
 {
-	//WINLOG(Data, Normal, (std::string("Deleted player: ") + GetName() + "\n").c_str());
 	LeaveFellowship();
 	
 	if (m_pTradeManager)
 	{
-		m_pTradeManager->CloseTrade(AsPlayer());
+		m_pTradeManager->CloseTrade(this);
 		m_pTradeManager = NULL;
 	}
 
@@ -156,7 +158,7 @@ void CPlayerWeenie::BeginLogout()
 
 	if (m_pTradeManager)
 	{
-		m_pTradeManager->CloseTrade(AsPlayer());
+		m_pTradeManager->CloseTrade(this);
 		m_pTradeManager = NULL;
 	}
 	
@@ -246,29 +248,18 @@ void CPlayerWeenie::Tick()
 
 	if (m_NextHealthUpdate <= Timer::cur_time)
 	{
-		std::shared_ptr<CWeenieObject> pTarget = g_pWorld->FindWithinPVS(AsWeenie(), m_LastHealthRequest);
-		if ( pTarget )
+		CWeenieObject *pTarget = g_pWorld->FindWithinPVS(this, m_LastHealthRequest);
+		if (pTarget)
 		{
-			if (std::shared_ptr<CMonsterWeenie> pMonster = pTarget->AsMonster())
-			{
-				SendNetMessage(HealthUpdate(pMonster), PRIVATE_MSG, TRUE, TRUE);
+			SendNetMessage(HealthUpdate((CMonsterWeenie *)pTarget), PRIVATE_MSG, TRUE, TRUE);
 
-				m_NextHealthUpdate = Timer::cur_time + PLAYER_HEALTH_POLL_INTERVAL;
-				return;
-			}
+			m_NextHealthUpdate = Timer::cur_time + PLAYER_HEALTH_POLL_INTERVAL;
+		}
+		else
+		{
+			RemoveLastHealthRequest();
 		}
 
-		RemoveLastHealthRequest();
-	}
-	if (m_NextCorpsePermissionsUpdate <= Timer::cur_time)
-	{
-		UpdateCorpsePermissions();
-		m_NextCorpsePermissionsUpdate = Timer::cur_time + 60.0;
-	}
-	if (m_NextCorpsePermissionsUpdate <= Timer::cur_time)
-	{
-		UpdateCorpsePermissions();
-		m_NextCorpsePermissionsUpdate = Timer::cur_time + 60.0;
 	}
 }
 
@@ -311,13 +302,8 @@ void CPlayerWeenie::FlushMadeAwareof()
 	}
 }
 
-void CPlayerWeenie::MakeAware(std::shared_ptr<CWeenieObject> pEntity, bool bForceUpdate)
+void CPlayerWeenie::MakeAware(CWeenieObject *pEntity, bool bForceUpdate)
 {
-	if (!pEntity)
-	{
-		return;
-	}
-
 #ifndef PUBLIC_BUILD
 	int vis;
 	if (pEntity->m_Qualities.InqBool(VISIBILITY_BOOL, vis) && !m_bAdminVision)
@@ -345,9 +331,9 @@ void CPlayerWeenie::MakeAware(std::shared_ptr<CWeenieObject> pEntity, bool bForc
 	{
 		for (DWORD i = 0; i < pEntity->children->num_objects; i++)
 		{
-			if (std::shared_ptr<CPhysicsObj> pChild = pEntity->children->objects.array_data[i].lock())
+			if (CPhysicsObj *pChild = pEntity->children->objects.array_data[i])
 			{
-				if (std::shared_ptr<CWeenieObject> pChildWeenie = pChild->AsWeenie())
+				if (CWeenieObject *pChildWeenie = pChild->weenie_obj)
 				{
 					if (BinaryWriter *CM = pChildWeenie->CreateMessage())
 					{
@@ -358,28 +344,26 @@ void CPlayerWeenie::MakeAware(std::shared_ptr<CWeenieObject> pEntity, bool bForc
 		}
 	}
 
-	if (pEntity == AsWeenie())
+	if (pEntity == this)
 	{
 		// make aware of inventory too
 		for (auto item : m_Wielded)
 		{
-			MakeAware(item.lock());
+			MakeAware(item);
 		}
 
 		for (auto item : m_Items)
 		{
-			MakeAware(item.lock());
+			MakeAware(item);
 		}
 
 		for (auto item : m_Packs)
 		{
-			std::shared_ptr<CWeenieObject> pItem = item.lock();
+			MakeAware(item);
 
-			MakeAware(pItem);
-
-			if (std::shared_ptr<CContainerWeenie> container = pItem->AsContainer())
+			if (CContainerWeenie *container = item->AsContainer())
 			{
-				container->MakeAwareViewContent(AsWeenie());
+				container->MakeAwareViewContent(this);
 			}
 		}
 	}
@@ -393,7 +377,7 @@ void CPlayerWeenie::LoginCharacter(void)
 	SC[1] = GetID();
 	SendNetMessage(SC, sizeof(SC), 10);
 
-	BinaryWriter *LC = ::LoginCharacter(AsPlayer());
+	BinaryWriter *LC = ::LoginCharacter(this);
 	SendNetMessage(LC->GetData(), LC->GetSize(), PRIVATE_MSG, TRUE);
 	delete LC;
 }
@@ -406,10 +390,8 @@ void CPlayerWeenie::ExitPortal()
 		_isFirstPortalInSession = false;
 	}
 
-	if (std::shared_ptr<CPhysicsObj> pPhysObj = _phys_obj.lock())
-	{
-		pPhysObj->ExitPortal();
-	}
+	if (_phys_obj)
+		_phys_obj->ExitPortal();
 }
 
 void CPlayerWeenie::SetLastHealthRequest(DWORD guid)
@@ -441,11 +423,11 @@ std::string CPlayerWeenie::RemoveLastAssessed()
 {
 	if (m_LastAssessed != 0)
 	{
-		std::shared_ptr<CWeenieObject> pObject = g_pWorld->FindWithinPVS(AsWeenie(), m_LastAssessed);
+		CWeenieObject *pObject = g_pWorld->FindWithinPVS(this, m_LastAssessed);
 
-		if (pObject && !pObject->AsPlayer() && !pObject->m_bDontClear) {
+		if (pObject != NULL && !pObject->AsPlayer() && !pObject->m_bDontClear) {
 			std::string name = pObject->GetName();
-			g_pWorld->RemoveEntity(pObject);
+			pObject->MarkForDestroy();
 			m_LastAssessed = 0;
 			return name;
 		}
@@ -587,30 +569,23 @@ void CPlayerWeenie::OnGivenXP(long long amount, bool allegianceXP)
 	}
 }
 
-void addItemsToDropLists(std::vector<std::weak_ptr<CWeenieObject>> items, std::vector<std::shared_ptr<CWeenieObject> > &removeList, std::vector<std::shared_ptr<CWeenieObject> > &alwaysDropList, std::vector<std::shared_ptr<CWeenieObject> > &allValidItems)
+void addItemsToDropLists(PhysObjVector items, std::vector<CWeenieObject *> &removeList, std::vector<CWeenieObject *> &alwaysDropList, std::vector<CWeenieObject *> &allValidItems)
 {
 	for (auto item : items)
 	{
-		std::shared_ptr<CWeenieObject> pItem = item.lock();
-
-		if (!pItem)
-		{
+		if (item->m_Qualities.id == W_COINSTACK_CLASS)
 			continue;
-		}
-
-		if (pItem->m_Qualities.id == W_COINSTACK_CLASS)
-			continue;
-		else if (pItem->IsDestroyedOnDeath())
-			removeList.push_back(pItem);
-		else if (pItem->IsDroppedOnDeath())
-			alwaysDropList.push_back(pItem);
-		else if (!pItem->IsBonded())
-			allValidItems.push_back(pItem);
+		else if (item->IsDestroyedOnDeath())
+			removeList.push_back(item);
+		else if (item->IsDroppedOnDeath())
+			alwaysDropList.push_back(item);
+		else if (!item->IsBonded())
+			allValidItems.push_back(item);
 	}
 }
 
 //TODO Add nonwielded handling for level > 11 && level < 35
-void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pCorpse, DWORD killer_id)
+void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD killer_id)
 {
 	if (!pCorpse)
 		return;
@@ -619,7 +594,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 		return;
 
 	int level = InqIntQuality(LEVEL_INT, 1);
-	std::shared_ptr<CWeenieObject> pKiller = g_pWorld->FindObject(killer_id);
+	CWeenieObject *pKiller = g_pWorld->FindObject(killer_id);
 	int amountOfItemsToDrop = 0;
 	int augDropLess = InqIntQuality(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT, 0); // Take Death Item Augs into Consideration
 	if (level <= 10)
@@ -650,23 +625,16 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 		pCorpse->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed);
 	}
 
-	std::vector<std::shared_ptr<CWeenieObject> > removeList;
-	std::vector<std::shared_ptr<CWeenieObject> > alwaysDropList;
-	std::vector<std::shared_ptr<CWeenieObject> > allValidItems;
+	std::vector<CWeenieObject *> removeList;
+	std::vector<CWeenieObject *> alwaysDropList;
+	std::vector<CWeenieObject *> allValidItems;
 
 	addItemsToDropLists(m_Wielded, removeList, alwaysDropList, allValidItems);
 	addItemsToDropLists(m_Items, removeList, alwaysDropList, allValidItems);
 
 	for (auto packAsWeenie : m_Packs)
 	{
-		std::shared_ptr<CWeenieObject> pItem = packAsWeenie.lock();
-
-		if (!pItem)
-		{
-			continue;
-		}
-
-		std::shared_ptr<CContainerWeenie> pack = pItem->AsContainer();
+		CContainerWeenie *pack = packAsWeenie->AsContainer();
 		if (pack)
 		{
 			addItemsToDropLists(pack->m_Items, removeList, alwaysDropList, allValidItems);
@@ -679,8 +647,9 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 	for (auto item : alwaysDropList)
 		FinishMoveItemToContainer(item, pCorpse, 0, true, true);
 
+
 	// This section calculates the effective value for each item (halved for each previous dupe)
-	std::multimap <int, std::shared_ptr<CWeenieObject> > itemValueList;
+	std::multimap <int, CWeenieObject *> itemValueList;
 	std::map<std::string, int> itemNameList;
 	std::string objName;
 	for (auto item : allValidItems)
@@ -703,7 +672,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 
 			for (int i = 0; i < stack_sz; i++)
 			{
-				itemValueList.insert(std::pair<int, std::shared_ptr<CWeenieObject> >(value, item));
+				itemValueList.insert(std::pair<int, CWeenieObject *>(value, item));
 
 				// reduce value by half again
 				value /= 2;
@@ -727,12 +696,12 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 				itemNameList[objName]++;
 			}
 
-			itemValueList.insert(std::pair<int, std::shared_ptr<CWeenieObject> >(value, item));
+			itemValueList.insert(std::pair<int, CWeenieObject *>(value, item));
 		}
 	}
 
 	// cap the amount of items to drop to the number of items we can drop so the message properly ends with " and "
-	amountOfItemsToDrop = min(amountOfItemsToDrop, static_cast<int>(itemValueList.size()));
+	amountOfItemsToDrop = min(amountOfItemsToDrop, itemValueList.size());
 	int itemsLost = 0;
 
 	std::string itemsLostText;
@@ -785,14 +754,14 @@ void CPlayerWeenie::CalculateAndDropDeathItems(std::shared_ptr<CCorpseWeenie> pC
 	if (coinConsumed || itemsLost)
 		SendText(itemsLostText.c_str(), LTT_DEFAULT);
 
-	if (std::shared_ptr<CCorpseWeenie> pCorpse = _pendingCorpse.lock())
+	if (_pendingCorpse)
 	{
 		//make the player corpse visible.
-		pCorpse->m_Qualities.RemoveBool(VISIBILITY_BOOL);
-		pCorpse->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
-		pCorpse->NotifyObjectCreated(false);
-		pCorpse->Save();
-		_pendingCorpse = std::weak_ptr<CCorpseWeenie>();
+		_pendingCorpse->m_Qualities.RemoveBool(VISIBILITY_BOOL);
+		_pendingCorpse->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
+		_pendingCorpse->NotifyObjectCreated(false);
+		_pendingCorpse->Save();
+		_pendingCorpse = NULL;
 	}
 }
 
@@ -819,18 +788,19 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 	ReduceVitae(0.05f);
 	UpdateVitaeEnchantment();
 	ClearPKActivity();
-	bool pkKill = 0;
+
+	bool isPkKill = false;
 
 	if (killer_id != GetID())
 	{
-		if (std::shared_ptr<CWeenieObject> pKiller = g_pWorld->FindObject(killer_id))
+		if (CWeenieObject *pKiller = g_pWorld->FindObject(killer_id))
 		{
 			if (IsPK() && pKiller->_IsPlayer())
 			{
 				m_Qualities.SetFloat(PK_TIMESTAMP_FLOAT, Timer::cur_time + g_pConfig->PKRespiteTime());
 				m_Qualities.SetInt(PLAYER_KILLER_STATUS_INT, PKStatusEnum::NPK_PKStatus);
 				NotifyIntStatUpdated(PLAYER_KILLER_STATUS_INT, false);
-				pkKill = 1;
+				isPkKill = true;
 				NotifyWeenieError(WERROR_PK_SWITCH_RESPITE);
 				SendText("Bael'Zharon has granted you respite after your moment of weakness. You are temporarily no longer a player killer.", LTT_MAGIC);
 			}
@@ -842,10 +812,10 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 
 	if (_pendingCorpse)
 	{
-		if (pkKill)
+		if (isPkKill)
 		{
 			_pendingCorpse->m_Qualities.SetBool(PK_KILLER_BOOL, 1); // flag the corpse as one made by a PK
-			pkKill = 0;
+			isPkKill = false;
 		}
 
 		CalculateAndDropDeathItems(_pendingCorpse, killer_id);
@@ -985,9 +955,9 @@ void CPlayerWeenie::NotifyInventoryFailedEvent(DWORD object_id, int error)
 	SendNetMessage(&msg, PRIVATE_MSG, TRUE, FALSE);
 }
 
-bool CPlayerWeenie::ImmuneToDamage(std::shared_ptr<CWeenieObject> other)
+bool CPlayerWeenie::ImmuneToDamage(CWeenieObject *other)
 {
-	if (AsWeenie() != other)
+	if (this != other)
 	{
 		if (other && other->AsPlayer())
 		{
@@ -1019,7 +989,7 @@ bool CPlayerWeenie::IsDead()
 	return CMonsterWeenie::IsDead();
 }
 
-DWORD CPlayerWeenie::OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> item, DWORD desired_slot)
+DWORD CPlayerWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot)
 {
 	item->ReleaseFromAnyWeenieParent(false, true);
 	item->SetWieldedLocation(INVENTORY_LOC::NONE_LOC);
@@ -1036,7 +1006,7 @@ DWORD CPlayerWeenie::OnReceiveInventoryItem(std::shared_ptr<CWeenieObject> sourc
 }
 
 /*
-void CPlayerWeenie::HandleKilledEvent(std::shared_ptr<CWeenieObject> victim, DAMAGE_TYPE damageType)
+void CPlayerWeenie::HandleKilledEvent(CWeenieObject *victim, DAMAGE_TYPE damageType)
 {
 	switch (damageType)
 	{
@@ -1091,12 +1061,12 @@ void CPlayerWeenie::HandleKilledEvent(std::shared_ptr<CWeenieObject> victim, DAM
 */
 
 /*
-void CPlayerWeenie::NotifyVictimEvent(std::shared_ptr<CWeenieObject> killer, DAMAGE_TYPE damageType)
+void CPlayerWeenie::NotifyVictimEvent(CWeenieObject *killer, DAMAGE_TYPE damageType)
 {
 
 }
 
-void CPlayerWeenie::OnDealtDamage(std::shared_ptr<CWeenieObject> attacker, DAMAGE_TYPE damageType, unsigned int damage)
+void CPlayerWeenie::OnDealtDamage(CWeenieObject *attacker, DAMAGE_TYPE damageType, unsigned int damage)
 {
 	if (!pTarget->IsDead())
 	{
@@ -1155,9 +1125,9 @@ void CPlayerWeenie::PreSpawnCreate()
 {
 }
 
-struct CompareManaNeeds //: public std::binary_function<std::shared_ptr<CWeenieObject>, std::shared_ptr<CWeenieObject>, bool>
+struct CompareManaNeeds //: public std::function<CWeenieObject*, CWeenieObject*, bool>
 {
-	bool operator()(std::shared_ptr<CWeenieObject> left, std::shared_ptr<CWeenieObject> right)
+	bool operator()(CWeenieObject* left, CWeenieObject* right)
 	{
 		// comparator for making a min-heap based on remaining mana
 		return ((left->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE) - left->InqIntQuality(ITEM_CUR_MANA_INT, -1, TRUE))
@@ -1165,7 +1135,7 @@ struct CompareManaNeeds //: public std::binary_function<std::shared_ptr<CWeenieO
 	}
 };
 
-int CPlayerWeenie::UseEx(std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<CWeenieObject> pTarget)
+int CPlayerWeenie::UseEx(CWeenieObject *pTool, CWeenieObject *pTarget)
 {
 	// Save these for later as we may have to send a confirmation
 	m_pCraftingTool = pTool;
@@ -1176,10 +1146,10 @@ int CPlayerWeenie::UseEx(std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<C
 int CPlayerWeenie::UseEx(bool bConfirmed)
 {
 	// Load the saved crafting targets
-	std::shared_ptr<CWeenieObject> pTool = m_pCraftingTool.lock();
-	std::shared_ptr<CWeenieObject> pTarget = m_pCraftingTarget.lock();
+	CWeenieObject *pTool = m_pCraftingTool;
+	CWeenieObject *pTarget = m_pCraftingTarget;
 
-	if (!pTool || !pTarget )
+	if (pTool == NULL || pTarget == NULL)
 	{
 		// no queued crafting op
 		return WERROR_NONE;
@@ -1241,21 +1211,14 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 					SendText(csprintf("You cannot use the %s on other creatures or players.", pTool->GetName().c_str()), LTT_DEFAULT);
 					break;
 				}
-				priority_queue<std::shared_ptr<CWeenieObject>, vector<std::shared_ptr<CWeenieObject>>, CompareManaNeeds > itemsNeedingMana, itemsStillNeedingMana; // MIN heaps sorted by mana deficit
+				priority_queue<CWeenieObject*, vector<CWeenieObject*>, CompareManaNeeds > itemsNeedingMana, itemsStillNeedingMana; // MIN heaps sorted by mana deficit
 				for (auto wielded : m_Wielded)
 				{
-					std::shared_ptr<CWeenieObject> pItem = wielded.lock();
-
-					if (!pItem)
-					{
-						continue;
-					}
-
-					int curMana = pItem->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
-					int maxMana = pItem->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
+					int curMana = wielded->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
+					int maxMana = wielded->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
 					int deficit = maxMana - curMana;
 					if (deficit > 0) {
-						itemsNeedingMana.push(pItem);
+						itemsNeedingMana.push(wielded);
 					}
 				}
 				if (itemsNeedingMana.empty()) {
@@ -1264,10 +1227,10 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				}
 				int manaToDistribute = manaStoneCurrentMana;
 				int manaDistributed = 0;
-				std::set<std::shared_ptr<CWeenieObject>> objectsReceivingMana; // for the chatmessage at the end
+				std::set<CWeenieObject*> objectsReceivingMana; // for the chatmessage at the end
 
 				while (manaToDistribute > 0 && !(itemsNeedingMana.empty())) {
-					std::shared_ptr<CWeenieObject> itemNeedingLeastMana = itemsNeedingMana.top();
+					CWeenieObject* itemNeedingLeastMana = itemsNeedingMana.top();
 					int deficit = itemNeedingLeastMana->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE) - itemNeedingLeastMana->InqIntQuality(ITEM_CUR_MANA_INT, 0, TRUE);
 					unsigned int manaToApplyToEach = 0;
 
@@ -1275,7 +1238,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 					{
 						if (deficit * itemsNeedingMana.size() >= manaToDistribute) {
 							// applying smallest deficit to all items would require more mana than available for distribution
-							manaToApplyToEach = manaToDistribute / static_cast<unsigned int>(itemsNeedingMana.size());
+							manaToApplyToEach = manaToDistribute / itemsNeedingMana.size();
 						}
 						else {
 							manaToApplyToEach = deficit;
@@ -1289,7 +1252,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 					manaToApplyToEach = max(1, manaToApplyToEach); // for when manaToDistribute / itemsNeedingMana rounds down to 0, apply 1 mana until we're out
 
 					while (!itemsNeedingMana.empty()) {
-						std::shared_ptr<CWeenieObject> item = itemsNeedingMana.top();
+						CWeenieObject* item = itemsNeedingMana.top();
 						int itemMaxMana = item->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
 						itemsNeedingMana.pop();
 						if (manaToDistribute <= 0) {
@@ -1319,12 +1282,12 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				remainingMana = manaToDistribute;
 				std::stringstream ss;
 				ss << csprintf("The %s gives %s points of mana to the following items: ", pTool->GetName().c_str(), FormatNumberString(manaDistributed).c_str());
-				std::set<std::shared_ptr<CWeenieObject>>::iterator it = objectsReceivingMana.begin();
+				std::set<CWeenieObject*>::iterator it = objectsReceivingMana.begin();
 				while (it != objectsReceivingMana.end()) {
 					if (it != objectsReceivingMana.begin()) {
 						ss << ", ";
 					}
-					std::shared_ptr<CWeenieObject> item = *it;
+					CWeenieObject* item = *it;
 					ss << item->GetName();
 					it++;
 				}
@@ -1414,7 +1377,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				return WERROR_NONE;
 
 			//swap things around
-			std::shared_ptr<CWeenieObject> swapHelper = pTool;
+			CWeenieObject *swapHelper = pTool;
 			pTool = pTarget;
 			pTarget = swapHelper;
 		}
@@ -1584,7 +1547,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 		{
 			// Results!
 			// Create item(s)
-			std::shared_ptr<CWeenieObject> newItem = g_pWeenieFactory->CreateWeenieByClassID(op->_successWcid, NULL, false);
+			CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(op->_successWcid, NULL, false);
 			if (op->_successAmount > 1)
 				newItem->SetStackSize(op->_successAmount);
 
@@ -1650,7 +1613,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 		{
 			// Results!
 			// Create item(s)
-			std::shared_ptr<CWeenieObject> newItem = g_pWeenieFactory->CreateWeenieByClassID(op->_failWcid, NULL, false);
+			CWeenieObject *newItem = g_pWeenieFactory->CreateWeenieByClassID(op->_failWcid, NULL, false);
 			if (op->_failAmount > 1)
 				newItem->SetStackSize(op->_failAmount);
 
@@ -1717,8 +1680,8 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 		}
 
 		// We don't need these anymore
-		m_pCraftingTool = std::weak_ptr<CWeenieObject>();
-		m_pCraftingTarget = std::weak_ptr<CWeenieObject>();
+		m_pCraftingTool = NULL;
+		m_pCraftingTarget = NULL;
 
 		RecalculateEncumbrance();
 		break;
@@ -1786,9 +1749,9 @@ std::string CPlayerWeenie::ToUpperCase(string tName)
 	return tName;
 }
 
-bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<CWeenieObject> pTarget)
+bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget)
 {
-	std::shared_ptr<CWeenieObject> requirementTarget;
+	CWeenieObject *requirementTarget;
 	switch (index)
 	{
 	case 0:
@@ -1798,7 +1761,7 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, std::sh
 		requirementTarget = pTool;
 		break;
 	case 2:
-		requirementTarget = AsWeenie();
+		requirementTarget = this;
 		break;
 	default:
 #ifdef _DEBUG
@@ -2298,7 +2261,7 @@ bool CPlayerWeenie::CheckUseRequirements(int index, CCraftOperation *op, std::sh
 	return true;
 }
 
-void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation *op, std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<CWeenieObject> pTarget, std::shared_ptr<CWeenieObject> pCreatedItem)
+void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem)
 {
 	double currentVar = pTarget->InqFloatQuality(DAMAGE_VARIANCE_FLOAT, 0, TRUE);
 	switch (scriptId)
@@ -2564,7 +2527,7 @@ void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation
 	}
 }
 
-void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std::shared_ptr<CWeenieObject> pTool, std::shared_ptr<CWeenieObject> pTarget, std::shared_ptr<CWeenieObject> pCreatedItem)
+void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem)
 {
 	if (op->_mods[index]._modificationScriptId)
 		PerformUseModificationScript(op->_mods[index]._modificationScriptId, op, pTool, pTarget, pCreatedItem);
@@ -2581,11 +2544,11 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 		for each (TYPEMod<STypeInt, int> intMod in op->_mods[index]._intMod)
 		{
 			bool applyToCreatedItem = false;
-			std::shared_ptr<CWeenieObject> modificationSource = NULL;
+			CWeenieObject *modificationSource = NULL;
 			switch (intMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = AsWeenie();
+				modificationSource = this;
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -2655,11 +2618,11 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 		for each (TYPEMod<STypeBool, BOOL> boolMod in op->_mods[index]._boolMod)
 		{
 			bool applyToCreatedItem = false;
-			std::shared_ptr<CWeenieObject> modificationSource = NULL;
+			CWeenieObject *modificationSource = NULL;
 			switch (boolMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = AsWeenie();
+				modificationSource = this;
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -2719,11 +2682,11 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 		for each (TYPEMod<STypeFloat, double> floatMod in op->_mods[index]._floatMod)
 		{
 			bool applyToCreatedItem = false;
-			std::shared_ptr<CWeenieObject> modificationSource = NULL;
+			CWeenieObject *modificationSource = NULL;
 			switch (floatMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = AsWeenie();
+				modificationSource = this;
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -2785,11 +2748,11 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 		for each (TYPEMod<STypeString, std::string> stringMod in op->_mods[index]._stringMod)
 		{
 			bool applyToCreatedItem = false;
-			std::shared_ptr<CWeenieObject> modificationSource = NULL;
+			CWeenieObject *modificationSource = NULL;
 			switch (stringMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = AsWeenie();
+				modificationSource = this;
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -2873,11 +2836,11 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 		for each (TYPEMod<STypeDID, DWORD> didMod in op->_mods[index]._didMod)
 		{
 			bool applyToCreatedItem = false;
-			std::shared_ptr<CWeenieObject> modificationSource = NULL;
+			CWeenieObject *modificationSource = NULL;
 			switch (didMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = AsWeenie();
+				modificationSource = this;
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -2937,11 +2900,11 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, std:
 		for each (TYPEMod<STypeIID, DWORD> iidMod in op->_mods[index]._iidMod)
 		{
 			bool applyToCreatedItem = false;
-			std::shared_ptr<CWeenieObject> modificationSource = NULL;
+			CWeenieObject *modificationSource = NULL;
 			switch (iidMod._unk) //this is a guess
 			{
 			case 0:
-				modificationSource = AsWeenie();
+				modificationSource = this;
 				break;
 			case 1:
 				modificationSource = pTool;
@@ -3216,12 +3179,12 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	if (items.empty())
 		return;
 
-	std::shared_ptr<CWeenieObject> pTool = g_pWorld->FindObject(toolId);
+	CWeenieObject *pTool = g_pWorld->FindObject(toolId);
 
 	if (!pTool)
 		return;
 
-	if (pTool->GetWorldTopLevelOwner() != AsWeenie())
+	if (pTool->GetWorldTopLevelOwner() != this)
 	{
 		NotifyWeenieError(WERROR_SALVAGE_DONT_OWN_TOOL);
 		return;
@@ -3243,7 +3206,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 	int numAugs = max(0, min(4, InqIntQuality(AUGMENTATION_BONUS_SALVAGE_INT, 0)));
 
 	std::map<MaterialType, SalvageInfo> salvageMap;
-	std::list<std::shared_ptr<CWeenieObject> > itemsToDestroy;
+	std::list<CWeenieObject *> itemsToDestroy;
 
 	//Lists for the success message
 	PackableList<SalvageResult> salvageResults;
@@ -3251,7 +3214,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 
 	for (auto itemId : items)
 	{
-		std::shared_ptr<CWeenieObject> pItem = g_pWorld->FindObject(itemId);
+		CWeenieObject *pItem = g_pWorld->FindObject(itemId);
 
 		if (!pItem)
 		{
@@ -3259,7 +3222,7 @@ void CPlayerWeenie::PerformSalvaging(DWORD toolId, PackableList<DWORD> items)
 			return;
 		}
 
-		if (pItem->GetWorldTopLevelOwner() != AsWeenie())
+		if (pItem->GetWorldTopLevelOwner() != this)
 		{
 			NotifyWeenieError(WERROR_SALVAGE_DONT_OWN_LOOT);
 			notSalvagable.push_back(pItem->GetID());
@@ -3381,7 +3344,7 @@ bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount
 	if (salvageWcid == 0)
 		return false;
 
-	std::shared_ptr<CWeenieObject> weenie = g_pWeenieFactory->CreateWeenieByClassID(salvageWcid, NULL, false);
+	CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(salvageWcid, NULL, false);
 	weenie->m_Qualities.SetString(NAME_STRING, csprintf("Salvage (%s)", FormatNumberString(amount).c_str())); //modern client prepends the salvage type automatically so we need to adapt to this.
 
 	if (!weenie)
@@ -3499,18 +3462,11 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 
 	for (auto wielded : m_Wielded)
 	{
-		std::shared_ptr<CWeenieObject> pItem = wielded.lock();
-
-		if (!pItem)
-		{
-			continue;
-		}
-
-		if (pItem->InqIntQuality(ITEM_CUR_MANA_INT, 0, true) > 0)
+		if (wielded->InqIntQuality(ITEM_CUR_MANA_INT, 0, true) > 0)
 		{
 			double manaRate = 0.0f;
-			if (pItem->m_Qualities.InqFloat(MANA_RATE_FLOAT, manaRate, TRUE) && manaRate != 0.0)
-				pItem->_nextManaUse = Timer::cur_time + (-manaRate * 1000);
+			if (wielded->m_Qualities.InqFloat(MANA_RATE_FLOAT, manaRate, TRUE) && manaRate != 0.0)
+				wielded->_nextManaUse = Timer::cur_time + (-manaRate * 1000);
 		}
 	}
 
@@ -3518,16 +3474,9 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	{
 		for (auto item : m_Items)
 		{
-			std::shared_ptr<CWeenieObject> pItem = item.lock();
-
-			if (!pItem)
+			if (item->m_Qualities.id == W_TUTORIALBOOK_CLASS)
 			{
-				continue;
-			}
-
-			if (pItem->m_Qualities.id == W_TUTORIALBOOK_CLASS)
-			{
-				pItem->Use(AsPlayer());
+				item->Use(this);
 				break;
 			}
 		}
@@ -3548,15 +3497,12 @@ void CPlayerWeenie::HandleItemManaRequest(DWORD itemId)
 	if (!itemId)
 		return;
 
-	std::shared_ptr<CWeenieObject> item = FindValidNearbyItem(itemId, 60);
+	CWeenieObject *item = FindValidNearbyItem(itemId, 60);
 
 	if (!item)
 		return;
 
-	if (m_pClient)
-	{
-		m_pClient->SendNetMessage(ItemManaUpdate(item), PRIVATE_MSG, TRUE, TRUE);
-	}
+	m_pClient->SendNetMessage(ItemManaUpdate(item), PRIVATE_MSG, TRUE, TRUE);
 }
 
 void CPlayerWeenie::UpdateModuleFromClient(PlayerModule &module)
@@ -3655,13 +3601,7 @@ CWandSpellUseEvent::CWandSpellUseEvent(DWORD wandId, DWORD targetId)
 
 void CWandSpellUseEvent::OnReadyToUse()
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	std::shared_ptr<CWeenieObject> wand = g_pWorld->FindObject(_wandId);
+	CWeenieObject *wand = g_pWorld->FindObject(_wandId);
 	if (!wand)
 	{
 		Cancel();
@@ -3677,14 +3617,14 @@ void CWandSpellUseEvent::OnReadyToUse()
 
 	STypeSkill skill = (STypeSkill)wand->InqDIDQuality(ITEM_SKILL_LIMIT_DID, 0);
 	DWORD skillValue;
-	if (skill != 0 && pWeenie->InqSkill(skill, skillValue, false))
+	if (skill != 0 && _weenie->InqSkill(skill, skillValue, false))
 	{
 		if (skillValue < wand->InqIntQuality(ITEM_SKILL_LEVEL_LIMIT_INT, 0))
 		{
 			SkillTable *pSkillTable = SkillSystem::GetSkillTable();
 			const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skill);
 			if (pSkillBase != NULL)
-				pWeenie->NotifyWeenieErrorWithString(WERROR_ACTIVATION_SKILL_TOO_LOW, pSkillBase->_name.c_str());
+				_weenie->NotifyWeenieErrorWithString(WERROR_ACTIVATION_SKILL_TOO_LOW, pSkillBase->_name.c_str());
 			Cancel();
 			return;
 		}
@@ -3709,7 +3649,7 @@ void CWandSpellUseEvent::OnReadyToUse()
 			return;
 		}
 
-		DWORD manaConvSkill = pWeenie->GetEffectiveManaConversionSkill();
+		DWORD manaConvSkill = _weenie->GetEffectiveManaConversionSkill();
 		int spellCraft = wand->InqIntQuality(ITEM_SPELLCRAFT_INT, 0);
 		manaCost = GetManaCost(spellCraft, spell->_power, manaCost, manaConvSkill);
 
@@ -3723,7 +3663,7 @@ void CWandSpellUseEvent::OnReadyToUse()
 		_newManaValue = itemCurrentMana - manaCost;
 	}
 
-	pWeenie->MakeSpellcastingManager()->m_bCasting = true;
+	_weenie->MakeSpellcastingManager()->m_bCasting = true;
 
 	if (motion)
 		ExecuteUseAnimation(motion);
@@ -3733,15 +3673,9 @@ void CWandSpellUseEvent::OnReadyToUse()
 
 void CWandSpellUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
 	if (_newManaValue != -1)
 	{
-		std::shared_ptr<CWeenieObject> wand = g_pWorld->FindObject(_wandId);
+		CWeenieObject *wand = g_pWorld->FindObject(_wandId);
 		if (!wand)
 		{
 			Cancel();
@@ -3751,33 +3685,21 @@ void CWandSpellUseEvent::OnUseAnimSuccess(DWORD motion)
 		wand->NotifyIntStatUpdated(ITEM_CUR_MANA_INT, false);
 	}
 
-	pWeenie->MakeSpellcastingManager()->CastSpellInstant(_targetId, _spellId);
-	pWeenie->DoForcedStopCompletely();
+	_weenie->MakeSpellcastingManager()->CastSpellInstant(_targetId, _spellId);
+	_weenie->DoForcedStopCompletely();
 	Done();
 }
 
 void CWandSpellUseEvent::Cancel(DWORD error)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->MakeSpellcastingManager()->m_bCasting = false;
+	_weenie->MakeSpellcastingManager()->m_bCasting = false;
 
 	CUseEventData::Cancel(error);
 }
 
 void CWandSpellUseEvent::Done(DWORD error)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->MakeSpellcastingManager()->m_bCasting = false;
+	_weenie->MakeSpellcastingManager()->m_bCasting = false;
 
 	CUseEventData::Done(error);
 }
@@ -3785,132 +3707,72 @@ void CWandSpellUseEvent::Done(DWORD error)
 
 void CLifestoneRecallUseEvent::OnReadyToUse()
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_LifestoneRecall);
-	pWeenie->SendText(csprintf("%s is recalling to the lifestone.", pWeenie->GetName().c_str()), LTT_RECALL);
+	_weenie->SendText(csprintf("%s is recalling to the lifestone.", _weenie->GetName().c_str()), LTT_RECALL);
 }
 
 void CLifestoneRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->TeleportToLifestone();
+	_weenie->TeleportToLifestone();
 	Done();
 }
 
 void CHouseRecallUseEvent::OnReadyToUse()
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_HouseRecall);
-	pWeenie->SendText(csprintf("%s is recalling home.", pWeenie->GetName().c_str()), LTT_RECALL);
+	_weenie->SendText(csprintf("%s is recalling home.", _weenie->GetName().c_str()), LTT_RECALL);
 }
 
 void CHouseRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->TeleportToHouse();
+	_weenie->TeleportToHouse();
 	Done();
 }
 
 void CMansionRecallUseEvent::OnReadyToUse()
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_HouseRecall);
-	pWeenie->SendText(csprintf("%s is recalling to the Allegiance housing.", pWeenie->GetName().c_str()), LTT_RECALL);
+	_weenie->SendText(csprintf("%s is recalling to the Allegiance housing.", _weenie->GetName().c_str()), LTT_RECALL);
 }
 
 void CMansionRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->TeleportToMansion();
+	_weenie->TeleportToMansion();
 	Done();
 }
 
 void CMarketplaceRecallUseEvent::OnReadyToUse()
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_MarketplaceRecall);
-	pWeenie->SendText(csprintf("%s is going to the Marketplace.", pWeenie->GetName().c_str()), LTT_RECALL);
+	_weenie->SendText(csprintf("%s is going to the Marketplace.", _weenie->GetName().c_str()), LTT_RECALL);
 }
 
 void CMarketplaceRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	if (pWeenie->IsDead() || pWeenie->IsInPortalSpace())
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace())
 	{
 		Cancel();
 		return;
 	}
 
-	pWeenie->Movement_Teleport(Position(0x016C01BC, Vector(49.11f, -31.22f, 0.005f), Quaternion(0.7009f, 0, 0, -0.7132f)));
+	_weenie->Movement_Teleport(Position(0x016C01BC, Vector(49.11f, -31.22f, 0.005f), Quaternion(0.7009f, 0, 0, -0.7132f)));
 	Done();
 }
 
 void CAllegianceHometownRecallUseEvent::OnReadyToUse()
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_AllegianceHometownRecall);
-	pWeenie->SendText(csprintf("%s is going to the Allegiance hometown.", pWeenie->GetName().c_str()), LTT_RECALL);
+	_weenie->SendText(csprintf("%s is going to the Allegiance hometown.", _weenie->GetName().c_str()), LTT_RECALL);
 }
 
 void CAllegianceHometownRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		return;
-	}
-
-	pWeenie->TeleportToAllegianceHometown();
+	_weenie->TeleportToAllegianceHometown();
 	Done();
 }
 
@@ -3930,44 +3792,40 @@ void CPlayerWeenie::OnTeleported()
 
 DWORD CPlayerWeenie::GetAccountHouseId()
 {
-	if (GetClient())
-	{
-		for (auto &character : GetClient()->GetCharacters())
-		{
-			if (character.weenie_id == id)
-			{
-				if (DWORD houseID = InqDIDQuality(HOUSEID_DID, 0))
-					return houseID;
-			}
-			else
-			{
-				CWeenieObject *otherCharacter = CWeenieObject::Load(character.weenie_id);
-				if (!otherCharacter)
-					return 0;
 
-				if (DWORD houseID = otherCharacter->InqDIDQuality(HOUSEID_DID, 0))
-				{
-					delete otherCharacter;
-					return houseID;
-				}
+	for (auto &character : GetClient()->GetCharacters())
+	{
+		if (character.weenie_id == id)
+		{
+			if (DWORD houseID = InqDIDQuality(HOUSEID_DID, 0))
+				return houseID;
+		}
+		else
+		{
+			CWeenieObject *otherCharacter = CWeenieObject::Load(character.weenie_id);
+			if (DWORD houseID = otherCharacter->InqDIDQuality(HOUSEID_DID, 0))
+			{
 				delete otherCharacter;
+				return houseID;
 			}
+			delete otherCharacter;
 		}
 	}
+
 	return 0;
 }
 
-std::shared_ptr<TradeManager> CPlayerWeenie::GetTradeManager()
+TradeManager* CPlayerWeenie::GetTradeManager()
 {
 	return m_pTradeManager;
 }
 
-void CPlayerWeenie::SetTradeManager(std::shared_ptr<TradeManager> tradeManager)
+void CPlayerWeenie::SetTradeManager(TradeManager * tradeManager)
 {
 	m_pTradeManager = tradeManager;
 }
 
-void CPlayerWeenie::ReleaseContainedItemRecursive(std::shared_ptr<CWeenieObject> item)
+void CPlayerWeenie::ReleaseContainedItemRecursive(CWeenieObject *item)
 {
 	CContainerWeenie::ReleaseContainedItemRecursive(item);
 }
@@ -3978,7 +3836,7 @@ void CPlayerWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 
 	if (m_pTradeManager && mode != NONCOMBAT_COMBAT_MODE)
 	{
-		m_pTradeManager->CloseTrade(AsPlayer(), 2); // EnteredCombat
+		m_pTradeManager->CloseTrade(this, 2); // EnteredCombat
 	}
 }
 

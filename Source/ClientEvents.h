@@ -25,7 +25,7 @@ public:
 
 	void DetachPlayer();
 	DWORD GetPlayerID();
-	std::shared_ptr<CPlayerWeenie> GetPlayer();
+	CPlayerWeenie* GetPlayer();
 
 	void LoginError(int iError);
 	void LoginCharacter(DWORD dwGUID, const char *szAccount);
@@ -122,7 +122,7 @@ public:
 private:
 	CClient *m_pClient;
 
-	std::weak_ptr<CPlayerWeenie> m_pPlayer;
+	CPlayerWeenie *m_pPlayer;
 
 	WORD m_MoveActionStamp = 0xFFFF;
 
@@ -136,8 +136,6 @@ private:
 	unsigned int _num_chat_sent = 0;
 
 	double _next_allowed_identify = 0.0;
-
-	int last_age_update;
 };
 
 

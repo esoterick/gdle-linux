@@ -18,7 +18,7 @@ void CManaStoneWeenie::ApplyQualityOverrides()
 {
 }
 
-int CManaStoneWeenie::UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared_ptr<CWeenieObject> with)
+int CManaStoneWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 {
 	CManaStoneUseEvent *useEvent = new CManaStoneUseEvent;
 	useEvent->_target_id = with->GetID();
@@ -31,28 +31,21 @@ int CManaStoneWeenie::UseWith(std::shared_ptr<CPlayerWeenie> player, std::shared
 
 /**
 TODO: move logic from player useex to here
-int CManaStoneWeenie::DoUseWithResponse(std::shared_ptr<CWeenieObject> player, std::shared_ptr<CWeenieObject> with) {
+int CManaStoneWeenie::DoUseWithResponse(CWeenieObject *player, CWeenieObject *with) {
 
 }
 **/
 
 void CManaStoneUseEvent::OnReadyToUse()
 {
-	std::shared_ptr<CWeenieObject> pWeenie = _weenie.lock();
-	if (!pWeenie)
-	{
-		Cancel(WERROR_OBJECT_GONE);
-		return;
-	}
-
-	std::shared_ptr<CWeenieObject> target = GetTarget();
+	CWeenieObject *target = GetTarget();
 	if (!target && _target_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
 		return;
 	}
 
-	std::shared_ptr<CWeenieObject> tool = GetTool();
+	CWeenieObject *tool = GetTool();
 	if (!tool && _tool_id)
 	{
 		Cancel(WERROR_OBJECT_GONE);
@@ -63,7 +56,7 @@ void CManaStoneUseEvent::OnReadyToUse()
 
 	if (target)
 	{
-		error = tool->DoUseWithResponse(pWeenie, target);
+		error = tool->DoUseWithResponse(_weenie, target);
 	}
 
 	Done(error);

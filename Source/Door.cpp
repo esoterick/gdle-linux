@@ -38,16 +38,9 @@ void CBaseDoor::ResetToInitialState()
 
 void CBaseDoor::OpenDoor()
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = _phys_obj.lock();
-	if (!pPhysObj)
-	{
-		return;
-	}
 	// anim already in progress
-	if (pPhysObj->get_minterp()->interpreted_state.GetNumActions() > 0)
-	{
+	if (_phys_obj->get_minterp()->interpreted_state.GetNumActions() > 0)
 		return;
-	}
 
 	last_move_was_autonomous = false;
 
@@ -74,17 +67,9 @@ void CBaseDoor::OpenDoor()
 
 void CBaseDoor::CloseDoor()
 {
-	std::shared_ptr<CPhysicsObj> pPhysObj = _phys_obj.lock();
-	if (!pPhysObj)
-	{
-		return;
-	}
-
 	// anim already in progress
-	if (pPhysObj->get_minterp()->interpreted_state.GetNumActions() > 0)
-	{
+	if (_phys_obj->get_minterp()->interpreted_state.GetNumActions() > 0)
 		return;
-	}
 
 	last_move_was_autonomous = false;
 
@@ -97,7 +82,7 @@ void CBaseDoor::CloseDoor()
 	mvs.params = &params;
 	params.autonomous = 0;
 	params.action_stamp = ++m_wAnimSequence;
-	pPhysObj->movement_manager->PerformMovement(mvs);
+	_phys_obj->movement_manager->PerformMovement(mvs);
 	Animation_Update();
 
 	m_bOpen = false;
@@ -128,7 +113,7 @@ int CBaseDoor::Activate(DWORD activator_id)
 	return WERROR_NONE;
 }
 
-int CBaseDoor::Use(std::shared_ptr<CPlayerWeenie> pOther)
+int CBaseDoor::Use(CPlayerWeenie *pOther)
 {
 	CActivationUseEvent *useEvent = new CActivationUseEvent();
 	useEvent->_target_id = GetID();

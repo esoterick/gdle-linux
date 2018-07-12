@@ -4,7 +4,7 @@
 #include "DatabaseIO.h"
 #include "WorldLandBlock.h"
 
-#define CORPSE_EXIST_TIME 300
+#define CORPSE_EXIST_TIME 180
 
 CCorpseWeenie::CCorpseWeenie()
 {
@@ -30,7 +30,7 @@ void CCorpseWeenie::GetObjDesc(ObjDesc &desc)
 	desc = _objDesc;
 }
 
-int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
+int CCorpseWeenie::CheckOpenContainer(CWeenieObject *other)
 {
 	int error = CContainerWeenie::CheckOpenContainer(other);
 
@@ -44,25 +44,18 @@ int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
 	{
 		DWORD killerId = InqIIDQuality(KILLER_IID, 0);
 		DWORD victimId = InqIIDQuality(VICTIM_IID, 0);
+		if (killerId == other->GetID() || victimId == other->GetID())
+			return WERROR_NONE;
+
+		if (_begin_destroy_at - (CORPSE_EXIST_TIME / 2) <= Timer::cur_time || other->GetID() == killerId)
+		{
+			return WERROR_NONE;
+		}
+
 		CPlayerWeenie *owner = g_pWorld->FindPlayer(victimId);
 		CPlayerWeenie *looter = other->AsPlayer();
 		bool killedByPK = m_Qualities.GetBool(PK_KILLER_BOOL, 0);
-		if (killerId == other->GetID() || victimId == other->GetID())
-		{
-			return WERROR_NONE;
-		}
-		if (!killedByPK && _begin_destroy_at - (CORPSE_EXIST_TIME/2) <= Timer::cur_time) // If the corpse hasn't been opened after half its life, open to anyone
-		{
-			return WERROR_NONE;
-		}
-		std::shared_ptr<CPlayerWeenie> owner = g_pWorld->FindPlayer(victimId);
-		std::shared_ptr<CPlayerWeenie> looter = other->AsPlayer();
 
-		if (_begin_destroy_at - (CORPSE_EXIST_TIME / 2) <= Timer::cur_time || other->GetID() == killerId) // If the corpse hasn't been opened after half its life, open to anyone
-		{
-			return WERROR_NONE;
-		}
-		
 		if (owner && !killedByPK && looter) // Make sure we're both players & don't let corpse permissions work on PK kills
 		{
 			if (!owner->m_umCorpsePermissions.empty()) // if the corpse owner has players on their permissions list
@@ -87,6 +80,22 @@ int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
 			return WERROR_FROZEN;
 		}
 
+		if (owner)
+		{
+			if (!owner->m_umCorpsePermissions.empty())
+			{
+
+				for (auto it : owner->m_umCorpsePermissions)
+				{
+					if (other->GetID() == it.first)
+					{
+						return WERROR_NONE;
+					}
+				}
+			}
+		}
+
+
 		if (Fellowship *fellowship = other->GetFellowship())
 		{
 			if (fellowship->_share_loot)
@@ -103,14 +112,14 @@ int CCorpseWeenie::CheckOpenContainer(std::shared_ptr<CWeenieObject> other)
 	return WERROR_NONE;
 }
 
-void CCorpseWeenie::OnContainerOpened(std::shared_ptr<CWeenieObject> other)
+void CCorpseWeenie::OnContainerOpened(CWeenieObject *other)
 {
 	CContainerWeenie::OnContainerOpened(other);
 
 	_hasBeenOpened = true;
 }
 
-void CCorpseWeenie::OnContainerClosed(std::shared_ptr<CWeenieObject> other)
+void CCorpseWeenie::OnContainerClosed(CWeenieObject *other)
 {
 	CContainerWeenie::OnContainerClosed(other);
 
@@ -172,7 +181,7 @@ void CCorpseWeenie::Tick()
 	{
 		if (_mark_for_destroy_at <= Timer::cur_time)
 		{
-			g_pWorld->RemoveEntity(AsWeenie());
+			MarkForDestroy();
 		}
 	}
 }

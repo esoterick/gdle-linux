@@ -25,7 +25,7 @@ public:
 	bool InAttackRange();
 	bool InAttackCone();
 
-	std::shared_ptr<CWeenieObject> GetTarget();
+	CWeenieObject *GetTarget();
 	void MoveToAttack();
 	void TurnToAttack();
 	virtual void HandleMoveToDone(DWORD error);
@@ -40,7 +40,7 @@ public:
 	virtual class CMissileAttackEvent *AsMissileAttackEvent() { return NULL; }
 
 	class AttackManager *_manager = NULL;
-	class std::weak_ptr<CWeenieObject> _weenie;
+	class CWeenieObject *_weenie = NULL;
 
 	DWORD _target_id = 0;
 	bool _move_to = false;
@@ -72,6 +72,7 @@ public:
 	void HandlePerformAttack(CWeenieObject *target, DamageEventData dmgEvent);
 
 	virtual class CMeleeAttackEvent *AsMeleeAttackEvent() { return NULL; }
+	
 	DWORD _do_attack_animation = 0;
 };
 
@@ -121,7 +122,7 @@ public:
 class AttackManager
 {
 public:
-	AttackManager(class std::shared_ptr<CWeenieObject> weenie);
+	AttackManager(class CWeenieObject *weenie);
 	~AttackManager();
 
 	void Update();
@@ -147,7 +148,7 @@ public:
 	void MarkForCleanup(CAttackEventData *data);
 
 private:
-	class std::weak_ptr<CWeenieObject> _weenie;
+	class CWeenieObject *_weenie = NULL;
 
 	double _next_allowed_attack = 0.0;
 	CAttackEventData *_attackData = NULL;

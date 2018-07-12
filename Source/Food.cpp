@@ -18,7 +18,7 @@ void CFoodWeenie::ApplyQualityOverrides()
 {
 }
 
-int CFoodWeenie::Use(std::shared_ptr<CPlayerWeenie> pOther)
+int CFoodWeenie::Use(CPlayerWeenie *pOther)
 {
 	if (!pOther->FindContainedItem(GetID()))
 		return WERROR_OBJECT_GONE;
@@ -31,7 +31,7 @@ int CFoodWeenie::Use(std::shared_ptr<CPlayerWeenie> pOther)
 	return WERROR_NONE;
 }
 
-int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
+int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 {
 	if (!other->FindContainedItem(GetID()))
 		return WERROR_OBJECT_GONE;
@@ -59,10 +59,6 @@ int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 			other->m_Qualities.InqAttribute2nd(statType, statValue, FALSE);
 			other->m_Qualities.InqAttribute2nd(maxStatType, maxStatValue, FALSE);
 			
-			int currentMax = static_cast<int>(maxStatValue);
-			int currentStat = static_cast<int>(statValue);
-			int diff = 0;
-
 			int currentMax = static_cast<int>(maxStatValue);
 			int currentStat = static_cast<int>(statValue);
 			int diff = 0;
@@ -96,7 +92,7 @@ int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 				other->m_Qualities.SetAttribute2nd(statType, currentStat);
 				other->NotifyAttribute2ndStatUpdated(statType);
 			}
-			
+
 			const char *vitalName = "";
 			switch (boost_stat)
 			{
@@ -112,10 +108,10 @@ int CFoodWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> other)
 
 			if (boost_stat == HEALTH_ATTRIBUTE_2ND)
 			{
-				if (std::shared_ptr<CPlayerWeenie> pOtherPlayer = other->AsPlayer())
+				if (other->AsPlayer())
 				{
 					// update the target's health on the healing player asap
-					pOtherPlayer->RefreshTargetHealth();
+					((CPlayerWeenie*)other)->RefreshTargetHealth();
 				}
 			}
 			break;

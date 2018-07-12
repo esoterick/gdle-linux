@@ -435,7 +435,7 @@ void PublicWeenieDesc::SetPlayerKillerStatus(unsigned int pk)
 
 #if !PHATSDK_USE_WEENIE_STUB
 
-DWORD PublicWeenieDesc::CalculateBitfieldFromWeenie(std::shared_ptr<CWeenieObject> weenie)
+DWORD PublicWeenieDesc::CalculateBitfieldFromWeenie(CWeenieObject *weenie)
 {
 	DWORD bitfield = CalculateBitfieldFromQualities(&weenie->m_Qualities);
 
@@ -544,7 +544,7 @@ DWORD PublicWeenieDesc::CalculateBitfieldFromQualities(CACQualities *qualities)
 	return bitfield;
 }
 
-PublicWeenieDesc *PublicWeenieDesc::CreateFromWeenie(std::shared_ptr<CWeenieObject> weenie)
+PublicWeenieDesc *PublicWeenieDesc::CreateFromWeenie(CWeenieObject *weenie)
 {
 	PublicWeenieDesc *desc = CreateFromQualities(&weenie->m_Qualities);
 	desc->_bitfield = CalculateBitfieldFromWeenie(weenie);

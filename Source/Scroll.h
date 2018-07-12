@@ -18,10 +18,10 @@ public:
 	CScrollWeenie();
 	virtual ~CScrollWeenie() override;
 
-	virtual class std::shared_ptr<CScrollWeenie> AsScroll() { return std::static_pointer_cast<CScrollWeenie>(GetPointer()); }
+	virtual class CScrollWeenie *AsScroll() { return this; }
 
 	virtual void ApplyQualityOverrides() override;
-	virtual int Use(std::shared_ptr<CPlayerWeenie> player) override;
+	virtual int Use(CPlayerWeenie *player) override;
 
 	const CSpellBase *GetSpellBase();
 

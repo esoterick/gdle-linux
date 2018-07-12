@@ -10,7 +10,7 @@ class ClientCommand;
 class ServerCommand;
 
 //Note: Server commands don't require a source player.
-typedef bool(*pfnCommandCallback)(class CClient *player_client, class std::shared_ptr<CPlayerWeenie> player_weenie, class std::shared_ptr<CPhysicsObj> player_physobj, char* argv[], int argc);
+typedef bool(*pfnCommandCallback)(class CClient *player_client, class CPlayerWeenie *player_weenie, class CPhysicsObj *player_physobj, char* argv[], int argc);
 
 enum AccessLevels
 {
@@ -82,22 +82,22 @@ public:
 };
 
 #define CLIENT_COMMAND( name, args, help, access ) \
- static bool name(CClient *player_client, std::shared_ptr<CPlayerWeenie> pPlayer, std::shared_ptr<CPhysicsObj> player_physobj, char* argv[], int argc); \
+ static bool name(CClient *player_client, CPlayerWeenie *pPlayer, CPhysicsObj *player_physobj, char* argv[], int argc); \
  static ClientCommand name##_command( #name, args, help, name, access ); \
- static bool name(CClient *player_client, std::shared_ptr<CPlayerWeenie> pPlayer, std::shared_ptr<CPhysicsObj> player_physobj, char* argv[], int argc)
+ static bool name(CClient *player_client, CPlayerWeenie *pPlayer, CPhysicsObj *player_physobj, char* argv[], int argc)
 
 #define CLIENT_COMMAND_WITH_CUSTOM_NAME( name, command, args, help, access ) \
- static bool name(CClient *player_client, std::shared_ptr<CPlayerWeenie> pPlayer, std::shared_ptr<CPhysicsObj> player_physobj, char* argv[], int argc); \
+ static bool name(CClient *player_client, CPlayerWeenie *pPlayer, CPhysicsObj *player_physobj, char* argv[], int argc); \
  static ClientCommand name##_command( #command, args, help, name, access ); \
- static bool name(CClient *player_client, std::shared_ptr<CPlayerWeenie> pPlayer, std::shared_ptr<CPhysicsObj> player_physobj, char* argv[], int argc)
+ static bool name(CClient *player_client, CPlayerWeenie *pPlayer, CPhysicsObj *player_physobj, char* argv[], int argc)
 
 #define SERVER_COMMAND( name, args, help, access ) \
- static bool name(CClient *player_client, std::shared_ptr<CPlayerWeenie> pPlayer, std::shared_ptr<CPhysicsObj> player_physobj, char* argv[], int argc); \
+ static bool name(CClient *player_client, CPlayerWeenie *pPlayer, CPhysicsObj *player_physobj, char* argv[], int argc); \
  static ServerCommand name##_command( #name, args, help, name, access ); \
- static bool name(CClient *player_client, std::shared_ptr<CPlayerWeenie> pPlayer, std::shared_ptr<CPhysicsObj> player_physobj, char* argv[], int argc)
+ static bool name(CClient *player_client, CPlayerWeenie *pPlayer, CPhysicsObj *player_physobj, char* argv[], int argc)
 
 #define SERVER_COMMAND_WITH_CUSTOM_NAME( name, command, args, help, access ) \
- static bool name(CClient *player_client, std::shared_ptr<CPlayerWeenie> pPlayer, std::shared_ptr<CPhysicsObj> player_physobj, char* argv[], int argc); \
+ static bool name(CClient *player_client, CPlayerWeenie *pPlayer, CPhysicsObj *player_physobj, char* argv[], int argc); \
  static ServerCommand name##_command( #command, args, help, name, access ); \
- static bool name(CClient *player_client, std::shared_ptr<CPlayerWeenie> pPlayer, std::shared_ptr<CPhysicsObj> player_physobj, char* argv[], int argc)
+ static bool name(CClient *player_client, CPlayerWeenie *pPlayer, CPhysicsObj *player_physobj, char* argv[], int argc)
 

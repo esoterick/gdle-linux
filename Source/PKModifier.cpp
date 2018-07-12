@@ -13,7 +13,7 @@ CPKModifierWeenie::~CPKModifierWeenie()
 {
 }
 
-int CPKModifierWeenie::Use(std::shared_ptr<CPlayerWeenie> player)
+int CPKModifierWeenie::Use(CPlayerWeenie *player)
 {
 	CGenericUseEvent *useEvent = new CGenericUseEvent;
 	useEvent->_target_id = GetID();
@@ -23,7 +23,7 @@ int CPKModifierWeenie::Use(std::shared_ptr<CPlayerWeenie> player)
 	return WERROR_NONE;
 }
 
-int CPKModifierWeenie::DoUseResponse(std::shared_ptr<CWeenieObject> player)
+int CPKModifierWeenie::DoUseResponse(CWeenieObject *player)
 {
 	if (atoi(g_pConfig->GetValue("player_killer_only", "0")) != 0)
 	{

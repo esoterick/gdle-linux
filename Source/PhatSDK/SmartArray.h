@@ -220,10 +220,20 @@ void SmartArray<T>::add(T *pdata)
 }
 
 template<class T>
-BOOL SmartArray<T>::RemoveUnOrdered(T *pdata);
+BOOL SmartArray<T>::RemoveUnOrdered(T *pdata)
+{
+    for (long i = 0; i < num_used; i++)
+    {
+        if (array_data[i] == *pdata)
+        {
+            array_data[i] = array_data[ num_used - 1 ];
+            num_used--;
+            return TRUE;
+        }
+    }
 
-template<>
-BOOL SmartArray<std::weak_ptr<CPhysicsObj>>::RemoveUnOrdered(std::weak_ptr<CPhysicsObj> *pdata);
+    return FALSE;
+}
 
 template<class T>
 class OldSmartArray

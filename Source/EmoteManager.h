@@ -12,7 +12,7 @@ public:
 class EmoteManager
 {
 public:
-	EmoteManager(class std::shared_ptr<CWeenieObject> weenie);
+	EmoteManager(class CWeenieObject *weenie);
 		
 	std::string ReplaceEmoteText(const std::string &text, DWORD target_id, DWORD source_id);
 	bool ChanceExecuteEmoteSet(EmoteCategory category, std::string msg, DWORD target_id);
@@ -26,7 +26,7 @@ public:
 	bool IsExecutingAlready();
 
 protected:
-	class std::weak_ptr<CWeenieObject> _weenie;
+	class CWeenieObject *_weenie = NULL;
 
 	double _emoteEndTime;
 	std::list<QueuedEmote> _emoteQueue;

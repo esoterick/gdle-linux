@@ -22,7 +22,7 @@ public:
 
 	AllegianceTreeNode *FindCharByNameRecursivelySlow(const std::string &charName);
 	void FillAllegianceNode(AllegianceNode *node);
-	void UpdateWithWeenie(std::shared_ptr<CWeenieObject> weenie);
+	void UpdateWithWeenie(CWeenieObject *weenie);
 	
 	unsigned int _charID = 0;
 	std::string _charName;
@@ -65,11 +65,11 @@ public:
 	AllegianceTreeNode *GetTreeNode(DWORD charID);
 	AllegianceInfo *GetInfo(DWORD monarchID);
 
-	void SetWeenieAllegianceQualities(std::shared_ptr<CWeenieObject> weenie);
+	void SetWeenieAllegianceQualities(CWeenieObject *weenie);
 	AllegianceProfile *CreateAllegianceProfile(DWORD char_id, unsigned int *pRank);
-	void SendAllegianceProfile(std::shared_ptr<CWeenieObject> pPlayer);
-	int TrySwearAllegiance(std::shared_ptr<CWeenieObject> source, std::shared_ptr<CWeenieObject> target);
-	int TryBreakAllegiance(std::shared_ptr<CWeenieObject> source, DWORD target_id);
+	void SendAllegianceProfile(CWeenieObject *pPlayer);
+	int TrySwearAllegiance(CWeenieObject *source, CWeenieObject *target);
+	int TryBreakAllegiance(CWeenieObject *source, DWORD target_id);
 	void BreakAllAllegiance(DWORD char_id);
 
 	void ChatMonarch(DWORD sender_id, const char *text);
@@ -83,7 +83,7 @@ public:
 
 	void HandleAllegiancePassup(DWORD source_id, long long amount, bool direct);
 
-	DWORD GetCachedMonarchIDForPlayer(std::shared_ptr<CPlayerWeenie> player);
+	DWORD GetCachedMonarchIDForPlayer(CPlayerWeenie *player);
 
 private:
 	void BreakAllegiance(AllegianceTreeNode *patron, AllegianceTreeNode *vassal);
