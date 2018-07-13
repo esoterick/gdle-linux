@@ -320,8 +320,8 @@ void CMeleeAttackEvent::Setup()
 				if (CombatManeuver *combat_maneuver = _weenie->_combatTable->TryGetCombatManuever(_weenie->get_minterp()->InqStyle(), attack_type, _attack_height))
 				{
 					//don't load attack_motion for UA full speed attacks (Low and Med only) so that attack power is used to calculate motion instead.
-					if ((weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != 1) || _attack_power >= 0.25f || _attack_height != 1)
-					attack_motion = combat_maneuver->motion;
+					if ((weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != 1) || _attack_power >= 0.25f || _attack_height == 1)
+						attack_motion = combat_maneuver->motion;
 				}
 			}
 		}
