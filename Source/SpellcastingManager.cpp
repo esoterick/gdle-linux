@@ -740,6 +740,7 @@ void CSpellcastingManager::PerformCastParticleEffects()
 		if ((m_SpellCastData.spell->_category == 162 || m_SpellCastData.spell->_category == 164 || m_SpellCastData.spell->_category == 166 || m_SpellCastData.spell->_category == 168 || 
 			m_SpellCastData.spell->_category == 170 || m_SpellCastData.spell->_category == 172 || m_SpellCastData.spell->_category == 174 || m_SpellCastData.spell->_category == 160) && 
 			(m_SpellCastData.source_id == m_SpellCastData.target_id))
+		{
 			return;
 		}
 		else
@@ -749,6 +750,7 @@ void CSpellcastingManager::PerformCastParticleEffects()
 				pTarget->EmitEffect(m_SpellCastData.spell->_target_effect, max(0.0, min(1.0, (m_SpellCastData.power_level_of_power_component - 1.0) / 7.0)));
 			}
 		}
+	}
 
 }
 
