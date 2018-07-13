@@ -1401,6 +1401,7 @@ void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 
 			if (m_MonsterAI && m_MonsterAI->_toleranceType != TolerateEverything && damageData.source->AsPlayer())  // TODO: maths to determine when to setnewtarget not just per attack as it would allow ping-ponging mobs
 			{
+				m_MonsterAI->m_fAggroTime = Timer::cur_time + 10.0f;
 				m_MonsterAI->SetNewTarget(damageData.source);
 			}
 		}
