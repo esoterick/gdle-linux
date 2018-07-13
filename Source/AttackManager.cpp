@@ -570,11 +570,20 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 			if (tg == target)
 				continue;
 
-			if (tg->m_Qualities.GetInt(RADARBLIP_COLOR_INT, 0) != 2 || tg->m_Qualities.GetInt(RADARBLIP_COLOR_INT, 0) != 5 ||
-				tg->m_Qualities.GetInt(RADARBLIP_COLOR_INT, 0) != 6 || tg->m_Qualities.GetInt(RADARBLIP_COLOR_INT, 0) != 10)
-				continue;
-
-			if ((_weenie->IsPK() && !tg->AsPlayer()->IsPK()) || (_weenie->IsPKLite() && !tg->AsPlayer()->IsPKLite()))
+			if (
+					!tg->IsAttackable() ||
+					(
+						tg->AsPlayer() &&
+						(
+							(
+								_weenie->IsPK() && !tg->AsPlayer()->IsPK()
+							) ||
+							(
+								_weenie->IsPKLite() && !tg->AsPlayer()->IsPKLite()
+							)
+						)
+					)
+				)
 				continue;
 
 			if (tg->HeadingFrom(_weenie, true) < CLEAVING_ATTACK_ANGLE / 2)
