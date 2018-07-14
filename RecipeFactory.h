@@ -7,6 +7,7 @@ public:
 
 	void Reset();
 	void Initialize();
+	void UpdateCraftTableData(CCraftTable *craftData);
 
 private:
 	PackableHashTableWithJson<DWORD, CCraftOperation> *_recipesFromJson = NULL;

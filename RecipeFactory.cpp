@@ -38,3 +38,17 @@ void RecipeFactory::Initialize()
 	}
 
 }
+
+void RecipeFactory::UpdateCraftTableData(CCraftTable * craftData)
+{
+	// for each precursor see if it exists in the table
+	// check backwards too
+	// if found, update _operation flag
+	// if not found, add to map and _operation flag
+
+
+
+	//DWORD64 toolComboKey = ((DWORD64)source_wcid << 32) | dest_wcid;
+}
+
+
