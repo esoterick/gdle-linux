@@ -185,6 +185,21 @@ public:
 
 	DECLARE_PACKABLE()
 
+
+
 	PackableHashTable<DWORD, CCraftOperation> _operations;
 	PackableHashTable<DWORD64, DWORD, DWORD64> _precursorMap;
+};
+
+class CraftPrecursor : public PackObj, public PackableJson
+{
+public:
+	DECLARE_PACKABLE()
+	DECLARE_PACKABLE_JSON();
+
+	DWORD Tool = 0;
+	DWORD Target = 0;
+	DWORD RecipeID = 0;
+	DWORD64 ToolTargetCombo = 0;
+
 };

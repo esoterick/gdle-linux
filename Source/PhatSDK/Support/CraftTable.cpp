@@ -2,6 +2,7 @@
 #include "StdAfx.h"
 #include "PhatSDK.h"
 #include "CraftTable.h"
+#include "PackableJson.h"
 
 DEFINE_PACK(CCraftOperation)
 {
@@ -77,4 +78,40 @@ DEFINE_UNPACK(CCraftTable)
 	}
 
 	return true;
+}
+
+DEFINE_UNPACK_JSON(CraftPrecursor)
+{
+	if (reader.find("Tool") != reader.end())
+	{
+		Tool = reader["Tool"];
+	}
+	else
+	{
+		return false;
+	}
+	if (reader.find("Target") != reader.end())
+	{
+		Target = reader["Target"];
+	}
+	else
+	{
+		return false;
+	}
+	if (reader.find("RecipeID") != reader.end())
+	{
+		RecipeID = reader["RecipeID"];
+	}
+	else
+	{
+		return false;
+	}
+	return true;
+}
+
+DEFINE_PACK_JSON(CraftPrecursor)
+{
+	writer["Tool"] = Tool;
+	writer["Target"] = Target;
+	writer["RecipeID"] = RecipeID;
 }

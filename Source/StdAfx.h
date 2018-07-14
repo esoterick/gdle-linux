@@ -88,6 +88,7 @@ class CPlayerWeenie;
 #include "Common.h"
 #include "Util.h"
 #include "Globals.h"
+#include "..\RecipeFactory.h"
 
 extern class CDatabase *g_pDB;
 extern class CMYSQLDatabase *g_pDB2;
@@ -108,6 +109,7 @@ extern class CInferredPortalData *g_pPortalDataEx;
 extern class CInferredCellData *g_pCellDataEx;
 extern class CPhatDataBin *g_pPhatDataBin;
 extern class CHouseManager *g_pHouseManager;
+extern class RecipeFactory *g_pRecipeFactory;
 
 #include "DATDisk.h"
 #include "TurbineData.h"

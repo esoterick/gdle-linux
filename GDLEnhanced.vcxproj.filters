@@ -603,6 +603,9 @@
     <ClCompile Include="Source\EnumUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RecipeFactory.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\crcwheel.h">
@@ -1222,6 +1225,9 @@
     </ClInclude>
     <ClInclude Include="Source\PhatSDK\SmartArray.h">
       <Filter>PhatSDK</Filter>
+    </ClInclude>
+    <ClInclude Include="RecipeFactory.h">
+      <Filter>Source Files\Objects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
