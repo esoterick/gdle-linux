@@ -66,6 +66,21 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 						}
 						else
 						{
+
+							int speccCount = 0;
+							for (PackableHashTableWithJson<STypeSkill, Skill>::iterator i = player->m_Qualities._skillStatsTable->begin(); i != player->m_Qualities._skillStatsTable->end(); i++)
+							{
+								if (i->second._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+								{
+									speccCount += (pSkillTable->GetSkillBase(i->first)->_specialized_cost);
+								}
+							}
+							if (speccCount + pSkillBase->_specialized_cost > 70)
+							{
+								player->SendText("Unable to specialize this skill.", LTT_DEFAULT);
+								break;
+							}
+
 							numSkillCredits -= pSkillBase->_specialized_cost;
 							player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
 							player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
