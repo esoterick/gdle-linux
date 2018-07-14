@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "easylogging++.h"
 #include "InferredPortalData.h"
@@ -254,6 +253,10 @@ BOOL CClient::CheckBadName(const std::string name)
 	std::transform(ps.begin(), ps.end(), ps.begin(), ::tolower);
 	
 	ps = ReplaceInString(ps, " ", "");
+	ps = ReplaceInString(ps, "-", "");
+	ps = ReplaceInString(ps, "'", "");
+	ps = ReplaceInString(ps, "\"", "");
+
 	
 	for (auto const& value : g_pPortalDataEx->GetBannedWords())
 	{
