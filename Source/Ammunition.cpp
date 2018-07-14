@@ -109,6 +109,11 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 			float variance;
 
 			CWeenieObject *weapon = g_pWorld->FindObject(_launcherID);
+
+			// For thrown weaps, the weapon no longer exists on the last missile in a stack. So for these we will just use the cloned ammo weenie itself.
+			if (!weapon && m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) == ThrownWeapon_CombatStyle)
+				weapon = g_pWorld->FindObject(id);
+
 			if (weapon)
 			{		
 				bool bEvaded = false;

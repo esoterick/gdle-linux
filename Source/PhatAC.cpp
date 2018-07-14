@@ -495,7 +495,7 @@ INT_PTR CALLBACK MainProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 						SetWindowText(GetDlgItem(hDlg, IDC_TOGGLE), "Start");
 						SetWindowText(GetDlgItem(hDlg, IDC_CONNECTLINK), "");
 
-						WINLOG(Temp, Normal, "Server shudown.\n");
+						WINLOG(Temp, Normal, "Server shutdown.\n");
 						SERVER_INFO << "Server shutdown.";
 					}
 				}

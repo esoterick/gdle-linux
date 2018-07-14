@@ -319,7 +319,9 @@ void CMeleeAttackEvent::Setup()
 
 				if (CombatManeuver *combat_maneuver = _weenie->_combatTable->TryGetCombatManuever(_weenie->get_minterp()->InqStyle(), attack_type, _attack_height))
 				{
-					attack_motion = combat_maneuver->motion;
+					//don't load attack_motion for UA full speed attacks (Low and Med only) so that attack power is used to calculate motion instead.
+					if ((weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != 1) || _attack_power >= 0.25f || _attack_height == 1)
+						attack_motion = combat_maneuver->motion;
 				}
 			}
 		}
@@ -568,11 +570,20 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 			if (tg == target)
 				continue;
 
-			if (tg->m_Qualities.GetInt(RADARBLIP_COLOR_INT, 0) != 2 || tg->m_Qualities.GetInt(RADARBLIP_COLOR_INT, 0) != 5 ||
-				tg->m_Qualities.GetInt(RADARBLIP_COLOR_INT, 0) != 6 || tg->m_Qualities.GetInt(RADARBLIP_COLOR_INT, 0) != 10)
-				continue;
-
-			if ((_weenie->IsPK() && !tg->AsPlayer()->IsPK()) || (_weenie->IsPKLite() && !tg->AsPlayer()->IsPKLite()))
+			if (
+					!tg->IsAttackable() ||
+					(
+						tg->AsPlayer() &&
+						(
+							(
+								_weenie->IsPK() && !tg->AsPlayer()->IsPK()
+							) ||
+							(
+								_weenie->IsPKLite() && !tg->AsPlayer()->IsPKLite()
+							)
+						)
+					)
+				)
 				continue;
 
 			if (tg->HeadingFrom(_weenie, true) < CLEAVING_ATTACK_ANGLE / 2)
@@ -926,10 +937,18 @@ bool CMissileAttackEvent::CalculateMissileVelocity(bool track, bool gravity, flo
 			v.z += (9.8*t) / 2.0f;
 		}
 
-		//Vector targetDir = v;
-		//targetDir.normalize();
+		//This was commented out but seems to help with mob thrown weapons, like Lugian rocks. We don't however, want to use this on players.
+		if (!_weenie->_IsPlayer())
+		{
+			Vector targetDir = v;
+			targetDir.normalize();
+			_missile_velocity = targetDir;
+		}
+		else
+		{
+			_missile_velocity = v;
+		}
 
-		_missile_velocity = v;
 		return true;
 	}
 
@@ -1009,6 +1028,10 @@ void CMissileAttackEvent::FireMissile()
 		return;
 	}
 
+	//This converts Generic_WeenieType items (plates, mugs, etc.) to Missile_WeenieType so that they can be cast as Ammunition below.
+	if (isThrownWeapon && equippedAmmo->m_Qualities.m_WeenieType == Generic_WeenieType)
+		equippedAmmo->m_Qualities.m_WeenieType = Missile_WeenieType;
+
 	CWeenieObject *missileAsWeenieObject = g_pWeenieFactory->CloneWeenie(equippedAmmo);
 
 	if (!missileAsWeenieObject)
@@ -1048,7 +1071,8 @@ void CMissileAttackEvent::FireMissile()
 	CalculateTargetPosition();
 	CalculateSpawnPosition(missile->GetRadius());
 
-	bool bTrack = true;
+	//Set to non-tracking by default so mobs don't track
+	bool bTrack = false;
 	float fSpeed = weapon->InqFloatQuality(MAXIMUM_VELOCITY_FLOAT, 20.0);
 	if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
 	{

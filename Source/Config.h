@@ -83,6 +83,7 @@ public:
 	virtual const char *SanamarStartPosition() { return m_SanamarStartPosition.c_str(); }
 
 	virtual int PKRespiteTime() { return m_PKRespiteTime; }
+	virtual bool SpellPurgeOnLogin() { return m_bSpellPurgeOnLogin; }
 
 protected:
 	virtual void PostLoad() override;
@@ -159,6 +160,7 @@ protected:
 	std::string m_SanamarStartPosition;
 
 	int m_PKRespiteTime = 300;
+	bool m_bSpellPurgeOnLogin = false;
 };
 
 extern CPhatACServerConfig *g_pConfig;
