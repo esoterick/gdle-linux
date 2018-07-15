@@ -10,7 +10,11 @@ public:
 	void UpdateCraftTableData(CCraftTable *craftData);
 
 private:
-	PackableHashTableWithJson<DWORD, CCraftOperation> *_recipesFromJson = NULL;
+	PackableHashTableWithJson<DWORD, JsonCraftOperation> *_recipesFromJson = NULL;
+	PackableListWithJson<CraftPrecursor> _jsonPrecursorMap;
+	PackableListWithJson<JsonCraftOperation> _jsonRecipes;
 
+	JsonCraftOperation* RecipeInJson(DWORD recipeid);
+	CCraftOperation GetCraftOpertionFromNewRecipe(JsonCraftOperation* recipe);
 };
 

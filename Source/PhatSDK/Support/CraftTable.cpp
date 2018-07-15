@@ -115,3 +115,48 @@ DEFINE_PACK_JSON(CraftPrecursor)
 	writer["Target"] = Target;
 	writer["RecipeID"] = RecipeID;
 }
+
+DEFINE_UNPACK_JSON(JsonCraftOperation)
+{
+	_recipeID = reader["RecipeID"];
+	_unk = reader["unknown_1"];
+	_skill = (STypeSkill)reader["Skill"];
+	_difficulty = reader["Difficulty"];
+	_SkillCheckFormulaType = reader["SkillCheckFormulaType"];
+	_successWcid = reader["SuccessWCID"];
+	_successAmount = reader["SuccessAmount"];
+	_successMessage = reader["SuccessMessage"];
+	_failWcid = reader["FailWCID"];
+	_failAmount = reader["FailAmount"];
+	_failMessage = reader["FailMessage"];
+
+	_successConsumeTargetChance = reader["SuccessConsumeTargetChance"];
+	_successConsumeTargetAmount = reader["SuccessConsumeTargetAmount"];
+	_successConsumeTargetMessage = reader["SuccessConsumeTargetMessage"];
+
+	_successConsumeToolChance = reader["SuccessConsumeToolChance"];
+	_successConsumeToolAmount = reader["SuccessConsumeToolAmount"];
+	_successConsumeToolMessage = reader["SuccessConsumeToolMessage"];
+
+	_failureConsumeTargetChance = reader["FailureConsumeTargetChance"];
+	_failureConsumeTargetAmount = reader["FailureConsumeTargetAmount"];
+	_failureConsumeTargetMessage = reader["FailureConsumeTargetMessage"];
+
+	_failureConsumeToolChance = reader["FailureConsumeToolChance"];
+	_failureConsumeToolAmount = reader["FailureConsumeToolAmount"];
+	_failureConsumeToolMessage = reader["FailureConsumeToolMessage"];
+
+	for (DWORD i = 0; i < 3; i++)
+		_requirements[i].UnPackJson(&reader);
+
+	for (DWORD i = 0; i < 8; i++)
+		_mods[i].UnPackJson(&reader);
+
+	_dataID = reader["DataID"];
+	return true;
+}
+
+DEFINE_PACK_JSON(JsonCraftOperation)
+{
+
+}

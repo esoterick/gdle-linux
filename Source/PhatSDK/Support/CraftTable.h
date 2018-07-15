@@ -75,6 +75,11 @@ public:
 		return true;
 	}
 
+	bool UnPackJson(const json *reader)
+	{
+		return true;
+	}
+
 	PackableList<TYPERequirement<STypeInt, int>> _intRequirement;
 	PackableList<TYPERequirement<STypeDID, DWORD>> _didRequirement;
 	PackableList<TYPERequirement<STypeIID, DWORD>> _iidRequirement;
@@ -115,6 +120,11 @@ public:
 			a, b, c, d, e, f, g, h, i, j);
 			*/
 
+		return true;
+	}
+
+	bool UnPackJson(const json *reader)
+	{
 		return true;
 	}
 
@@ -185,7 +195,7 @@ public:
 
 	DECLARE_PACKABLE()
 
-
+	
 
 	PackableHashTable<DWORD, CCraftOperation> _operations;
 	PackableHashTable<DWORD64, DWORD, DWORD64> _precursorMap;
@@ -194,7 +204,6 @@ public:
 class CraftPrecursor : public PackObj, public PackableJson
 {
 public:
-	DECLARE_PACKABLE()
 	DECLARE_PACKABLE_JSON();
 
 	DWORD Tool = 0;
@@ -202,4 +211,43 @@ public:
 	DWORD RecipeID = 0;
 	DWORD64 ToolTargetCombo = 0;
 
+};
+
+class JsonCraftOperation : public PackableJson
+{
+public:
+	DECLARE_PACKABLE_JSON();
+
+	DWORD _recipeID = 0;
+	DWORD _unk = 0;
+	STypeSkill _skill = STypeSkill::UNDEF_SKILL;
+	int _difficulty = 0;
+	DWORD _SkillCheckFormulaType = 0;
+	DWORD _successWcid = 0;
+	DWORD _successAmount = 0;
+	std::string _successMessage;
+	DWORD _failWcid = 0;
+	DWORD _failAmount = 0;
+	std::string _failMessage;
+
+	double _successConsumeTargetChance;
+	int _successConsumeTargetAmount;
+	std::string _successConsumeTargetMessage;
+
+	double _successConsumeToolChance;
+	int _successConsumeToolAmount;
+	std::string _successConsumeToolMessage;
+
+	double _failureConsumeTargetChance;
+	int _failureConsumeTargetAmount;
+	std::string _failureConsumeTargetMessage;
+
+	double _failureConsumeToolChance;
+	int _failureConsumeToolAmount;
+	std::string _failureConsumeToolMessage;
+
+	CraftRequirements _requirements[3];
+	CraftMods _mods[8];
+
+	DWORD _dataID = 0;
 };
