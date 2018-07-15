@@ -30,9 +30,9 @@ void CCorpseWeenie::GetObjDesc(ObjDesc &desc)
 	desc = _objDesc;
 }
 
-int CCorpseWeenie::CheckOpenContainer(CWeenieObject *other)
+int CCorpseWeenie::CheckOpenContainer(CWeenieObject *looter)
 {
-	int error = CContainerWeenie::CheckOpenContainer(other);
+	int error = CContainerWeenie::CheckOpenContainer(looter);
 
 	if (error != WERROR_NONE)
 		return error;
@@ -44,69 +44,64 @@ int CCorpseWeenie::CheckOpenContainer(CWeenieObject *other)
 	{
 		DWORD killerId = InqIIDQuality(KILLER_IID, 0);
 		DWORD victimId = InqIIDQuality(VICTIM_IID, 0);
-		if (killerId == other->GetID() || victimId == other->GetID())
+		if (killerId == looter->GetID() || victimId == looter->GetID())
 			return WERROR_NONE;
 
-		if (_begin_destroy_at - (CORPSE_EXIST_TIME / 2) <= Timer::cur_time || other->GetID() == killerId)
+		if (_begin_destroy_at - (CORPSE_EXIST_TIME / 2) <= Timer::cur_time)
 		{
 			return WERROR_NONE;
 		}
 
-		CPlayerWeenie *owner = g_pWorld->FindPlayer(victimId);
-		CPlayerWeenie *looter = other->AsPlayer();
+		CPlayerWeenie *corpsePlayer = g_pWorld->FindPlayer(victimId);
+		CPlayerWeenie *looterAsPlayer = looter->AsPlayer();
 		bool killedByPK = m_Qualities.GetBool(PK_KILLER_BOOL, 0);
 
-		if (owner && !killedByPK && looter) // Make sure we're both players & don't let corpse permissions work on PK kills
+		if (corpsePlayer && !killedByPK && looterAsPlayer) // Make sure we're both players & don't let corpse permissions work on PK kills
 		{
-			if (!owner->m_umCorpsePermissions.empty()) // if the corpse owner has players on their permissions list
+			if (!corpsePlayer->m_umCorpsePermissions.empty()) // if the corpse owner has players on their permissions list
 			{
-				if (!owner->HasPermission(looter))
+				if (!corpsePlayer->HasPermission(looterAsPlayer))
 				{
-					other->SendText("You do not have permission to loot that corpse!", LTT_ERROR);
+					looter->SendText("You do not have permission to loot that corpse!", LTT_ERROR);
 					return WERROR_FROZEN;
 				}
 				else
 				{
-					owner->RemoveCorpsePermission(looter);
-					looter->RemoveConsent(owner);
+					corpsePlayer->RemoveCorpsePermission(looterAsPlayer);
+					looterAsPlayer->RemoveConsent(corpsePlayer);
 					return WERROR_NONE;
 				}
 			}
 		}
 
-		if (owner != looter)
+		if (Fellowship *fellowship = looter->GetFellowship())
 		{
-			other->SendText("You do not have permission to loot that corpse!", LTT_ERROR);
-			return WERROR_FROZEN;
-		}
-
-		if (owner)
-		{
-			if (!owner->m_umCorpsePermissions.empty())
+			if (!killedByPK)
 			{
-
-				for (auto it : owner->m_umCorpsePermissions)
+				if (fellowship->_share_loot)
 				{
-					if (other->GetID() == it.first)
+					for (auto &entry : fellowship->_fellowship_table)
 					{
-						return WERROR_NONE;
+						if (killerId == entry.first)
+							return WERROR_NONE;
 					}
 				}
 			}
 		}
 
-
-		if (Fellowship *fellowship = other->GetFellowship())
+		if (corpsePlayer != looterAsPlayer)
 		{
-			if (fellowship->_share_loot)
-			{
-				for (auto &entry : fellowship->_fellowship_table)
-				{
-					if (killerId == entry.first)
-						return WERROR_NONE;
-				}
-			}
+			looter->SendText("You do not have permission to loot that corpse!", LTT_ERROR);
+			return WERROR_FROZEN;
 		}
+
+		if (corpsePlayer)
+		{
+			return WERROR_NONE;
+		}
+
+		looter->SendText("You do not have permission to loot that corpse!", LTT_ERROR);
+		return WERROR_FROZEN;
 	}
 
 	return WERROR_NONE;
