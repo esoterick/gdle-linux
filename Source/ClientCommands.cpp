@@ -4783,7 +4783,7 @@ bool CommandBase::Execute(char *command, CClient *client)
 		int access_level = client ? client->GetAccessLevel() : BASIC_ACCESS;
 
 		char *command_name = argv[0];
-		if (!stricmp(command_name, "help"))
+		if (!stricmp(command_name, "emuhelp"))
 		{
 			if (!client)
 				return true;

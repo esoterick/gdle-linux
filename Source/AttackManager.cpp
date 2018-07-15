@@ -819,7 +819,7 @@ void CMissileAttackEvent::CalculateAttackMotion()
 	CalculateTargetPosition();
 	CalculateSpawnPosition(equippedAmmo->GetRadius());
 
-	bool bTrack = true;
+	bool bTrack = false;
 	float fSpeed = weapon->InqFloatQuality(MAXIMUM_VELOCITY_FLOAT, 20.0);
 	if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
 	{
@@ -936,18 +936,10 @@ bool CMissileAttackEvent::CalculateMissileVelocity(bool track, bool gravity, flo
 		{
 			v.z += (9.8*t) / 2.0f;
 		}
+		//Vector targetDir = v;
+		//targetDir.normalize();
 
-		//This was commented out but seems to help with mob thrown weapons, like Lugian rocks. We don't however, want to use this on players.
-		if (!_weenie->_IsPlayer())
-		{
-			Vector targetDir = v;
-			targetDir.normalize();
-			_missile_velocity = targetDir;
-		}
-		else
-		{
-			_missile_velocity = v;
-		}
+		_missile_velocity = v;
 
 		return true;
 	}

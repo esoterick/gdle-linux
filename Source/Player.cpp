@@ -3811,12 +3811,21 @@ DWORD CPlayerWeenie::GetAccountHouseId()
 		else
 		{
 			CWeenieObject *otherCharacter = CWeenieObject::Load(character.weenie_id);
-			if (DWORD houseID = otherCharacter->InqDIDQuality(HOUSEID_DID, 0))
+			
+			if (!otherCharacter)
 			{
-				delete otherCharacter;
-				return houseID;
+				WINLOG(Temp, Normal, "Failed to Load Character id: %u", character.weenie_id, " in GetAccountHouseID()");
+				SERVER_ERROR << "Failed to Load Character id: %u" << character.weenie_id << " in GetAccountHouseID()";
 			}
-			delete otherCharacter;
+			else
+			{
+				if (DWORD houseID = otherCharacter->InqDIDQuality(HOUSEID_DID, 0))
+				{
+					delete otherCharacter;
+					return houseID;
+				}
+				delete otherCharacter;
+			}
 		}
 	}
 
