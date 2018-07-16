@@ -48,6 +48,14 @@ DEFINE_UNPACK(CCraftOperation)
 	return true;
 }
 
+DEFINE_PACK_JSON(CCraftOperation)
+{}
+
+DEFINE_UNPACK_JSON(CCraftOperation)
+{
+	return false;
+}
+
 CCraftTable::CCraftTable()
 {
 }
@@ -79,6 +87,64 @@ DEFINE_UNPACK(CCraftTable)
 
 	return true;
 }
+
+DEFINE_PACK_JSON(CCraftTable)
+{}
+
+DEFINE_UNPACK_JSON(CCraftTable)
+{
+	return false;
+}
+
+DEFINE_PACK(CraftRequirements) {}
+DEFINE_UNPACK(CraftRequirements)
+{
+	_intRequirement.UnPack(pReader);
+	_didRequirement.UnPack(pReader);
+	_iidRequirement.UnPack(pReader);
+	_floatRequirement.UnPack(pReader);
+	_stringRequirement.UnPack(pReader);
+	_boolRequirement.UnPack(pReader);
+	return true;
+}
+DEFINE_PACK_JSON(CraftRequirements) {}
+DEFINE_UNPACK_JSON(CraftRequirements) { return false; }
+
+DEFINE_PACK(CraftMods) {}
+DEFINE_UNPACK(CraftMods)
+{
+	_intMod.UnPack(pReader);
+	_didMod.UnPack(pReader);
+	_iidMod.UnPack(pReader);
+	_floatMod.UnPack(pReader);
+	_stringMod.UnPack(pReader);
+	_boolMod.UnPack(pReader);
+
+	_ModifyHealth = pReader->Read<int>();
+	_ModifyStamina = pReader->Read<int>();
+	_ModifyMana = pReader->Read<int>();
+	_RequiresHealth = pReader->Read<int>();
+	_RequiresStamina = pReader->Read<int>();
+	_RequiresMana = pReader->Read<int>();
+
+	_unknown7 = pReader->Read<BOOL>();
+	_modificationScriptId = pReader->Read<DWORD>(); // dataID
+
+	_unknown9 = pReader->Read<int>();
+	_unknown10 = pReader->Read<DWORD>(); // instanceID
+
+										 /*
+										 printf("%u %u %u %u %u %u %d %d %d %d %d %d %d %u %d %u\n",
+										 (DWORD)_intMod.size(), (DWORD)_didMod.size(), (DWORD)_iidMod.size(),
+										 (DWORD)_floatMod.size(), (DWORD)_stringMod.size(), (DWORD)_boolMod.size(),
+										 a, b, c, d, e, f, g, h, i, j);
+										 */
+
+	return true;
+
+}
+DEFINE_PACK_JSON(CraftMods) {}
+DEFINE_UNPACK_JSON(CraftMods) { return false; }
 
 DEFINE_UNPACK_JSON(CraftPrecursor)
 {

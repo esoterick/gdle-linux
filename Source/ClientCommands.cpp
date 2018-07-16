@@ -2304,6 +2304,17 @@ void SendDungeonInfo(CPlayerWeenie* pPlayer, WORD wBlockID)
 		SendDungeonInfo(pPlayer, pInfo);
 }
 
+CLIENT_COMMAND(exportrecipe, "<recipeid>", "Export recipe number", ADMIN_ACCESS)
+{
+	return false;
+}
+
+CLIENT_COMMAND(exportallrecipe, "", "Export all recipes", ADMIN_ACCESS)
+{
+	return false;
+}
+
+
 CLIENT_COMMAND(dungeon, "<command>", "Dungeon commands.", BASIC_ACCESS)
 {
 	if (argc < 1)

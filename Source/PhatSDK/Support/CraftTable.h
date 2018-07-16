@@ -61,19 +61,12 @@ public:
 	std::string _message;
 };
 
-class CraftRequirements
+class CraftRequirements : public PackObj, public PackableJson
 {
 public:
-	bool UnPack(BinaryReader *pReader)
-	{
-		_intRequirement.UnPack(pReader);
-		_didRequirement.UnPack(pReader);
-		_iidRequirement.UnPack(pReader);
-		_floatRequirement.UnPack(pReader);
-		_stringRequirement.UnPack(pReader);
-		_boolRequirement.UnPack(pReader);
-		return true;
-	}
+	DECLARE_PACKABLE()
+	DECLARE_PACKABLE_JSON();
+
 
 	bool UnPackJson(const json *reader)
 	{
@@ -88,40 +81,44 @@ public:
 	PackableList<TYPERequirement<STypeBool, BOOL>> _boolRequirement;
 };
 
-class CraftMods
+class CraftMods : public PackObj, public PackableJson
 {
 public:
-	bool UnPack(BinaryReader *pReader)
-	{
-		_intMod.UnPack(pReader);
-		_didMod.UnPack(pReader);
-		_iidMod.UnPack(pReader);
-		_floatMod.UnPack(pReader);
-		_stringMod.UnPack(pReader);
-		_boolMod.UnPack(pReader);
 
-		_ModifyHealth = pReader->Read<int>();
-		_ModifyStamina = pReader->Read<int>();
-		_ModifyMana = pReader->Read<int>();
-		_RequiresHealth = pReader->Read<int>();
-		_RequiresStamina = pReader->Read<int>();
-		_RequiresMana = pReader->Read<int>();
+	DECLARE_PACKABLE()
+	DECLARE_PACKABLE_JSON();
 
-		_unknown7 = pReader->Read<BOOL>();
-		_modificationScriptId = pReader->Read<DWORD>(); // dataID
+	//bool UnPack(BinaryReader *pReader)
+	//{
+	//	_intMod.UnPack(pReader);
+	//	_didMod.UnPack(pReader);
+	//	_iidMod.UnPack(pReader);
+	//	_floatMod.UnPack(pReader);
+	//	_stringMod.UnPack(pReader);
+	//	_boolMod.UnPack(pReader);
 
-		_unknown9 = pReader->Read<int>();
-		_unknown10 = pReader->Read<DWORD>(); // instanceID
+	//	_ModifyHealth = pReader->Read<int>();
+	//	_ModifyStamina = pReader->Read<int>();
+	//	_ModifyMana = pReader->Read<int>();
+	//	_RequiresHealth = pReader->Read<int>();
+	//	_RequiresStamina = pReader->Read<int>();
+	//	_RequiresMana = pReader->Read<int>();
 
-		/*
-		printf("%u %u %u %u %u %u %d %d %d %d %d %d %d %u %d %u\n",
-			(DWORD)_intMod.size(), (DWORD)_didMod.size(), (DWORD)_iidMod.size(),
-			(DWORD)_floatMod.size(), (DWORD)_stringMod.size(), (DWORD)_boolMod.size(),
-			a, b, c, d, e, f, g, h, i, j);
-			*/
+	//	_unknown7 = pReader->Read<BOOL>();
+	//	_modificationScriptId = pReader->Read<DWORD>(); // dataID
 
-		return true;
-	}
+	//	_unknown9 = pReader->Read<int>();
+	//	_unknown10 = pReader->Read<DWORD>(); // instanceID
+
+	//	/*
+	//	printf("%u %u %u %u %u %u %d %d %d %d %d %d %d %u %d %u\n",
+	//		(DWORD)_intMod.size(), (DWORD)_didMod.size(), (DWORD)_iidMod.size(),
+	//		(DWORD)_floatMod.size(), (DWORD)_stringMod.size(), (DWORD)_boolMod.size(),
+	//		a, b, c, d, e, f, g, h, i, j);
+	//		*/
+
+	//	return true;
+	//}
 
 	bool UnPackJson(const json *reader)
 	{
@@ -149,10 +146,11 @@ public:
 	DWORD _unknown10;
 };
 
-class CCraftOperation : public PackObj
+class CCraftOperation : public PackObj, public PackableJson
 {
 public:
 	DECLARE_PACKABLE()
+	DECLARE_PACKABLE_JSON();
 
 	DWORD _unk = 0;
 	STypeSkill _skill = STypeSkill::UNDEF_SKILL;
@@ -187,14 +185,14 @@ public:
 	DWORD _dataID = 0;
 };
 
-class CCraftTable : public PackObj
+class CCraftTable : public PackObj, public PackableJson
 {
 public:
 	CCraftTable();
 	virtual ~CCraftTable() override;
 
 	DECLARE_PACKABLE()
-
+	DECLARE_PACKABLE_JSON();
 	
 
 	PackableHashTable<DWORD, CCraftOperation> _operations;
