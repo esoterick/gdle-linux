@@ -1389,7 +1389,7 @@ void CMonsterWeenie::UpdateDamageList(DamageEventData &damageData)
 		m_aDamageSources[source] += damageData.outputDamageFinal;
 		m_totalDamageTaken += damageData.outputDamageFinal;
 
-		if (m_highestDamageSource == 0 || m_aDamageSources[source] > m_aDamageSources[m_highestDamageSource] && damageData.damage_type == HEALTH_DAMAGE_TYPE)
+		if (m_highestDamageSource == 0 || m_aDamageSources[source] > m_aDamageSources[m_highestDamageSource])
 		{
 			m_highestDamageSource = source;
 
