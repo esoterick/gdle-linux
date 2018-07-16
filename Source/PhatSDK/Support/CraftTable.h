@@ -2,12 +2,22 @@
 #pragma once
 
 template<typename TStatType, typename TDataType>
-class TYPEMod : public PackObj
+class TYPEMod : public PackObj, public PackableJson
 {
 public:
 	void Pack(BinaryWriter *pWriter)
 	{
 		UNFINISHED();
+	}
+
+	template<typename TStatType, typename TDataType>
+	bool UnPackJsonInternal(const json &reader)
+	{
+		_stat = reader["_stat"];
+		_value = reader["_value"];
+		_operationType = reader["_operationType"];
+		_unk = reader["_unk"];
+		return true;
 	}
 
 	template<typename TStatType, typename TDataType>
@@ -25,6 +35,11 @@ public:
 		return UnPackInternal<TStatType, TDataType>(pReader);
 	}
 
+	virtual bool UnPackJson(const json &reader) override
+	{
+		return UnPackJsonInternal<TStatType, TDataType>(reader);
+	}
+
 	int _unk;
 	int _operationType;
 	TStatType _stat;
@@ -32,13 +47,24 @@ public:
 };
 
 template<typename TStatType, typename TDataType>
-class TYPERequirement : public PackObj
+class TYPERequirement : public PackObj, public PackableJson
 {
 public:
 	virtual void Pack(BinaryWriter *pWriter) override
 	{ 
 		UNFINISHED();
 	}
+
+	template<typename TStatType, typename TDataType>
+	bool UnPackJsonInternal(json &reader)
+	{
+		_stat = reader["_stat"];
+		_value = reader["_value"];
+		_operationType = reader["_operationType"];
+		_message = reader["_message"];
+		return true;
+	}
+
 
 	template<typename TStatType, typename TDataType>
 	bool UnPackInternal(BinaryReader *pReader)
@@ -55,6 +81,11 @@ public:
 		return UnPackInternal<TStatType, TDataType>(pReader);
 	}
 
+	virtual bool UnPackJson(json &reader) 
+	{
+		return UnPackJsonInternal<TStatType, TDataType>(reader);
+	}
+
 	TStatType _stat;
 	TDataType _value;
 	int _operationType;
@@ -66,12 +97,6 @@ class CraftRequirements : public PackObj, public PackableJson
 public:
 	DECLARE_PACKABLE()
 	DECLARE_PACKABLE_JSON();
-
-
-	bool UnPackJson(const json *reader)
-	{
-		return true;
-	}
 
 	PackableList<TYPERequirement<STypeInt, int>> _intRequirement;
 	PackableList<TYPERequirement<STypeDID, DWORD>> _didRequirement;
@@ -119,11 +144,6 @@ public:
 
 	//	return true;
 	//}
-
-	bool UnPackJson(const json *reader)
-	{
-		return true;
-	}
 
 	PackableList<TYPEMod<STypeInt, int>> _intMod;
 	PackableList<TYPEMod<STypeDID, DWORD>> _didMod;
@@ -199,7 +219,7 @@ public:
 	PackableHashTable<DWORD64, DWORD, DWORD64> _precursorMap;
 };
 
-class CraftPrecursor : public PackObj, public PackableJson
+class CraftPrecursor : public PackableJson
 {
 public:
 	DECLARE_PACKABLE_JSON();

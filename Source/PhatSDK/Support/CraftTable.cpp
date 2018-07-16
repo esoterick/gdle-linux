@@ -146,6 +146,7 @@ DEFINE_UNPACK(CraftMods)
 DEFINE_PACK_JSON(CraftMods) {}
 DEFINE_UNPACK_JSON(CraftMods) { return false; }
 
+
 DEFINE_UNPACK_JSON(CraftPrecursor)
 {
 	if (reader.find("Tool") != reader.end())
@@ -213,10 +214,10 @@ DEFINE_UNPACK_JSON(JsonCraftOperation)
 	_failureConsumeToolMessage = reader["FailureConsumeToolMessage"];
 
 	for (DWORD i = 0; i < 3; i++)
-		_requirements[i].UnPackJson(&reader);
+		_requirements[i].UnPackJson(reader);
 
 	for (DWORD i = 0; i < 8; i++)
-		_mods[i].UnPackJson(&reader);
+		_mods[i].UnPackJson(reader);
 
 	_dataID = reader["DataID"];
 	return true;
