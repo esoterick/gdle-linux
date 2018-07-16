@@ -364,6 +364,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	m_pPlayer->SendText("GDLEnhanced " SERVER_VERSION_NUMBER_STRING " " SERVER_VERSION_STRING, LTT_DEFAULT);
 	m_pPlayer->SendText("Maintained by the GDLE Development Team. Contact us at https://discord.gg/WzGX348", LTT_DEFAULT);
 	m_pPlayer->SendText("Powered by GamesDeadLol. Not an official Asheron's Call server.", LTT_DEFAULT);
+	SendAllegianceMOTD();
 
 	/*
 	if (*g_pConfig->WelcomeMessage() != 0)
