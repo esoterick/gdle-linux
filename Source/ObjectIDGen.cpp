@@ -24,7 +24,7 @@ DWORD CObjectIDGenerator::GenerateGUID(eGUIDClass type)
 	{
 	case eDynamicGUID:
 		{
-			if (m_dwHintDynamicGUID >= 0xF0000000)
+			if (m_dwHintDynamicGUID >= 0xFF000000)
 			{
 				SERVER_ERROR << "Dynamic GUID overflow!";
 				return 0;

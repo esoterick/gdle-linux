@@ -129,11 +129,16 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 						BinaryWriter attackerEvadeEvent;
 						attackerEvadeEvent.Write<DWORD>(0x01B3);
 						attackerEvadeEvent.WriteString(pHit->GetName());
-						pSource->SendNetMessage(&attackerEvadeEvent, PRIVATE_MSG, TRUE, FALSE);
+						if (pSource != nullptr)
+							pSource->SendNetMessage(&attackerEvadeEvent, PRIVATE_MSG, TRUE, FALSE);
+
 
 						BinaryWriter attackedEvadeEvent;
 						attackedEvadeEvent.Write<DWORD>(0x01B4);
-						attackedEvadeEvent.WriteString(pSource->GetName());
+						if (pSource != nullptr)
+							attackedEvadeEvent.WriteString(pSource->GetName());
+						else
+							attackedEvadeEvent.WriteString("Unknown");
 						pHit->SendNetMessage(&attackedEvadeEvent, PRIVATE_MSG, TRUE, FALSE);
 						bEvaded = true;
 					}
@@ -143,7 +148,7 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 				{
 					EmitSound(Sound_Collision, 1.0f);
 
-					if (pSource && pHit && pSource->AsPlayer() && pHit->AsPlayer())
+					if (pSource != nullptr && pSource && pHit && pSource->AsPlayer() && pHit->AsPlayer())
 					{
 						pSource->AsPlayer()->UpdatePKActivity();
 						pHit->AsPlayer()->UpdatePKActivity();
@@ -226,8 +231,8 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 					}
 
 					CalculateDamage(&dmgEvent);
-
-					pSource->TryToDealDamage(dmgEvent);
+					if (pSource != nullptr)
+						pSource->TryToDealDamage(dmgEvent);
 				}
 			}
 		}
