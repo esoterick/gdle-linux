@@ -29,6 +29,8 @@
 #include "InferredPortalData.h"
 #include "Config.h"
 #include "House.h"
+#include "FellowshipManager.h"
+
 
 CWeenieObject::CWeenieObject()
 {
@@ -1745,6 +1747,15 @@ void CWeenieObject::NotifyAttribute2ndStatUpdated(STypeAttribute2nd key)
 	statNotify.Write(&attrib2nd);
 
 	SendNetMessage(&statNotify, PRIVATE_MSG, FALSE, FALSE);
+
+	Fellowship *fs = GetFellowship();
+
+	if (fs)
+	{
+		fs->VitalsUpdate();
+	}
+
+
 }
 
 void CWeenieObject::NotifySkillStatUpdated(STypeSkill key)
