@@ -829,7 +829,6 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 	if (m_pWeenie->AsPlayer() && m_SpellCastData.uses_mana)
 	{
-		bool fizzled = false;
 		double chance = GetMagicSkillChance(m_SpellCastData.current_skill, m_SpellCastData.spell->_power);
 		if (chance < Random::RollDice(0.0, 1.0))
 		{
@@ -837,7 +836,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 			m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
 			m_pWeenie->AdjustMana(-5);
 
-			fizzled = true;
+			bFizzled = true;
 		}
 		else if (m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
 		{
@@ -846,7 +845,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 			m_pWeenie->AdjustMana(-5);
 			m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
 
-			fizzled = true;
+			bFizzled = true;
 		}
 
 		if (!m_UsedComponents.empty()) //we used components, so check if any need burning
