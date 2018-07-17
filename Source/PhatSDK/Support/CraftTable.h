@@ -5,40 +5,11 @@ template<typename TStatType, typename TDataType>
 class TYPEMod : public PackObj, public PackableJson
 {
 public:
-	void Pack(BinaryWriter *pWriter)
-	{
-		UNFINISHED();
-	}
 
-	template<typename TStatType, typename TDataType>
-	bool UnPackJsonInternal(const json &reader)
-	{
-		_stat = reader["_stat"];
-		_value = reader["_value"];
-		_operationType = reader["_operationType"];
-		_unk = reader["_unk"];
-		return true;
-	}
-
-	template<typename TStatType, typename TDataType>
-	bool UnPackInternal(BinaryReader *pReader)
-	{
-		_unk = pReader->Read<int>();
-		_operationType = pReader->Read<int>();
-		_stat = (TStatType)pReader->Read<int>();
-		_value = pReader->Read<TDataType>();
-		return true;
-	}
-
-	virtual bool UnPack(BinaryReader *pReader) override
-	{
-		return UnPackInternal<TStatType, TDataType>(pReader);
-	}
-
-	virtual bool UnPackJson(const json &reader) override
-	{
-		return UnPackJsonInternal<TStatType, TDataType>(reader);
-	}
+	virtual void Pack(class BinaryWriter *pWriter) override; 
+	virtual bool UnPack(class BinaryReader *pReader) override;
+	virtual void PackJson(json& writer) override;
+	virtual bool UnPackJson(const json& reader) override;
 
 	int _unk;
 	int _operationType;
@@ -47,44 +18,15 @@ public:
 };
 
 template<typename TStatType, typename TDataType>
-class TYPERequirement : public PackObj, public PackableJson
+class TYPERequirement : public PackObj, public PackableJson	
 {
 public:
-	virtual void Pack(BinaryWriter *pWriter) override
-	{ 
-		UNFINISHED();
-	}
 
-	template<typename TStatType, typename TDataType>
-	bool UnPackJsonInternal(json &reader)
-	{
-		_stat = reader["_stat"];
-		_value = reader["_value"];
-		_operationType = reader["_operationType"];
-		_message = reader["_message"];
-		return true;
-	}
+	virtual void Pack(class BinaryWriter *pWriter) override;
+	virtual bool UnPack(class BinaryReader *pReader) override;
+	virtual void PackJson(json& writer) override;
+	virtual bool UnPackJson(const json& reader) override;
 
-
-	template<typename TStatType, typename TDataType>
-	bool UnPackInternal(BinaryReader *pReader)
-	{
-		_stat = (TStatType)pReader->Read<int>();
-		_value = pReader->Read<TDataType>();
-		_operationType = pReader->Read<int>();
-		_message = pReader->ReadString();
-		return true;
-	}
-
-	virtual bool UnPack(BinaryReader *pReader) override
-	{
-		return UnPackInternal<TStatType, TDataType>(pReader);
-	}
-
-	virtual bool UnPackJson(json &reader) 
-	{
-		return UnPackJsonInternal<TStatType, TDataType>(reader);
-	}
 
 	TStatType _stat;
 	TDataType _value;
@@ -98,12 +40,12 @@ public:
 	DECLARE_PACKABLE()
 	DECLARE_PACKABLE_JSON();
 
-	PackableList<TYPERequirement<STypeInt, int>> _intRequirement;
-	PackableList<TYPERequirement<STypeDID, DWORD>> _didRequirement;
-	PackableList<TYPERequirement<STypeIID, DWORD>> _iidRequirement;
-	PackableList<TYPERequirement<STypeFloat, double>> _floatRequirement;
-	PackableList<TYPERequirement<STypeString, std::string>> _stringRequirement;
-	PackableList<TYPERequirement<STypeBool, BOOL>> _boolRequirement;
+	PackableListWithJson<TYPERequirement<STypeInt, int>> _intRequirement;
+	PackableListWithJson<TYPERequirement<STypeDID, DWORD>> _didRequirement;
+	PackableListWithJson<TYPERequirement<STypeIID, DWORD>> _iidRequirement;
+	PackableListWithJson<TYPERequirement<STypeFloat, double>> _floatRequirement;
+	PackableListWithJson<TYPERequirement<STypeString, std::string>> _stringRequirement;
+	PackableListWithJson<TYPERequirement<STypeBool, BOOL>> _boolRequirement;
 };
 
 class CraftMods : public PackObj, public PackableJson
@@ -113,44 +55,12 @@ public:
 	DECLARE_PACKABLE()
 	DECLARE_PACKABLE_JSON();
 
-	//bool UnPack(BinaryReader *pReader)
-	//{
-	//	_intMod.UnPack(pReader);
-	//	_didMod.UnPack(pReader);
-	//	_iidMod.UnPack(pReader);
-	//	_floatMod.UnPack(pReader);
-	//	_stringMod.UnPack(pReader);
-	//	_boolMod.UnPack(pReader);
-
-	//	_ModifyHealth = pReader->Read<int>();
-	//	_ModifyStamina = pReader->Read<int>();
-	//	_ModifyMana = pReader->Read<int>();
-	//	_RequiresHealth = pReader->Read<int>();
-	//	_RequiresStamina = pReader->Read<int>();
-	//	_RequiresMana = pReader->Read<int>();
-
-	//	_unknown7 = pReader->Read<BOOL>();
-	//	_modificationScriptId = pReader->Read<DWORD>(); // dataID
-
-	//	_unknown9 = pReader->Read<int>();
-	//	_unknown10 = pReader->Read<DWORD>(); // instanceID
-
-	//	/*
-	//	printf("%u %u %u %u %u %u %d %d %d %d %d %d %d %u %d %u\n",
-	//		(DWORD)_intMod.size(), (DWORD)_didMod.size(), (DWORD)_iidMod.size(),
-	//		(DWORD)_floatMod.size(), (DWORD)_stringMod.size(), (DWORD)_boolMod.size(),
-	//		a, b, c, d, e, f, g, h, i, j);
-	//		*/
-
-	//	return true;
-	//}
-
-	PackableList<TYPEMod<STypeInt, int>> _intMod;
-	PackableList<TYPEMod<STypeDID, DWORD>> _didMod;
-	PackableList<TYPEMod<STypeIID, DWORD>> _iidMod;
-	PackableList<TYPEMod<STypeFloat, double>> _floatMod;
-	PackableList<TYPEMod<STypeString, std::string>> _stringMod;
-	PackableList<TYPEMod<STypeBool, BOOL>> _boolMod;
+	PackableListWithJson<TYPEMod<STypeInt, int>> _intMod;
+	PackableListWithJson<TYPEMod<STypeDID, DWORD>> _didMod;
+	PackableListWithJson<TYPEMod<STypeIID, DWORD>> _iidMod;
+	PackableListWithJson<TYPEMod<STypeFloat, double>> _floatMod;
+	PackableListWithJson<TYPEMod<STypeString, std::string>> _stringMod;
+	PackableListWithJson<TYPEMod<STypeBool, BOOL>> _boolMod;
 
 	int _ModifyHealth;
 	int _ModifyStamina;
@@ -269,3 +179,4 @@ public:
 
 	DWORD _dataID = 0;
 };
+

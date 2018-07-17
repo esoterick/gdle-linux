@@ -4,6 +4,12 @@
 #include "CraftTable.h"
 #include "PackableJson.h"
 
+
+DEFINE_UNPACK_JSON(CCraftOperation)
+{
+	return false;
+}
+
 DEFINE_PACK(CCraftOperation)
 {
 	UNFINISHED();
@@ -49,11 +55,53 @@ DEFINE_UNPACK(CCraftOperation)
 }
 
 DEFINE_PACK_JSON(CCraftOperation)
-{}
-
-DEFINE_UNPACK_JSON(CCraftOperation)
 {
-	return false;
+	writer["_unk"] = _unk;
+	writer["_skill"] = _skill;
+	writer["_difficulty"] = _difficulty;
+	writer["_SkillCheckFormulaType"] = _SkillCheckFormulaType;
+	writer["_successWcid"] = _successWcid;
+	writer["_successAmount"] = _successAmount;
+	writer["_successMessage"] = _successMessage;
+	writer["_failWcid"] = _failWcid;
+	writer["_failAmount"] = _failAmount;
+	writer["_failMessage"] = _failMessage;
+	writer["_successConsumeTargetChance"] = _successConsumeTargetChance;
+	writer["_successConsumeTargetAmount"] = _successConsumeTargetAmount;
+	writer["_successConsumeTargetMessage"] = _successConsumeTargetMessage;
+	writer["_successConsumeToolChance"] = _successConsumeToolChance;
+	writer["_successConsumeToolAmount"] = _successConsumeToolAmount;
+	writer["_successConsumeToolMessage"] = _successConsumeToolMessage;
+	writer["_failureConsumeTargetChance"] = _failureConsumeTargetChance;
+	writer["_failureConsumeTargetAmount"] = _failureConsumeTargetAmount;
+	writer["_failureConsumeTargetMessage"] = _failureConsumeTargetMessage;
+	writer["_failureConsumeToolChance"] = _failureConsumeToolChance;
+	writer["_failureConsumeToolAmount"] = _failureConsumeToolAmount;
+	writer["_failureConsumeToolMessage"] = _failureConsumeToolMessage;
+
+	json requirements;
+
+	for (DWORD i = 0; i < 3; i++)
+	{
+		json req;
+		_requirements->PackJson(req);
+		requirements.push_back(req);
+	}
+
+	writer["Requirements"] = requirements;
+
+	json mods;
+
+	for (DWORD i = 0; i < 8; i++)
+	{
+		json mod;
+		_mods->PackJson(mod);
+		mods.push_back(mod);
+	}
+
+	writer["Mods"] = mods;
+
+	writer["_dataID"] = _dataID;
 }
 
 CCraftTable::CCraftTable()
@@ -107,7 +155,17 @@ DEFINE_UNPACK(CraftRequirements)
 	_boolRequirement.UnPack(pReader);
 	return true;
 }
-DEFINE_PACK_JSON(CraftRequirements) {}
+
+DEFINE_PACK_JSON(CraftRequirements)
+{
+	_intRequirement.PackJson(writer);
+	_didRequirement.PackJson(writer);
+	_iidRequirement.PackJson(writer);
+	_floatRequirement.PackJson(writer);
+	_stringRequirement.PackJson(writer);
+	_boolRequirement.PackJson(writer);
+}
+
 DEFINE_UNPACK_JSON(CraftRequirements) { return false; }
 
 DEFINE_PACK(CraftMods) {}
@@ -143,7 +201,27 @@ DEFINE_UNPACK(CraftMods)
 	return true;
 
 }
-DEFINE_PACK_JSON(CraftMods) {}
+DEFINE_PACK_JSON(CraftMods) 
+{
+	_intMod.PackJson(writer);
+	_didMod.PackJson(writer);
+	_iidMod.PackJson(writer);
+	_floatMod.PackJson(writer);
+	_stringMod.PackJson(writer);
+	_boolMod.PackJson(writer);
+
+	writer["_ModifyHealth"] = _ModifyHealth;
+	writer["_ModifyStamina"] = _ModifyStamina;
+	writer["_ModifyMana"] = _ModifyMana;
+	writer["_RequiresHealth"] = _RequiresHealth;
+	writer["_RequiresStamina"] = _RequiresStamina;
+	writer["_RequiresMana"] = _RequiresMana;
+	writer["_unknown7"] = _unknown7;
+	writer["_modificationScriptId"] = _modificationScriptId;
+	writer["_unknown9"] = _unknown9;
+	writer["_unknown10"] = _unknown10;
+}
+
 DEFINE_UNPACK_JSON(CraftMods) { return false; }
 
 
@@ -213,11 +291,19 @@ DEFINE_UNPACK_JSON(JsonCraftOperation)
 	_failureConsumeToolAmount = reader["FailureConsumeToolAmount"];
 	_failureConsumeToolMessage = reader["FailureConsumeToolMessage"];
 
-	for (DWORD i = 0; i < 3; i++)
-		_requirements[i].UnPackJson(reader);
+	const json &reqs = reader["Requirements"];
 
-	for (DWORD i = 0; i < 8; i++)
-		_mods[i].UnPackJson(reader);
+	for (const json &r : reqs)
+	{
+		_requirements->UnPackJson(r);
+	}
+
+	const json &mods = reader["Mods"];
+
+	for (const json &m : mods)
+	{
+		_mods->UnPackJson(m);
+	}
 
 	_dataID = reader["DataID"];
 	return true;
@@ -226,4 +312,65 @@ DEFINE_UNPACK_JSON(JsonCraftOperation)
 DEFINE_PACK_JSON(JsonCraftOperation)
 {
 
+}
+
+template<typename TStatType, typename TDataType>
+void TYPEMod<TStatType, TDataType>::Pack(BinaryWriter * pWriter)
+{
+}
+
+template<typename TStatType, typename TDataType>
+bool TYPEMod<TStatType, TDataType>::UnPack(BinaryReader * pReader)
+{
+	_unk = pReader->Read<int>();
+	_operationType = pReader->Read<int>();
+	_stat = (TStatType)pReader->Read<int>();
+	_value = pReader->Read<TDataType>();
+	return true;
+}
+
+template<typename TStatType, typename TDataType>
+inline void TYPEMod<TStatType, TDataType>::PackJson(json & writer)
+{
+	writer["_unk"] = _unk;
+	writer["_operationType"] = _operationType;
+	writer["_stat"] = _stat;
+	writer["_value"] = _value;
+}
+
+template<typename TStatType, typename TDataType>
+inline bool TYPEMod<TStatType, TDataType>::UnPackJson(const json & reader)
+{
+
+	return false;
+}
+
+template<typename TStatType, typename TDataType>
+void TYPERequirement<TStatType, TDataType>::Pack(BinaryWriter * pWriter)
+{
+}
+
+template<typename TStatType, typename TDataType>
+bool TYPERequirement<TStatType, TDataType>::UnPack(BinaryReader * pReader)
+{
+	_stat = (TStatType)pReader->Read<int>();
+	_value = pReader->Read<TDataType>();
+	_operationType = pReader->Read<int>();
+	_message = pReader->ReadString();
+	return true;
+}
+
+template<typename TStatType, typename TDataType>
+inline void TYPERequirement<TStatType, TDataType>::PackJson(json & writer)
+{
+	writer["_stat"] = _stat;
+	writer["_value"] = _value;
+	writer["_operationType"] = _operationType;
+	writer["_message"] = _message;
+}
+
+template<typename TStatType, typename TDataType>
+inline bool TYPERequirement<TStatType, TDataType>::UnPackJson(const json & reader)
+{
+	return false;
 }
