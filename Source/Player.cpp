@@ -3794,31 +3794,33 @@ void CPlayerWeenie::OnTeleported()
 
 DWORD CPlayerWeenie::GetAccountHouseId()
 {
-
-	for (auto &character : GetClient()->GetCharacters())
+	if (GetClient())
 	{
-		if (character.weenie_id == id)
+		for (auto &character : GetClient()->GetCharacters())
 		{
-			if (DWORD houseID = InqDIDQuality(HOUSEID_DID, 0))
-				return houseID;
-		}
-		else
-		{
-			CWeenieObject *otherCharacter = CWeenieObject::Load(character.weenie_id);
-			
-			if (!otherCharacter)
+			if (character.weenie_id == id)
 			{
-				WINLOG(Temp, Normal, "Failed to Load Character id: %u", character.weenie_id, " in GetAccountHouseID()");
-				SERVER_ERROR << "Failed to Load Character id: %u" << character.weenie_id << " in GetAccountHouseID()";
+				if (DWORD houseID = InqDIDQuality(HOUSEID_DID, 0))
+					return houseID;
 			}
 			else
 			{
-				if (DWORD houseID = otherCharacter->InqDIDQuality(HOUSEID_DID, 0))
+				CWeenieObject *otherCharacter = CWeenieObject::Load(character.weenie_id);
+
+				if (!otherCharacter)
 				{
-					delete otherCharacter;
-					return houseID;
+					WINLOG(Temp, Normal, "Failed to Load Character id: %u", character.weenie_id, " in GetAccountHouseID()");
+					SERVER_ERROR << "Failed to Load Character id: %u" << character.weenie_id << " in GetAccountHouseID()";
 				}
-				delete otherCharacter;
+				else
+				{
+					if (DWORD houseID = otherCharacter->InqDIDQuality(HOUSEID_DID, 0))
+					{
+						delete otherCharacter;
+						return houseID;
+					}
+					delete otherCharacter;
+				}
 			}
 		}
 	}
