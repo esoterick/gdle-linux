@@ -903,12 +903,6 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 		// Drain mana from weapon on Cast on Strike
 		m_pWeenie->m_Qualities.SetInt(ITEM_CUR_MANA_INT, m_pWeenie->InqIntQuality(ITEM_CUR_MANA_INT, 0, 0) - m_SpellCastData.spell->_base_mana);
 	}
-	else if ((m_pWeenie->AsMeleeWeapon() || m_pWeenie->AsMissileLauncher()) && m_SpellCastData.uses_mana)
-	{
-		// Drain mana from weapon on Cast on Strike
-		m_pWeenie->m_Qualities.SetInt(ITEM_CUR_MANA_INT, m_pWeenie->InqIntQuality(ITEM_CUR_MANA_INT, 0, 0) - m_SpellCastData.spell->_base_mana);
-	}
-
 
 
 	bool bSpellPerformed = false;
