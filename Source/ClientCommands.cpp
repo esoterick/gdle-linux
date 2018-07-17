@@ -2306,11 +2306,69 @@ void SendDungeonInfo(CPlayerWeenie* pPlayer, WORD wBlockID)
 
 CLIENT_COMMAND(exportrecipe, "<recipeid>", "Export recipe number", ADMIN_ACCESS)
 {
-	return false;
+	if (argc < 1)
+	{
+		pPlayer->SendText("No recipe ID given", LTT_DEFAULT);
+		return true;
+	}
+	
+	DWORD recipeId = stoi(argv[0], NULL, 10);
+
+	// Get CCraftOperation that aligns with recipeid
+	CCraftOperation *craft = g_pPortalDataEx->_craftTableData._operations.lookup(recipeId);
+
+	if (!craft)
+	{
+		pPlayer->SendText(csprintf("Unable to find recipe ID: %s.", recipeId), LTT_DEFAULT);
+		return true;
+	}
+
+	json recipeData;
+	craft->PackJson(recipeData);
+
+	string dataFile = std::to_string(recipeId) + ".json";
+
+	ofstream ofstream(dataFile);
+	if (!ofstream.bad())
+	{
+		ofstream << recipeData;
+		ofstream.close();
+	}
+
+	pPlayer->SendText("RecipeID saved in recipe folder.", LTT_DEFAULT);
+
+	return true;
 }
+
+
+
 
 CLIENT_COMMAND(exportallrecipe, "", "Export all recipes", ADMIN_ACCESS)
 {
+	for (auto pc : g_pPortalDataEx->_craftTableData._precursorMap)
+	{
+		CCraftOperation *craft = g_pPortalDataEx->_craftTableData._operations.lookup(pc.second);
+		if (!craft)
+		{
+			pPlayer->SendText(csprintf("Unable to find recipe ID: %s.", pc.second), LTT_DEFAULT);
+			return true;
+		}
+
+		json recipeData;
+		craft->PackJson(recipeData);
+
+		string dataFile = std::to_string(pc.second) + ".json";
+
+		ofstream ofstream(dataFile);
+		if (!ofstream.bad())
+		{
+			ofstream << recipeData;
+			ofstream.close();
+		}
+	}
+
+	pPlayer->SendText("Recipes saved in recipe folder", LTT_DEFAULT);
+
 	return false;
 }
 
