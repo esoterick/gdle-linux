@@ -56,7 +56,9 @@ void RecipeFactory::UpdateCraftTableData(CCraftTable * craftData)
 
 		if (!opKey) // New recipe 
 		{
-			if (JsonCraftOperation *newrecipe = RecipeInJson(pc.RecipeID))
+			JsonCraftOperation* newrecipe = nullptr;
+			RecipeInJson(pc.RecipeID, newrecipe);
+			if (newrecipe != nullptr)
 			{
 				g_pPortalDataEx->_craftTableData._precursorMap[toolTarget] = pc.RecipeID;
 				g_pPortalDataEx->_craftTableData._operations[newrecipe->_recipeID] = GetCraftOpertionFromNewRecipe(newrecipe);
@@ -77,15 +79,18 @@ void RecipeFactory::UpdateCraftTableData(CCraftTable * craftData)
 	
 }
 
-JsonCraftOperation* RecipeFactory::RecipeInJson(DWORD recipeid)
+bool RecipeFactory::RecipeInJson(DWORD recipeid, JsonCraftOperation *recipe)
 {
 	for (auto rp : _jsonRecipes)
 	{
 		if (rp._recipeID == recipeid)
-			return &rp;
+		{
+			recipe = &rp;
+			return true;
+		}
 	}
 
-	return nullptr;
+	return false;
 }
 
 CCraftOperation RecipeFactory::GetCraftOpertionFromNewRecipe(JsonCraftOperation * recipe)

@@ -14,7 +14,7 @@ private:
 	PackableListWithJson<CraftPrecursor> _jsonPrecursorMap;
 	PackableListWithJson<JsonCraftOperation> _jsonRecipes;
 
-	JsonCraftOperation* RecipeInJson(DWORD recipeid);
+	bool RecipeInJson(DWORD recipeid, JsonCraftOperation* recipe);
 	CCraftOperation GetCraftOpertionFromNewRecipe(JsonCraftOperation* recipe);
 };
 
