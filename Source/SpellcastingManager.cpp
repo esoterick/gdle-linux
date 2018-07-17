@@ -1781,6 +1781,9 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 						if (int resistMagic = target->InqIntQuality(RESIST_MAGIC_INT, 0, FALSE))
 						{
+							if (resistMagic >= 9999 && topLevelOwner == m_pWeenie)
+								continue;
+
 							if (resistMagic >= 9999 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD)resistMagic))
 							{
 								target->EmitSound(Sound_ResistSpell, 1.0f, false);
@@ -1976,6 +1979,9 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 										if (int resistMagic = target->InqIntQuality(RESIST_MAGIC_INT, 0, FALSE))
 										{
+											if (resistMagic >= 9999 && topLevelOwner == m_pWeenie)
+												continue;
+
 											if (resistMagic >= 9999 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD)resistMagic))
 											{
 												target->EmitSound(Sound_ResistSpell, 1.0f, false);
