@@ -814,15 +814,6 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 		return targetError;
 	}
-	else if (!bFizzled && m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
-	{
-		// fizzle
-		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
-		m_pWeenie->AdjustMana(-5);
-		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
-
-		bFizzled = true;
-	}
 
 
 	// cast source is assumed to be valid at this point
@@ -835,6 +826,15 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 			// fizzle
 			m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
 			m_pWeenie->AdjustMana(-5);
+
+			bFizzled = true;
+		}
+		else if (!bFizzled && m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
+		{
+			// fizzle
+			m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
+			m_pWeenie->AdjustMana(-5);
+			m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
 
 			bFizzled = true;
 		}
