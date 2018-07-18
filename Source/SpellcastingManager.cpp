@@ -838,15 +838,6 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 			bFizzled = true;
 		}
-		else if (m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
-		{
-			// fizzle
-			m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
-			m_pWeenie->AdjustMana(-5);
-			m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
-
-			bFizzled = true;
-		}
 
 		if (!m_UsedComponents.empty()) //we used components, so check if any need burning
 		{
@@ -1770,7 +1761,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 								topLevelOwner->OnResistSpell(m_pWeenie);
 
 								// Cast on Strike
-								if (m_pWeenie != topLevelOwner)
+								if (m_pWeenie != m_pWeenie->GetWorldTopLevelOwner())
 								{
 									m_pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
 								}
