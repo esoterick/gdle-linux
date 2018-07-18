@@ -829,15 +829,15 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 			bFizzled = true;
 		}
-		else if (!bFizzled && m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
-		{
-			// fizzle
-			m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
-			m_pWeenie->AdjustMana(-5);
-			m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
+			else if (!bFizzled && m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
+	{
+		// fizzle
+		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
+		m_pWeenie->AdjustMana(-5);
+		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
 
-			bFizzled = true;
-		}
+		bFizzled = true;
+	}
 
 		if (!m_UsedComponents.empty()) //we used components, so check if any need burning
 		{
@@ -1741,8 +1741,12 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 						{
 							if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
 							{
-								m_pWeenie->AsPlayer()->UpdatePKActivity();
-								target->AsPlayer()->UpdatePKActivity();
+								// Only Update PK Activity if both target and caster are PK, Prevents PKs from tagging NPKs for PK activity.
+								if (m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+								{
+									m_pWeenie->AsPlayer()->UpdatePKActivity();
+									target->AsPlayer()->UpdatePKActivity();
+								}
 							}
 
 							if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
@@ -1950,6 +1954,13 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 									{
 										if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
 										{
+											// Only Update PK Activity if both target and caster are PK, Prevents PKs from tagging NPKs for PK activity.
+											if (m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+											{
+												m_pWeenie->AsPlayer()->UpdatePKActivity();
+												target->AsPlayer()->UpdatePKActivity();
+											}
+
 											if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
 											{
 												continue;
@@ -2429,6 +2440,15 @@ bool CSpellcastingManager::DoTransferSpell(CWeenieObject *other, const TransferS
 			return false;
 		}
 
+		// NPKs should not be able to heal PKs
+		if (m_pWeenie && other && m_pWeenie->AsPlayer() && other->AsPlayer())
+		{
+			if (!m_pWeenie->AsPlayer()->IsPK() && other->AsPlayer()->IsPK())
+			{
+				return false;
+			}
+		}
+
 		// try to resist
 		if (m_SpellCastData.spell->_bitfield & Resistable_SpellIndex)
 		{
@@ -2604,6 +2624,15 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	if (!target || target->IsDead())
 		return false;
 
+	// NPKs should not be able to heal PKs
+	if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+	{
+		if (!m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+		{
+			return false;
+		}
+	}
+
 	BoostSpellEx *meta = (BoostSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 
 	bool isDamage = (meta->_boost < 0);
@@ -2627,8 +2656,11 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	{
 		if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
 		{
-			m_pWeenie->AsPlayer()->UpdatePKActivity();
-			target->AsPlayer()->UpdatePKActivity();
+			if (m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+			{
+				m_pWeenie->AsPlayer()->UpdatePKActivity();
+				target->AsPlayer()->UpdatePKActivity();
+			}
 		}
 
 		// try to resist
