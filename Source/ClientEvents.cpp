@@ -3365,15 +3365,15 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			else
 			{
-				m_pPlayer->SetPositionSimple(&position, TRUE);
+				//m_pPlayer->SetPositionSimple(&position, TRUE);
 				
-				/*
+				
 				CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &position, 0);
 				if (transit)
 				{
 					m_pPlayer->SetPositionInternal(transit);
 				}
-				*/
+				
 			}
 
 			// m_pPlayer->m_Position = position;
@@ -3503,15 +3503,15 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			}
 			else
 			{
-				m_pPlayer->SetPositionSimple(&moveToState.position, TRUE);
+				//m_pPlayer->SetPositionSimple(&moveToState.position, TRUE);
 
-				/*
+				
 				CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &moveToState.position, 0);
 				if (transit)
 				{
 					m_pPlayer->SetPositionInternal(transit);
 				}
-				*/
+				
 			}
 
 			// m_pPlayer->m_Position = moveToState.position; // should interpolate to this, but oh well
