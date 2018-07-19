@@ -2343,32 +2343,40 @@ CLIENT_COMMAND(exportrecipe, "<recipeid>", "Export recipe number", ADMIN_ACCESS)
 
 
 
-CLIENT_COMMAND(exportallrecipe, "", "Export all recipes", ADMIN_ACCESS)
+CLIENT_COMMAND(importrecipe, "<recipeid>", "Import a recipes", ADMIN_ACCESS)
 {
-	for (auto pc : g_pPortalDataEx->_craftTableData._precursorMap)
+	if (argc < 1)
 	{
-		CCraftOperation *craft = g_pPortalDataEx->_craftTableData._operations.lookup(pc.second);
-		if (!craft)
-		{
-			pPlayer->SendText(csprintf("Unable to find recipe ID: %s.", pc.second), LTT_DEFAULT);
-			return true;
-		}
-
-		json recipeData;
-		craft->PackJson(recipeData);
-
-		string dataFile = std::to_string(pc.second) + ".json";
-
-		ofstream ofstream(dataFile);
-		if (!ofstream.bad())
-		{
-			ofstream << recipeData;
-			ofstream.close();
-		}
+		pPlayer->SendText("No recipe ID given", LTT_DEFAULT);
+		return true;
 	}
 
-	pPlayer->SendText("Recipes saved in recipe folder", LTT_DEFAULT);
+	DWORD recipeId = stoi(argv[0], NULL, 10);
 
+	// Get CCraftOperation that aligns with recipeid
+	CCraftOperation *craft = g_pPortalDataEx->_craftTableData._operations.lookup(recipeId);
+
+	if (!craft)
+	{
+		pPlayer->SendText(csprintf("Unable to find recipe ID: %s.", recipeId), LTT_DEFAULT);
+		return true;
+	}
+
+	string dataFile = std::to_string(recipeId) + ".json";
+
+	ifstream ifstream(dataFile.c_str());
+	if (ifstream.is_open())
+	{
+		json recipeData;
+		ifstream >> recipeData;
+		ifstream.close();
+		
+		CCraftOperation newcraft;
+		newcraft.UnPackJson(recipeData);
+		g_pPortalDataEx->_craftTableData._operations[recipeId] = newcraft;
+	}
+
+	pPlayer->SendText(csprintf("RecipeID %d loaded and updated.", recipeId), LTT_DEFAULT);
 	return false;
 }
 
