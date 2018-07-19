@@ -7,7 +7,49 @@
 
 DEFINE_UNPACK_JSON(CCraftOperation)
 {
-	return false;
+	_unk = reader["_unk"];
+	_skill = (STypeSkill)reader["_skill"];
+	_difficulty = reader["_difficulty"];
+	_SkillCheckFormulaType = reader["_SkillCheckFormulaType"];
+	_successWcid = reader["_successWcid"];
+	_successAmount = reader["_successAmount"];
+	_successMessage = reader["_successMessage"];
+	_failWcid = reader["_failWcid"];
+	_failAmount = reader["_failAmount"];
+	_failMessage = reader["_failMessage"];
+
+	_successConsumeTargetChance = reader["_successConsumeTargetChance"];
+	_successConsumeTargetAmount = reader["_successConsumeTargetAmount"];
+	_successConsumeTargetMessage = reader["_successConsumeTargetMessage"];
+
+	_successConsumeToolChance = reader["_successConsumeToolChance"];
+	_successConsumeToolAmount = reader["_successConsumeToolAmount"];
+	_successConsumeToolMessage = reader["_successConsumeToolMessage"];
+
+	_failureConsumeTargetChance = reader["_failureConsumeTargetChance"];
+	_failureConsumeTargetAmount = reader["_failureConsumeTargetAmount"];
+	_failureConsumeTargetMessage = reader["_failureConsumeTargetMessage"];
+
+	_failureConsumeToolChance = reader["_failureConsumeToolChance"];
+	_failureConsumeToolAmount = reader["_failureConsumeToolAmount"];
+	_failureConsumeToolMessage = reader["_failureConsumeToolMessage"];
+
+	const json &reqs = reader["Requirements"];
+
+	for (const json &r : reqs)
+	{
+		_requirements->UnPackJson(r);
+	}
+
+	const json &mods = reader["Mods"];
+
+	for (const json &m : mods)
+	{
+		_mods->UnPackJson(m);
+	}
+
+	_dataID = reader["_dataID"];
+	return true;
 }
 
 DEFINE_PACK(CCraftOperation)
@@ -168,89 +210,12 @@ DEFINE_PACK_JSON(CraftRequirements)
 
 DEFINE_UNPACK_JSON(CraftRequirements) { return false; }
 
-DEFINE_PACK(CraftMods) {}
-DEFINE_UNPACK(CraftMods)
-{
-	_intMod.UnPack(pReader);
-	_didMod.UnPack(pReader);
-	_iidMod.UnPack(pReader);
-	_floatMod.UnPack(pReader);
-	_stringMod.UnPack(pReader);
-	_boolMod.UnPack(pReader);
-
-	_ModifyHealth = pReader->Read<int>();
-	_ModifyStamina = pReader->Read<int>();
-	_ModifyMana = pReader->Read<int>();
-	_RequiresHealth = pReader->Read<int>();
-	_RequiresStamina = pReader->Read<int>();
-	_RequiresMana = pReader->Read<int>();
-
-	_unknown7 = pReader->Read<BOOL>();
-	_modificationScriptId = pReader->Read<DWORD>(); // dataID
-
-	_unknown9 = pReader->Read<int>();
-	_unknown10 = pReader->Read<DWORD>(); // instanceID
-
-										 /*
-										 printf("%u %u %u %u %u %u %d %d %d %d %d %d %d %u %d %u\n",
-										 (DWORD)_intMod.size(), (DWORD)_didMod.size(), (DWORD)_iidMod.size(),
-										 (DWORD)_floatMod.size(), (DWORD)_stringMod.size(), (DWORD)_boolMod.size(),
-										 a, b, c, d, e, f, g, h, i, j);
-										 */
-
-	return true;
-
-}
-DEFINE_PACK_JSON(CraftMods) 
-{
-	_intMod.PackJson(writer);
-	_didMod.PackJson(writer);
-	_iidMod.PackJson(writer);
-	_floatMod.PackJson(writer);
-	_stringMod.PackJson(writer);
-	_boolMod.PackJson(writer);
-
-	writer["_ModifyHealth"] = _ModifyHealth;
-	writer["_ModifyStamina"] = _ModifyStamina;
-	writer["_ModifyMana"] = _ModifyMana;
-	writer["_RequiresHealth"] = _RequiresHealth;
-	writer["_RequiresStamina"] = _RequiresStamina;
-	writer["_RequiresMana"] = _RequiresMana;
-	writer["_unknown7"] = _unknown7;
-	writer["_modificationScriptId"] = _modificationScriptId;
-	writer["_unknown9"] = _unknown9;
-	writer["_unknown10"] = _unknown10;
-}
-
-DEFINE_UNPACK_JSON(CraftMods) { return false; }
-
 
 DEFINE_UNPACK_JSON(CraftPrecursor)
 {
-	if (reader.find("Tool") != reader.end())
-	{
-		Tool = reader["Tool"];
-	}
-	else
-	{
-		return false;
-	}
-	if (reader.find("Target") != reader.end())
-	{
-		Target = reader["Target"];
-	}
-	else
-	{
-		return false;
-	}
-	if (reader.find("RecipeID") != reader.end())
-	{
-		RecipeID = reader["RecipeID"];
-	}
-	else
-	{
-		return false;
-	}
+	Tool = reader["Tool"];
+	Target = reader["Target"];
+	RecipeID = reader["RecipeID"];
 	return true;
 }
 
@@ -341,7 +306,10 @@ inline void TYPEMod<TStatType, TDataType>::PackJson(json & writer)
 template<typename TStatType, typename TDataType>
 inline bool TYPEMod<TStatType, TDataType>::UnPackJson(const json & reader)
 {
-
+	_unk = reader["_unk"];
+	_operationType = reader["_operationType"];
+	_stat = (TStatType)reader["_stat"];
+	_value = reader["_value"];
 	return false;
 }
 
@@ -372,5 +340,181 @@ inline void TYPERequirement<TStatType, TDataType>::PackJson(json & writer)
 template<typename TStatType, typename TDataType>
 inline bool TYPERequirement<TStatType, TDataType>::UnPackJson(const json & reader)
 {
+	_stat = (TStatType)reader["_stat"];
+	_value = reader["_value"];
+	_operationType = reader["_operationType"];
+	_message = reader["_message"];
 	return false;
+}
+
+void CraftMods::Pack(BinaryWriter * pWriter)
+{
+}
+
+bool CraftMods::UnPack(BinaryReader * pReader)
+{
+	_intMod.UnPack(pReader);
+	_didMod.UnPack(pReader);
+	_iidMod.UnPack(pReader);
+	_floatMod.UnPack(pReader);
+	_stringMod.UnPack(pReader);
+	_boolMod.UnPack(pReader);
+
+	_ModifyHealth = pReader->Read<int>();
+	_ModifyStamina = pReader->Read<int>();
+	_ModifyMana = pReader->Read<int>();
+	_RequiresHealth = pReader->Read<int>();
+	_RequiresStamina = pReader->Read<int>();
+	_RequiresMana = pReader->Read<int>();
+
+	_unknown7 = pReader->Read<BOOL>();
+	_modificationScriptId = pReader->Read<DWORD>(); // dataID
+
+	_unknown9 = pReader->Read<int>();
+	_unknown10 = pReader->Read<DWORD>(); // instanceID
+
+	return true;
+}
+
+void CraftMods::PackJson(json & writer)
+{
+	if (_intMod.size() > 0)
+	{
+		json intMods;
+
+		for (DWORD i = 0; i < 3; i++)
+		{
+			json req;
+			_intMod.PackJson(req);
+			intMods.push_back(req);
+		}
+
+		writer["IntRequirements"] = intMods;
+	}
+
+	if (_didMod.size() > 0)
+	{
+		json didMod;
+
+		for (DWORD i = 0; i < 3; i++)
+		{
+			json req;
+			_didMod.PackJson(req);
+			didMod.push_back(req);
+		}
+
+		writer["DIDRequirements"] = didMod;
+	}
+
+	if (_iidMod.size() > 0)
+	{
+		json iidMod;
+
+		for (DWORD i = 0; i < 3; i++)
+		{
+			json req;
+			_iidMod.PackJson(req);
+			iidMod.push_back(req);
+		}
+
+		writer["IIDRequirements"] = iidMod;
+	}
+
+	if (_floatMod.size() > 0)
+	{
+		json floatMod;
+
+		for (DWORD i = 0; i < 3; i++)
+		{
+			json req;
+			_floatMod.PackJson(req);
+			floatMod.push_back(req);
+		}
+
+		writer["FloatRequirements"] = floatMod;
+	}
+
+	if (_stringMod.size() > 0)
+	{
+		json stringMod;
+
+		for (DWORD i = 0; i < 3; i++)
+		{
+			json req;
+			_stringMod.PackJson(req);
+			stringMod.push_back(req);
+		}
+
+		writer["StringRequirements"] = stringMod;
+	}
+
+	if (_boolMod.size() > 0)
+	{
+		json boolMod;
+
+		for (DWORD i = 0; i < 3; i++)
+		{
+			json req;
+			_boolMod.PackJson(req);
+			boolMod.push_back(req);
+		}
+
+		writer["BoolRequirements"] = boolMod;
+	}
+
+	writer["_ModifyHealth"] = _ModifyHealth;
+	writer["_ModifyStamina"] = _ModifyStamina;
+	writer["_ModifyMana"] = _ModifyMana;
+	writer["_RequiresHealth"] = _RequiresHealth;
+	writer["_RequiresStamina"] = _RequiresStamina;
+	writer["_RequiresMana"] = _RequiresMana;
+	writer["_unknown7"] = _unknown7;
+	writer["_modificationScriptId"] = _modificationScriptId;
+	writer["_unknown9"] = _unknown9;
+	writer["_unknown10"] = _unknown10;
+}
+
+bool CraftMods::UnPackJson(const json & reader)
+{
+	if (reader.find("IntRequirements") != reader.end())
+	{
+		_intMod.UnPackJson(reader);
+	}
+
+	if (reader.find("DIDRequirements") != reader.end())
+	{
+		_didMod.UnPackJson(reader);
+	}
+
+	if (reader.find("IIDRequirements") != reader.end())
+	{
+		_iidMod.UnPackJson(reader);
+	}
+
+	if (reader.find("FloatRequirements") != reader.end())
+	{
+		_floatMod.UnPackJson(reader);
+	}
+
+	if (reader.find("StringRequirements") != reader.end())
+	{
+		_stringMod.UnPackJson(reader);
+	}
+
+	if (reader.find("BoolRequirements") != reader.end())
+	{
+		_boolMod.UnPackJson(reader);
+	}
+
+	_ModifyHealth = reader["_ModifyHealth"];
+	_ModifyStamina = reader["_ModifyStamina"];
+	_ModifyMana = reader["_ModifyMana"];
+	_RequiresHealth = reader["_RequiresHealth"];
+	_RequiresStamina = reader["_RequiresStamina"];
+	_RequiresMana = reader["_RequiresMana"];
+	_unknown7 = reader["_unknown7"];
+	_modificationScriptId = reader["_modificationScriptId"];
+	_unknown9 = reader["_unknown9"];
+	_unknown10 = reader["_unknown10"];
+	return true;
 }
