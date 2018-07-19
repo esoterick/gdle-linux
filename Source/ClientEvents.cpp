@@ -361,6 +361,12 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
+	if(m_pPlayer->m_Qualities.GetInt(HERITAGE_GROUP_INT, 0) == Lugian_HeritageGroup)
+		m_pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x9000216);
+
+	if (m_pPlayer->m_Qualities.GetInt(HERITAGE_GROUP_INT, 0) == Empyrean_HeritageGroup && m_pPlayer->m_Qualities.GetDID(MOTION_TABLE_DID, 0x9000001) == 0x9000001)
+		m_pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x9000207);
+
 	m_pPlayer->SendText("GDLEnhanced " SERVER_VERSION_NUMBER_STRING " " SERVER_VERSION_STRING, LTT_DEFAULT);
 	m_pPlayer->SendText("Maintained by the GDLE Development Team. Contact us at https://discord.gg/WzGX348", LTT_DEFAULT);
 	m_pPlayer->SendText("Powered by GamesDeadLol. Not an official Asheron's Call server.", LTT_DEFAULT);

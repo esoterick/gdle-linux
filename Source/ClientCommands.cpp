@@ -4692,7 +4692,7 @@ CLIENT_COMMAND(hover, "<on / off>", "Turns hovering on or off.", BASIC_ACCESS)
 	else if (!_stricmp(argv[0], "off") || !_stricmp(argv[0], "0"))
 	{
 		pPlayer->SendText("Hovering off. You must relog for the change to take effect.", LTT_DEFAULT);
-		pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x9000001);
+		pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x900020D);
 	}
 
 	return false;
