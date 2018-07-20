@@ -6,6 +6,7 @@
 #include "World.h"
 #include "SpellcastingManager.h"
 #include "EmoteManager.h"
+#include "CombatSystem.h"
 
 bool monster_brawl = 0;
 #define DEFAULT_AWARENESS_RANGE 40.0
@@ -400,7 +401,7 @@ bool MonsterAIManager::DoMeleeAttack()
 
 	m_pWeenie->TryMeleeAttack(pTarget->GetID(), height, power, motion);
 
-	m_fNextAttackTime = Timer::cur_time + 2.0f;
+	m_fNextAttackTime = Timer::cur_time + 2.0f + power;
 	m_fNextChaseTime = Timer::cur_time; // chase again anytime
 	m_fMinCombatStateTime = Timer::cur_time + m_fMinCombatStateDuration;
 
@@ -424,6 +425,7 @@ void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height
 		if (weapon)
 		{
 			AttackType attackType = (AttackType)weapon->InqIntQuality(ATTACK_TYPE_INT, 0);
+			DWORD style = m_pWeenie->get_minterp()->InqStyle();
 
 			if (attackType == (Thrust_AttackType | Slash_AttackType))
 			{
@@ -433,29 +435,16 @@ void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height
 					attackType = Thrust_AttackType;
 			}
 
-			CombatManeuver *combatManeuver;
-			
-			// some monster have undef'd attack heights (hollow?) which is index 0
-			combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(0, 3));
+			CombatManeuver *combatManeuver = NULL;
 
-			if (!combatManeuver)
+			for (DWORD i = 0; i < m_pWeenie->_combatTable->_num_combat_maneuvers; i++)
 			{
-				// and some don't
-				combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(1, 3));
+				int m = Random::GenInt(0, m_pWeenie->_combatTable->_num_combat_maneuvers - 1);
 
-				if (!combatManeuver)
+				if (m_pWeenie->_combatTable->_cmt[m].style == style && m_pWeenie->_combatTable->_cmt[m].attack_type == attackType)
 				{
-					combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::HIGH_ATTACK_HEIGHT);
-				
-					if (!combatManeuver)
-					{
-						combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::MEDIUM_ATTACK_HEIGHT);
-				
-						if (!combatManeuver)
-						{
-							combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::LOW_ATTACK_HEIGHT);
-						}
-					}
+					combatManeuver = &m_pWeenie->_combatTable->_cmt[m];
+					break;
 				}
 			}
 
@@ -468,39 +457,17 @@ void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height
 		else
 		{
 			AttackType attackType;
-			
-			if (*power >= 0.75f)
+
+			CombatManeuver *combatManeuver = NULL;
+
+			for (DWORD i = 0; i < m_pWeenie->_combatTable->_num_combat_maneuvers; i++)
 			{
-				attackType = Kick_AttackType;
-			}
-			else
-			{
-				attackType = Punch_AttackType;
-			}
+				int m = Random::GenInt(0, m_pWeenie->_combatTable->_num_combat_maneuvers - 1);
 
-			CombatManeuver *combatManeuver;
-
-			// some monster have undef'd attack heights (hollow?) which is index 0
-			combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(0, 3));
-
-			if (!combatManeuver)
-			{
-				// and some don't
-				combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, (ATTACK_HEIGHT)Random::GenUInt(1, 3));
-
-				if (!combatManeuver)
+				if (m_pWeenie->_combatTable->_cmt[m].style == Motion_HandCombat)
 				{
-					combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::HIGH_ATTACK_HEIGHT);
-
-					if (!combatManeuver)
-					{
-						combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::MEDIUM_ATTACK_HEIGHT);
-
-						if (!combatManeuver)
-						{
-							combatManeuver = m_pWeenie->_combatTable->TryGetCombatManuever(m_pWeenie->get_minterp()->InqStyle(), attackType, ATTACK_HEIGHT::LOW_ATTACK_HEIGHT);
-						}
-					}
+					combatManeuver = &m_pWeenie->_combatTable->_cmt[m];
+					break;
 				}
 			}
 
@@ -851,7 +818,7 @@ void MonsterAIManager::UpdateMeleeModeAttack()
 		GenerateRandomAttack(&motion, &height, &power);
 		m_pWeenie->TryMeleeAttack(pTarget->GetID(), height, power, motion);
 
-		m_fNextAttackTime = Timer::cur_time + 2.0f;
+		m_fNextAttackTime = Timer::cur_time + 2.0f + power;
 		m_fNextChaseTime = Timer::cur_time; // chase again anytime
 		m_fMinCombatStateTime = Timer::cur_time + m_fMinCombatStateDuration;
 	}
