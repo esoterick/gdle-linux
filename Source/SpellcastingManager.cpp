@@ -796,6 +796,9 @@ void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 
 int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 {
+	if (bFizzled)
+		return WERROR_NONE;
+
 	int targetError = CheckTargetValidity();
 	if (targetError && m_SpellCastData.range_check)
 	{
