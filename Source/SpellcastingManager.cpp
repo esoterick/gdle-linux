@@ -796,9 +796,6 @@ void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 
 int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 {
-	if (bFizzled)
-		return WERROR_NONE;
-
 	int targetError = CheckTargetValidity();
 	if (targetError && m_SpellCastData.range_check)
 	{
@@ -832,16 +829,15 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 			bFizzled = true;
 		}
-		else if (!bFizzled && m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
-		{
+			else if (!bFizzled && m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
+	{
 		// fizzle
 		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
 		m_pWeenie->AdjustMana(-5);
 		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
-		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_ERROR);
 
-		return WERROR_NONE;
-		}
+		bFizzled = true;
+	}
 
 		if (!m_UsedComponents.empty()) //we used components, so check if any need burning
 		{
@@ -1690,6 +1686,16 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 			if (CWeenieObject *castTarget = GetCastTarget())
 			{
+				// NPKs should not be able to buff PKs
+				if (m_pWeenie && castTarget && m_pWeenie->AsPlayer() && castTarget->AsPlayer())
+				{
+					if (!m_pWeenie->AsPlayer()->IsPK() && castTarget->AsPlayer()->IsPK())
+					{
+						bSpellPerformed = false;
+						break;
+					}
+				}
+
 				if (m_SpellCastData.spell->InqTargetType() != ITEM_TYPE::TYPE_ITEM_ENCHANTABLE_TARGET)
 				{
 					targets.push_back(castTarget);
@@ -1883,6 +1889,16 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 			if (!target->HasFellowship())
 				break;
+
+			// NPKs should not be able to buff PKs
+			if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+			{
+				if (!m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+				{
+					bSpellPerformed = false;
+					break;
+				}
+			}
 
 			else
 			{
@@ -3289,7 +3305,6 @@ void CSpellcastingManager::Update()
 		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
 		m_pWeenie->AdjustMana(-5);
 		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
-		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_ERROR);
 
 		int error = LaunchSpellEffect(TRUE);
 		EndCast(error);
