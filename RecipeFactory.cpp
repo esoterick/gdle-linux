@@ -34,9 +34,15 @@ void RecipeFactory::Initialize()
 		rcStream >> recipeData;
 		rcStream.close();
 	}
-	_jsonPrecursorMap.UnPackJson(precursorData);
-	_jsonRecipes.UnPackJson(recipeData);
 
+	if(precursorData.size() > 0)
+		_jsonPrecursorMap.UnPackJson(precursorData);
+
+	if(recipeData.size() > 0)
+		_jsonRecipes.UnPackJson(recipeData);
+
+	if(_jsonPrecursorMap.size() > 0 || _jsonRecipes.size() > 0)
+		UpdateCraftTableData();
 }
 
 void RecipeFactory::UpdateCraftTableData()
