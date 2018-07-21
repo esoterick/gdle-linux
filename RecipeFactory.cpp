@@ -39,7 +39,7 @@ void RecipeFactory::Initialize()
 
 }
 
-void RecipeFactory::UpdateCraftTableData(CCraftTable * craftData)
+void RecipeFactory::UpdateCraftTableData()
 {
 	// for each precursor see if it exists in the table
 	for (auto pc : _jsonPrecursorMap)
@@ -57,8 +57,7 @@ void RecipeFactory::UpdateCraftTableData(CCraftTable * craftData)
 		if (!opKey) // New recipe 
 		{
 			JsonCraftOperation* newrecipe = nullptr;
-			RecipeInJson(pc.RecipeID, newrecipe);
-			if (newrecipe != nullptr)
+			if (RecipeInJson(pc.RecipeID, newrecipe))
 			{
 				g_pPortalDataEx->_craftTableData._precursorMap[toolTarget] = pc.RecipeID;
 				g_pPortalDataEx->_craftTableData._operations[newrecipe->_recipeID] = GetCraftOpertionFromNewRecipe(newrecipe);
