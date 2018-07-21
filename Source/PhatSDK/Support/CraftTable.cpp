@@ -229,32 +229,32 @@ DEFINE_PACK_JSON(CraftPrecursor)
 DEFINE_UNPACK_JSON(JsonCraftOperation)
 {
 	_recipeID = reader["RecipeID"];
-	_unk = reader["unknown_1"];
-	_skill = (STypeSkill)reader["Skill"];
-	_difficulty = reader["Difficulty"];
-	_SkillCheckFormulaType = reader["SkillCheckFormulaType"];
-	_successWcid = reader["SuccessWCID"];
-	_successAmount = reader["SuccessAmount"];
-	_successMessage = reader["SuccessMessage"];
-	_failWcid = reader["FailWCID"];
-	_failAmount = reader["FailAmount"];
-	_failMessage = reader["FailMessage"];
+	_unk = reader["_unk"];
+	_skill = (STypeSkill)reader["_skill"];
+	_difficulty = reader["_difficulty"];
+	_SkillCheckFormulaType = reader["_SkillCheckFormulaType"];
+	_successWcid = reader["_successWcid"];
+	_successAmount = reader["_successAmount"];
+	_successMessage = reader["_successMessage"];
+	_failWcid = reader["_failWcid"];
+	_failAmount = reader["_failAmount"];
+	_failMessage = reader["_failMessage"];
 
-	_successConsumeTargetChance = reader["SuccessConsumeTargetChance"];
-	_successConsumeTargetAmount = reader["SuccessConsumeTargetAmount"];
-	_successConsumeTargetMessage = reader["SuccessConsumeTargetMessage"];
+	_successConsumeTargetChance = reader["_successConsumeTargetChance"];
+	_successConsumeTargetAmount = reader["_successConsumeTargetAmount"];
+	_successConsumeTargetMessage = reader["_successConsumeTargetMessage"];
 
-	_successConsumeToolChance = reader["SuccessConsumeToolChance"];
-	_successConsumeToolAmount = reader["SuccessConsumeToolAmount"];
-	_successConsumeToolMessage = reader["SuccessConsumeToolMessage"];
+	_successConsumeToolChance = reader["_successConsumeToolChance"];
+	_successConsumeToolAmount = reader["_successConsumeToolAmount"];
+	_successConsumeToolMessage = reader["_successConsumeToolMessage"];
 
-	_failureConsumeTargetChance = reader["FailureConsumeTargetChance"];
-	_failureConsumeTargetAmount = reader["FailureConsumeTargetAmount"];
-	_failureConsumeTargetMessage = reader["FailureConsumeTargetMessage"];
+	_failureConsumeTargetChance = reader["_failureConsumeTargetChance"];
+	_failureConsumeTargetAmount = reader["_failureConsumeTargetAmount"];
+	_failureConsumeTargetMessage = reader["_failureConsumeTargetMessage"];
 
-	_failureConsumeToolChance = reader["FailureConsumeToolChance"];
-	_failureConsumeToolAmount = reader["FailureConsumeToolAmount"];
-	_failureConsumeToolMessage = reader["FailureConsumeToolMessage"];
+	_failureConsumeToolChance = reader["_failureConsumeToolChance"];
+	_failureConsumeToolAmount = reader["_failureConsumeToolAmount"];
+	_failureConsumeToolMessage = reader["_failureConsumeToolMessage"];
 
 	const json &reqs = reader["Requirements"];
 
@@ -270,7 +270,7 @@ DEFINE_UNPACK_JSON(JsonCraftOperation)
 		_mods->UnPackJson(m);
 	}
 
-	_dataID = reader["DataID"];
+	_dataID = reader["_dataID"];
 	return true;
 }
 
