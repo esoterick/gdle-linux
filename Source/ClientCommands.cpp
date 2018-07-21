@@ -4698,6 +4698,22 @@ CLIENT_COMMAND(hover, "<on / off>", "Turns hovering on or off.", BASIC_ACCESS)
 	return false;
 }
 
+CLIENT_COMMAND(movetome, "", "Brings an object to you.", ADMIN_ACCESS)
+{
+	CWeenieObject *pObject = g_pWorld->FindWithinPVS(pPlayer, pPlayer->m_LastAssessed);
+	if (pObject)
+	{
+		pObject->Movement_Teleport(pPlayer->GetPosition());
+	}
+	else
+	{
+		pPlayer->SendText("Please assess a valid object you wish to move!", LTT_DEFAULT);
+		return true;
+	}
+
+	return false;
+}
+
 
 const char* CommandBase::Info(CommandEntry* pCommand)
 {
