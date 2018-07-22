@@ -18,7 +18,7 @@ void RecipeFactory::Reset()
 void RecipeFactory::Initialize()
 {
 	json precursorData;
-	std::ifstream rpcStream("data\\json\\recipeprecursor.json");
+	std::ifstream rpcStream("data\\json\\recipeprecursors.json");
 	if (rpcStream.is_open())
 	{
 
@@ -50,8 +50,8 @@ void RecipeFactory::UpdateCraftTableData()
 	// for each precursor see if it exists in the table
 	for (auto pc : _jsonPrecursorMap)
 	{
-		DWORD toolTarget = ((DWORD64)pc.Tool << 32 | pc.Target);
-		DWORD targetTool = ((DWORD64)pc.Target << 32 | pc.Tool);
+		DWORD64 toolTarget = ((DWORD64)pc.Tool << 32) | pc.Target;
+		DWORD64 targetTool = ((DWORD64)pc.Target << 32) | pc.Tool;
 
 		const DWORD *opKey = g_pPortalDataEx->_craftTableData._precursorMap.lookup(toolTarget);
 
@@ -62,11 +62,11 @@ void RecipeFactory::UpdateCraftTableData()
 
 		if (!opKey) // New recipe 
 		{
-			JsonCraftOperation* newrecipe = nullptr;
-			if (RecipeInJson(pc.RecipeID, newrecipe))
+			JsonCraftOperation newrecipe;
+			if (RecipeInJson(pc.RecipeID, &newrecipe))
 			{
 				g_pPortalDataEx->_craftTableData._precursorMap[toolTarget] = pc.RecipeID;
-				g_pPortalDataEx->_craftTableData._operations[newrecipe->_recipeID] = GetCraftOpertionFromNewRecipe(newrecipe);
+				g_pPortalDataEx->_craftTableData._operations[newrecipe._recipeID] = GetCraftOpertionFromNewRecipe(&newrecipe);
 			}
 			else
 			{
@@ -90,7 +90,7 @@ bool RecipeFactory::RecipeInJson(DWORD recipeid, JsonCraftOperation *recipe)
 	{
 		if (rp._recipeID == recipeid)
 		{
-			recipe = &rp;
+			*recipe = rp;
 			return true;
 		}
 	}

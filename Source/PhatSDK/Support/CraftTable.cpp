@@ -208,7 +208,39 @@ DEFINE_PACK_JSON(CraftRequirements)
 	_boolRequirement.PackJson(writer);
 }
 
-DEFINE_UNPACK_JSON(CraftRequirements) { return false; }
+DEFINE_UNPACK_JSON(CraftRequirements)
+{
+	if (reader.find("IntRequirements") != reader.end())
+	{
+		_intRequirement.UnPackJson(reader);
+	}
+
+	if (reader.find("DIDRequirements") != reader.end())
+	{
+		_didRequirement.UnPackJson(reader);
+	}
+
+	if (reader.find("IIDRequirements") != reader.end())
+	{
+		_iidRequirement.UnPackJson(reader);
+	}
+
+	if (reader.find("FloatRequirements") != reader.end())
+	{
+		_floatRequirement.UnPackJson(reader);
+	}
+
+	if (reader.find("StringRequirements") != reader.end())
+	{
+		_stringRequirement.UnPackJson(reader);
+	}
+
+	if (reader.find("BoolRequirements") != reader.end())
+	{
+		_boolRequirement.UnPackJson(reader);
+	}
+	return true; 
+}
 
 
 DEFINE_UNPACK_JSON(CraftPrecursor)
