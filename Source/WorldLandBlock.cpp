@@ -929,8 +929,9 @@ BOOL CWorldLandBlock::Think()
 					{
 						if (player->_nextTryFixBrokenPosition < Timer::cur_time)
 						{
-							player->_nextTryFixBrokenPosition = Timer::cur_time + 5.0;
-							player->Movement_Teleport(Position(0xA9B4001F, Vector(87.750603f, 147.722321f, 66.005005f), Quaternion(0.011819f, 0.000000, 0.000000, -0.999930f)), false);
+							player->_nextTryFixBrokenPosition = Timer::cur_time + 2.0;
+							pEntity->cell = pEntity->_lastGoodCell;
+							//player->Movement_Teleport(Position(0xA9B4001F, Vector(87.750603f, 147.722321f, 66.005005f), Quaternion(0.011819f, 0.000000, 0.000000, -0.999930f)), false);
 						}
 					}
 				}
