@@ -3293,7 +3293,7 @@ void CSpellcastingManager::Update()
 		m_bCasting = false;
 	}
 
-	if (m_pWeenie->IsInPeaceMode())
+	if (m_pWeenie->AsPlayer() && m_pWeenie->IsInPeaceMode())
 	{
 		// fizzle if you're no longer in combat mode.
 		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
