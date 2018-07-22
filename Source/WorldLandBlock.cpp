@@ -923,7 +923,7 @@ BOOL CWorldLandBlock::Think()
 					checkMe = false;
 				}
 
-				if (!pEntity->cell)
+				if (!pEntity->cell && !cell_id)
 				{
 					if (CPlayerWeenie *player = pEntity->AsPlayer())
 					{
