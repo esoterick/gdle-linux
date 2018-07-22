@@ -1153,7 +1153,8 @@ void CPhysicsObj::leave_cell(BOOL is_changing_cell)
 	if (part_array)
 		part_array->RemoveLightsFromCell(cell);
 
-	cell = NULL;
+	if (!is_changing_cell)
+		cell = NULL;
 }
 
 

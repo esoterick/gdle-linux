@@ -330,6 +330,7 @@ public:
 
 	bool IsGeneratorSlotReady(int slot);
 	void InitCreateGenerator();
+	void InitCreateGeneratorOnDeath();
 
 	bool IsStorage();
 	bool CanPickup(); // custom
@@ -679,7 +680,12 @@ public:
 	virtual void IncrementQuest(const char *questName) { }
 	virtual void DecrementQuest(const char *questName) { }
 	virtual void EraseQuest(const char *questName) { }
+	virtual void SetQuestCompletions(const char *questName, int numCompletions) { }
 
+	virtual std::string Ktref(const char *questName) { return ""; }
+	virtual unsigned int InqQuestMax(const char *questName) { return 0; }
+
+	
 	bool LearnSpell(DWORD spell_id, bool showTextAndEffect);
 
 	BYTE _stackSequence = 0;

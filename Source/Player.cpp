@@ -3595,6 +3595,21 @@ void CPlayerWeenie::EraseQuest(const char *questName)
 	_questTable.RemoveQuest(questName);
 }
 
+void CPlayerWeenie::SetQuestCompletions(const char *questName, int numCompletions)
+{
+	_questTable.SetQuestCompletions(questName, numCompletions);
+}
+
+std::string CPlayerWeenie::Ktref(const char *questName)
+{
+	return _questTable.Ktref(questName);
+}
+
+unsigned int CPlayerWeenie::InqQuestMax(const char *questName)
+{
+	return _questTable.InqQuestMax(questName);
+}
+
 CWandSpellUseEvent::CWandSpellUseEvent(DWORD wandId, DWORD targetId)
 {
 	_wandId = wandId;
