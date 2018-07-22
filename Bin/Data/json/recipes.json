@@ -1,0 +1,139 @@
+[
+  {
+    "Mods": [
+      {
+        "_ModifyHealth": 0,
+        "_ModifyMana": 0,
+        "_ModifyStamina": 0,
+        "_RequiresHealth": 0,
+        "_RequiresMana": 0,
+        "_RequiresStamina": 0,
+        "_modificationScriptId": 0,
+        "_unknown10": 0,
+        "_unknown7": false,
+        "_unknown9": 0
+      },
+      {
+        "_ModifyHealth": 0,
+        "_ModifyMana": 0,
+        "_ModifyStamina": 0,
+        "_RequiresHealth": 0,
+        "_RequiresMana": 0,
+        "_RequiresStamina": 0,
+        "_modificationScriptId": 0,
+        "_unknown10": 0,
+        "_unknown7": false,
+        "_unknown9": 0
+      },
+      {
+        "_ModifyHealth": 0,
+        "_ModifyMana": 0,
+        "_ModifyStamina": 0,
+        "_RequiresHealth": 0,
+        "_RequiresMana": 0,
+        "_RequiresStamina": 0,
+        "_modificationScriptId": 0,
+        "_unknown10": 0,
+        "_unknown7": false,
+        "_unknown9": 0
+      },
+      {
+        "_ModifyHealth": 0,
+        "_ModifyMana": 0,
+        "_ModifyStamina": 0,
+        "_RequiresHealth": 0,
+        "_RequiresMana": 0,
+        "_RequiresStamina": 0,
+        "_modificationScriptId": 0,
+        "_unknown10": 0,
+        "_unknown7": false,
+        "_unknown9": 0
+      },
+      {
+        "_ModifyHealth": 0,
+        "_ModifyMana": 0,
+        "_ModifyStamina": 0,
+        "_RequiresHealth": 0,
+        "_RequiresMana": 0,
+        "_RequiresStamina": 0,
+        "_modificationScriptId": 0,
+        "_unknown10": 0,
+        "_unknown7": false,
+        "_unknown9": 0
+      },
+      {
+        "_ModifyHealth": 0,
+        "_ModifyMana": 0,
+        "_ModifyStamina": 0,
+        "_RequiresHealth": 0,
+        "_RequiresMana": 0,
+        "_RequiresStamina": 0,
+        "_modificationScriptId": 0,
+        "_unknown10": 0,
+        "_unknown7": false,
+        "_unknown9": 0
+      },
+      {
+        "_ModifyHealth": 0,
+        "_ModifyMana": 0,
+        "_ModifyStamina": 0,
+        "_RequiresHealth": 0,
+        "_RequiresMana": 0,
+        "_RequiresStamina": 0,
+        "_modificationScriptId": 0,
+        "_unknown10": 0,
+        "_unknown7": false,
+        "_unknown9": 0
+      },
+      {
+        "_ModifyHealth": 0,
+        "_ModifyMana": 0,
+        "_ModifyStamina": 0,
+        "_RequiresHealth": 0,
+        "_RequiresMana": 0,
+        "_RequiresStamina": 0,
+        "_modificationScriptId": 0,
+        "_unknown10": 0,
+        "_unknown7": false,
+        "_unknown9": 0
+      }
+    ],
+    "Requirements": [
+      "IntRequirements",
+      [
+        {
+          "_message": "You need 10 meats for this recipe.",
+          "_operationType": 3,
+          "_stat": 12,
+          "_value": 10
+        }
+      ],
+      null,
+      null
+    ],
+    "_SkillCheckFormulaType": 0,
+    "_dataID": 0,
+    "_difficulty": 120,
+    "_failAmount": 0,
+    "_failMessage": "You fail to carve the meat.",
+    "_failWcid": 0,
+    "_failureConsumeTargetAmount": 10,
+    "_failureConsumeTargetChance": 1.0,
+    "_failureConsumeTargetMessage": "",
+    "_failureConsumeToolAmount": 0,
+    "_failureConsumeToolChance": 0.0,
+    "_failureConsumeToolMessage": "",
+    "RecipeID": 6000,
+    "_skill": 39,
+    "_successAmount": 1,
+    "_successConsumeTargetAmount": 10,
+    "_successConsumeTargetChance": 1.0,
+    "_successConsumeTargetMessage": "",
+    "_successConsumeToolAmount": 0,
+    "_successConsumeToolChance": 0.0,
+    "_successConsumeToolMessage": "",
+    "_successMessage": "You carve out a pack cow.",
+    "_successWcid": 9175,
+    "_unk": 0
+  }
+]
