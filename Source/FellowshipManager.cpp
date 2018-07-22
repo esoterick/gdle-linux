@@ -402,6 +402,9 @@ void Fellowship::Recruit(DWORD recruitee_id)
 
 void Fellowship::ChangeOpen(BOOL open)
 {
+	if (_open_fellow == open)
+		return;
+
 	_open_fellow = open;
 	
 	std::string leader_name;
