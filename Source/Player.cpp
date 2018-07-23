@@ -3509,14 +3509,8 @@ void CPlayerWeenie::HandleItemManaRequest(DWORD itemId)
 
 void CPlayerWeenie::UpdateModuleFromClient(PlayerModule &module)
 {
-	bool bOldShowHelm = ShowHelm();
-
 	_playerModule = module;
-
-	if (bOldShowHelm != ShowHelm())
-	{
-		UpdateModel();
-	}
+	UpdateModel();
 }
 
 void CPlayerWeenie::LoadEx(CWeenieSave &save)
