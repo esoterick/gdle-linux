@@ -3026,7 +3026,7 @@ CLIENT_COMMAND(activeevents, "", "", ADMIN_ACCESS)
 	return false;
 }
 
-CLIENT_COMMAND(startevent, "[event]", "Starts an event.", BASIC_ACCESS)
+CLIENT_COMMAND(startevent, "[event]", "Starts an event.", ADMIN_ACCESS)
 {
 	auto &events = g_pGameEventManager->_gameEvents;
 
@@ -3049,7 +3049,7 @@ CLIENT_COMMAND(startevent, "[event]", "Starts an event.", BASIC_ACCESS)
 	return false;
 }
 
-CLIENT_COMMAND(stopevent, "[event]", "Stops an event.", BASIC_ACCESS)
+CLIENT_COMMAND(stopevent, "[event]", "Stops an event.", ADMIN_ACCESS)
 {
 	auto &events = g_pGameEventManager->_gameEvents;
 
