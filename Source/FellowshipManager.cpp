@@ -199,6 +199,7 @@ void Fellowship::TickUpdate()
 #endif
 	UpdateData();
 
+
 	BinaryWriter updateMessage;
 	updateMessage.Write<DWORD>(0x2BE);
 	Pack(&updateMessage);
@@ -233,6 +234,33 @@ void Fellowship::SendUpdate(int updateType)
 				CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first);
 				if (player)
 					player->SendNetMessage(&updateMessage, PRIVATE_MSG, TRUE, FALSE);
+			}
+		}
+	}
+}
+
+void Fellowship::VitalsUpdate()
+{
+	for (auto &entry : _fellowship_table)
+	{
+		if (CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first))
+		{
+			DWORD fellow_id = player->GetID();
+
+			Fellow *f = _fellowship_table.lookup(fellow_id);
+
+			BinaryWriter updateMessage;
+			updateMessage.Write<DWORD>(0x2C0);
+			updateMessage.Write<DWORD>(fellow_id);
+			f->Pack(&updateMessage);
+			updateMessage.Write<DWORD>(Fellow_UpdateVitals);
+			for (auto &entry : _fellowship_table)
+			{
+				if (CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first))
+				{
+					// partial update to everyone in fellow
+					player->SendNetMessage(&updateMessage, PRIVATE_MSG, TRUE, FALSE);
+				}
 			}
 		}
 	}
@@ -374,6 +402,9 @@ void Fellowship::Recruit(DWORD recruitee_id)
 
 void Fellowship::ChangeOpen(BOOL open)
 {
+	if (_open_fellow == open)
+		return;
+
 	_open_fellow = open;
 	
 	std::string leader_name;

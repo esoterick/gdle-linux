@@ -796,6 +796,9 @@ void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 
 int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 {
+	if (bFizzled)
+		return WERROR_NONE;
+
 	int targetError = CheckTargetValidity();
 	if (targetError && m_SpellCastData.range_check)
 	{
@@ -814,22 +817,12 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 		return targetError;
 	}
-	else if (!bFizzled && m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
-	{
-		// fizzle
-		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
-		m_pWeenie->AdjustMana(-5);
-		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
-
-		bFizzled = true;
-	}
 
 
 	// cast source is assumed to be valid at this point
 
 	if (m_pWeenie->AsPlayer() && m_SpellCastData.uses_mana)
 	{
-		bool fizzled = false;
 		double chance = GetMagicSkillChance(m_SpellCastData.current_skill, m_SpellCastData.spell->_power);
 		if (chance < Random::RollDice(0.0, 1.0))
 		{
@@ -837,16 +830,17 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 			m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
 			m_pWeenie->AdjustMana(-5);
 
-			fizzled = true;
+			bFizzled = true;
 		}
-		else if (m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
+		else if (!bFizzled && m_pWeenie->m_Position.distance(m_SpellCastData.initial_cast_position) >= 6.0 && m_pWeenie->m_Qualities.GetInt(PLAYER_KILLER_STATUS_INT, 0) == PK_PKStatus)
 		{
 			// fizzle
 			m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
 			m_pWeenie->AdjustMana(-5);
 			m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
+			m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_ERROR);
 
-			fizzled = true;
+			return WERROR_NONE;
 		}
 
 		if (!m_UsedComponents.empty()) //we used components, so check if any need burning
@@ -903,12 +897,6 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 		// Drain mana from weapon on Cast on Strike
 		m_pWeenie->m_Qualities.SetInt(ITEM_CUR_MANA_INT, m_pWeenie->InqIntQuality(ITEM_CUR_MANA_INT, 0, 0) - m_SpellCastData.spell->_base_mana);
 	}
-	else if ((m_pWeenie->AsMeleeWeapon() || m_pWeenie->AsMissileLauncher()) && m_SpellCastData.uses_mana)
-	{
-		// Drain mana from weapon on Cast on Strike
-		m_pWeenie->m_Qualities.SetInt(ITEM_CUR_MANA_INT, m_pWeenie->InqIntQuality(ITEM_CUR_MANA_INT, 0, 0) - m_SpellCastData.spell->_base_mana);
-	}
-
 
 
 	bool bSpellPerformed = false;
@@ -1702,6 +1690,16 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 			if (CWeenieObject *castTarget = GetCastTarget())
 			{
+				// NPKs should not be able to buff PKs
+				if (m_pWeenie && castTarget && m_pWeenie->AsPlayer() && castTarget->AsPlayer())
+				{
+					if (!m_pWeenie->AsPlayer()->IsPK() && castTarget->AsPlayer()->IsPK())
+					{
+						bSpellPerformed = false;
+						break;
+					}
+				}
+
 				if (m_SpellCastData.spell->InqTargetType() != ITEM_TYPE::TYPE_ITEM_ENCHANTABLE_TARGET)
 				{
 					targets.push_back(castTarget);
@@ -1757,8 +1755,12 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 						{
 							if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
 							{
-								m_pWeenie->AsPlayer()->UpdatePKActivity();
-								target->AsPlayer()->UpdatePKActivity();
+								// Only Update PK Activity if both target and caster are PK, Prevents PKs from tagging NPKs for PK activity.
+								if (m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+								{
+									m_pWeenie->AsPlayer()->UpdatePKActivity();
+									target->AsPlayer()->UpdatePKActivity();
+								}
 							}
 
 							if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
@@ -1777,7 +1779,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 								topLevelOwner->OnResistSpell(m_pWeenie);
 
 								// Cast on Strike
-								if (m_pWeenie != topLevelOwner)
+								if (m_pWeenie != m_pWeenie->GetWorldTopLevelOwner())
 								{
 									m_pWeenie->GetWorldTopLevelOwner()->SendText(csprintf("%s resists your spell", target->GetName().c_str()), LTT_MAGIC);
 								}
@@ -1788,6 +1790,9 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 						if (int resistMagic = target->InqIntQuality(RESIST_MAGIC_INT, 0, FALSE))
 						{
+							if (resistMagic >= 9999 && topLevelOwner == m_pWeenie)
+								continue;
+
 							if (resistMagic >= 9999 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD)resistMagic))
 							{
 								target->EmitSound(Sound_ResistSpell, 1.0f, false);
@@ -1889,6 +1894,16 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 			if (!target->HasFellowship())
 				break;
 
+			// NPKs should not be able to buff PKs
+			if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+			{
+				if (!m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+				{
+					bSpellPerformed = false;
+					break;
+				}
+			}
+
 			else
 			{
 				Fellowship *fellow = target->GetFellowship();
@@ -1963,6 +1978,13 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 									{
 										if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
 										{
+											// Only Update PK Activity if both target and caster are PK, Prevents PKs from tagging NPKs for PK activity.
+											if (m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+											{
+												m_pWeenie->AsPlayer()->UpdatePKActivity();
+												target->AsPlayer()->UpdatePKActivity();
+											}
+
 											if (target->AsPlayer() && target->GetWorldTopLevelOwner()->ImmuneToDamage(m_pWeenie))
 											{
 												continue;
@@ -1983,6 +2005,9 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 										if (int resistMagic = target->InqIntQuality(RESIST_MAGIC_INT, 0, FALSE))
 										{
+											if (resistMagic >= 9999 && topLevelOwner == m_pWeenie)
+												continue;
+
 											if (resistMagic >= 9999 || ::TryMagicResist(m_SpellCastData.current_skill, (DWORD)resistMagic))
 											{
 												target->EmitSound(Sound_ResistSpell, 1.0f, false);
@@ -2439,6 +2464,15 @@ bool CSpellcastingManager::DoTransferSpell(CWeenieObject *other, const TransferS
 			return false;
 		}
 
+		// NPKs should not be able to heal PKs
+		if (m_pWeenie && other && m_pWeenie->AsPlayer() && other->AsPlayer())
+		{
+			if (!m_pWeenie->AsPlayer()->IsPK() && other->AsPlayer()->IsPK())
+			{
+				return false;
+			}
+		}
+
 		// try to resist
 		if (m_SpellCastData.spell->_bitfield & Resistable_SpellIndex)
 		{
@@ -2614,6 +2648,15 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	if (!target || target->IsDead())
 		return false;
 
+	// NPKs should not be able to heal PKs
+	if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+	{
+		if (!m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+		{
+			return false;
+		}
+	}
+
 	BoostSpellEx *meta = (BoostSpellEx *)m_SpellCastData.spellEx->_meta_spell._spell;
 
 	bool isDamage = (meta->_boost < 0);
@@ -2637,8 +2680,11 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	{
 		if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
 		{
-			m_pWeenie->AsPlayer()->UpdatePKActivity();
-			target->AsPlayer()->UpdatePKActivity();
+			if (m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+			{
+				m_pWeenie->AsPlayer()->UpdatePKActivity();
+				target->AsPlayer()->UpdatePKActivity();
+			}
 		}
 
 		// try to resist
@@ -3247,7 +3293,7 @@ void CSpellcastingManager::Update()
 		m_bCasting = false;
 	}
 
-	if (m_pWeenie->IsInPeaceMode())
+	if (m_pWeenie->AsPlayer() && m_pWeenie->IsInPeaceMode())
 	{
 		// fizzle if you're no longer in combat mode.
 		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
@@ -3263,6 +3309,7 @@ void CSpellcastingManager::Update()
 		m_pWeenie->EmitEffect(PS_Fizzle, 0.542734265f);
 		m_pWeenie->AdjustMana(-5);
 		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_MAGIC);
+		m_pWeenie->SendText("Your movement disrupted spell casting!", LTT_ERROR);
 
 		int error = LaunchSpellEffect(TRUE);
 		EndCast(error);

@@ -633,6 +633,9 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				weenie->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
 				weenie->m_Qualities.SetInt(AGE_INT, 0);
 
+				if (weenie->m_Qualities.GetInt(HERITAGE_GROUP_INT, 0) == Lugian_HeritageGroup)
+					weenie->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x9000216);
+
 				/*
 				cg.startArea = max(0, min(cgd->mStartAreaList.num_used - 1, cg.startArea));
 

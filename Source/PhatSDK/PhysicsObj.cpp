@@ -1153,7 +1153,11 @@ void CPhysicsObj::leave_cell(BOOL is_changing_cell)
 	if (part_array)
 		part_array->RemoveLightsFromCell(cell);
 
-	cell = NULL;
+	if (!is_changing_cell)
+	{
+		cell = NULL;
+		_lastGoodCell = NULL;
+	}
 }
 
 
@@ -1172,7 +1176,8 @@ void CPhysicsObj::enter_cell(CObjCell *pCell)
 
 	m_Position.objcell_id = pCell->id;
 	set_cell_id(pCell->id);
-
+	
+	_lastGoodCell = cell;
 	cell = pCell;
 
 	if (part_array)
@@ -2096,7 +2101,8 @@ void CPhysicsObj::change_cell(CObjCell *new_cell)
 				part_array->SetCellID(0);
 		}
 
-		cell = NULL;
+		//cell = NULL;
+		cell = _lastGoodCell;
 	}
 }
 

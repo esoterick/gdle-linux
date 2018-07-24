@@ -53,7 +53,6 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 	if (dmgEvent->damage_form == DF_MAGIC && !dmgEvent->source->AsPlayer())
 		damageCalc /= 2; //creatures do half magic damage. Unconfirmed but feels right. Should this be projectile spells only?
 
-
 	dmgEvent->damageBeforeMitigation = dmgEvent->damageAfterMitigation = damageCalc;
 }
 
@@ -62,6 +61,8 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 	if (!dmgEvent)
 		return;
 	if (!dmgEvent->source)
+		return;
+	if (!dmgEvent->source->GetWielded(MELEE_WEAPON_LOC) && !dmgEvent->source->AsPlayer())
 		return;
 
 	
@@ -96,6 +97,8 @@ void CalculateSkillDamageBonus(DamageEventData *dmgEvent, SpellCastData *spellDa
 	if (!dmgEvent)
 		return;
 	if (!dmgEvent->source)
+		return;
+	if (!dmgEvent->source->AsPlayer())
 		return;
 
 	switch (dmgEvent->damage_form)

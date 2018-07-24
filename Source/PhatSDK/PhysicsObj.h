@@ -328,6 +328,7 @@ public:
 	class CHILDLIST *children = NULL; // 0x44
 	Position m_Position; // 0x48
 	class CObjCell *cell = NULL; // 0x90
+	class CObjCell *_lastGoodCell = NULL;
 	DWORD num_shadow_objects = 0; // 0x94
 	DArray<CShadowObj> shadow_objects; // 0x98
 	DWORD m_PhysicsState = 123; // 0xA8

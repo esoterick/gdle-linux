@@ -1593,9 +1593,6 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			PerformUseModifications(2, op, pTool, pTarget, newItem);
 			PerformUseModifications(3, op, pTool, pTarget, newItem);
 
-			if (requiredStamina == 0)
-				AdjustStamina(-5); //if we don't have any stamina usage specified let's use 5.
-
 			if (op->_successConsumeTargetChance == 1.0 || Random::RollDice(0.0, 1.0) <= op->_successConsumeTargetChance)
 			{
 				pTarget->DecrementStackNum(op->_successConsumeTargetAmount);
@@ -1658,9 +1655,6 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			PerformUseModifications(5, op, pTool, pTarget, newItem);
 			PerformUseModifications(6, op, pTool, pTarget, newItem);
 			PerformUseModifications(7, op, pTool, pTarget, newItem);
-
-			if (requiredStamina == 0)
-				AdjustStamina(-5); //if we don't have any stamina usage specified let's use 5.
 
 			if (op->_failureConsumeTargetChance == 1.0 || Random::RollDice(0.0, 1.0) <= op->_failureConsumeTargetChance)
 			{
@@ -3515,14 +3509,8 @@ void CPlayerWeenie::HandleItemManaRequest(DWORD itemId)
 
 void CPlayerWeenie::UpdateModuleFromClient(PlayerModule &module)
 {
-	bool bOldShowHelm = ShowHelm();
-
 	_playerModule = module;
-
-	if (bOldShowHelm != ShowHelm())
-	{
-		UpdateModel();
-	}
+	UpdateModel();
 }
 
 void CPlayerWeenie::LoadEx(CWeenieSave &save)
@@ -3599,6 +3587,21 @@ void CPlayerWeenie::DecrementQuest(const char *questName)
 void CPlayerWeenie::EraseQuest(const char *questName)
 {
 	_questTable.RemoveQuest(questName);
+}
+
+void CPlayerWeenie::SetQuestCompletions(const char *questName, int numCompletions)
+{
+	_questTable.SetQuestCompletions(questName, numCompletions);
+}
+
+std::string CPlayerWeenie::Ktref(const char *questName)
+{
+	return _questTable.Ktref(questName);
+}
+
+unsigned int CPlayerWeenie::InqQuestMax(const char *questName)
+{
+	return _questTable.InqQuestMax(questName);
 }
 
 CWandSpellUseEvent::CWandSpellUseEvent(DWORD wandId, DWORD targetId)

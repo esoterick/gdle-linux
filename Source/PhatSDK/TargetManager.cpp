@@ -37,7 +37,7 @@ void TargetManager::SetTargetQuantum(double new_quantum)
 
 		if (ptarget)
 		{
-			quantum = target_info->quantum;
+			target_info->quantum = new_quantum;
 			ptarget->add_voyeur(physobj->id, target_info->radius, quantum);
 		}
 	}

@@ -3026,7 +3026,7 @@ CLIENT_COMMAND(activeevents, "", "", ADMIN_ACCESS)
 	return false;
 }
 
-CLIENT_COMMAND(startevent, "[event]", "Starts an event.", BASIC_ACCESS)
+CLIENT_COMMAND(startevent, "[event]", "Starts an event.", ADMIN_ACCESS)
 {
 	auto &events = g_pGameEventManager->_gameEvents;
 
@@ -3049,7 +3049,7 @@ CLIENT_COMMAND(startevent, "[event]", "Starts an event.", BASIC_ACCESS)
 	return false;
 }
 
-CLIENT_COMMAND(stopevent, "[event]", "Stops an event.", BASIC_ACCESS)
+CLIENT_COMMAND(stopevent, "[event]", "Stops an event.", ADMIN_ACCESS)
 {
 	auto &events = g_pGameEventManager->_gameEvents;
 
@@ -4692,7 +4692,23 @@ CLIENT_COMMAND(hover, "<on / off>", "Turns hovering on or off.", BASIC_ACCESS)
 	else if (!_stricmp(argv[0], "off") || !_stricmp(argv[0], "0"))
 	{
 		pPlayer->SendText("Hovering off. You must relog for the change to take effect.", LTT_DEFAULT);
-		pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x9000001);
+		pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x900020D);
+	}
+
+	return false;
+}
+
+CLIENT_COMMAND(movetome, "", "Brings an object to you.", ADMIN_ACCESS)
+{
+	CWeenieObject *pObject = g_pWorld->FindWithinPVS(pPlayer, pPlayer->m_LastAssessed);
+	if (pObject)
+	{
+		pObject->Movement_Teleport(pPlayer->GetPosition());
+	}
+	else
+	{
+		pPlayer->SendText("Please assess a valid object you wish to move!", LTT_DEFAULT);
+		return true;
 	}
 
 	return false;

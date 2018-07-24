@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "Packable.h"
@@ -52,6 +51,7 @@ public:
 	void SendUpdate(int updateType);
 	void UpdateData();
 	void TickUpdate();
+	void VitalsUpdate();
 	void GiveXP(CWeenieObject *source, long long amount, bool bShowText);
 	unsigned int CalculateExperienceProportionSum();
 	void Chat(DWORD sender_id, const char *text);
