@@ -8,6 +8,7 @@ public:
 	void Reset();
 	void Initialize();
 	void UpdateCraftTableData();
+	void UpdateExitingRecipes();
 
 
 private:

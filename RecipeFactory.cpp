@@ -67,6 +67,7 @@ void RecipeFactory::UpdateCraftTableData()
 			{
 				g_pPortalDataEx->_craftTableData._precursorMap[toolTarget] = pc.RecipeID;
 				g_pPortalDataEx->_craftTableData._operations[newrecipe._recipeID] = GetCraftOpertionFromNewRecipe(&newrecipe);
+
 			}
 			else
 			{
@@ -81,7 +82,11 @@ void RecipeFactory::UpdateCraftTableData()
 			}
 		}
 	}
-	
+}
+
+void RecipeFactory::UpdateExitingRecipes()
+{
+
 }
 
 bool RecipeFactory::RecipeInJson(DWORD recipeid, JsonCraftOperation *recipe)
