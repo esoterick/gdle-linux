@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "World.h"
 #include "WorldLandBlock.h"
@@ -845,7 +844,8 @@ void CWorldLandBlock::Destroy(CWeenieObject *pEntity, bool bDoRelease)
 			target->NotifyGeneratedDeath(pEntity);
 	}
 
-	DELETE_ENTITY(pEntity);
+	if(pEntity)
+		DELETE_ENTITY(pEntity);
 }
 
 BOOL CWorldLandBlock::Think()
