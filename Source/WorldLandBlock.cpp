@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "World.h"
 #include "WorldLandBlock.h"
