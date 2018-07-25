@@ -108,9 +108,9 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 			}
 
 			if (boost_value >= 0)
-				other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), diff, vitalName), LTT_DEFAULT);
+				other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), abs(diff), vitalName), LTT_DEFAULT);
 			else
-				other->SendText(csprintf("The %s takes %d points of your %s.", GetName().c_str(), diff, vitalName), LTT_DEFAULT);
+				other->SendText(csprintf("The %s takes %d points of your %s.", GetName().c_str(), abs(diff), vitalName), LTT_DEFAULT);
 
 			if (boost_stat == HEALTH_ATTRIBUTE_2ND)
 			{
