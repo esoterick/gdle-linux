@@ -43,6 +43,9 @@ void RecipeFactory::Initialize()
 
 	if(_jsonPrecursorMap.size() > 0 || _jsonRecipes.size() > 0)
 		UpdateCraftTableData();
+
+	if (_jsonRecipes.size() > 0)
+		UpdateExitingRecipes();
 }
 
 void RecipeFactory::UpdateCraftTableData()
@@ -67,7 +70,6 @@ void RecipeFactory::UpdateCraftTableData()
 			{
 				g_pPortalDataEx->_craftTableData._precursorMap[toolTarget] = pc.RecipeID;
 				g_pPortalDataEx->_craftTableData._operations[newrecipe._recipeID] = GetCraftOpertionFromNewRecipe(&newrecipe);
-
 			}
 			else
 			{
@@ -86,7 +88,30 @@ void RecipeFactory::UpdateCraftTableData()
 
 void RecipeFactory::UpdateExitingRecipes()
 {
+	for (auto pc : _jsonRecipes)
+	{
+		DWORD recipeIdToUpdate = pc._recipeID;
+		bool alreadyAdded = false;
+		for (auto rp : _jsonPrecursorMap)
+		{
+			if (pc._recipeID == rp.RecipeID)
+			{
+				alreadyAdded = true;
+			}
+			else
+				break;
+		}
 
+		if (!alreadyAdded)
+		{
+			CCraftOperation *currentRecipe = g_pPortalDataEx->_craftTableData._operations.lookup(recipeIdToUpdate);
+
+			if (currentRecipe) // recipe found so update it
+			{
+				g_pPortalDataEx->_craftTableData._operations[recipeIdToUpdate] = GetCraftOpertionFromNewRecipe(&pc);
+			}
+		}
+	}
 }
 
 bool RecipeFactory::RecipeInJson(DWORD recipeid, JsonCraftOperation *recipe)
