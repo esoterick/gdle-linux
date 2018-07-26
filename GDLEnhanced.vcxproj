@@ -458,6 +458,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="RecipeFactory.cpp" />
     <ClCompile Include="Source\AugmentationDevice.cpp" />
     <ClCompile Include="Source\BindStone.cpp" />
     <ClCompile Include="Source\easylogging++.cpp" />
@@ -649,6 +650,7 @@
     <ClCompile Include="Source\TradeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="RecipeFactory.h" />
     <ClInclude Include="Source\EnumUtil.h" />
     <ClInclude Include="Source\AugmentationDevice.h" />
     <ClInclude Include="Source\BindStone.h" />
