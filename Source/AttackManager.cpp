@@ -311,7 +311,7 @@ void CMeleeAttackEvent::Setup()
 
 				if (attack_type == (Thrust_AttackType | Slash_AttackType))
 				{
-					if (_attack_power >= 0.75f)
+					if (_attack_power >= 0.25f)
 						attack_type = Slash_AttackType;
 					else
 						attack_type = Thrust_AttackType;
@@ -480,7 +480,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	//todo: maybe handle this differently as to integrate all possible damage type combos
 	if (damageType == (DAMAGE_TYPE::SLASH_DAMAGE_TYPE|DAMAGE_TYPE::PIERCE_DAMAGE_TYPE))
 	{
-		if (_attack_power >= 0.75f)
+		if (_attack_power >= 0.25f)
 			damageType = DAMAGE_TYPE::SLASH_DAMAGE_TYPE;
 		else
 			damageType = DAMAGE_TYPE::PIERCE_DAMAGE_TYPE;
@@ -489,7 +489,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	{
 		//todo: as far as I know only the Mattekar Claw had this, figure out what it did exactly, was it like this? or was it a bit of both damages?
 		//or even a chance for fire damage?
-		if (_attack_power >= 0.75f)
+		if (_attack_power >= 0.25f)
 			damageType = DAMAGE_TYPE::SLASH_DAMAGE_TYPE;
 		else
 			damageType = DAMAGE_TYPE::FIRE_DAMAGE_TYPE;
@@ -527,7 +527,11 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 	bool hadEnoughStamina = true;
 	if (_weenie->GetStamina() < necessaryStamina)
+	{
 		hadEnoughStamina = false;
+		_attack_power = 0.00f;
+	}
+
 
 	_weenie->AdjustStamina(-necessaryStamina);
 
@@ -538,8 +542,14 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 		if (!hadEnoughStamina)
 		{
-			_weenie->NotifyWeenieError(WERROR_STAMINA_TOO_LOW);
-			weaponSkillLevel *= 0.5; //50% penalty to our attack skill when we don't have enough to perform it.
+			if (weaponSkillLevel > 50)
+				weaponSkillLevel -= 50;
+			else if (weaponSkillLevel <= 50)
+				weaponSkillLevel *= 0.0;
+			if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
+			{
+				pPlayer->SendText("You're exhausted!", LTT_ERROR);
+			}
 		}
 	}
 
