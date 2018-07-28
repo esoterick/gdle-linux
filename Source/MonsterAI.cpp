@@ -456,8 +456,6 @@ void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height
 		}
 		else
 		{
-			AttackType attackType;
-
 			CombatManeuver *combatManeuver = NULL;
 
 			for (DWORD i = 0; i < m_pWeenie->_combatTable->_num_combat_maneuvers; i++)

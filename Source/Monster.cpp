@@ -1755,26 +1755,11 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 {
 	CWeenieObject::OnDeath(killer_id);
 	
-	DWORD mostDamageSource = killer_id;
-	int mostDamage = 0;
-	int totalDamage = 0;
-	
-	if (m_aDamageSources.size() == 0)
+	if (m_aDamageSources.empty()) // not sure this should ever happen
 	{
-		mostDamageSource = killer_id;
+		m_highestDamageSource = killer_id;
 	}
-	else {
-		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
-		{
-			totalDamage += it->second;
 
-			if (it->second > mostDamage)
-			{
-				mostDamage = it->second;
-				mostDamageSource = it->first;
-			}
-		}
-	}
 	int level = InqIntQuality(LEVEL_INT, 0);
 
 	int xpForKill = 0;
@@ -1792,7 +1777,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
 		{
 			CWeenieObject *pSource = g_pWorld->FindObject(it->first);
-			double dPercentage = (double)it->second / totalDamage;
+			double dPercentage = (double)it->second / m_totalDamageTaken;
 
 			if (pSource)
 			{
@@ -1801,8 +1786,8 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 		}
 	}
 
-	m_DeathKillerIDForCorpse = mostDamageSource;
-	if (!g_pWorld->FindObjectName(mostDamageSource, m_DeathKillerNameForCorpse))
+	m_DeathKillerIDForCorpse = m_highestDamageSource;
+	if (!g_pWorld->FindObjectName(m_highestDamageSource, m_DeathKillerNameForCorpse))
 		m_DeathKillerNameForCorpse = "fate";
 
 	if (m_Qualities._generator_registry)
@@ -1822,7 +1807,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 	if (g_pConfig->HardcoreMode() && _IsPlayer())
 	{
-		if (CWeenieObject *pKiller = g_pWorld->FindObject(mostDamageSource))
+		if (CWeenieObject *pKiller = g_pWorld->FindObject(m_highestDamageSource))
 		{
 			if (!g_pConfig->HardcoreModePlayersOnly() || pKiller->_IsPlayer())
 			{

@@ -47,12 +47,13 @@ int CCorpseWeenie::CheckOpenContainer(CWeenieObject *looter)
 		if (killerId == looter->GetID() || victimId == looter->GetID())
 			return WERROR_NONE;
 
-		if (_begin_destroy_at - (CORPSE_EXIST_TIME / 2) <= Timer::cur_time)
+		CPlayerWeenie *corpsePlayer = g_pWorld->FindPlayer(victimId);
+
+		if (!corpsePlayer && _begin_destroy_at - (CORPSE_EXIST_TIME / 2) <= Timer::cur_time) // corpse isn't of a player so allow it to open after a certain time
 		{
 			return WERROR_NONE;
 		}
 
-		CPlayerWeenie *corpsePlayer = g_pWorld->FindPlayer(victimId);
 		CPlayerWeenie *looterAsPlayer = looter->AsPlayer();
 		bool killedByPK = m_Qualities.GetBool(PK_KILLER_BOOL, 0);
 
