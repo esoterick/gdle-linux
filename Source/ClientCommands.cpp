@@ -3105,6 +3105,9 @@ CLIENT_COMMAND(activeevents, "", "", ADMIN_ACCESS)
 
 CLIENT_COMMAND(startevent, "[event]", "Starts an event.", ADMIN_ACCESS)
 {
+	if (argc < 1)
+		return true;
+
 	auto &events = g_pGameEventManager->_gameEvents;
 
 	std::string eventText = "Event started.";
@@ -3128,6 +3131,9 @@ CLIENT_COMMAND(startevent, "[event]", "Starts an event.", ADMIN_ACCESS)
 
 CLIENT_COMMAND(stopevent, "[event]", "Stops an event.", ADMIN_ACCESS)
 {
+	if (argc < 1)
+		return true;
+
 	auto &events = g_pGameEventManager->_gameEvents;
 
 	std::string eventText = "Event stopped.";
