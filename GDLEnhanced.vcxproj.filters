@@ -52,6 +52,12 @@
     <Filter Include="PhatSDK\Support\Random">
       <UniqueIdentifier>{3824ef06-3648-4292-b40c-6d5bc8e074fb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Messages">
+      <UniqueIdentifier>{fbe6edaa-c3b3-49bd-9435-dde2e03bbdb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Messages\ClientToServer">
+      <UniqueIdentifier>{aebfe921-cac6-4039-8649-37aea84ae258}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\PhatAC.cpp">
@@ -605,6 +611,87 @@
     </ClCompile>
     <ClCompile Include="RecipeFactory.cpp">
       <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceApprovedVassalSet_0040.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceBanAdd_02A1.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceBanList_02A3.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceBanRemove_02A2.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceBoot_0277.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceBreak_001E.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceChatBoot_02A0.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceChatGag_0041.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceHouseAction_0042.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceInfoRequest_027B.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceLockAction_003F.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceMOTDClear_0256.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceMOTDQuery_0255.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceMOTDSet_0254.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceNameClear_0031.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceNameQuery_0030.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceNameSet_0033.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceOfficerRemove_02A5.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceOfficersClear_02A7.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceOfficerSet_003B.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceOfficersList_02A6.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceOfficerTitlesClear_003E.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceOfficerTitleSet_003C.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceOfficerTitlesList_003D.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceRecallHometown_02AB.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceSwear_001D.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Messages\Client to Server\MAllegianceUpdate_001F.cpp">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1228,6 +1315,93 @@
     </ClInclude>
     <ClInclude Include="RecipeFactory.h">
       <Filter>Source Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\IClientMessage.h">
+      <Filter>Source Files\Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceApprovedVassalSet_0040.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceBanAdd_02A1.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceBanList_02A3.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceBanRemove_02A2.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceBoot_0277.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceBreak_001E.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceChatBoot_02A0.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceChatGag_0041.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceHouseAction_0042.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceInfoRequest_027B.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceLockAction_003F.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceMOTDClear_0256.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceMOTDQuery_0255.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceMOTDSet_0254.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceNameClear_0031.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceNameQuery_0030.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceNameSet_0033.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceOfficerRemove_02A5.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceOfficersClear_02A7.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceOfficerSet_003B.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceOfficersList_02A6.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceOfficerTitlesClear_003E.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceOfficerTitleSet_003C.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceOfficerTitlesList_003D.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceRecallHometown_02AB.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceSwear_001D.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages\Client to Server\MAllegianceUpdate_001F.h">
+      <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Messages.h">
+      <Filter>Source Files\Messages</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

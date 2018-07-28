@@ -28,6 +28,7 @@
 #include <chrono>
 
 #include "Config.h"
+#include "Messages.h"
 
 CClientEvents::CClientEvents(CClient *parent)
 {
@@ -1166,13 +1167,7 @@ void CClientEvents::SetRequestAllegianceUpdate(int on)
 
 void CClientEvents::TryBreakAllegiance(DWORD target)
 {
-	int error = g_pAllegianceManager->TryBreakAllegiance(m_pPlayer, target);
-	m_pPlayer->NotifyWeenieError(error);
-
-	if (error == WERROR_NONE)
-	{
-		SendAllegianceUpdate();
-	}
+	g_pAllegianceManager->TryBreakAllegiance(m_pPlayer, target);
 }
 
 void CClientEvents::TrySwearAllegiance(DWORD target)
@@ -1184,13 +1179,7 @@ void CClientEvents::TrySwearAllegiance(DWORD target)
 		return;
 	}
 	
-	int error = g_pAllegianceManager->TrySwearAllegiance(m_pPlayer, targetWeenie);	
-	m_pPlayer->NotifyWeenieError(error);
-
-	if (error == WERROR_NONE)
-	{
-		SendAllegianceUpdate();
-	}
+	 g_pAllegianceManager->TrySwearAllegiance(m_pPlayer, targetWeenie);	
 }
 
 void CClientEvents::AllegianceInfoRequest(const std::string &target)
@@ -2095,141 +2084,134 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 	switch (dwEvent)
 	{
 		case CHANGE_PLAYER_OPTION: // Change player option
-			{
-				DWORD option = pReader->ReadDWORD();
-				DWORD value = pReader->ReadDWORD();
-				if (pReader->GetLastError())
-					break;
-
-				ChangePlayerOption((PlayerOptions)option, value ? true : false);
+		{
+			DWORD option = pReader->ReadDWORD();
+			DWORD value = pReader->ReadDWORD();
+			if (pReader->GetLastError())
 				break;
-			}
+
+			ChangePlayerOption((PlayerOptions)option, value ? true : false);
+			break;
+		}
 		case MELEE_ATTACK: // Melee Attack
-			{
-				DWORD dwTarget = pReader->ReadDWORD();
-				DWORD dwHeight = pReader->ReadDWORD();
-				float flPower = pReader->ReadFloat();
-				if (pReader->GetLastError()) break;
+		{
+			DWORD dwTarget = pReader->ReadDWORD();
+			DWORD dwHeight = pReader->ReadDWORD();
+			float flPower = pReader->ReadFloat();
+			if (pReader->GetLastError()) break;
 
-				Attack(dwTarget, dwHeight, flPower);
-				break;
-			}
+			Attack(dwTarget, dwHeight, flPower);
+			break;
+		}
 		case MISSILE_ATTACK: // Missile Attack
-			{
-				DWORD target = pReader->ReadDWORD();
-				DWORD height = pReader->ReadDWORD();
-				float power = pReader->ReadFloat();
-				if (pReader->GetLastError()) break;
+		{
+			DWORD target = pReader->ReadDWORD();
+			DWORD height = pReader->ReadDWORD();
+			float power = pReader->ReadFloat();
+			if (pReader->GetLastError()) break;
 
-		MissileAttack(target, height, power);
-		break;
-	}
-	case SET_AFK_MODE:
-	{
-		// Read: bool afk - Whether user is afk
-		break;
-	}
-	case SET_AFK_MESSAGE:
-	{
-		// Read: string message
-		break;
-	}
-	case TEXT_CLIENT: //Client Text
-	{
-		char *szText = pReader->ReadString();
-		if (pReader->GetLastError()) break;
+			MissileAttack(target, height, power);
+			break;
+		}
+		case SET_AFK_MODE:
+		{
+			// Read: bool afk - Whether user is afk
+			break;
+		}
+		case SET_AFK_MESSAGE:
+		{
+			// Read: string message
+			break;
+		}
+		case TEXT_CLIENT: //Client Text
+		{
+			char *szText = pReader->ReadString();
+			if (pReader->GetLastError()) break;
 
-		ClientText(szText);
-		break;
-	}
-	case REMOVE_FRIEND:
-	{
-		// Read: DWORD friendID
-		break;
-	}
-	case ADD_FRIEND:
-	{
-		// Read: string friendName
-		break;
-	}
-	case STORE_ITEM: //Store Item
-	{
-		DWORD dwItemID = pReader->ReadDWORD();
-		DWORD dwContainer = pReader->ReadDWORD();
-		DWORD dwSlot = pReader->ReadDWORD();
-		if (pReader->GetLastError()) break;
+			ClientText(szText);
+			break;
+		}
+		case REMOVE_FRIEND:
+		{
+			// Read: DWORD friendID
+			break;
+		}
+		case ADD_FRIEND:
+		{
+			// Read: string friendName
+			break;
+		}
+		case STORE_ITEM: //Store Item
+		{
+			DWORD dwItemID = pReader->ReadDWORD();
+			DWORD dwContainer = pReader->ReadDWORD();
+			DWORD dwSlot = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
 
-				m_pPlayer->MoveItemToContainer(dwItemID, dwContainer, (char)dwSlot);
-				break;
-			}
+			m_pPlayer->MoveItemToContainer(dwItemID, dwContainer, (char)dwSlot);
+			break;
+		}
 		case EQUIP_ITEM: //Equip Item
-			{
-				DWORD dwItemID = pReader->ReadDWORD();
-				DWORD dwCoverage = pReader->ReadDWORD();
-				if (pReader->GetLastError()) break;
+		{
+			DWORD dwItemID = pReader->ReadDWORD();
+			DWORD dwCoverage = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
 
-				m_pPlayer->MoveItemToWield(dwItemID, dwCoverage);
-				break;
-			}
+			m_pPlayer->MoveItemToWield(dwItemID, dwCoverage);
+			break;
+		}
 		case DROP_ITEM: //Drop Item
-			{
-				DWORD dwItemID = pReader->ReadDWORD();
-				if (pReader->GetLastError()) break;
+		{
+			DWORD dwItemID = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
 
-				m_pPlayer->MoveItemTo3D(dwItemID);
-				break;
-			}
+			m_pPlayer->MoveItemTo3D(dwItemID);
+			break;
+		}
 		case ALLEGIANCE_SWEAR: // Swear Allegiance request
-			{
-				DWORD target = pReader->Read<DWORD>();
-				if (pReader->GetLastError()) break;
-
-				TrySwearAllegiance(target);
-				break;
-			}
+		{
+			MAllegianceSwear_001D msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
 		case ALLEGIANCE_BREAK: // Break Allegiance request
-			{
-				DWORD target = pReader->Read<DWORD>();
-				if (pReader->GetLastError())
-					break;
-
-				TryBreakAllegiance(target);
-				break;
-			}
+		{
+			MAllegianceBreak_001E msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
 		case ALLEGIANCE_SEND_UPDATES: // Allegiance Update request
-			{
-				int on = pReader->Read<int>();
-				if (pReader->GetLastError()) break;
-
-		SetRequestAllegianceUpdate(on);
-		break;
-	}
-	case CLEAR_FRIENDS:
-	{
-		// Nothing to read
-		break;
-	}
-	case RECALL_PKL_ARENA:
-	{
-		// Nothing to read
-		break;
-	}
-	case RECALL_PK_ARENA:
-	{
-		// Nothing to read
-		break;
-	}
-	case SET_DISPLAY_TITLE:
-	{
-		// Read: uint titleID
-		break;
-	}
-	case CONFIRMATION_RESPONSE: // confirmation response
-	{
-		// ConfirmationTypes: SwearAllegiance 1, AlterSkill 2, AlterAttribute 3, Fellowship 4, Craft 5, Augmentation 6, YesNo 7
-		DWORD confirmType = pReader->ReadDWORD();
-		int context = pReader->ReadInt32();
-		bool accepted = pReader->ReadInt32();
+		{
+			MAllegianceUpdate_001F msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case CLEAR_FRIENDS:
+		{
+			// Nothing to read
+			break;
+		}
+		case RECALL_PKL_ARENA:
+		{
+			// Nothing to read
+			break;
+		}
+		case RECALL_PK_ARENA:
+		{
+			// Nothing to read
+			break;
+		}
+		case SET_DISPLAY_TITLE:
+		{
+			// Read: uint titleID
+			break;
+		}
+		case CONFIRMATION_RESPONSE: // confirmation response
+		{
+			// ConfirmationTypes: SwearAllegiance 1, AlterSkill 2, AlterAttribute 3, Fellowship 4, Craft 5, Augmentation 6, YesNo 7
+			DWORD confirmType = pReader->ReadDWORD();
+			int context = pReader->ReadInt32();
+			bool accepted = pReader->ReadInt32();
 
 			switch (confirmType)
 			{
@@ -2253,300 +2235,307 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-		if (items.size() <= 300) //just some sanity checking: 102 items in main pack + (24 * 7) items in subpacks = 270 items. 300 just to be safe.
-			m_pPlayer->PerformSalvaging(toolId, items);
-		break;
-	}
-	case ALLEGIANCE_QUERY_NAME:
-	{
-		// Nothing to read
-		break;
-	}
-	case ALLEGIANCE_CLEAR_NAME:
-	{
-		// Nothing to read
-		break;
-	}
-	case SEND_TELL_BY_GUID: //Send Tell by GUID
-	{
-		char *text = pReader->ReadString();
-		DWORD GUID = pReader->ReadDWORD();
+			if (items.size() <= 300) //just some sanity checking: 102 items in main pack + (24 * 7) items in subpacks = 270 items. 300 just to be safe.
+				m_pPlayer->PerformSalvaging(toolId, items);
+			break;
+		}
+		case ALLEGIANCE_QUERY_NAME:
+		{
+			MAllegianceNameQuery_0030 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_CLEAR_NAME:
+		{
+			MAllegianceNameClear_0031 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case SEND_TELL_BY_GUID: //Send Tell by GUID
+		{
+			char *text = pReader->ReadString();
+			DWORD GUID = pReader->ReadDWORD();
 
-				if (pReader->GetLastError())
-					break;
+					if (pReader->GetLastError())
+						break;
 
-				if (CheckForChatSpam())
-				{
-					std::string filteredText = FilterBadChatCharacters(text);
-					SendTellByGUID(filteredText.c_str(), GUID);
-				}
+					if (CheckForChatSpam())
+					{
+						std::string filteredText = FilterBadChatCharacters(text);
+						SendTellByGUID(filteredText.c_str(), GUID);
+					}
 
-		break;
-	}
-	case ALLEGIANCE_SET_NAME:
-	{
-		// Read: string msg - new allegiance name
-		break;
-	}
-	case USE_ITEM_EX: //Use Item Ex
-	{
-		DWORD dwSourceID = pReader->ReadDWORD();
-		DWORD dwDestID = pReader->ReadDWORD();
-		if (pReader->GetLastError()) break;
-		UseItemEx(dwSourceID, dwDestID);
-		break;
-	}
-	case USE_OBJECT: //Use Object
-	{
-		DWORD dwEID = pReader->ReadDWORD();
-		if (pReader->GetLastError()) break;
-		UseObject(dwEID);
-		break;
-	}
-	case ALLEGIANCE_SET_OFFICER:
-	{
-		// Read: string charName, AllegianceOfficerLevel level - levels are Speaker 0x01, Seneschal 0x02, Castellan 0x03
-		break;
-	}
-	case ALLEGIANCE_SET_OFFICER_TITLE:
-	{
-		// Read: AllegianceOfficerLevel level, string title
-		break;
-	}
-	case ALLEGIANCE_LIST_OFFICER_TITLES:
-	{
-		// Nothing to read
-		break;
-	}
-	case ALLEGIANCE_CLEAR_OFFICER_TITLES:
-	{
-		// Nothing to read
-		break;
-	}
-	case ALLEGIANCE_LOCK_ACTION:
-	{
-		// Read: AllegianceLockAction action - LockedOff 1, LockedOn 2, ToggleLocked 3, CheckLocked 4, DisplayBypass 5, ClearBypass 6
-		break;
-	}
-	case ALLEGIANCE_APPROVED_VASSAL:
-	{
-		// Read: string charName - player being approved as a vassal
-		break;
-	}
-	case ALLEGIANCE_CHAT_GAG:
-	{
-		// Read: string charName, bool on - player being gagged, whether gag is on
-		break;
-	}
-	case ALLEGIANCE_HOUSE_ACTION:
-	{
-		// Read: AllegianceHouseAction action - Help 1, GuestOpen 2, GuestClosed 3, StorageOpen 4, StorageClosed 5
-		break;
-	}
-	case SPEND_XP_VITALS: // spend XP on vitals
-	{
-		DWORD dwAttribute2nd = pReader->ReadDWORD();
-		DWORD dwXP = pReader->ReadDWORD();
-		if (pReader->GetLastError()) break;
+			break;
+		}
+		case ALLEGIANCE_SET_NAME:
+		{
+			MAllegianceNameSet_0033 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case USE_ITEM_EX: //Use Item Ex
+		{
+			DWORD dwSourceID = pReader->ReadDWORD();
+			DWORD dwDestID = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
+			UseItemEx(dwSourceID, dwDestID);
+			break;
+		}
+		case USE_OBJECT: //Use Object
+		{
+			DWORD dwEID = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
+			UseObject(dwEID);
+			break;
+		}
+		case ALLEGIANCE_SET_OFFICER:
+		{
+			MAllegianceOfficerSet_003B msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_SET_OFFICER_TITLE:
+		{
+			MAllegianceOfficerTitleSet_003C msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_LIST_OFFICER_TITLES:
+		{
+			MAllegianceOfficerTitlesList_003D msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_CLEAR_OFFICER_TITLES:
+		{
+			MAllegianceOfficerTitlesClear_003E msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_LOCK_ACTION:
+		{
+			// Read: AllegianceLockAction action - LockedOff 1, LockedOn 2, ToggleLocked 3, CheckLocked 4, DisplayBypass 5, ClearBypass 6
+			break;
+		}
+		case ALLEGIANCE_APPROVED_VASSAL:
+		{
+			MAllegianceApprovedVassalSet_0040 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_CHAT_GAG:
+		{
+			// Read: string charName, bool on - player being gagged, whether gag is on
+			break;
+		}
+		case ALLEGIANCE_HOUSE_ACTION:
+		{
+			// Read: AllegianceHouseAction action - Help 1, GuestOpen 2, GuestClosed 3, StorageOpen 4, StorageClosed 5
+			break;
+		}
+		case SPEND_XP_VITALS: // spend XP on vitals
+		{
+			DWORD dwAttribute2nd = pReader->ReadDWORD();
+			DWORD dwXP = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
 
-				SpendAttribute2ndXP((STypeAttribute2nd)dwAttribute2nd, dwXP);
-		break;
-	}
-	case SPEND_XP_ATTRIBUTES: // spend XP on attributes
-	{
-		DWORD dwAttribute = pReader->ReadDWORD();
-		DWORD dwXP = pReader->ReadDWORD();
-		if (pReader->GetLastError()) break;
+					SpendAttribute2ndXP((STypeAttribute2nd)dwAttribute2nd, dwXP);
+			break;
+		}
+		case SPEND_XP_ATTRIBUTES: // spend XP on attributes
+		{
+			DWORD dwAttribute = pReader->ReadDWORD();
+			DWORD dwXP = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
 
-				SpendAttributeXP((STypeAttribute)dwAttribute, dwXP);
-				break;
-			}
+			SpendAttributeXP((STypeAttribute)dwAttribute, dwXP);
+			break;
+		}
 		case SPEND_XP_SKILLS: // spend XP on skills
-			{
-				DWORD dwSkill = pReader->ReadDWORD();
-				DWORD dwXP = pReader->ReadDWORD();
-				if (pReader->GetLastError()) break;
+		{
+			DWORD dwSkill = pReader->ReadDWORD();
+			DWORD dwXP = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
 
-				SpendSkillXP((STypeSkill)dwSkill, dwXP);
-				break;
-			}
+			SpendSkillXP((STypeSkill)dwSkill, dwXP);
+			break;
+		}
 		case SPEND_SKILL_CREDITS: // spend credits to train skill
-			{
-				DWORD dwSkill = pReader->ReadDWORD();
-				DWORD dwCredits = pReader->ReadDWORD();
-				if (pReader->GetLastError()) break;
+		{
+			DWORD dwSkill = pReader->ReadDWORD();
+			DWORD dwCredits = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
 
-				SpendSkillCredits((STypeSkill)dwSkill, dwCredits);
-		break;
-	}
-	case CAST_UNTARGETED_SPELL: // cast untargeted spell
-	{
-		DWORD spell_id = pReader->ReadDWORD();
-		if (pReader->GetLastError()) break;
+			SpendSkillCredits((STypeSkill)dwSkill, dwCredits);
+			break;
+		}
+		case CAST_UNTARGETED_SPELL: // cast untargeted spell
+		{
+			DWORD spell_id = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
 
-				m_pPlayer->TryCastSpell(m_pPlayer->GetID() /*0*/, spell_id);
-				break;
-			}
+			m_pPlayer->TryCastSpell(m_pPlayer->GetID() /*0*/, spell_id);
+			break;
+		}
 		case CAST_TARGETED_SPELL: // cast targeted spell
-			{
-				DWORD target = pReader->ReadDWORD();
-				DWORD spell_id = pReader->ReadDWORD();
-				if (pReader->GetLastError()) break;
+		{
+			DWORD target = pReader->ReadDWORD();
+			DWORD spell_id = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
 
-				m_pPlayer->TryCastSpell(target, spell_id);
-				break;
-			}
+			m_pPlayer->TryCastSpell(target, spell_id);
+			break;
+		}
 		case CHANGE_COMBAT_STANCE: // Evt_Combat__ChangeCombatMode_ID "Change Combat Mode"
-			{
-				DWORD mode = pReader->ReadDWORD();
-				if (pReader->GetLastError()) break;
+		{
+			DWORD mode = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
 
-				ChangeCombatStance((COMBAT_MODE)mode);
-				break;
-			}
+			ChangeCombatStance((COMBAT_MODE)mode);
+			break;
+		}
 		case STACKABLE_MERGE: // Evt_Inventory__StackableMerge
-			{
-				DWORD merge_from_id = pReader->Read<DWORD>();
-				DWORD merge_to_id = pReader->Read<DWORD>();
-				DWORD amount = pReader->Read<DWORD>();
+		{
+			DWORD merge_from_id = pReader->Read<DWORD>();
+			DWORD merge_to_id = pReader->Read<DWORD>();
+			DWORD amount = pReader->Read<DWORD>();
 
-				if (pReader->GetLastError())
-					break;
-
-				m_pPlayer->MergeItem(merge_from_id, merge_to_id, amount);
+			if (pReader->GetLastError())
 				break;
-			}
+
+			m_pPlayer->MergeItem(merge_from_id, merge_to_id, amount);
+			break;
+		}
 		case STACKABLE_SPLIT_TO_CONTAINER: // Evt_Inventory__StackableSplitToContainer
-			{
-				DWORD stack_id = pReader->Read<DWORD>();
-				DWORD container_id = pReader->Read<DWORD>();
-				DWORD place = pReader->Read<DWORD>();
-				DWORD amount = pReader->Read<DWORD>();
+		{
+			DWORD stack_id = pReader->Read<DWORD>();
+			DWORD container_id = pReader->Read<DWORD>();
+			DWORD place = pReader->Read<DWORD>();
+			DWORD amount = pReader->Read<DWORD>();
 
-				if (pReader->GetLastError())
-					break;
-
-				m_pPlayer->SplitItemToContainer(stack_id, container_id, place, amount);
+			if (pReader->GetLastError())
 				break;
-			}
+
+			m_pPlayer->SplitItemToContainer(stack_id, container_id, place, amount);
+			break;
+		}
 		case STACKABLE_SPLIT_TO_3D: // Evt_Inventory__StackableSplitTo3D
-			{
-				DWORD stack_id = pReader->Read<DWORD>();
-				DWORD amount = pReader->Read<DWORD>();
+		{
+			DWORD stack_id = pReader->Read<DWORD>();
+			DWORD amount = pReader->Read<DWORD>();
 
-				if (pReader->GetLastError())
-					break;
-
-				m_pPlayer->SplitItemto3D(stack_id, amount);
+			if (pReader->GetLastError())
 				break;
-			}
+
+			m_pPlayer->SplitItemto3D(stack_id, amount);
+			break;
+		}
 		case STACKABLE_SPLIT_TO_WIELD: // Evt_Inventory__StackableSplitToWield
-			{				
-				DWORD stack_id = pReader->Read<DWORD>();
-				DWORD loc = pReader->Read<DWORD>();
-				DWORD amount = pReader->Read<DWORD>();
+		{				
+			DWORD stack_id = pReader->Read<DWORD>();
+			DWORD loc = pReader->Read<DWORD>();
+			DWORD amount = pReader->Read<DWORD>();
 
-				if (pReader->GetLastError())
-					break;
+			if (pReader->GetLastError())
+				break;
 
-		m_pPlayer->SplitItemToWield(stack_id, loc, amount);
-		break;
-	}
-	case SQUELCH_CHARACTER_MODIFY:
-	{
-		// Read: bool add, DWORD characterID, string characterName, ChatMessageType msgType
-		//		0 = unsquelch, 1 = squelch, ChatMessageType = enum LogTextType
-		break;
-	}
-	case SQUELCH_ACCOUNT_MODIFY:
-	{
-		// Read: bool add, string characterName
-		break;
-	}
-	case SQUELCH_GLOBAL_MODIFY:
-	{
-		// Read: bool add, ChatMessageType msgType
-		break;
-	}
-	case SEND_TELL_BY_NAME: //Send Tell by Name
-	{
-		char* szText = pReader->ReadString();
-		char* szName = pReader->ReadString();
-		if (pReader->GetLastError()) break;
+			m_pPlayer->SplitItemToWield(stack_id, loc, amount);
+			break;
+		}
+		case SQUELCH_CHARACTER_MODIFY:
+		{
+			// Read: bool add, DWORD characterID, string characterName, ChatMessageType msgType
+			//		0 = unsquelch, 1 = squelch, ChatMessageType = enum LogTextType
+			break;
+		}
+		case SQUELCH_ACCOUNT_MODIFY:
+		{
+			// Read: bool add, string characterName
+			break;
+		}
+		case SQUELCH_GLOBAL_MODIFY:
+		{
+			// Read: bool add, ChatMessageType msgType
+			break;
+		}
+		case SEND_TELL_BY_NAME: //Send Tell by Name
+		{
+			char* szText = pReader->ReadString();
+			char* szName = pReader->ReadString();
+			if (pReader->GetLastError()) break;
 
 			if (CheckForChatSpam())
 			{
 				std::string filteredText = FilterBadChatCharacters(szText);
 				SendTellByName(filteredText.c_str(), szName);
 			}
-
 			break;
 		}
 		case BUY_FROM_VENDOR: // Buy from Vendor
-			{
-				DWORD vendorID = pReader->Read<DWORD>();
-				DWORD numItems = pReader->Read<DWORD>();
-				if (numItems >= 300)
-					break;
+		{
+			DWORD vendorID = pReader->Read<DWORD>();
+			DWORD numItems = pReader->Read<DWORD>();
+			if (numItems >= 300)
+				break;
 
-				bool error = false;
-				std::list<ItemProfile *> items;
+			bool error = false;
+			std::list<ItemProfile *> items;
 				
-				for (DWORD i = 0; i < numItems; i++)
-				{
-					ItemProfile *item = new ItemProfile();
-					error = item->UnPack(pReader);
-					items.push_back(item);
-
-					if (error || pReader->GetLastError())
-						break;
-				}
-
-				if (!error && !pReader->GetLastError())
-				{
-					TryBuyItems(vendorID, items);
-				}
-
-				for (auto item : items)
-				{
-					delete item;
-				}
-
-				break;
-			}
-		case SELL_TO_VENDOR: // Sell to Vendor
+			for (DWORD i = 0; i < numItems; i++)
 			{
-				DWORD vendorID = pReader->Read<DWORD>();
-				DWORD numItems = pReader->Read<DWORD>();
-				if (numItems >= 300)
+				ItemProfile *item = new ItemProfile();
+				error = item->UnPack(pReader);
+				items.push_back(item);
+
+				if (error || pReader->GetLastError())
 					break;
-
-				bool error = false;
-				std::list<ItemProfile *> items;
-
-				for (DWORD i = 0; i < numItems; i++)
-				{
-					ItemProfile *item = new ItemProfile();
-					error = item->UnPack(pReader);
-					items.push_back(item);
-
-					if (error || pReader->GetLastError())
-						break;
-				}
-
-				if (!error && !pReader->GetLastError())
-				{
-					TrySellItems(vendorID, items);
-				}
-
-				for (auto item : items)
-				{
-					delete item;
-					
-				}
-
-				break;
 			}
+
+			if (!error && !pReader->GetLastError())
+			{
+				TryBuyItems(vendorID, items);
+			}
+
+			for (auto item : items)
+			{
+				delete item;
+			}
+
+			break;
+		}
+		case SELL_TO_VENDOR: // Sell to Vendor
+		{
+			DWORD vendorID = pReader->Read<DWORD>();
+			DWORD numItems = pReader->Read<DWORD>();
+			if (numItems >= 300)
+				break;
+
+			bool error = false;
+			std::list<ItemProfile *> items;
+
+			for (DWORD i = 0; i < numItems; i++)
+			{
+				ItemProfile *item = new ItemProfile();
+				error = item->UnPack(pReader);
+				items.push_back(item);
+
+				if (error || pReader->GetLastError())
+					break;
+			}
+
+			if (!error && !pReader->GetLastError())
+			{
+				TrySellItems(vendorID, items);
+			}
+
+			for (auto item : items)
+			{
+				delete item;
+					
+			}
+
+			break;
+		}
 		case RECALL_LIFESTONE: // Lifestone Recall
 		{
 			LifestoneRecall();
@@ -2603,60 +2592,60 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-		TryFellowshipUpdate(on);
-		break;
-	}
-	case BOOK_ADD_PAGE:
-	{
-		// Read: DWORD objectID - ID of book
-		break;
-	}
-	case BOOK_MODIFY_PAGE:
-	{
-		// Read: DWORD objectID, int pageNum, string pageText
-		break;
-	}
-	case BOOK_DATA: // Request update to book data (seems to be after failed add page)
-	{
-		// Read: DWORD objectID - ID of book
-		break;
-	}
-	case BOOK_DELETE_PAGE:
-	{
-		// Read: DWORD objectID, int pageNum
-		break;
-	}
-	case BOOK_PAGE_DATA: // Requests data of a page of a book
-	{
-		// Read: DWORD objectID, int pageNum
-		break;
-	}
-	case GIVE_OBJECT: // Give an item to someone
-	{
-		DWORD target_id = pReader->Read<DWORD>();
-		DWORD object_id = pReader->Read<DWORD>();
-		DWORD amount = pReader->Read<DWORD>();
+			TryFellowshipUpdate(on);
+			break;
+		}
+		case BOOK_ADD_PAGE:
+		{
+			// Read: DWORD objectID - ID of book
+			break;
+		}
+		case BOOK_MODIFY_PAGE:
+		{
+			// Read: DWORD objectID, int pageNum, string pageText
+			break;
+		}
+		case BOOK_DATA: // Request update to book data (seems to be after failed add page)
+		{
+			// Read: DWORD objectID - ID of book
+			break;
+		}
+		case BOOK_DELETE_PAGE:
+		{
+			// Read: DWORD objectID, int pageNum
+			break;
+		}
+		case BOOK_PAGE_DATA: // Requests data of a page of a book
+		{
+			// Read: DWORD objectID, int pageNum
+			break;
+		}
+		case GIVE_OBJECT: // Give an item to someone
+		{
+			DWORD target_id = pReader->Read<DWORD>();
+			DWORD object_id = pReader->Read<DWORD>();
+			DWORD amount = pReader->Read<DWORD>();
 
-				if (pReader->GetLastError())
-					break;
-
-				m_pPlayer->GiveItem(target_id, object_id, amount);
+			if (pReader->GetLastError())
 				break;
-			}		
+
+			m_pPlayer->GiveItem(target_id, object_id, amount);
+			break;
+		}		
 		case INSCRIBE: // "Inscribe"
-			{
-				DWORD target_id = pReader->Read<DWORD>();
-				std::string msg = pReader->ReadString();
+		{
+			DWORD target_id = pReader->Read<DWORD>();
+			std::string msg = pReader->ReadString();
 
-				if (pReader->GetLastError())
-					break;
+			if (pReader->GetLastError())
+				break;
 
-		TryInscribeItem(target_id, msg);
-		break;
-	}
-	case APPRAISE: // Identify
-	{
-		DWORD target_id = pReader->ReadDWORD();
+			TryInscribeItem(target_id, msg);
+			break;
+		}
+		case APPRAISE: // Identify
+		{
+			DWORD target_id = pReader->ReadDWORD();
 
 			if (pReader->GetLastError())
 				break;
@@ -2679,134 +2668,134 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-		m_pPlayer->Movement_Teleport(position);
-		break;
-	}
-	case ABUSE_LOG_REQUEST: // Send abuse report
-	{
-		// Read: string target, uint status = 1, string complaint
-		break;
-	}
-	case CHANNEL_ADD: // Join chat channel
-	{
-		// Read: uint channel ID
-		break;
-	}
-	case CHANNEL_REMOVE: // Leave chat channel
-	{
-		// Read: uint channel ID
-		break;
-	}
-	case CHANNEL_TEXT: // Channel Text
-	{
-		DWORD channel_id = pReader->ReadDWORD();
-		char *msg = pReader->ReadString();
+			m_pPlayer->Movement_Teleport(position);
+			break;
+		}
+		case ABUSE_LOG_REQUEST: // Send abuse report
+		{
+			// Read: string target, uint status = 1, string complaint
+			break;
+		}
+		case CHANNEL_ADD: // Join chat channel
+		{
+			// Read: uint channel ID
+			break;
+		}
+		case CHANNEL_REMOVE: // Leave chat channel
+		{
+			// Read: uint channel ID
+			break;
+		}
+		case CHANNEL_TEXT: // Channel Text
+		{
+			DWORD channel_id = pReader->ReadDWORD();
+			char *msg = pReader->ReadString();
+
+				if (pReader->GetLastError())
+					break;
+
+				if (CheckForChatSpam())
+				{
+					std::string filteredText = FilterBadChatCharacters(msg);
+					ChannelText(channel_id, filteredText.c_str());
+				}
+
+			break;
+		}
+		case CHANNEL_LIST: // List of characters listening to a channel
+		{
+			// Read: PackableList<string> characters
+			break;
+		}
+		case CHANNEL_INDEX: // List of channels available to the player
+		{
+			// Read: PackableList<string> channels
+			break;
+		}
+		case NO_LONGER_VIEWING_CONTAINER: // No longer viewing contents
+		{
+			DWORD container_id = pReader->Read<DWORD>();
+			if (pReader->GetLastError())
+				break;
+
+					NoLongerViewingContents(container_id);
+					break;
+				}
+			case ADD_ITEM_SHORTCUT: // Add item to shortcut bar
+				{
+					ShortCutData data;
+					data.UnPack(pReader);
+					if (pReader->GetLastError())
+						break;
+
+					m_pPlayer->_playerModule.AddShortCut(data);
+					break;
+				}
+			case REMOVE_ITEM_SHORTCUT: // Add item to shortcut bar
+				{
+					int index = pReader->Read<int>();
+					if (pReader->GetLastError())
+						break;
+
+			m_pPlayer->_playerModule.RemoveShortCut(index);
+			break;
+		}
+		case CHARACTER_OPTIONS: // Character Options 
+		{
+			PlayerModule module;
+			if (!module.UnPack(pReader) || pReader->GetLastError())
+				break;
+
+			SendText("Updating character configuration.", LTT_SYSTEM_EVENT);
+			m_pPlayer->UpdateModuleFromClient(module);
+			break;
+		}
+		case CANCEL_ATTACK: // Cancel attack
+		{
+			// TODO
+			m_pPlayer->TryCancelAttack();
+			break;
+		}
+		case SPELLBOOK_REMOVE:
+		{
+			// Read in: LayeredSpellID spellID - Full spell ID combining the (SpellID)id with the spell (ushort)layer.
+			break;
+		}
+		case QUERY_HEALTH: // Request health update
+		{
+			DWORD target_id = pReader->ReadDWORD();
+
+				if (pReader->GetLastError())
+					break;
+
+			RequestHealthUpdate(target_id);
+			break;
+		}
+		case QUERY_AGE:
+		{
+			DWORD targetID = pReader->ReadDWORD(); // don't need this, query can't target anyone else
 
 			if (pReader->GetLastError())
 				break;
 
-			if (CheckForChatSpam())
-			{
-				std::string filteredText = FilterBadChatCharacters(msg);
-				ChannelText(channel_id, filteredText.c_str());
-			}
-
-		break;
-	}
-	case CHANNEL_LIST: // List of characters listening to a channel
-	{
-		// Read: PackableList<string> characters
-		break;
-	}
-	case CHANNEL_INDEX: // List of channels available to the player
-	{
-		// Read: PackableList<string> channels
-		break;
-	}
-	case NO_LONGER_VIEWING_CONTAINER: // No longer viewing contents
-	{
-		DWORD container_id = pReader->Read<DWORD>();
-		if (pReader->GetLastError())
+			int age = m_pPlayer->m_Qualities.GetInt(AGE_INT, 0);
+			SendText(GetAgeString(age).c_str(), LTT_DEFAULT); // You have played for Xm Xd Xh Xm Xs.
 			break;
-
-				NoLongerViewingContents(container_id);
-				break;
-			}
-		case ADD_ITEM_SHORTCUT: // Add item to shortcut bar
-			{
-				ShortCutData data;
-				data.UnPack(pReader);
-				if (pReader->GetLastError())
-					break;
-
-				m_pPlayer->_playerModule.AddShortCut(data);
-				break;
-			}
-		case REMOVE_ITEM_SHORTCUT: // Add item to shortcut bar
-			{
-				int index = pReader->Read<int>();
-				if (pReader->GetLastError())
-					break;
-
-		m_pPlayer->_playerModule.RemoveShortCut(index);
-		break;
-	}
-	case CHARACTER_OPTIONS: // Character Options 
-	{
-		PlayerModule module;
-		if (!module.UnPack(pReader) || pReader->GetLastError())
-			break;
-
-		SendText("Updating character configuration.", LTT_SYSTEM_EVENT);
-		m_pPlayer->UpdateModuleFromClient(module);
-		break;
-	}
-	case CANCEL_ATTACK: // Cancel attack
-	{
-		// TODO
-		m_pPlayer->TryCancelAttack();
-		break;
-	}
-	case SPELLBOOK_REMOVE:
-	{
-		// Read in: LayeredSpellID spellID - Full spell ID combining the (SpellID)id with the spell (ushort)layer.
-		break;
-	}
-	case QUERY_HEALTH: // Request health update
-	{
-		DWORD target_id = pReader->ReadDWORD();
+		}
+		case QUERY_BIRTH:
+		{
+			DWORD targetID = pReader->ReadDWORD(); // don't need this, query can't target anyone else
 
 			if (pReader->GetLastError())
 				break;
 
-		RequestHealthUpdate(target_id);
-		break;
-	}
-	case QUERY_AGE:
-	{
-		DWORD targetID = pReader->ReadDWORD(); // don't need this, query can't target anyone else
-
-		if (pReader->GetLastError())
+			std::string DOB = m_pPlayer->InqStringQuality(DATE_OF_BIRTH_STRING, "");
+			SendText(csprintf("You were born on %s", DOB.c_str()), LTT_DEFAULT);
 			break;
-
-		int age = m_pPlayer->m_Qualities.GetInt(AGE_INT, 0);
-		SendText(GetAgeString(age).c_str(), LTT_DEFAULT); // You have played for Xm Xd Xh Xm Xs.
-		break;
-	}
-	case QUERY_BIRTH:
-	{
-		DWORD targetID = pReader->ReadDWORD(); // don't need this, query can't target anyone else
-
-		if (pReader->GetLastError())
-			break;
-
-		std::string DOB = m_pPlayer->InqStringQuality(DATE_OF_BIRTH_STRING, "");
-		SendText(csprintf("You were born on %s", DOB.c_str()), LTT_DEFAULT);
-		break;
-	}
-	case TEXT_INDIRECT: // Indirect Text (@me)
-	{
-		char *msg = pReader->ReadString();
+		}
+		case TEXT_INDIRECT: // Indirect Text (@me)
+		{
+			char *msg = pReader->ReadString();
 
 			if (pReader->GetLastError())
 				break;
@@ -2835,38 +2824,38 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 		case ADD_TO_SPELLBAR: // Add item to spell bar
-			{
-				DWORD spellID = pReader->Read<DWORD>();
-				int index = pReader->Read<int>();
-				int spellBar = pReader->Read<int>();
-				if (pReader->GetLastError())
-					break;
-
-				m_pPlayer->_playerModule.AddSpellFavorite(spellID, index, spellBar);
-				break;
-			}
-		case REMOVE_FROM_SPELLBAR: // Remove item from spell bar
-			{
-				DWORD spellID = pReader->Read<DWORD>();
-				int spellBar = pReader->Read<int>();
-				if (pReader->GetLastError())
-					break;
-
-		m_pPlayer->_playerModule.RemoveSpellFavorite(spellID, spellBar);
-		break;
-	}
-	case PING: // Ping
-	{
-		Ping();
-		break;
-	}
-	case TRADE_OPEN: // Open Trade Negotiations
-	{
-		if (m_pPlayer->GetTradeManager() != NULL)
 		{
-			//already trading
-			return;
+			DWORD spellID = pReader->Read<DWORD>();
+			int index = pReader->Read<int>();
+			int spellBar = pReader->Read<int>();
+			if (pReader->GetLastError())
+				break;
+
+			m_pPlayer->_playerModule.AddSpellFavorite(spellID, index, spellBar);
+			break;
 		}
+		case REMOVE_FROM_SPELLBAR: // Remove item from spell bar
+		{
+			DWORD spellID = pReader->Read<DWORD>();
+			int spellBar = pReader->Read<int>();
+			if (pReader->GetLastError())
+				break;
+
+			m_pPlayer->_playerModule.RemoveSpellFavorite(spellID, spellBar);
+			break;
+		}
+		case PING: // Ping
+		{
+			Ping();
+			break;
+		}
+		case TRADE_OPEN: // Open Trade Negotiations
+		{
+			if (m_pPlayer->GetTradeManager() != NULL)
+			{
+				//already trading
+				return;
+			}
 
 			DWORD target = pReader->Read<DWORD>();
 			if (pReader->GetLastError())
@@ -2925,101 +2914,101 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				DWORD item = pReader->Read<DWORD>();
 
 			tm->AddToTrade(m_pPlayer, item);
-		}
-		break;
-	}
-	case TRADE_ACCEPT: // Accept trade
-	{
-		TradeManager* tm = m_pPlayer->GetTradeManager();
-		if (tm)
-		{
-			tm->AcceptTrade(m_pPlayer);
-		}
-		break;
-	}
-	case TRADE_DECLINE: // Decline trade
-	{
-		TradeManager* tm = m_pPlayer->GetTradeManager();
-		if (tm)
-		{
-			tm->DeclineTrade(m_pPlayer);
-		}
-		break;
-	}
-	case TRADE_RESET: // Reset trade
-	{
-		TradeManager* tm = m_pPlayer->GetTradeManager();
-		if (tm)
-		{
-			tm->ResetTrade(m_pPlayer);
-		}
-		break;
-	}
-	case CLEAR_PLAYER_CONSENT_LIST: // Clears the player's corpse looting consent list, /consent clear
-	{
-		m_pPlayer->ClearConsent(false);
-		break;
-	}
-	case DISPLAY_PLAYER_CONSENT_LIST: // Display the player's corpse looting consent list, /consent who
-	{
-		m_pPlayer->DisplayConsent();
-		break;
-	}
-	case REMOVE_FROM_PLAYER_CONSENT_LIST: // Remove your corpse looting permission for the given player, / consent remove
-	{
-		std::string targetName = pReader->ReadString();
-
-		if (pReader->GetLastError())
-			break;
-		CPlayerWeenie *target = g_pWorld->FindPlayer(targetName.c_str());
-		if (target)
-		{
-			m_pPlayer->RemoveConsent(target);
-		}
-		break;
-	}
-	case ADD_PLAYER_PERMISSION: // Grants a player corpse looting permission, /permit add
-	{
-		std::string targetName = pReader->ReadString();
-
-		if (pReader->GetLastError())
-			break;
-
-		CPlayerWeenie *target = g_pWorld->FindPlayer(targetName.c_str());
-		if (target)
-		{
-			m_pPlayer->AddCorpsePermission(target);
-		}
-		break;
-	}
-	case REMOVE_PLAYER_PERMISSION:
-	{
-		std::string targetName = pReader->ReadString();
-
-		if (pReader->GetLastError())
-			break;
-
-		CPlayerWeenie *target = g_pWorld->FindPlayer(targetName.c_str());
-		if (target)
-		{
-			m_pPlayer->RemoveCorpsePermission(target);
-		}
-		break;
-	}
-	case HOUSE_BUY: //House_BuyHouse 
-	{
-		DWORD slumlord = pReader->Read<DWORD>();
-
-		// TODO sanity check on the number of items here
-		PackableList<DWORD> items;
-		items.UnPack(pReader);
-
-				if (pReader->GetLastError())
-					break;
-
-				HouseBuy(slumlord, items);
-				break;
 			}
+			break;
+		}
+		case TRADE_ACCEPT: // Accept trade
+		{
+			TradeManager* tm = m_pPlayer->GetTradeManager();
+			if (tm)
+			{
+				tm->AcceptTrade(m_pPlayer);
+			}
+			break;
+		}
+		case TRADE_DECLINE: // Decline trade
+		{
+			TradeManager* tm = m_pPlayer->GetTradeManager();
+			if (tm)
+			{
+				tm->DeclineTrade(m_pPlayer);
+			}
+			break;
+		}
+		case TRADE_RESET: // Reset trade
+		{
+			TradeManager* tm = m_pPlayer->GetTradeManager();
+			if (tm)
+			{
+				tm->ResetTrade(m_pPlayer);
+			}
+			break;
+		}
+		case CLEAR_PLAYER_CONSENT_LIST: // Clears the player's corpse looting consent list, /consent clear
+		{
+			m_pPlayer->ClearConsent(false);
+			break;
+		}
+		case DISPLAY_PLAYER_CONSENT_LIST: // Display the player's corpse looting consent list, /consent who
+		{
+			m_pPlayer->DisplayConsent();
+			break;
+		}
+		case REMOVE_FROM_PLAYER_CONSENT_LIST: // Remove your corpse looting permission for the given player, / consent remove
+		{
+			std::string targetName = pReader->ReadString();
+
+			if (pReader->GetLastError())
+				break;
+			CPlayerWeenie *target = g_pWorld->FindPlayer(targetName.c_str());
+			if (target)
+			{
+				m_pPlayer->RemoveConsent(target);
+			}
+			break;
+		}
+		case ADD_PLAYER_PERMISSION: // Grants a player corpse looting permission, /permit add
+		{
+			std::string targetName = pReader->ReadString();
+
+			if (pReader->GetLastError())
+				break;
+
+			CPlayerWeenie *target = g_pWorld->FindPlayer(targetName.c_str());
+			if (target)
+			{
+				m_pPlayer->AddCorpsePermission(target);
+			}
+			break;
+		}
+		case REMOVE_PLAYER_PERMISSION:
+		{
+			std::string targetName = pReader->ReadString();
+
+			if (pReader->GetLastError())
+				break;
+
+			CPlayerWeenie *target = g_pWorld->FindPlayer(targetName.c_str());
+			if (target)
+			{
+				m_pPlayer->RemoveCorpsePermission(target);
+			}
+			break;
+		}
+		case HOUSE_BUY: //House_BuyHouse 
+		{
+			DWORD slumlord = pReader->Read<DWORD>();
+
+			// TODO sanity check on the number of items here
+			PackableList<DWORD> items;
+			items.UnPack(pReader);
+
+			if (pReader->GetLastError())
+				break;
+
+			HouseBuy(slumlord, items);
+			break;
+		}
 		case HOUSE_ABANDON: //House_AbandonHouse 
 		{
 			HouseAbandon();
@@ -3031,19 +3020,19 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 		case HOUSE_RENT: //House_RentHouse 
-			{
-				DWORD slumlord = pReader->Read<DWORD>();
+		{
+			DWORD slumlord = pReader->Read<DWORD>();
 
-				// TODO sanity check on the number of items here
-				PackableList<DWORD> items;
-				items.UnPack(pReader);
+			// TODO sanity check on the number of items here
+			PackableList<DWORD> items;
+			items.UnPack(pReader);
 
-				if (pReader->GetLastError())
-					break;
-
-				HouseRent(slumlord, items);
+			if (pReader->GetLastError())
 				break;
-			}
+
+			HouseRent(slumlord, items);
+			break;
+		}
 		case HOUSE_ADD_GUEST: //House_AddPermanentGuest 
 		{
 			std::string name = pReader->ReadString();
@@ -3082,65 +3071,63 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-		HouseAddOrRemovePersonToStorageList(name, isAdd > 0);
-		break;
-	}
-	case HOUSE_CLEAR_STORAGE_PERMISSIONS: //House_RemoveAllStoragePermission 
-	{
-		HouseClearStorageAccess();
-		break;
-	}
-	case HOUSE_GUEST_LIST: //House_RequestFullGuestList
-	{
-		HouseRequestAccessList();
-		break;
-	}
-	case ALLEGIANCE_SET_MOTD:
-	{
-		std::string motd = pReader->ReadString();
-
-		if (pReader->GetLastError())
+			HouseAddOrRemovePersonToStorageList(name, isAdd > 0);
 			break;
-
-		TrySetAllegianceMOTD(motd);
+		}
+		case HOUSE_CLEAR_STORAGE_PERMISSIONS: //House_RemoveAllStoragePermission 
+		{
+			HouseClearStorageAccess();
+			break;
+		}
+		case HOUSE_GUEST_LIST: //House_RequestFullGuestList
+		{
+			HouseRequestAccessList();
+			break;
+		}
+		case ALLEGIANCE_SET_MOTD:
+		{
+			MAllegianceMOTDSet_0254 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_QUERY_MOTD: //Request allegiance MOTD
+		{
+			MAllegianceMOTDQuery_0255 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_CLEAR_MOTD:
+		{
+			MAllegianceMOTDClear_0256 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case HOUSE_QUERY_SLUMLORD:
+		{
+			// read in: DWORD lord = pReader->ReadDWORD();
+		}
+		case HOUSE_SET_OPEN_STORAGE_ACCESS: //House_AddAllStoragePermission
+		{
+			HouseToggleOpenStorageAccess();
+			break;
+		}
+		case HOUSE_REMOVE_ALL_GUESTS: //House_RemoveAllPermanentGuests
+		{
+			HouseClearAccessList();
+			break;
+		}
+		case HOUSE_BOOT_ALL:
+		{
 		break;
-	}
-	case ALLEGIANCE_QUERY_MOTD: //Request allegiance MOTD
-	{
-		SendAllegianceMOTD();
-		break;
-	}
-	case ALLEGIANCE_CLEAR_MOTD:
-	{
-		TrySetAllegianceMOTD("");
-		break;
-	}
-	case HOUSE_QUERY_SLUMLORD:
-	{
-		// read in: DWORD lord = pReader->ReadDWORD();
-	}
-	case HOUSE_SET_OPEN_STORAGE_ACCESS: //House_AddAllStoragePermission
-	{
-		HouseToggleOpenStorageAccess();
-		break;
-	}
-	case HOUSE_REMOVE_ALL_GUESTS: //House_RemoveAllPermanentGuests
-	{
-		HouseClearAccessList();
-		break;
-	}
-	case HOUSE_BOOT_ALL:
-	{
-	break;
-	}
-	case RECALL_HOUSE: // House Recall
-	{
-		HouseRecall();
-		break;
-	}
-	case ITEM_MANA_REQUEST: // Request Item Mana
-	{
-		DWORD itemId = pReader->ReadDWORD();
+		}
+		case RECALL_HOUSE: // House Recall
+		{
+			HouseRecall();
+			break;
+		}
+		case ITEM_MANA_REQUEST: // Request Item Mana
+		{
+			DWORD itemId = pReader->ReadDWORD();
 
 			if (pReader->GetLastError())
 				break;
@@ -3175,163 +3162,168 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-		HouseAddOrRemoveAllegianceToStorageList(newSetting > 0);
-		break;
-	}
-	case CHESS_JOIN:
-	{
-		// Read: uint gameID, uint whichTeam
-		break;
-	}
-	case CHESS_QUIT:
-	{
-		// Nothing to read
-		break;
-	}
-	case CHESS_MOVE:
-	{
-		// Read: int xFrom, int yFrom, int xTo, int yTo
-		break;
-	}
-	case CHESS_PASS:
-	{
-		// Nothing to read
-		break;
-	}
-	case CHESS_STALEMATE:
-	{
-		// Read: bool on - whether stalemate offer is active or not
-		break;
-	}
-	case HOUSE_LIST_AVAILABLE:
-	{
-		// Read: HouseType houseType - type of house to list, cottage 1, villa 2, mansion 3, apartment 4
-		// Reply: 0x0271, HouseType houseType, PackableList<uint> houses, int numHouses
-		break;
-	}
-	case ALLEGIANCE_BOOT_PLAYER: // Boots a player from the allegiance, optionally all characters on their account
-	{
-		// Read: string booteeName, bool accountBoot - name of char to boot, whether to boot all chars from their account
-		break;
-	}
-	case RECALL_HOUSE_MANSION: // House_TeleToMansion
-	{
-		HouseMansionRecall();
-		break;
-	}
-	case DIE_COMMAND: // "/die" command
-	{
-		if (!m_pPlayer->IsDead() && !m_pPlayer->IsInPortalSpace() && !m_pPlayer->IsBusyOrInAction())
-		{
-			// this is a bad way of doing this...
-			m_pPlayer->SetHealth(0, true);
-			m_pPlayer->OnDeath(m_pPlayer->GetID());
+			HouseAddOrRemoveAllegianceToStorageList(newSetting > 0);
+			break;
 		}
+		case CHESS_JOIN:
+		{
+			// Read: uint gameID, uint whichTeam
+			break;
+		}
+		case CHESS_QUIT:
+		{
+			// Nothing to read
+			break;
+		}
+		case CHESS_MOVE:
+		{
+			// Read: int xFrom, int yFrom, int xTo, int yTo
+			break;
+		}
+		case CHESS_PASS:
+		{
+			// Nothing to read
+			break;
+		}
+		case CHESS_STALEMATE:
+		{
+			// Read: bool on - whether stalemate offer is active or not
+			break;
+		}
+		case HOUSE_LIST_AVAILABLE:
+		{
+			// Read: HouseType houseType - type of house to list, cottage 1, villa 2, mansion 3, apartment 4
+			// Reply: 0x0271, HouseType houseType, PackableList<uint> houses, int numHouses
+			break;
+		}
+		case ALLEGIANCE_BOOT_PLAYER: // Boots a player from the allegiance, optionally all characters on their account
+		{
+			MAllegianceBoot_0277 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case RECALL_HOUSE_MANSION: // House_TeleToMansion
+		{
+			HouseMansionRecall();
+			break;
+		}
+		case DIE_COMMAND: // "/die" command
+		{
+			if (!m_pPlayer->IsDead() && !m_pPlayer->IsInPortalSpace() && !m_pPlayer->IsBusyOrInAction())
+			{
+				// this is a bad way of doing this...
+				m_pPlayer->SetHealth(0, true);
+				m_pPlayer->OnDeath(m_pPlayer->GetID());
+			}
 
 			break;
 		}
 		case ALLEGIANCE_INFO_REQUEST: // allegiance info request
-			{
-				std::string target = pReader->ReadString();
-				if (target.empty() || pReader->GetLastError())
-					break;
-
-				AllegianceInfoRequest(target);
-				break;
-			}
+		{
+			MAllegianceInfoRequest_027B msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
 		case SPELLBOOK_FILTERS: // "/die" command
-			{
-				DWORD filters = pReader->Read<DWORD>();
-				if (pReader->GetLastError())
-					break;
-
-		m_pPlayer->_playerModule.spell_filters_ = filters;
-		break;
-	}
-	case RECALL_MARKET: // Marketplace Recall
-	{
-		MarketplaceRecall();
-		break;
-	}
-	case PKLITE:
-	{
-		// change dot to pink
-		// change to attackable by other PKLs
-		// change to dropping nothing on death from other PKL
-		// do PKL animation
-		break;
-	}
-	case FELLOW_ASSIGN_NEW_LEADER: // "Fellowship Assign New Leader"
-	{
-		DWORD target_id = pReader->Read<DWORD>();
-
-				if (pReader->GetLastError())
-					break;
-
-				TryFellowshipAssignNewLeader(target_id);
+		{
+			DWORD filters = pReader->Read<DWORD>();
+			if (pReader->GetLastError())
 				break;
-			}
+
+			m_pPlayer->_playerModule.spell_filters_ = filters;
+			break;
+		}
+		case RECALL_MARKET: // Marketplace Recall
+		{
+			MarketplaceRecall();
+			break;
+		}
+		case PKLITE:
+		{
+			// change dot to pink
+			// change to attackable by other PKLs
+			// change to dropping nothing on death from other PKL
+			// do PKL animation
+			break;
+		}
+		case FELLOW_ASSIGN_NEW_LEADER: // "Fellowship Assign New Leader"
+		{
+			DWORD target_id = pReader->Read<DWORD>();
+
+			if (pReader->GetLastError())
+				break;
+
+			TryFellowshipAssignNewLeader(target_id);
+			break;
+		}
 		case FELLOW_CHANGE_OPENNESS: // "Fellowship Change Openness"
-			{
-				int open = pReader->Read<int>();
+		{
+			int open = pReader->Read<int>();
 
-				if (pReader->GetLastError())
-					break;
+			if (pReader->GetLastError())
+				break;
 
-		TryFellowshipChangeOpenness(open);
-		break;
-	}
-	case ALLEGIANCE_CHAT_BOOT:
-	{
-		// Read: string charName, string reason
-		break;
-	}
-	case ALLEGIANCE_ADD_PLAYER_BAN:
-	{
-		// Read: string charName
-		break;
-	}
-	case ALLEGIANCE_REMOVE_PLAYER_BAN:
-	{
-		//Read: string charName
-		break;
-	}
-	case ALLEGIANCE_LIST_BANS:
-	{
-		// Nothing to read
-		break;
-	}
-	case ALLEGIANCE_REMOVE_OFFICER:
-	{
-		// Read: string charName
-		break;
-	}
-	case ALLEGIANCE_LIST_OFFICERS:
-	{
-		// Nothing to read
-		break;
-	}
-	case ALLEGIANCE_CLEAR_OFFICERS:
-	{
-		// Nothing to read
-		break;
-	}
-	case RECALL_ALLEGIANCE_HOMETOWN: //Allegiance_RecallAllegianceHometown (bindstone)
-	{
-		AllegianceHometownRecall();
-		break;
-	}
-	case FINISH_BARBER:
-	{
-		//Read: DataID basePalette, DataID headObject, DataID headTexture, DataID defaultHeadTexture, DataID eyesTexture
-		// DataID defaultEyesTexture, DataID noseTexture, DataID defaultNoseTexture, DataID mouthTexture, DataID defaultMouthTexture
-		// DataID skinPalette, DataID hairPalette, DataID eyesPalette, DataID setupID, int option1, int option2
-		// option1 = toggle certain race options e.g. empyrean float or flaming head undead, option2 = not used?
-		break;
-	}
-	case MOVEMENT_JUMP: // Jump Movement
-	{
-		float extent = pReader->Read<float>(); // extent
+			TryFellowshipChangeOpenness(open);
+			break;
+		}
+		case ALLEGIANCE_CHAT_BOOT:
+		{
+			// Read: string charName, string reason
+			break;
+		}
+		case ALLEGIANCE_ADD_PLAYER_BAN:
+		{
+			MAllegianceBanAdd_02A1 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_REMOVE_PLAYER_BAN:
+		{
+			MAllegianceBanRemove_02A2 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_LIST_BANS:
+		{
+			MAllegianceBanList_02A3 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_REMOVE_OFFICER:
+		{
+			MAllegianceOfficerRemove_02A5 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_LIST_OFFICERS:
+		{
+			MAllegianceOfficersList_02A6 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case ALLEGIANCE_CLEAR_OFFICERS:
+		{
+			MAllegianceOfficersClear_02A7 msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case RECALL_ALLEGIANCE_HOMETOWN: //Allegiance_RecallAllegianceHometown (bindstone)
+		{
+			MAllegianceRecallHometown_02AB msg(m_pPlayer);
+			msg.Parse(pReader);
+			break;
+		}
+		case FINISH_BARBER:
+		{
+			//Read: DataID basePalette, DataID headObject, DataID headTexture, DataID defaultHeadTexture, DataID eyesTexture
+			// DataID defaultEyesTexture, DataID noseTexture, DataID defaultNoseTexture, DataID mouthTexture, DataID defaultMouthTexture
+			// DataID skinPalette, DataID hairPalette, DataID eyesPalette, DataID setupID, int option1, int option2
+			// option1 = toggle certain race options e.g. empyrean float or flaming head undead, option2 = not used?
+			break;
+		}
+		case MOVEMENT_JUMP: // Jump Movement
+		{
+			float extent = pReader->Read<float>(); // extent
 
 			Vector jumpVelocity;
 			jumpVelocity.UnPack(pReader);
@@ -3434,314 +3426,314 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 			m_pPlayer->Movement_UpdateVector();
 
-		break;
-	}
-	case MOVEMENT_MOVE_TO_STATE: // CM_Movement__Event_MoveToState (update vector movement?)
-	{
-		// TODO: Cancel attack
+			break;
+		}
+		case MOVEMENT_MOVE_TO_STATE: // CM_Movement__Event_MoveToState (update vector movement?)
+		{
+			// TODO: Cancel attack
 
-		MoveToStatePack moveToState;
-		moveToState.UnPack(pReader);
+			MoveToStatePack moveToState;
+			moveToState.UnPack(pReader);
 
-			if (pReader->GetLastError())
-			{
-				SERVER_WARN << "Bad animation message!";
-				SERVER_WARN << pReader->GetDataStart() << pReader->GetDataLen();
-				break;
-			}
+				if (pReader->GetLastError())
+				{
+					SERVER_WARN << "Bad animation message!";
+					SERVER_WARN << pReader->GetDataStart() << pReader->GetDataLen();
+					break;
+				}
 
-			//if (is_newer_event_stamp(moveToState.server_control_timestamp, m_pPlayer->_server_control_timestamp))
-			//{
-				// LOG(Temp, Normal, "Old server control timestamp on 0xF61C. Ignoring.\n");
-			//	break;
-			//}
+				//if (is_newer_event_stamp(moveToState.server_control_timestamp, m_pPlayer->_server_control_timestamp))
+				//{
+					// LOG(Temp, Normal, "Old server control timestamp on 0xF61C. Ignoring.\n");
+				//	break;
+				//}
 
-			if (is_newer_event_stamp(moveToState.teleport_timestamp, m_pPlayer->_teleport_timestamp))
-			{
-				SERVER_WARN << "Old teleport timestamp on 0xF61C. Ignoring.";
-				break;
-			}
-			if (is_newer_event_stamp(moveToState.force_position_ts, m_pPlayer->_force_position_timestamp))
-			{
-				SERVER_WARN << "Old force position timestamp on 0xF61C. Ignoring.";
-				break;
-			}
+				if (is_newer_event_stamp(moveToState.teleport_timestamp, m_pPlayer->_teleport_timestamp))
+				{
+					SERVER_WARN << "Old teleport timestamp on 0xF61C. Ignoring.";
+					break;
+				}
+				if (is_newer_event_stamp(moveToState.force_position_ts, m_pPlayer->_force_position_timestamp))
+				{
+					SERVER_WARN << "Old force position timestamp on 0xF61C. Ignoring.";
+					break;
+				}
 
-			if (m_pPlayer->IsDead())
-			{
-				SERVER_WARN << "Dead players can't move. Ignoring.";
-				break;
-			}
+				if (m_pPlayer->IsDead())
+				{
+					SERVER_WARN << "Dead players can't move. Ignoring.";
+					break;
+				}
 
-			/*
-			CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &moveToState.position, 0);
-			if (transit)
-			{
-				m_pPlayer->SetPositionInternal(transit);
-			}
-			*/
-
-			/*
-			double dist = m_pPlayer->m_Position.distance(moveToState.position);
-			if (dist >= 5)
-			{
-				m_pPlayer->_force_position_timestamp++;
-				m_pPlayer->Movement_UpdatePos();
-
-				m_pPlayer->SendText(csprintf("Correcting position due to state %f", dist), LTT_DEFAULT);
-			}
-			*/
-
-			/*
-			bool bHasCell = m_pPlayer->cell ? true : false;
-			m_pPlayer->SetPositionSimple(&moveToState.position, TRUE);
-			if (!m_pPlayer->cell && bHasCell)
-			{
-				m_pPlayer->SendText("Damnet...", LTT_DEFAULT);
-			}
-			*/
-
-			double dist = m_pPlayer->m_Position.distance(moveToState.position);
-			if (dist >= 10)
-			{
-				// Snap them back to their previous position
-				m_pPlayer->_force_position_timestamp++;
-			}
-			else
-			{
-				//m_pPlayer->SetPositionSimple(&moveToState.position, TRUE);
-
-				
+				/*
 				CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &moveToState.position, 0);
 				if (transit)
 				{
 					m_pPlayer->SetPositionInternal(transit);
 				}
-				
-			}
+				*/
 
-			// m_pPlayer->m_Position = moveToState.position; // should interpolate to this, but oh well
-
-			/*
-			if (moveToState.contact)
-			{
-				m_pPlayer->transient_state |= ((DWORD)TransientState::CONTACT_TS);
-			}
-			else
-			{
-				m_pPlayer->transient_state &= ~((DWORD)TransientState::CONTACT_TS);
-				m_pPlayer->transient_state &= ~((DWORD)WATER_CONTACT_TS);
-			}
-			m_pPlayer->calc_acceleration();
-			m_pPlayer->set_on_walkable(moveToState.contact);
-
-			m_pPlayer->get_minterp()->standing_longjump = moveToState.longjump_mode ? TRUE : FALSE;
-			*/
-
-			m_pPlayer->last_move_was_autonomous = true;
-			m_pPlayer->cancel_moveto();
-
-			if (!(moveToState.raw_motion_state.current_style & CM_Style) && moveToState.raw_motion_state.current_style)
-			{
-				SERVER_WARN << "Bad style received" << moveToState.raw_motion_state.current_style;
-				break;
-			}
-
-			if (moveToState.raw_motion_state.forward_command & CM_Action)
-			{
-				SERVER_WARN << "Bad forward command received" << moveToState.raw_motion_state.forward_command;
-				break;
-			}
-
-			if (moveToState.raw_motion_state.sidestep_command & CM_Action)
-			{
-				SERVER_WARN << "Bad sidestep command received" << moveToState.raw_motion_state.sidestep_command;
-				break;
-			}
-
-			if (moveToState.raw_motion_state.turn_command & CM_Action)
-			{
-				SERVER_WARN << "Bad turn command received" << moveToState.raw_motion_state.turn_command;
-				break;
-			}
-
-			CMotionInterp *minterp = m_pPlayer->get_minterp();
-			minterp->raw_state = moveToState.raw_motion_state;
-			minterp->apply_raw_movement(TRUE, minterp->motion_allows_jump(minterp->interpreted_state.forward_command != 0));
-
-			WORD newestActionStamp = m_MoveActionStamp;
-
-			for (const auto &actionNew : moveToState.raw_motion_state.actions)
-			{
-				if (m_pPlayer->get_minterp()->interpreted_state.GetNumActions() >= MAX_EMOTE_QUEUE)
-					break;
-
-				if (is_newer_event_stamp(newestActionStamp, actionNew.stamp))
-				{
-					DWORD commandID = GetCommandID(actionNew.action);
-
-					if (!(commandID & CM_Action) || !(commandID & CM_ChatEmote))
-					{
-						SERVER_WARN << "Bad action received" << commandID;
-						continue;
-					}
-
-					MovementParameters params;
-					params.action_stamp = ++m_pPlayer->m_wAnimSequence;
-					params.autonomous = 1;
-					params.speed = actionNew.speed;
-					m_pPlayer->get_minterp()->DoMotion(commandID, &params);
-
-					// minterp->interpreted_state.AddAction(ActionNode(actionNew.action, actionNew.speed, ++m_pPlayer->m_wAnimSequence, TRUE));
-
-					// newestActionStamp = actionNew.stamp;
-					// m_pPlayer->Animation_PlayEmote(actionNew.action, actionNew.speed);
-				}
-			}
-
-			m_MoveActionStamp = newestActionStamp;
-
-			// m_pPlayer->Movement_UpdatePos();
-			m_pPlayer->Animation_Update();
-			// m_pPlayer->m_bAnimUpdate = TRUE;
-
-		// m_pPlayer->Movement_UpdatePos();
-		break;
-	}
-	case MOVEMENT_DO_MOVEMENT_COMMAND:
-	{
-		// Read: uint motion, float speed, uint holdKey
-		break;
-	}
-	case MOVEMENT_TURN_TO:
-	{
-		// Read: TurnToEventPack ttep - set of turning data, not in client
-		break;
-	}
-	case MOVEMENT_STOP:
-	{
-		// Read: uint motion, uint holdKey
-		break;
-	}
-	case MOVEMENT_AUTONOMY_LEVEL:
-	{
-		// Read: uint autonomyLevel - Seems to be 0, 1 or 2. I think 0/1 is server controlled, 2 is client controlled
-		// Align to DWORD boundary
-		break;
-	}
-	case MOVEMENT_AUTONOMOUS_POSITION: // Update Exact Position
-	{
-		Position position;
-		position.UnPack(pReader);
-
-			WORD instance = pReader->ReadWORD();
-
-			if (pReader->GetLastError())
-				break;
-
-			if (instance != m_pPlayer->_instance_timestamp)
-			{
-				SERVER_WARN << "Bad instance.";
-				break;
-			}
-
-			WORD server_control_timestamp = pReader->ReadWORD();
-			if (pReader->GetLastError())
-				break;
-			//if (is_newer_event_stamp(server_control_timestamp, m_pPlayer->_server_control_timestamp))
-			//{
-			//	LOG(Temp, Normal, "Old server control timestamp. Ignoring.\n");
-			//	break;
-			//}
-
-			WORD teleport_timestamp = pReader->ReadWORD();
-			if (pReader->GetLastError())
-				break;
-			if (is_newer_event_stamp(teleport_timestamp, m_pPlayer->_teleport_timestamp))
-			{
-				SERVER_WARN << "Old teleport timestamp. Ignoring.";
-				break;
-			}
-
-			WORD force_position_ts = pReader->ReadWORD();
-			if (pReader->GetLastError())
-				break;
-			if (is_newer_event_stamp(force_position_ts, m_pPlayer->_force_position_timestamp))
-			{
-				SERVER_WARN << "Old force position timestamp. Ignoring.";
-				break;
-			}
-
-			BOOL bHasContact = pReader->ReadBYTE() ? TRUE : FALSE;
-			if (pReader->GetLastError())
-				break;
-			
-			double dist =m_pPlayer->m_Position.distance(position);
-			if (dist >= 10)
-			{
-				// Snap them back to their previous position
-				m_pPlayer->_force_position_timestamp++;
-				// m_pPlayer->SendText(csprintf("Correcting position due to position update %f", dist), LTT_DEFAULT);
-			}
-			else
-			{
 				/*
-				CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &position, 0);
-				if (transit)
+				double dist = m_pPlayer->m_Position.distance(moveToState.position);
+				if (dist >= 5)
 				{
-					m_pPlayer->SetPositionInternal(transit);
-					*/
-					/*
-					double distFromClient = m_pPlayer->m_Position.distance(position);
+					m_pPlayer->_force_position_timestamp++;
+					m_pPlayer->Movement_UpdatePos();
 
-					if (distFromClient >= 3.0)
-					{
-						m_pPlayer->_force_position_timestamp++;
-					}
+					m_pPlayer->SendText(csprintf("Correcting position due to state %f", dist), LTT_DEFAULT);
 				}
 				*/
 
-				m_pPlayer->SetPositionSimple(&position, TRUE);
-
 				/*
+				bool bHasCell = m_pPlayer->cell ? true : false;
+				m_pPlayer->SetPositionSimple(&moveToState.position, TRUE);
 				if (!m_pPlayer->cell && bHasCell)
 				{
 					m_pPlayer->SendText("Damnet...", LTT_DEFAULT);
 				}
 				*/
-				// m_pPlayer->m_Position = position; // should interpolate this, not set this directly, but oh well
-			
-			}
 
-			if (bHasContact)
-			{
-				m_pPlayer->transient_state |= ((DWORD)TransientState::CONTACT_TS);
-			}
-			else
-			{
-				m_pPlayer->transient_state &= ~((DWORD)TransientState::CONTACT_TS);
-				m_pPlayer->transient_state &= ~((DWORD)WATER_CONTACT_TS);
-			}
-			m_pPlayer->calc_acceleration();
-			m_pPlayer->set_on_walkable(bHasContact);
+				double dist = m_pPlayer->m_Position.distance(moveToState.position);
+				if (dist >= 10)
+				{
+					// Snap them back to their previous position
+					m_pPlayer->_force_position_timestamp++;
+				}
+				else
+				{
+					//m_pPlayer->SetPositionSimple(&moveToState.position, TRUE);
 
-		m_pPlayer->Movement_UpdatePos();
-		break;
-	}
-	case MOVEMENT_JUMP_NON_AUTONOMOUS:
-	{
-		// Read: float extent - Power of jump
-		break;
-	}
-	default:
-	{
-		//Unknown Event
-#ifdef _DEBUG
-			SERVER_WARN << "Unhandled client event" << dwEvent;
-#endif
-			// LOG_BYTES(Temp, Verbose, in->GetDataPtr(), in->GetDataEnd() - in->GetDataPtr() );
+				
+					CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &moveToState.position, 0);
+					if (transit)
+					{
+						m_pPlayer->SetPositionInternal(transit);
+					}
+				
+				}
+
+				// m_pPlayer->m_Position = moveToState.position; // should interpolate to this, but oh well
+
+				/*
+				if (moveToState.contact)
+				{
+					m_pPlayer->transient_state |= ((DWORD)TransientState::CONTACT_TS);
+				}
+				else
+				{
+					m_pPlayer->transient_state &= ~((DWORD)TransientState::CONTACT_TS);
+					m_pPlayer->transient_state &= ~((DWORD)WATER_CONTACT_TS);
+				}
+				m_pPlayer->calc_acceleration();
+				m_pPlayer->set_on_walkable(moveToState.contact);
+
+				m_pPlayer->get_minterp()->standing_longjump = moveToState.longjump_mode ? TRUE : FALSE;
+				*/
+
+				m_pPlayer->last_move_was_autonomous = true;
+				m_pPlayer->cancel_moveto();
+
+				if (!(moveToState.raw_motion_state.current_style & CM_Style) && moveToState.raw_motion_state.current_style)
+				{
+					SERVER_WARN << "Bad style received" << moveToState.raw_motion_state.current_style;
+					break;
+				}
+
+				if (moveToState.raw_motion_state.forward_command & CM_Action)
+				{
+					SERVER_WARN << "Bad forward command received" << moveToState.raw_motion_state.forward_command;
+					break;
+				}
+
+				if (moveToState.raw_motion_state.sidestep_command & CM_Action)
+				{
+					SERVER_WARN << "Bad sidestep command received" << moveToState.raw_motion_state.sidestep_command;
+					break;
+				}
+
+				if (moveToState.raw_motion_state.turn_command & CM_Action)
+				{
+					SERVER_WARN << "Bad turn command received" << moveToState.raw_motion_state.turn_command;
+					break;
+				}
+
+				CMotionInterp *minterp = m_pPlayer->get_minterp();
+				minterp->raw_state = moveToState.raw_motion_state;
+				minterp->apply_raw_movement(TRUE, minterp->motion_allows_jump(minterp->interpreted_state.forward_command != 0));
+
+				WORD newestActionStamp = m_MoveActionStamp;
+
+				for (const auto &actionNew : moveToState.raw_motion_state.actions)
+				{
+					if (m_pPlayer->get_minterp()->interpreted_state.GetNumActions() >= MAX_EMOTE_QUEUE)
+						break;
+
+					if (is_newer_event_stamp(newestActionStamp, actionNew.stamp))
+					{
+						DWORD commandID = GetCommandID(actionNew.action);
+
+						if (!(commandID & CM_Action) || !(commandID & CM_ChatEmote))
+						{
+							SERVER_WARN << "Bad action received" << commandID;
+							continue;
+						}
+
+						MovementParameters params;
+						params.action_stamp = ++m_pPlayer->m_wAnimSequence;
+						params.autonomous = 1;
+						params.speed = actionNew.speed;
+						m_pPlayer->get_minterp()->DoMotion(commandID, &params);
+
+						// minterp->interpreted_state.AddAction(ActionNode(actionNew.action, actionNew.speed, ++m_pPlayer->m_wAnimSequence, TRUE));
+
+						// newestActionStamp = actionNew.stamp;
+						// m_pPlayer->Animation_PlayEmote(actionNew.action, actionNew.speed);
+					}
+				}
+
+				m_MoveActionStamp = newestActionStamp;
+
+				// m_pPlayer->Movement_UpdatePos();
+				m_pPlayer->Animation_Update();
+				// m_pPlayer->m_bAnimUpdate = TRUE;
+
+			// m_pPlayer->Movement_UpdatePos();
+			break;
 		}
-	}
+		case MOVEMENT_DO_MOVEMENT_COMMAND:
+		{
+			// Read: uint motion, float speed, uint holdKey
+			break;
+		}
+		case MOVEMENT_TURN_TO:
+		{
+			// Read: TurnToEventPack ttep - set of turning data, not in client
+			break;
+		}
+		case MOVEMENT_STOP:
+		{
+			// Read: uint motion, uint holdKey
+			break;
+		}
+		case MOVEMENT_AUTONOMY_LEVEL:
+		{
+			// Read: uint autonomyLevel - Seems to be 0, 1 or 2. I think 0/1 is server controlled, 2 is client controlled
+			// Align to DWORD boundary
+			break;
+		}
+		case MOVEMENT_AUTONOMOUS_POSITION: // Update Exact Position
+		{
+			Position position;
+			position.UnPack(pReader);
+
+				WORD instance = pReader->ReadWORD();
+
+				if (pReader->GetLastError())
+					break;
+
+				if (instance != m_pPlayer->_instance_timestamp)
+				{
+					SERVER_WARN << "Bad instance.";
+					break;
+				}
+
+				WORD server_control_timestamp = pReader->ReadWORD();
+				if (pReader->GetLastError())
+					break;
+				//if (is_newer_event_stamp(server_control_timestamp, m_pPlayer->_server_control_timestamp))
+				//{
+				//	LOG(Temp, Normal, "Old server control timestamp. Ignoring.\n");
+				//	break;
+				//}
+
+				WORD teleport_timestamp = pReader->ReadWORD();
+				if (pReader->GetLastError())
+					break;
+				if (is_newer_event_stamp(teleport_timestamp, m_pPlayer->_teleport_timestamp))
+				{
+					SERVER_WARN << "Old teleport timestamp. Ignoring.";
+					break;
+				}
+
+				WORD force_position_ts = pReader->ReadWORD();
+				if (pReader->GetLastError())
+					break;
+				if (is_newer_event_stamp(force_position_ts, m_pPlayer->_force_position_timestamp))
+				{
+					SERVER_WARN << "Old force position timestamp. Ignoring.";
+					break;
+				}
+
+				BOOL bHasContact = pReader->ReadBYTE() ? TRUE : FALSE;
+				if (pReader->GetLastError())
+					break;
+			
+				double dist =m_pPlayer->m_Position.distance(position);
+				if (dist >= 10)
+				{
+					// Snap them back to their previous position
+					m_pPlayer->_force_position_timestamp++;
+					// m_pPlayer->SendText(csprintf("Correcting position due to position update %f", dist), LTT_DEFAULT);
+				}
+				else
+				{
+					/*
+					CTransition *transit = m_pPlayer->transition(&m_pPlayer->m_Position, &position, 0);
+					if (transit)
+					{
+						m_pPlayer->SetPositionInternal(transit);
+						*/
+						/*
+						double distFromClient = m_pPlayer->m_Position.distance(position);
+
+						if (distFromClient >= 3.0)
+						{
+							m_pPlayer->_force_position_timestamp++;
+						}
+					}
+					*/
+
+					m_pPlayer->SetPositionSimple(&position, TRUE);
+
+					/*
+					if (!m_pPlayer->cell && bHasCell)
+					{
+						m_pPlayer->SendText("Damnet...", LTT_DEFAULT);
+					}
+					*/
+					// m_pPlayer->m_Position = position; // should interpolate this, not set this directly, but oh well
+			
+				}
+
+				if (bHasContact)
+				{
+					m_pPlayer->transient_state |= ((DWORD)TransientState::CONTACT_TS);
+				}
+				else
+				{
+					m_pPlayer->transient_state &= ~((DWORD)TransientState::CONTACT_TS);
+					m_pPlayer->transient_state &= ~((DWORD)WATER_CONTACT_TS);
+				}
+				m_pPlayer->calc_acceleration();
+				m_pPlayer->set_on_walkable(bHasContact);
+
+			m_pPlayer->Movement_UpdatePos();
+			break;
+		}
+		case MOVEMENT_JUMP_NON_AUTONOMOUS:
+		{
+			// Read: float extent - Power of jump
+			break;
+		}
+		default:
+		{
+			//Unknown Event
+#ifdef _DEBUG
+				SERVER_WARN << "Unhandled client event" << dwEvent;
+#endif
+				// LOG_BYTES(Temp, Verbose, in->GetDataPtr(), in->GetDataEnd() - in->GetDataPtr() );
+			}
+		}
 }
 
 
