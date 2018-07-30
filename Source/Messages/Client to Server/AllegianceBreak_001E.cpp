@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceBreak_001E.h"
+#include "AllegianceBreak_001E.h"
 #include "AllegianceManager.h"
 
 MAllegianceBreak_001E::MAllegianceBreak_001E(CPlayerWeenie * player)
@@ -22,6 +22,6 @@ void MAllegianceBreak_001E::Parse(BinaryReader * reader)
 
 void MAllegianceBreak_001E::Process()
 {
-	g_pAllegianceManager->TryBreakAllegiance(m_pPlayer, m_dwPatronID); // Allegiance manager does the sanity checks for this
+	g_pAllegianceManager->TryBreakAllegiance(m_pPlayer, m_dwPatronID);
 	g_pAllegianceManager->SendAllegianceProfile(m_pPlayer);
 }

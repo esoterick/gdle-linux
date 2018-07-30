@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceOfficersClear_02A7.h"
+#include "AllegianceOfficersClear_02A7.h"
 #include "AllegianceManager.h"
 
 MAllegianceOfficersClear_02A7::MAllegianceOfficersClear_02A7(CPlayerWeenie * player)

@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceNameClear_0031.h"
+#include "AllegianceNameClear_0031.h"
 #include "AllegianceManager.h"
 MAllegianceNameClear_0031::MAllegianceNameClear_0031(CPlayerWeenie * player)
 {

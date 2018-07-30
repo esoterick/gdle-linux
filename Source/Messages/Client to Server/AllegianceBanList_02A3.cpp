@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceBanList_02A3.h"
+#include "AllegianceBanList_02A3.h"
 #include "AllegianceManager.h"
 
 MAllegianceBanList_02A3::MAllegianceBanList_02A3(CPlayerWeenie * player)

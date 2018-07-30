@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceOfficerSet_003B.h"
+#include "AllegianceOfficerSet_003B.h"
 #include "AllegianceManager.h"
 #include "DatabaseIO.h"
 #include "World.h"

@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceSwear_001D.h"
+#include "AllegianceSwear_001D.h"
 #include "AllegianceManager.h"
 #include "World.h"
 

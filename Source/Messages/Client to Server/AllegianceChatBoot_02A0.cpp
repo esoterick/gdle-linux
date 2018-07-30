@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceChatBoot_02A0.h"
+#include "AllegianceChatBoot_02A0.h"
 #include "AllegianceManager.h"
 
 MAllegianceChatBoot_02A0::MAllegianceChatBoot_02A0(CPlayerWeenie * player)

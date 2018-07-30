@@ -1,9 +1,7 @@
 #include "stdafx.h"
-#include "MAllegianceBoot_0277.h"
+#include "AllegianceBoot_0277.h"
 #include "AllegianceManager.h"
 #include "Player.h"
-#include "World.h"
-#include "DatabaseIO.h"
 
 MAllegianceBoot_0277::MAllegianceBoot_0277(CPlayerWeenie * player)
 {

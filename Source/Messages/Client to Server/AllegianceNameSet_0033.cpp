@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceNameSet_0033.h"
+#include "AllegianceNameSet_0033.h"
 #include "AllegianceManager.h"
 #include "InferredPortalData.h"
 

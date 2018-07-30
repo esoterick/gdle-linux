@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceLockAction_003F.h"
+#include "AllegianceLockAction_003F.h"
 #include "AllegianceManager.h"
 #include "World.h"
 

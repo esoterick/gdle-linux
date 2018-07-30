@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceHouseAction_0042.h"
+#include "AllegianceHouseAction_0042.h"
 #include "AllegianceManager.h"
 #include "House.h"
 

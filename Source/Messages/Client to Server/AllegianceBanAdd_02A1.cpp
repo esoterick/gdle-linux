@@ -1,8 +1,7 @@
 #include "stdafx.h"
-#include "MAllegianceBanAdd_02A1.h"
+#include "AllegianceBanAdd_02A1.h"
 #include "AllegianceManager.h"
 #include "Player.h"
-#include "World.h"
 
 MAllegianceBanAdd_02A1::MAllegianceBanAdd_02A1(CPlayerWeenie* player)
 {
@@ -24,8 +23,5 @@ void MAllegianceBanAdd_02A1::Parse(BinaryReader * reader)
 
 void MAllegianceBanAdd_02A1::Process()
 {
-	DWORD bannedPlayerID = g_pWorld->GetPlayerId(m_szCharName.c_str());
-
-	g_pAllegianceManager->AddBan(m_pPlayer, bannedPlayerID);
-	// TODO check for applicable WERRORs
+	g_pAllegianceManager->AddBan(m_pPlayer, m_szCharName);
 }

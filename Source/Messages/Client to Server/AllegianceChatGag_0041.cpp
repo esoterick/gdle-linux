@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceChatGag_0041.h"
+#include "AllegianceChatGag_0041.h"
 
 MAllegianceChatGag_0041::MAllegianceChatGag_0041(CPlayerWeenie * player)
 {

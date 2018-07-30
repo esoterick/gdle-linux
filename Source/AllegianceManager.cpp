@@ -556,7 +556,7 @@ void AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject 
 	}
 	if (source->DistanceTo(target) >= 4.0)
 	{
-		source->NotifyWeenieError(WERROR_TOO_FAR);
+		source->NotifyWeenieError(WERROR_MISSILE_OUT_OF_RANGE);
 		return;
 	}
 
@@ -593,6 +593,13 @@ void AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject 
 		if (IsBanned(source->GetID(), targetTreeNode->_monarchID))
 		{
 			target->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_BANNED, source->GetName().c_str());
+			return;
+		}
+		AllegianceInfo* ai = GetInfo(targetTreeNode->_monarchID);
+		if (ai && ai->_info.m_isLocked && (source->GetID() != ai->_info.m_ApprovedVassal)) // bypass the lock if it's the approved vassal
+		{
+			source->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_PREVENTS_VASSAL, target->GetName().c_str());
+			target->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_PREVENTS_PATRON, source->GetName().c_str());
 			return;
 		}
 
@@ -1697,6 +1704,34 @@ void AllegianceManager::AllegianceLockAction(CPlayerWeenie * player, DWORD lock_
 	}
 }
 
+void AllegianceManager::RecallHometown(CPlayerWeenie * player)
+{
+	if (player->CheckPKActivity())
+	{
+		player->NotifyWeenieError(WERROR_PORTAL_PK_ATTACKED_TOO_RECENTLY);
+		return;
+	}
+
+	AllegianceTreeNode *allegianceNode = GetTreeNode(player->GetID());
+
+	if (!allegianceNode)
+	{
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
+		return;
+	}
+
+	AllegianceInfo *allegianceInfo = GetInfo(allegianceNode->_monarchID);
+
+	if (allegianceInfo && allegianceInfo->_info.m_BindPoint.objcell_id)
+	{
+		player->ExecuteUseEvent(new CAllegianceHometownRecallUseEvent());
+	}
+	else
+	{
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_HOMETOWN_NOT_SET);
+	}
+}
+
 void AllegianceManager::ApproveVassal(CPlayerWeenie * player, std::string vassal_name)
 {
 	DWORD approvedVassalID = g_pWorld->GetPlayerId(vassal_name.c_str(), true);
@@ -1771,6 +1806,10 @@ void AllegianceManager::BootPlayer(CPlayerWeenie * player, std::string bootee, b
 			}
 		}
 	}
+	else
+	{
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
+	}
 }
 
 void AllegianceManager::ChatBoot(CPlayerWeenie * player, std::string target, std::string reason)
@@ -1814,8 +1853,9 @@ bool AllegianceManager::IsBanned(DWORD player_to_check_id, DWORD monarch_id)
 	return false;
 }
 
-void AllegianceManager::AddBan(CPlayerWeenie* player, DWORD banned_player_id)
+void AllegianceManager::AddBan(CPlayerWeenie* player, std::string char_name)
 {
+	DWORD bannedPlayerID = g_pWorld->GetPlayerId(char_name.c_str());
 	AllegianceTreeNode* playerNode = GetTreeNode(player->GetID());
 	if (!playerNode) // check caller even has an allegiance
 	{
@@ -1827,10 +1867,10 @@ void AllegianceManager::AddBan(CPlayerWeenie* player, DWORD banned_player_id)
 
 	if (IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // check caller has correct authority
 	{
-		CharacterDesc_t bannedCharInfo = g_pDBIO->GetCharacterInfo(banned_player_id);
+		CharacterDesc_t bannedCharInfo = g_pDBIO->GetCharacterInfo(bannedPlayerID);
 		AllegianceHierarchy ah = GetInfo(monarchID)->_info;
 		
-		if (ah.m_BanList.size() > 128) 	// TODO: max ban list size?
+		if (ah.m_BanList.size() > 50) 	// max ban list as of 01/06 patch notes
 		{
 			player->NotifyWeenieError(WERROR_ALLEGIANCE_BANNED_LIST_FULL);
 			return;

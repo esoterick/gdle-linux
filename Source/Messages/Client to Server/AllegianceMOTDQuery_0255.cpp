@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceMOTDQuery_0255.h"
+#include "AllegianceMOTDQuery_0255.h"
 #include "AllegianceManager.h"
 
 MAllegianceMOTDQuery_0255::MAllegianceMOTDQuery_0255(CPlayerWeenie * player)

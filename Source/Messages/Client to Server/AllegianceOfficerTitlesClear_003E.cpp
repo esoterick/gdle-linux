@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceOfficerTitlesClear_003E.h"
+#include "AllegianceOfficerTitlesClear_003E.h"
 #include "AllegianceManager.h"
 
 MAllegianceOfficerTitlesClear_003E::MAllegianceOfficerTitlesClear_003E(CPlayerWeenie * player)

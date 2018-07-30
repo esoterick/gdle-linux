@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceNameQuery_0030.h"
+#include "AllegianceNameQuery_0030.h"
 #include "AllegianceManager.h"
 
 MAllegianceNameQuery_0030::MAllegianceNameQuery_0030(CPlayerWeenie * player)

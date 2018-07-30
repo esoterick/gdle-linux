@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceInfoRequest_027B.h"
+#include "AllegianceInfoRequest_027B.h"
 #include "AllegianceManager.h"
 
 MAllegianceInfoRequest_027B::MAllegianceInfoRequest_027B(CPlayerWeenie * player)

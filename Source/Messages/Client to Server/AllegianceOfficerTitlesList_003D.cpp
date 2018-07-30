@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceOfficerTitlesList_003D.h"
+#include "AllegianceOfficerTitlesList_003D.h"
 #include "AllegianceManager.h"
 
 MAllegianceOfficerTitlesList_003D::MAllegianceOfficerTitlesList_003D(CPlayerWeenie * player)

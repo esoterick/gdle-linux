@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceMOTDSet_0254.h"
+#include "AllegianceMOTDSet_0254.h"
 #include "AllegianceManager.h"
 
 MAllegianceMOTDSet_0254::MAllegianceMOTDSet_0254(CPlayerWeenie * player)

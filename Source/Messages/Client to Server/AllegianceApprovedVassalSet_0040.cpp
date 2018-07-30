@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceApprovedVassalSet_0040.h"
+#include "AllegianceApprovedVassalSet_0040.h"
 #include "AllegianceManager.h"
 #include "World.h"
 

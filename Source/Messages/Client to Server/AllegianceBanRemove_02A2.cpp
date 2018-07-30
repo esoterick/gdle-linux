@@ -1,7 +1,6 @@
 #include "stdafx.h"
-#include "MAllegianceBanRemove_02A2.h"
+#include "AllegianceBanRemove_02A2.h"
 #include "AllegianceManager.h"
-#include "World.h"
 
 MAllegianceBanRemove_02A2::MAllegianceBanRemove_02A2(CPlayerWeenie * player)
 {

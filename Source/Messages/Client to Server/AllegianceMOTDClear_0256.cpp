@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MAllegianceMOTDClear_0256.h"
+#include "AllegianceMOTDClear_0256.h"
 #include "AllegianceManager.h"
 
 MAllegianceMOTDClear_0256::MAllegianceMOTDClear_0256(CPlayerWeenie * player)

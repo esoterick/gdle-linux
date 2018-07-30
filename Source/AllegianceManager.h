@@ -114,6 +114,7 @@ public:
 
 	void AllegianceInfoRequest(CPlayerWeenie* player, std::string target_name);
 	void AllegianceLockAction(CPlayerWeenie* player, DWORD lock_action);
+	void RecallHometown(CPlayerWeenie* player);
 
 	void ApproveVassal(CPlayerWeenie * player, std::string vassal_name);
 	void BootPlayer(CPlayerWeenie* player, std::string bootee, bool whole_account);
@@ -122,7 +123,7 @@ public:
 	void ChatBoot(CPlayerWeenie* player, std::string target, std::string reason);
 
 	bool IsBanned(DWORD player_to_check_id, DWORD monarch_id);
-	void AddBan(CPlayerWeenie * player, DWORD player_id);
+	void AddBan(CPlayerWeenie * player, std::string char_name);
 	void RemoveBan(CPlayerWeenie * player, std::string char_name);
 	void GetBanList(CPlayerWeenie * player);
 
