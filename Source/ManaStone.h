@@ -19,6 +19,7 @@ public:
 
 	virtual void ApplyQualityOverrides() override;
 	virtual int UseWith(CPlayerWeenie *player, CWeenieObject *with) override;
+	virtual int DoUseWithResponse(CWeenieObject * player, CWeenieObject * pTarget) override;
 
 protected:
 };

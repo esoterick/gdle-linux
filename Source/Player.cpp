@@ -25,6 +25,7 @@
 #include <chrono>
 #include <algorithm>
 #include <functional>
+#include "ManaStone.h"
 
 
 #define PLAYER_SAVE_INTERVAL 180.0
@@ -1161,7 +1162,9 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 	{
 	case TYPE_MANASTONE:
 	{
-		// TODO: move this logic to ManaStone.cpp
+		//CManaStoneWeenie* pManaStone = pTool->AsManaStone();
+		pTool->UseWith(this, pTarget);
+		/*TODO: move this logic to ManaStone.cpp
 		int targetType = pTarget->InqIntQuality(ITEM_TYPE_INT, 0);
 		if (!(targetType & TYPE_ITEM) && !(targetType & TYPE_CREATURE)) {
 			SendText(csprintf("That's not a valid target for the %s", pTool->GetName().c_str()), LTT_DEFAULT); //todo: made up message, confirm if it's correct
@@ -1361,7 +1364,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 					pTool->NotifyIntStatUpdated(UI_EFFECTS_INT, false);
 				}
 			}
-		}
+		}*/
 
 		break;
 	}
