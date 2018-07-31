@@ -342,6 +342,8 @@ public:
 
 	void SendText(const char* szText, long lColor);
 
+	void SendTextToOverlay(const char * szText);
+
 	float DistanceTo(CWeenieObject *other, bool bUseSpheres = false);
 	float DistanceSquared(CWeenieObject *other);
 	float HeadingTo(CWeenieObject *target, bool relative = true);

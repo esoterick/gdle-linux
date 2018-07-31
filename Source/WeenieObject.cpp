@@ -2293,6 +2293,11 @@ void CWeenieObject::SendText(const char* szText, long lColor)
 	SendNetMessage(ServerText(szText, lColor), PRIVATE_MSG, FALSE, TRUE);
 }
 
+void CWeenieObject::SendTextToOverlay(const char* szText)
+{
+	SendNetMessage(OverlayText(szText), PRIVATE_MSG, FALSE, TRUE);
+}
+
 float Calc_BurdenMod(float flBurden)
 {
 	if (flBurden < 1.0f)
