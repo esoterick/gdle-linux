@@ -63,6 +63,7 @@ public:
 	bool AddOrUpdateWeenieToBlock(unsigned int weenie_id, unsigned int block_id);
 	bool RemoveWeenieFromBlock(unsigned int weenie_id);
 
+	std::list< std::pair<unsigned int, unsigned int> > GetUnusedIdRanges(unsigned int min_range, unsigned int max_range);
 	unsigned int GetHighestWeenieID(unsigned int min_range, unsigned int max_range);
 	bool IsCharacterNameOpen(const char *name);
 	bool IsPlayerCharacter(unsigned int weenie_id);

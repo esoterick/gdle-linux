@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <queue>
+
 enum eGUIDClass {
 	ePresetGUID = 0,
 	ePlayerGUID = 1,
@@ -14,12 +16,14 @@ class CObjectIDGenerator
 public:
 	CObjectIDGenerator();
 	~CObjectIDGenerator();
-	
+
 	void LoadState();
 
 	DWORD GenerateGUID(eGUIDClass guidClass);
 
 protected:
 	DWORD m_dwHintDynamicGUID;
+
+	std::queue<DWORD> m_availableDynIds;
 };
 

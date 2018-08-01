@@ -271,6 +271,41 @@ bool CDatabaseIO::SetCharacterInstanceTS(unsigned int weenie_id, unsigned int in
 	return g_pDB2->Query("UPDATE characters SET instance_ts = %u WHERE weenie_id = %u", instance_ts, weenie_id);
 }
 
+std::list< std::pair<unsigned int, unsigned int> >
+CDatabaseIO::GetUnusedIdRanges(unsigned int min_range, unsigned int max_range)
+{
+	std::list< std::pair<unsigned int, unsigned int> > result;
+
+	const char *szQuery =
+		"SELECT w.id + 1 AS l, (SELECT id FROM weenies WHERE id > w.id LIMIT 1) AS u "
+		"FROM weenies w "
+		"LEFT JOIN weenies l ON l.id = w.id + 1 "
+		"WHERE w.id >= %u and w.id < %u l.id IS NULL "
+		"ORDER BY w.id "
+		"LIMIT 50;";
+
+	if (g_pDB2->Query(szQuery, min_range, max_range))
+	{
+		CSQLResult *pRes = g_pDB2->GetResult();
+		if (pRes)
+		{
+			while (SQLResultRow_t row = pRes->FetchRow())
+			{
+				unsigned int lower = strtoul(row[0], NULL, 10);
+				unsigned int upper = max_range;
+				if (row[1])
+					upper = strtoul(row[1], NULL, 10);
+
+				result.push_back(std::pair(lower, upper));
+			}
+
+			delete pRes;
+		}
+	}
+
+	return result;
+}
+
 unsigned int CDatabaseIO::GetHighestWeenieID(unsigned int min_range, unsigned int max_range)
 {
 	unsigned int result = min_range;
@@ -398,7 +433,7 @@ bool CDatabaseIO::GetWeenie(unsigned int weenie_id, unsigned int *top_level_obje
 	binding[0].buffer_length = sizeof(unsigned int);
 	binding[0].buffer_type = MYSQL_TYPE_LONG;
 	binding[0].is_unsigned = true;
-	
+
 	binding[1].buffer = block_id;
 	binding[1].buffer_length = sizeof(unsigned int);
 	binding[1].buffer_type = MYSQL_TYPE_LONG;
@@ -621,7 +656,7 @@ DWORD CDatabaseIO::GetNumPendingSaves(DWORD weenie_id)
 {
 	_pendingSavesLock.Lock();
 	std::unordered_map<DWORD, DWORD>::iterator i = _pendingSaves.find(weenie_id);
-	
+
 	DWORD numSaves = 0;
 	if (i != _pendingSaves.end())
 	{
