@@ -316,6 +316,8 @@ void CInferredPortalData::Init()
 			_craftTableData.UnPack(&reader);
 			delete[] data;
 		}
+
+		
 	}
 
 	{

@@ -24,6 +24,7 @@
 #include "GameEventManager.h"
 #include "House.h"
 #include "easylogging++.h"
+#include "..\RecipeFactory.h"
 
 // should all be encapsulated realistically, but we aren't going to multi-instance the server...
 CDatabase *g_pDB = NULL;
@@ -46,6 +47,7 @@ CInferredCellData *g_pCellDataEx = NULL;
 TURBINEPORTAL *g_pPortal = NULL;
 TURBINECELL *g_pCell = NULL;
 CHouseManager *g_pHouseManager = NULL;
+RecipeFactory *g_pRecipeFactory = NULL;
 
 CPhatServer::CPhatServer(const char *configFilePath)
 {
@@ -144,6 +146,9 @@ bool CPhatServer::Init()
 
 	g_pTreasureFactory = new CTreasureFactory();
 	g_pTreasureFactory->Initialize();
+
+	g_pRecipeFactory = new RecipeFactory();
+	g_pRecipeFactory->Initialize();
 
 	g_pDB = new CDatabase(); // Old, dumb, bad
 

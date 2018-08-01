@@ -458,21 +458,11 @@ BOOL CContainerWeenie::Container_CanStore(CWeenieObject *pItem, bool bPackSlot)
 			if (InqBoolQuality(AI_ACCEPT_EVERYTHING_BOOL, FALSE))
 				return TRUE;
 
-			// check emote item acceptance here
+			// check Give and Refuse emote item acceptance here
 			if (m_Qualities._emote_table)
 			{
-				PackableList<EmoteSet> *emoteCategory = m_Qualities._emote_table->_emote_table.lookup(Give_EmoteCategory);
-
-				if (emoteCategory)
-				{
-					for (auto &emoteSet : *emoteCategory)
-					{
-						if (emoteSet.classID == pItem->m_Qualities.id)
-						{
-							return TRUE;
-						}
-					}
-				}
+				if (HasEmoteForID(Give_EmoteCategory, pItem->id) || HasEmoteForID(Refuse_EmoteCategory, pItem->id))
+					return TRUE;
 			}
 
 			return FALSE;
