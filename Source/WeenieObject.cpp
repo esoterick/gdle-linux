@@ -3093,9 +3093,7 @@ void CWeenieObject::PostSpawn()
 		SetLocked(FALSE);
 	}
 
-	if (!m_Qualities._generator_queue)// Prevents generators that have a generator_registry from reinitializing
-		InitCreateGenerator();
-
+	InitCreateGenerator();
 
 	double heartbeatInterval;
 	if (m_Qualities.InqFloat(HEARTBEAT_INTERVAL_FLOAT, heartbeatInterval, TRUE))
@@ -5016,7 +5014,46 @@ int CWeenieObject::Activate(DWORD activator_id)
 		}
 	}
 
-	return WERROR_NONE;
+		//activation code copied from CSwitchWeenie::Activate() seems to fix the generators not spawning mobs on Activate_EmoteType used on mobs like Scold that spawn more mobs on death.
+		if (get_minterp()->interpreted_state.GetNumActions())
+			return WERROR_NONE;
+
+			int activationResponse = InqIntQuality(ACTIVATION_RESPONSE_INT, 0);
+
+			if (DWORD activation_target_id = InqIIDQuality(ACTIVATION_TARGET_IID, 0))
+			{
+				CWeenieObject *activation_target = g_pWorld->FindObject(activation_target_id);
+				if (activation_target)
+					activation_target->Activate(activator_id);
+			}
+
+			//if (activationResponse & Activation_CastSpell)
+			{
+				if (DWORD spell_did = InqDIDQuality(SPELL_DID, 0))
+				{
+					MakeSpellcastingManager()->CastSpellInstant(activator_id, spell_did);
+				}
+			}
+
+			if (activationResponse & Generate_ActivationResponse)
+			{
+				g_pWeenieFactory->AddFromGeneratorTable(this, false);
+			}
+
+			if (activationResponse & Talk_ActivationResponse)
+			{
+				std::string talkText;
+				if (m_Qualities.InqString(ACTIVATION_TALK_STRING, talkText))
+				{
+					CPlayerWeenie *player = g_pWorld->FindPlayer(activator_id);
+					if (player)
+						player->SendText(talkText.c_str(), LTT_DEFAULT);
+				}
+			}
+
+			DoActivationEmote(activator_id);
+
+			return WERROR_NONE;	
 }
 
 int CWeenieObject::DoUseWithResponse(CWeenieObject *player, CWeenieObject *with)
@@ -5037,6 +5074,25 @@ bool CWeenieObject::IsExecutingEmote()
 	}
 
 	return false;
+}
+
+bool CWeenieObject::HasEmoteForID(EmoteCategory emoteCategory, DWORD item_id)
+{
+	// check emote item acceptance for category
+	PackableList<EmoteSet> *emoteCategoryResult = m_Qualities._emote_table->_emote_table.lookup(emoteCategory);
+
+	if (emoteCategoryResult)
+	{
+		for (auto &emoteSet : *emoteCategoryResult)
+		{
+			if (emoteSet.classID == item_id)
+			{
+				return TRUE;
+			}
+		}
+	}
+	else
+		return FALSE;
 }
 
 void CWeenieObject::ChanceExecuteEmoteSet(DWORD other_id, EmoteCategory category)
@@ -5504,8 +5560,16 @@ int CWeenieObject::SimulateGiveObject(CContainerWeenie *target_container, CWeeni
 			}
 			else
 			{
-				SendText(csprintf("You give %s %s.", target_container->GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
-				target_container->SendText(csprintf("%s gives you %s.", GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
+				// check emote Refusal here to avoid the extra "%s gives you %s." text on Refuse Emotes.
+				if (m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->id))
+				{
+					SendText(csprintf("You allow %s to examine your %s.", target_container->GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
+				}
+				else
+				{
+					SendText(csprintf("You give %s %s.", target_container->GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
+					target_container->SendText(csprintf("%s gives you %s.", GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
+				}
 			}
 		}
 	}

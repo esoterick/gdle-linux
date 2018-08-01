@@ -155,6 +155,8 @@ void CPhatACServerConfig::PostLoad()
 
 	m_bShowLogins = atoi(GetValue("show_logins", "1")) != 0;
 	m_bSpeedHackKicking = atoi(GetValue("speed_hack_kicking", "1")) != 0;
+	m_fSpeedHackKickThreshold = max(0.0, atof(GetValue("speed_hack_kick_threshold", "1.2")));
+
 	m_bShowDeathMessagesGlobally = atoi(GetValue("show_death_messages_globally", "0")) != 0;
 	m_bShowPlayerDeathMessagesGlobally = atoi(GetValue("show_player_death_messages_globally", "0")) != 0;
 

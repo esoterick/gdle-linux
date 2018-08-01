@@ -2992,7 +2992,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 						if (pPaletteTemplate->iconID)
 						{
 							pTarget->m_Qualities.SetDataID(ICON_DID, pPaletteTemplate->iconID);
-							pTarget->NotifyDIDStatUpdated(ICON_DID);
+							pTarget->NotifyDIDStatUpdated(ICON_DID, false);
 						}
 					}
 					ClothingTable::Release(clothingTable);

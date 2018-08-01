@@ -234,6 +234,7 @@ public:
 	void DoUseEmote(CWeenieObject *other);
 	void ChanceExecuteEmoteSet(DWORD other_id, EmoteCategory category);
 	bool IsExecutingEmote();
+	bool HasEmoteForID(EmoteCategory emoteCategory, DWORD item_id);
 
 	virtual void EnsureLink(CWeenieObject *source);
 	virtual void NotifyGeneratedDeath(CWeenieObject *weenie);

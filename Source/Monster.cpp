@@ -1324,8 +1324,17 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 				}
 				else
 				{
-					SendText(csprintf("You give %s %s.", topLevelOwner->GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
-					topLevelOwner->SendText(csprintf("%s gives you %s.", GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+					// check emote Refusal here for "You allow %s to examine your %s." text.
+					if (topLevelOwner->m_Qualities._emote_table && topLevelOwner->HasEmoteForID(Refuse_EmoteCategory, newStackItem->id))
+					{
+							SendText(csprintf("You allow %s to examine your %s.", topLevelOwner->GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+							topLevelOwner->SendText(csprintf("%s allows you to examine their %s.", GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+					}
+					else
+					{
+						SendText(csprintf("You give %s %s.", topLevelOwner->GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+						topLevelOwner->SendText(csprintf("%s gives you %s.", GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+					}
 				}
 			}
 
@@ -2211,6 +2220,34 @@ DWORD CMonsterWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObjec
 
 							lastProbability = emoteSet.probability;
 
+							return 0;
+						}
+					}
+				}
+			}
+
+			//No give emote for this item, let's check Refuse.
+			emoteCategory = m_Qualities._emote_table->_emote_table.lookup(Refuse_EmoteCategory);
+
+			if (emoteCategory)
+			{
+				double dice = Random::GenFloat(0.0, 1.0);
+				double lastProbability = -1.0;
+
+				for (auto &emoteSet : *emoteCategory)
+				{
+					if (emoteSet.classID == item->m_Qualities.id)
+					{
+						if (dice >= emoteSet.probability)
+							continue;
+
+						if (lastProbability < 0.0 || lastProbability == emoteSet.probability)
+						{
+							MakeEmoteManager()->ExecuteEmoteSet(emoteSet, source->GetID());
+
+							lastProbability = emoteSet.probability;
+
+							SimulateGiveObject(source->AsContainer(), item);
 							return 0;
 						}
 					}
