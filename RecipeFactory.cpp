@@ -73,7 +73,14 @@ void RecipeFactory::UpdateCraftTableData()
 			}
 			else
 			{
-				SERVER_ERROR << "Recipe" << pc.RecipeID << "missing from json recipe file - not added";
+				if (g_pPortalDataEx->_craftTableData._operations.lookup(pc.RecipeID))
+				{
+					g_pPortalDataEx->_craftTableData._precursorMap[toolTarget] = pc.RecipeID;
+				}
+				else
+				{
+					SERVER_ERROR << "Recipe" << pc.RecipeID << "missing from json recipe file - not added";
+				}
 			}
 		}
 		else 
