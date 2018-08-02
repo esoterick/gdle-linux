@@ -217,6 +217,8 @@ void CWorldLandBlock::SpawnDynamics()
 	CLandBlockExtendedData *data = g_pCellDataEx->GetLandBlockData((DWORD)m_wHeader << 16);
 	if (data)
 	{
+		SmartArray<CLandBlockWeenieLink> tmp_links = data->weenie_links;
+
 		for (DWORD i = 0; i < data->weenies.num_used; i++)
 		{
 			DWORD wcid = data->weenies.array_data[i].wcid;
@@ -319,21 +321,21 @@ void CWorldLandBlock::SpawnDynamics()
 				if (bDynamicID)
 				{
 					DWORD weenie_id = weenie->GetID();
-					for (DWORD i = 0; i < data->weenie_links.num_used; i++)
+					for (DWORD i = 0; i < tmp_links.num_used; i++)
 					{
-						if (data->weenie_links.array_data[i].source == iid)
-							data->weenie_links.array_data[i].source = weenie_id;
-						if (data->weenie_links.array_data[i].target == iid)
-							data->weenie_links.array_data[i].target = weenie_id;
+						if (tmp_links.array_data[i].source == iid)
+							tmp_links.array_data[i].source = weenie_id;
+						if (tmp_links.array_data[i].target == iid)
+							tmp_links.array_data[i].target = weenie_id;
 					}
 				}
 			}
 		}
 
-		for (DWORD i = 0; i < data->weenie_links.num_used; i++)
+		for (DWORD i = 0; i < tmp_links.num_used; i++)
 		{
-			DWORD source_id = data->weenie_links.array_data[i].source;
-			DWORD target_id = data->weenie_links.array_data[i].target;
+			DWORD source_id = tmp_links.array_data[i].source;
+			DWORD target_id = tmp_links.array_data[i].target;
 
 			CWeenieObject *source_weenie = g_pWorld->FindObject(source_id); // often creature, or respawnable item
 			if (source_weenie)
@@ -342,7 +344,6 @@ void CWorldLandBlock::SpawnDynamics()
 				if (target_weenie)
 				{
 					target_weenie->EnsureLink(source_weenie);
-
 					if (target_weenie->m_Qualities._generator_table)
 					{
 						GeneratorProfile prof;
