@@ -1979,7 +1979,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 										if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
 										{
 											// Only Update PK Activity if both target and caster are PK, Prevents PKs from tagging NPKs for PK activity.
-											if (m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+											if (m_pWeenie->IsPK() && target->IsPK())
 											{
 												m_pWeenie->AsPlayer()->UpdatePKActivity();
 												target->AsPlayer()->UpdatePKActivity();
