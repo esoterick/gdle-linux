@@ -2877,7 +2877,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pOther)
 				pTarget = pOther->AsPlayer();
 
-			if (!pOther)
+			if (!pOther || !pTarget)
 			{
 				// cannot open trade
 				m_pPlayer->SendText("Unable to open trade.", LTT_ERROR);
