@@ -65,7 +65,7 @@ public:
 
 	bool IsWaterBlock();
 	bool HasAnySeenOutside();
-	bool PossiblyVisibleToOutdoors(DWORD cell_id);
+	bool PossiblyVisibleToOutdoors(WORD cell_id);
 
 	bool IsTickingWithWorld() { return m_bTickingWithWorld; }
 	void SetIsTickingWithWorld(bool ticking);

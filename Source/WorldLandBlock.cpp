@@ -603,9 +603,13 @@ void CWorldLandBlock::ExchangePVS(CWeenieObject *pSource, WORD old_block_id)
 {
 	if (!pSource)
 		return;
-	
+
+	WORD cell = CELL_WORD(pSource->GetLandcell());
+
 	CWorldLandBlock *pBlock = pSource->GetBlock();
-	if (pBlock && (pSource->GetLandcell() & 0xFFFF) > 0x100) //if indoors only exchange data on this landblock.
+
+	//if in a Dungeon only exchange data on this landblock. Indoor landblocks, such as inside buildings should still exchange.
+	if ((pBlock && (pSource->GetLandcell() & 0xFFFF) > 0x100) && !PossiblyVisibleToOutdoors(pSource->GetLandcell()))
 	{
 			pBlock->ExchangeData(pSource);
 	}
@@ -687,7 +691,7 @@ bool CWorldLandBlock::HasAnySeenOutside()
 	return _cached_any_seen_outside;
 }
 
-bool CWorldLandBlock::PossiblyVisibleToOutdoors(DWORD cell_id)
+bool CWorldLandBlock::PossiblyVisibleToOutdoors(WORD cell_id)
 {
 	if (cell_id >= LandDefs::first_envcell_id && cell_id <= LandDefs::last_envcell_id)
 	{
