@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "WeenieObject.h"
 #include "Healer.h"
@@ -44,6 +43,14 @@ int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 
 void CHealerUseEvent::OnReadyToUse()
 {
+	if (_weenie->GetStamina() == 0)
+	{
+		//don't perform healing animation if there's zero stamina
+		_weenie->NotifyWeenieError(WERROR_STAMINA_TOO_LOW);
+		Cancel();
+		return;
+	}
+
 	if (_target_id == _weenie->GetID())
 	{
 		ExecuteUseAnimation(Motion_SkillHealSelf);
@@ -108,13 +115,15 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 
 					if (_weenie->GetStamina() < staminaNecessary)
 					{
-						//can't heal if there's not enough stamina
-						_weenie->NotifyWeenieError(WERROR_STAMINA_TOO_LOW);
-						Cancel();
-						return;
+						staminaNecessary = _weenie->GetStamina();
+						amountHealed = staminaNecessary * 5;
+						if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
+						{
+							pPlayer->SendText("You're exhausted!", LTT_ERROR);
+						}
 					}
 					_weenie->AdjustStamina(-staminaNecessary);
-
+					
 					success = Random::RollDice(0.0, 1.0) <= GetSkillChance(healing_skill, difficulty);
 					if (success)
 					{
