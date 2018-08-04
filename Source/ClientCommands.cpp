@@ -242,6 +242,18 @@ CLIENT_COMMAND(global, "<text> [color=1]", "Displays text globally.", ADMIN_ACCE
 }
 
 
+CLIENT_COMMAND(overlay, "<text>", "Displays <text> at the top-middle of the 3D window.", ADMIN_ACCESS)
+{
+	if (argc < 1)
+	{
+		return true;
+	}
+	const char* szText = argv[0];
+	pPlayer->SendTextToOverlay(szText);
+	return false;
+}
+
+
 CLIENT_COMMAND(animationall, "<num> [speed]", "Performs an animation for everyone.", ADMIN_ACCESS)
 {
 
