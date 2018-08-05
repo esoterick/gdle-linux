@@ -4343,5 +4343,25 @@ enum ItemSet
 	UNKNOWN_140_ItemSet
 };
 
+enum AllegianceLockAction
+{
+	LockedOff = 1,
+	LockedOn,
+	ToggleLocked,
+	CheckLocked,
+	DisplayBypass,
+	ClearBypass
+};
+
+enum ConfirmationTypes
+{
+	SwearAllegianceConfirm = 1,
+	AlterSkillConfirm,
+	AlterAttributeConfirm,
+	FellowshipConfirm,
+	CraftConfirm,
+	AugmentationConfirm,
+	YesNoConfirm
+};
 
 #include "GameStatEnums.h"

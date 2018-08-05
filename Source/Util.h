@@ -149,6 +149,7 @@ bool LoadDataFromFile(const char *filepath, BYTE **data, DWORD *length);
 bool LoadDataFromPhatDataBin(DWORD data_id, BYTE **data, DWORD *length, DWORD magic1, DWORD magic2);
 bool LoadDataFromCompressedFile(const char *filepath, BYTE **data, DWORD *length, DWORD magic1, DWORD magic2);
 long FindNeedle(void *haystack, unsigned int haystacklength, void *needle, unsigned int needlelength);
+std::string TimeToString(int seconds);
 bool ReplaceString(std::string& str, const std::string& from, const std::string& to);
 std::string ReplaceInString(std::string subject, const std::string& search, const std::string& replace);
 
