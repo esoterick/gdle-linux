@@ -1804,7 +1804,8 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 		for each(auto entry in m_Qualities._generator_registry->_registry)
 		{
 			CWeenieObject *weenie = g_pWorld->FindObject(entry.second.m_objectId);
-			weenie->AsMonster()->OnDeath(0);
+			if (weenie->AsMonster() != nullptr)
+				weenie->AsMonster()->OnDeath(0);
 		}
 
 	}

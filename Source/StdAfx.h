@@ -93,6 +93,7 @@ class CPlayerWeenie;
 extern class CDatabase *g_pDB;
 extern class CMYSQLDatabase *g_pDB2;
 extern class CMYSQLDatabase *g_pDB2Async;
+extern class CMYSQLDatabase *g_pDBDynamicIDs;
 extern class CDatabaseIO *g_pDBIO;
 extern class CGameDatabase *g_pGameDatabase;
 extern class ServerCellManager *g_pCellManager;

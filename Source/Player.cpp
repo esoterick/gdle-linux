@@ -3308,8 +3308,11 @@ void CPlayerWeenie::HandleItemManaRequest(DWORD itemId)
 
 void CPlayerWeenie::UpdateModuleFromClient(PlayerModule &module)
 {
-	_playerModule = module;
-	UpdateModel();
+	if (&_playerModule && &module) // feels hacky
+	{
+		_playerModule = module;
+		UpdateModel();
+	}
 }
 
 void CPlayerWeenie::LoadEx(CWeenieSave &save)

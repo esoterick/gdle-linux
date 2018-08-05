@@ -30,6 +30,7 @@
 CDatabase *g_pDB = NULL;
 CMYSQLDatabase *g_pDB2 = NULL;
 CMYSQLDatabase *g_pDB2Async = NULL;
+CMYSQLDatabase *g_pDBDynamicIDs = NULL;
 CDatabaseIO *g_pDBIO = NULL;
 CGameDatabase *g_pGameDatabase = NULL;
 ServerCellManager *g_pCellManager = NULL;
@@ -159,6 +160,13 @@ bool CPhatServer::Init()
 		m_Config.DatabaseUsername(),
 		m_Config.DatabasePassword(),
 		m_Config.DatabaseName()); // Newer, shiny, makes pancakes in the morning
+
+	g_pDBDynamicIDs = new CMYSQLDatabase(
+		m_Config.DatabaseIP(),
+		m_Config.DatabasePort(),
+		m_Config.DatabaseUsername(),
+		m_Config.DatabasePassword(),
+		m_Config.DatabaseName());
 
 	g_pHouseManager = new CHouseManager();
 
@@ -315,6 +323,7 @@ void CPhatServer::Shutdown()
 	SafeDelete(g_pGameDatabase);
 	SafeDelete(g_pHouseManager);
 	SafeDelete(g_pDB2);
+	SafeDelete(g_pDBDynamicIDs);
 	SafeDelete(g_pDBIO);
 	SafeDelete(g_pDB);
 
