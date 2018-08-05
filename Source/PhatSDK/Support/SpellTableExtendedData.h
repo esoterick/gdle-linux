@@ -243,7 +243,7 @@ public:
 
 	DEFINE_LOCAL_PACK_JSON()
 	{
-		SpellEx::PackJson(writer);
+		ProjectileSpellEx::PackJson(writer);
 
 		writer["drain_percentage"] = _drain_percentage;
 		writer["damage_ratio"] = _damage_ratio;
@@ -251,7 +251,7 @@ public:
 
 	DEFINE_LOCAL_UNPACK_JSON()
 	{
-		SpellEx::UnPackJson(reader);
+		ProjectileSpellEx::UnPackJson(reader);
 
 		_drain_percentage = reader["drain_percentage"];
 		_damage_ratio = reader["damage_ratio"];
