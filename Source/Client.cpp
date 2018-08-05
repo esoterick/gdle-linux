@@ -707,7 +707,8 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				weenie->SetMaxVitals(false);
 
 				weenie->m_Qualities._create_list->clear(); //Clear the create list as we don't want what's in it.
-				g_pWorld->CreateEntity(weenie); //Briefly add the weenie to the world so we don't get errors when adding the starting gear.
+				if (!g_pWorld->CreateEntity(weenie))
+					return;; //Briefly add the weenie to the world so we don't get errors when adding the starting gear.
 
 				//set scale on Lugian and Empyrean characters
 				if (cg.heritageGroup == Lugian_HeritageGroup)
@@ -764,6 +765,8 @@ BadData:
 
 void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult cg, Sex_CG *scg)
 {
+	if (!weenieObject)
+		return;
 	CMonsterWeenie *weenie = weenieObject->AsMonster();
 	if (weenie == NULL)
 		return;
