@@ -586,10 +586,10 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 						tg->AsPlayer() &&
 						(
 							(
-								_weenie->IsPK() && !tg->AsPlayer()->IsPK()
+								_weenie->IsPK() && !tg->IsPK()
 							) ||
 							(
-								_weenie->IsPKLite() && !tg->AsPlayer()->IsPKLite()
+								_weenie->IsPKLite() && !tg->IsPKLite()
 							)
 						)
 					)
