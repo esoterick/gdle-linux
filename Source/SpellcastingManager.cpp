@@ -788,6 +788,16 @@ void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 			player->BeginRecall(targetPos);
 		}
 	}
+	else if (m_pWeenie->HasOwner())
+	{
+		if (CPlayerWeenie *gemtarget = m_pWeenie->GetWorldTopLevelOwner()->AsPlayer())
+		{
+			if (!gemtarget->IsRecalling())
+			{
+				gemtarget->BeginRecall(targetPos);
+			}
+		}
+	}
 	else
 	{
 		m_pWeenie->Movement_Teleport(targetPos, false);
@@ -1469,8 +1479,8 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 		case SpellType::PortalRecall_SpellType:
 		{
-			if (m_pWeenie->HasOwner())
-				break;
+			/*if (m_pWeenie->HasOwner()) //Needed to comment out for Rare gems.
+				break;*/
 
 			if (m_pWeenie->AsPlayer() && m_pWeenie->AsPlayer()->CheckPKActivity())
 			{
@@ -1502,6 +1512,10 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 			{
 				Position lastPortalPos;
 				if (m_pWeenie->m_Qualities.InqPosition(LAST_PORTAL_POSITION, lastPortalPos) && lastPortalPos.objcell_id != 0)
+				{
+					BeginPortalSend(lastPortalPos);
+				}
+				else if (m_pWeenie->GetWorldTopLevelOwner()->m_Qualities.InqPosition(LAST_PORTAL_POSITION, lastPortalPos) && lastPortalPos.objcell_id != 0)
 				{
 					BeginPortalSend(lastPortalPos);
 				}
@@ -1713,7 +1727,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 						{
 							if (wielded->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
 							{
-								if (castTarget == m_pWeenie || wielded->parent) // for other targets, only physically wielded allowed
+								if (castTarget == m_pWeenie || wielded->parent || m_pWeenie->GetWorldTopLevelOwner()) // for other targets, only physically wielded allowed, TopLevelOwner for buff gems.
 								{
 									targets.push_back(wielded);
 								}
