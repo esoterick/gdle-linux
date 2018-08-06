@@ -1132,7 +1132,7 @@ void AllegianceManager::SetMOTD(CPlayerWeenie* player, std::string msg)
 		return;
 	}
 
-	if (!IsMonarch(playerNode) || !IsOfficer(playerNode))
+	if (!(IsMonarch(playerNode) || IsOfficer(playerNode)))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1171,7 +1171,7 @@ void AllegianceManager::ClearMOTD(CPlayerWeenie * player)
 		return;
 	}
 
-	if (!IsMonarch(playerNode) || !IsOfficer(playerNode))
+	if (!(IsMonarch(playerNode) || IsOfficer(playerNode)))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1215,7 +1215,7 @@ void AllegianceManager::SetAllegianceName(CPlayerWeenie * player, std::string na
 		return;
 	}
 
-	if (!IsMonarch(playerNode) || !IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel))
+	if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel)))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1251,7 +1251,7 @@ void AllegianceManager::SetAllegianceName(CPlayerWeenie * player, std::string na
 
 			for (auto c : name)
 			{
-				if (c != 32 || c != 39 || c != 45 || !(64 < c && c < 91) || !(96 < c && c < 123)) // space, single quote, hyphen, A-Z, a-z
+				if (!(c == 32 || c == 39 || c == 45 || (64 < c && c < 91) || (96 < c && c < 123))) // space, single quote, hyphen, A-Z, a-z
 				{
 					player->NotifyWeenieError(WERROR_ALLEGIANCE_NAME_BAD_CHARACTER);
 					return;
@@ -1289,7 +1289,7 @@ void AllegianceManager::ClearAllegianceName(CPlayerWeenie * player)
 		return;
 	}
 
-	if (!IsMonarch(playerNode) || !IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel))
+	if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel)))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1333,7 +1333,7 @@ void AllegianceManager::SetOfficerTitle(CPlayerWeenie * player, int level, std::
 		return;
 	}
 
-	if (!IsMonarch(playerNode) || !IsOfficer(playerNode))
+	if (!(IsMonarch(playerNode) || IsOfficer(playerNode)))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1353,7 +1353,7 @@ void AllegianceManager::SetOfficerTitle(CPlayerWeenie * player, int level, std::
 
 	for (auto c : title)
 	{
-		if (c != 32 || c != 39 || c != 45 || !(64 < c && c < 91) || !(96 < c && c < 123)) // space, single quote, hyphen, A-Z, a-z
+		if (!(c == 32 || c == 39 || c == 45 || (64 < c && c < 91) || (96 < c && c < 123))) // space, single quote, hyphen, A-Z, a-z
 		{
 			player->NotifyWeenieError(WERROR_ALLEGIANCE_OFFICER_TITLE_BAD_CHARACTER);
 			return;
@@ -1386,7 +1386,7 @@ void AllegianceManager::ClearOfficerTitles(CPlayerWeenie * player)
 		return;
 	}
 
-	if (!IsMonarch(playerNode) || !IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel))
+	if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel)))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1445,7 +1445,7 @@ void AllegianceManager::SetOfficer(CPlayerWeenie * player, std::string officer_n
 			return;
 		}
 
-		if (!IsMonarch(playerNode) || !IsOfficer(playerNode))
+		if (!(IsMonarch(playerNode) || IsOfficer(playerNode)))
 		{
 			player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 			return;
@@ -1492,7 +1492,7 @@ void AllegianceManager::RemoveOfficer(CPlayerWeenie * player, std::string office
 			return;
 		}
 		// only monarchs and level 2+ officers are authorized to remove officers
-		if (!IsMonarch(playerNode) || !IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel))
+		if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)))
 		{
 			player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 			return;
@@ -1500,7 +1500,7 @@ void AllegianceManager::RemoveOfficer(CPlayerWeenie * player, std::string office
 		// only level 3 officers and monarchs can remove level 2+ officers
 		if (IsOfficerWithLevel(officerNode, Seneschal_AllegianceOfficerLevel))
 		{
-			if (!IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel) || !IsMonarch(playerNode))
+			if (!(IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel) || IsMonarch(playerNode)))
 			{
 				player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 				return;
@@ -1553,7 +1553,7 @@ void AllegianceManager::ClearOfficers(CPlayerWeenie * player)
 		return;
 	}
 	// only monarch or level 3 officers can clear officer list - TODO check if this is monarch only?
-	if (!IsMonarch(playerNode) || !IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel))
+	if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel)))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1582,7 +1582,7 @@ void AllegianceManager::AllegianceInfoRequest(CPlayerWeenie * player, std::strin
 		return;
 	}
 
-	if (!IsMonarch(myNode) || !IsOfficerWithLevel(myNode, Seneschal_AllegianceOfficerLevel))
+	if (!(IsMonarch(myNode) || IsOfficerWithLevel(myNode, Seneschal_AllegianceOfficerLevel)))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1829,7 +1829,7 @@ void AllegianceManager::ChatBoot(CPlayerWeenie * player, std::string target, std
 		return;
 	}
 
-	if (!IsMonarch(playerNode) || !IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel))
+	if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
