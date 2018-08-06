@@ -559,6 +559,8 @@ void AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject 
 		source->NotifyWeenieError(WERROR_MISSILE_OUT_OF_RANGE);
 		return;
 	}
+	if (source->GetID() == target->GetID())
+		return;
 
 	if (CPlayerWeenie *player = target->AsPlayer())
 	{
