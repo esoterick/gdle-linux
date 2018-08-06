@@ -251,9 +251,9 @@ void Frame::set_heading(float DegreeHeading)
 Vector Frame::get_vector_heading()
 {
 	Vector heading;
-	heading.x = m00 * 0.0 + m10 + m20;
-	heading.y = m01 * 0.0 + m11 + m21;
-	heading.z = m02 * 0.0 + m12 + m22;
+	heading.x = m10;
+	heading.y = m11;
+	heading.z = m12;
 	return heading;
 }
 

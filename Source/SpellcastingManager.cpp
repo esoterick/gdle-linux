@@ -1909,15 +1909,11 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 				break;
 
 			// NPKs should not be able to buff PKs
-			if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+			if (m_pWeenie && target && m_pWeenie->IsPK() && target->IsPK())
 			{
-				if (!m_pWeenie->IsPK() && target->IsPK())
-				{
 					bSpellPerformed = false;
 					break;
-				}
 			}
-
 			else
 			{
 				Fellowship *fellow = target->GetFellowship();
