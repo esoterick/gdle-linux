@@ -645,6 +645,8 @@ public:
 
 	virtual double GetOffenseMod();
 	virtual int GetAttackTime();
+	virtual double GetManaCon();
+	virtual double GetElementalDamage();
 	virtual int GetAttackTimeUsingWielded();
 	virtual int GetAttackDamage();
 

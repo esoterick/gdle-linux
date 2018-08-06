@@ -5800,7 +5800,7 @@ double CWeenieObject::GetMeleeDefenseModUsingWielded()
 
 double CWeenieObject::GetMeleeDefenseMod()
 {
-	double mod = InqFloatQuality(WEAPON_DEFENSE_FLOAT, 1.0, FALSE);
+	double mod = InqFloatQuality(WEAPON_DEFENSE_FLOAT, 1.0, TRUE);
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_DEFENSE_FLOAT, &mod);
@@ -5808,7 +5808,7 @@ double CWeenieObject::GetMeleeDefenseMod()
 	CWeenieObject *wielder = GetWorldWielder();
 	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
 	{
-		mod *= wielder->GetMeleeDefenseMod();
+		mod += (wielder->GetMeleeDefenseMod()) - 1.0;
 	}
 
 	return mod;
@@ -5821,7 +5821,7 @@ double CWeenieObject::GetMissileDefenseModUsingWielded()
 
 double CWeenieObject::GetMissileDefenseMod()
 {
-	double mod = InqFloatQuality(WEAPON_MISSILE_DEFENSE_FLOAT, 1.0, FALSE);
+	double mod = InqFloatQuality(WEAPON_MISSILE_DEFENSE_FLOAT, 1.0, TRUE);
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_MISSILE_DEFENSE_FLOAT, &mod);
@@ -5829,7 +5829,7 @@ double CWeenieObject::GetMissileDefenseMod()
 	CWeenieObject *wielder = GetWorldWielder();
 	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
 	{
-		mod *= wielder->GetMissileDefenseMod();
+		mod += (wielder->GetMissileDefenseMod()) - 1.0;
 	}
 
 	return mod;
@@ -5842,7 +5842,7 @@ double CWeenieObject::GetMagicDefenseModUsingWielded()
 
 double CWeenieObject::GetMagicDefenseMod()
 {
-	double mod = InqFloatQuality(WEAPON_MAGIC_DEFENSE_FLOAT, 1.0, FALSE);
+	double mod = InqFloatQuality(WEAPON_MAGIC_DEFENSE_FLOAT, 1.0, TRUE);
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_MAGIC_DEFENSE_FLOAT, &mod);
@@ -5850,7 +5850,7 @@ double CWeenieObject::GetMagicDefenseMod()
 	CWeenieObject *wielder = GetWorldWielder();
 	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
 	{
-		mod *= wielder->GetMagicDefenseMod();
+		mod += (wielder->GetMagicDefenseMod()) - 1.0;
 	}
 
 	return mod;
@@ -5858,7 +5858,7 @@ double CWeenieObject::GetMagicDefenseMod()
 
 double CWeenieObject::GetOffenseMod()
 {
-	double mod = InqFloatQuality(WEAPON_OFFENSE_FLOAT, 1.0, FALSE);
+	double mod = InqFloatQuality(WEAPON_OFFENSE_FLOAT, 1.0, TRUE);
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_OFFENSE_FLOAT, &mod);
@@ -5866,7 +5866,7 @@ double CWeenieObject::GetOffenseMod()
 	CWeenieObject *wielder = GetWorldWielder();
 	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
 	{
-		mod *= wielder->GetOffenseMod();
+		mod += (wielder->GetOffenseMod()) - 1.0;
 	}
 
 	return mod;
@@ -5998,6 +5998,38 @@ int CWeenieObject::GetAttackTime()
 	// 100 = 1.0
 	// 1.0 / (1.0 + ((100 - speed) * (0.0075)))
 	return speed;
+}
+
+double CWeenieObject::GetManaCon()
+{
+	CWeenieObject *wielder = GetWorldWielder();
+
+	double manacon = 0;
+	m_Qualities.InqFloat(MANA_CONVERSION_MOD_FLOAT, manacon, TRUE);
+
+	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
+	{
+		if (wielder->m_Qualities._enchantment_reg)
+			wielder->m_Qualities._enchantment_reg->EnchantFloat(MANA_CONVERSION_MOD_FLOAT, &manacon);
+	}
+
+	return manacon;
+}
+
+double CWeenieObject::GetElementalDamage()
+{
+	CWeenieObject *wielder = GetWorldWielder();
+
+	double elementdmg = 0;
+	m_Qualities.InqFloat(ELEMENTAL_DAMAGE_MOD_FLOAT, elementdmg, TRUE);
+
+	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
+	{
+		if (wielder->m_Qualities._enchantment_reg)
+			wielder->m_Qualities._enchantment_reg->EnchantFloat(ELEMENTAL_DAMAGE_MOD_FLOAT, &elementdmg);
+	}
+
+	return elementdmg;
 }
 
 int CWeenieObject::GetAttackTimeUsingWielded()
