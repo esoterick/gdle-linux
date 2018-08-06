@@ -27,9 +27,43 @@ int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 		return WERROR_NONE;
 	}
 
-	if (with->GetHealth() == with->GetMaxHealth())
+	DWORD boostEnum = m_Qualities.GetInt(BOOSTER_ENUM_INT, 0);
+
+	switch (boostEnum)
 	{
-		return WERROR_HEAL_FULL_HEALTH;
+	case HEALTH_ATTRIBUTE_2ND:
+	{
+		if (with->GetHealth() == with->GetMaxHealth())
+		{
+			player->NotifyWeenieError(WERROR_HEAL_FULL_HEALTH);
+			player->NotifyUseDone(0);
+			return WERROR_NONE;
+		}
+		else
+			break;
+	}
+	case STAMINA_ATTRIBUTE_2ND:
+	{
+		if (with->GetStamina() == with->GetMaxStamina())
+		{
+			player->NotifyWeenieError(WERROR_HEAL_FULL_HEALTH);
+			player->NotifyUseDone(0);
+			return WERROR_NONE;
+		}
+		else
+			break;
+	}
+	case MANA_ATTRIBUTE_2ND:
+	{
+		if (with->GetMana() == with->GetMaxMana())
+		{
+			player->NotifyWeenieError(WERROR_HEAL_FULL_HEALTH);
+			player->NotifyUseDone(0);
+			return WERROR_NONE;
+		}
+		else
+			break;
+	}
 	}
 
 	CHealerUseEvent *useEvent = new CHealerUseEvent;
