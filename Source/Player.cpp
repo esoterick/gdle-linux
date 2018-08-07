@@ -3522,7 +3522,7 @@ void CLifestoneRecallUseEvent::OnReadyToUse()
 {
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_LifestoneRecall);
-	_weenie->SendText(csprintf("%s is recalling to the lifestone.", _weenie->GetName().c_str()), LTT_RECALL);
+	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is recalling to the lifestone.", _weenie->GetName().c_str()));
 }
 
 void CLifestoneRecallUseEvent::OnUseAnimSuccess(DWORD motion)
@@ -3535,7 +3535,7 @@ void CHouseRecallUseEvent::OnReadyToUse()
 {
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_HouseRecall);
-	_weenie->SendText(csprintf("%s is recalling home.", _weenie->GetName().c_str()), LTT_RECALL);
+	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is recalling home.", _weenie->GetName().c_str()));
 }
 
 void CHouseRecallUseEvent::OnUseAnimSuccess(DWORD motion)
@@ -3548,7 +3548,7 @@ void CMansionRecallUseEvent::OnReadyToUse()
 {
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_HouseRecall);
-	_weenie->SendText(csprintf("%s is recalling to the Allegiance housing.", _weenie->GetName().c_str()), LTT_RECALL);
+	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is recalling to the Allegiance housing.", _weenie->GetName().c_str()));
 }
 
 void CMansionRecallUseEvent::OnUseAnimSuccess(DWORD motion)
@@ -3561,7 +3561,7 @@ void CMarketplaceRecallUseEvent::OnReadyToUse()
 {
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_MarketplaceRecall);
-	_weenie->SendText(csprintf("%s is going to the Marketplace.", _weenie->GetName().c_str()), LTT_RECALL);
+	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the Marketplace.", _weenie->GetName().c_str()));
 }
 
 void CMarketplaceRecallUseEvent::OnUseAnimSuccess(DWORD motion)
@@ -3580,7 +3580,7 @@ void CAllegianceHometownRecallUseEvent::OnReadyToUse()
 {
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_AllegianceHometownRecall);
-	_weenie->SendText(csprintf("%s is going to the Allegiance hometown.", _weenie->GetName().c_str()), LTT_RECALL);
+	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the Allegiance hometown.", _weenie->GetName().c_str()));
 }
 
 void CAllegianceHometownRecallUseEvent::OnUseAnimSuccess(DWORD motion)
