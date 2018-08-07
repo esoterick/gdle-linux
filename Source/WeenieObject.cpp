@@ -3803,14 +3803,14 @@ BODY_PART_ENUM GetRandomBodyPartByDamageQuadrant(DAMAGE_QUADRANT dq)
 	}
 	else if (dq & DQ_MEDIUM)
 	{
-		switch (Random::GenInt(0, 6))
+		switch (Random::GenInt(0, 5))
 		{
 		case 0: result = BP_UPPER_LEG; break;
 		case 1: result = BP_ABDOMEN; break;
 		case 2: result = BP_CHEST; break;
 		case 3: result = BP_HAND; break;
-		case 5: result = BP_LOWER_ARM; break;
-		case 6: result = BP_UPPER_ARM; break;
+		case 4: result = BP_LOWER_ARM; break;
+		case 5: result = BP_UPPER_ARM; break;
 		}
 	}
 	else if (dq & DQ_HIGH)
@@ -3874,7 +3874,6 @@ void CWeenieObject::TryToDealDamage(DamageEventData &data)
 				hitHeight = BODY_HEIGHT::MEDIUM_BODY_HEIGHT;
 
 			//todo: taking into account the rest of the quadrant data(front/sides/etc)
-
 			for (auto &bp : data.target->m_Qualities._body->_body_part_table)
 			{
 				if (bp.second._bh == hitHeight)
@@ -3889,8 +3888,10 @@ void CWeenieObject::TryToDealDamage(DamageEventData &data)
 			data.hitPart = (BODY_PART_ENUM)*randomBodyPartIterator;
 		}
 		else
+		{
 			data.hitPart = GetRandomBodyPartByDamageQuadrant(data.hit_quadrant);
-	}
+		}
+	}	
 
 	data.target->TakeDamage(data);
 }
