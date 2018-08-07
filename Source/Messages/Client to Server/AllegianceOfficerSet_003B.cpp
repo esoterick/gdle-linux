@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "AllegianceOfficerSet_003B.h"
 #include "AllegianceManager.h"
-#include "DatabaseIO.h"
-#include "World.h"
 
 MAllegianceOfficerSet_003B::MAllegianceOfficerSet_003B(CPlayerWeenie * player)
 {

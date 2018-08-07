@@ -3,9 +3,9 @@
 #include "Client.h"
 #include "ClientEvents.h"
 
-MAllegianceUpdate_001F::MAllegianceUpdate_001F(CPlayerWeenie * player)
+MAllegianceUpdate_001F::MAllegianceUpdate_001F(CClient * client)
 {
-	m_pPlayer = player;
+	m_pClient = client;
 }
 
 void MAllegianceUpdate_001F::Parse(BinaryReader * reader)
@@ -24,6 +24,10 @@ void MAllegianceUpdate_001F::Parse(BinaryReader * reader)
 void MAllegianceUpdate_001F::Process()
 {
 	// need to re-implement this
-	m_pPlayer->GetClient()->GetEvents()->SetRequestAllegianceUpdate(static_cast<int>(m_bOn));
+	if (CClientEvents* ce = m_pClient->GetEvents())
+	{
+		ce->SetRequestAllegianceUpdate(m_bOn);
+	}
+
 	// TODO: replace with server to client message
 }
