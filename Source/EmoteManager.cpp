@@ -1125,7 +1125,10 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		{
 			CWeenieObject *target = g_pWorld->FindObject(target_id);
 			if (target)
+			{
 				target->m_Qualities.SetInt((STypeInt)emote.stat, emote.amount);
+				target->NotifyIntStatUpdated((STypeInt)emote.stat, FALSE);
+			}
 			break;
 		}
 	case IncrementIntStat_EmoteType:
@@ -1135,6 +1138,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			{
 				int intStat = target->InqIntQuality((STypeInt)emote.stat, 0, TRUE) + 1;
 				target->m_Qualities.SetInt((STypeInt)emote.stat, intStat);
+				target->NotifyIntStatUpdated((STypeInt)emote.stat, FALSE);
 			}
 			break;
 		}
@@ -1145,6 +1149,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		{
 			int intStat = target->InqIntQuality((STypeInt)emote.stat, 0, TRUE) - 1;
 			target->m_Qualities.SetInt((STypeInt)emote.stat, intStat);
+			target->NotifyIntStatUpdated((STypeInt)emote.stat, FALSE);
 		}
 		break;
 	}
