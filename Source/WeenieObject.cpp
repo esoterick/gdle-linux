@@ -2046,6 +2046,9 @@ DWORD CWeenieObject::GiveAttributeXP(STypeAttribute key, DWORD amount)
 		}
 	}
 
+	if (attribute._level_from_cp == 190)
+		EmitEffect(PS_WeddingBliss, 1.0f);
+
 	NotifyAttributeStatUpdated(key);
 
 	return raised;
@@ -2095,6 +2098,9 @@ DWORD CWeenieObject::GiveAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 			SendText(csprintf("Your base %s is now %u!", GetAttribute2ndName(key), newLevel), LTT_ADVANCEMENT);
 		}
 	}
+
+	if (attribute2nd._level_from_cp == 196)
+		EmitEffect(PS_WeddingBliss, 1.0f);
 
 	NotifyAttribute2ndStatUpdated(key);
 	return raised;
@@ -2161,8 +2167,6 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 	DWORD oldLevel = skill._level_from_pp;
 	skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
 
-	m_Qualities.SetSkill(key, skill);
-
 	std::string skillName = "Unknown";
 
 	if (SkillTable *pSkillTable = SkillSystem::GetSkillTable())
@@ -2182,6 +2186,11 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 
 		SendText(notice, LTT_ADVANCEMENT);
 	}
+
+	if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && oldLevel == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && oldLevel == 226))
+		return 0;
+
+	m_Qualities.SetSkill(key, skill);
 
 	DWORD raised = skill._level_from_pp - oldLevel;
 	if (raised)
