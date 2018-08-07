@@ -1237,12 +1237,12 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 		return;
 	}
 
-	// for now we won't support giving items that are currently equipped
+	/*// for now we won't support giving items that are currently equipped
 	if (sourceItem->IsEquipped() || sourceItem->parent)
 	{
 		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_GIVE_NOT_ALLOWED);
 		return;
-	}
+	}*/
 
 	if (!targetContainer->Container_CanStore(sourceItem))
 	{
