@@ -3527,6 +3527,7 @@ void CLifestoneRecallUseEvent::OnReadyToUse()
 
 void CLifestoneRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
+	_weenie->AdjustMana(_weenie->GetMana() * -0.5);
 	_weenie->TeleportToLifestone();
 	Done();
 }
