@@ -215,3 +215,6 @@ const DWORD dwMinimumCellX = 0x0;
 const DWORD dwMinimumCellY = 0x0;
 const DWORD dwMaximumCellX = (0x800 - 1);
 const DWORD dwMaximumCellY = (0x800 - 1);
+
+// strictness 1 = chat, strictness 2 = player names, titles, allegiance names
+extern bool containsBadCharacters(std::string, int strictness = 1);

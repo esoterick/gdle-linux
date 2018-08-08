@@ -794,3 +794,24 @@ DWORD64 GetTotalMemory()
 	GlobalMemoryStatusEx(&status);
 	return status.ullTotalPhys;
 }
+
+// strictness 1 = chat, strictness 2 = player names, titles, allegiance names
+bool containsBadCharacters(std::string input, int strictness) 
+{
+	std::string goodChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'- ";
+	if (strictness == 1)
+	{
+		goodChars += "!\"£$%^&*()_-+={}[]:;<>,.?/@'~#`¬|\\";
+	}
+
+	for (auto c : input)
+	{
+		if (goodChars.find(c) != goodChars.npos)
+		{
+			continue;
+		}
+		else
+			return true;
+	}
+	return false;
+}

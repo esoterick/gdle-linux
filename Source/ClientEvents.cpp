@@ -1160,7 +1160,7 @@ void CClientEvents::SendAllegianceMOTD()
 	m_pPlayer->SendText(csprintf("\"%s\" -- %s", info->_info.m_motd.c_str(), info->_info.m_motdSetBy.c_str()), LTT_DEFAULT);
 }
 
-void CClientEvents::SetRequestAllegianceUpdate(int on)
+void CClientEvents::SetRequestAllegianceUpdate(bool on)
 {
 	m_bSendAllegianceUpdates = on;
 }
@@ -2182,7 +2182,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case ALLEGIANCE_SEND_UPDATES: // Allegiance Update request
 		{
-			MAllegianceUpdate_001F msg(m_pPlayer);
+			MAllegianceUpdate_001F msg(m_pClient);
 			msg.Parse(pReader);
 			break;
 		}

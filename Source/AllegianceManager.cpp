@@ -1029,10 +1029,14 @@ DWORD AllegianceManager::GetCachedMonarchIDForPlayer(CPlayerWeenie * player)
 	return player->InqIIDQuality(MONARCH_IID, 0);
 }
 
+// This will return true if they are an officer or the monarch
 bool AllegianceManager::IsOfficer(AllegianceTreeNode* playerNode)
 {
-	if (playerNode && !IsMonarch(playerNode)) // monarch can't be an officer
+	if (playerNode)
 	{
+		if (IsMonarch(playerNode))
+			return true;
+
 		AllegianceHierarchy hierarchy = GetInfo(playerNode->_monarchID)->_info;
 		for (auto officer : hierarchy.m_AllegianceOfficers)
 		{
@@ -1049,14 +1053,12 @@ bool AllegianceManager::IsMonarch(AllegianceTreeNode* playerNode)
 {
 	if (playerNode)
 	{
-		if (playerNode->_monarchID != playerNode->_charID)
+		if (playerNode->_monarchID == playerNode->_charID)
 		{
-			return false;
+			return true;
 		}
-		return true;
 	}
 	return false;
-
 }
 
 eAllegianceOfficerLevel AllegianceManager::GetOfficerLevel(std::string player_name)
@@ -1072,6 +1074,9 @@ eAllegianceOfficerLevel AllegianceManager::GetOfficerLevel(DWORD player_id)
 	{
 		if (IsOfficer(playerNode))
 		{
+			if (IsMonarch(playerNode))
+				return Castellan_AllegianceOfficerLevel;
+
 			AllegianceHierarchy hierarchy = GetInfo(playerNode->_monarchID)->_info;
 			for (auto officer : hierarchy.m_AllegianceOfficers)
 			{
@@ -1101,16 +1106,21 @@ std::string AllegianceManager::GetOfficerTitle(DWORD player_id)
 		if (AllegianceTreeNode* playerNode = GetTreeNode(player_id))
 		{
 			AllegianceHierarchy hierarchy = GetInfo(playerNode->_monarchID)->_info;
-			return hierarchy.m_OfficerTitles.array_data[officerLevel]; // is this set to the default titles if the allegiance hasnt set any custom ones?
+			if (hierarchy.m_OfficerTitles.array_data)
+				return hierarchy.m_OfficerTitles.array_data[officerLevel]; // is this set to the default titles if the allegiance hasnt set any custom ones?
 		}
 	}
 	return "";
 }
 
+// this will always return true for the monarch
 bool AllegianceManager::IsOfficerWithLevel(AllegianceTreeNode* playerNode, eAllegianceOfficerLevel min, eAllegianceOfficerLevel max)
 {
-	if (playerNode && !IsMonarch(playerNode)) // monarch can't be an officer
+	if (playerNode)
 	{
+		if (IsMonarch(playerNode))
+			return true;
+
 		AllegianceHierarchy hierarchy = GetInfo(playerNode->_monarchID)->_info;
 		for (auto officer : hierarchy.m_AllegianceOfficers)
 		{
@@ -1132,7 +1142,7 @@ void AllegianceManager::SetMOTD(CPlayerWeenie* player, std::string msg)
 		return;
 	}
 
-	if (!(IsMonarch(playerNode) || IsOfficer(playerNode)))
+	if (!IsOfficer(playerNode))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1143,6 +1153,7 @@ void AllegianceManager::SetMOTD(CPlayerWeenie* player, std::string msg)
 		info->_info.m_motd = msg;
 		info->_info.m_motdSetBy = player->GetName();
 		player->SendText("Your allegiance message of the day has been set.", LTT_DEFAULT);
+		Save();
 	}
 }
 
@@ -1171,7 +1182,7 @@ void AllegianceManager::ClearMOTD(CPlayerWeenie * player)
 		return;
 	}
 
-	if (!(IsMonarch(playerNode) || IsOfficer(playerNode)))
+	if (!IsOfficer(playerNode))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1182,6 +1193,7 @@ void AllegianceManager::ClearMOTD(CPlayerWeenie * player)
 		info->_info.m_motd.clear();
 		info->_info.m_motdSetBy.clear();
 		player->SendText("Your allegiance message of the day has been cleared.", LTT_DEFAULT);
+		Save();
 	}
 }
 
@@ -1215,7 +1227,7 @@ void AllegianceManager::SetAllegianceName(CPlayerWeenie * player, std::string na
 		return;
 	}
 
-	if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel)))
+	if (!IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1249,13 +1261,10 @@ void AllegianceManager::SetAllegianceName(CPlayerWeenie * player, std::string na
 				}
 			}
 
-			for (auto c : name)
+			if (containsBadCharacters(name, 2)) // space, single quote, hyphen, A-Z, a-z
 			{
-				if (!(c == 32 || c == 39 || c == 45 || (64 < c && c < 91) || (96 < c && c < 123))) // space, single quote, hyphen, A-Z, a-z
-				{
-					player->NotifyWeenieError(WERROR_ALLEGIANCE_NAME_BAD_CHARACTER);
-					return;
-				}
+				player->NotifyWeenieError(WERROR_ALLEGIANCE_NAME_BAD_CHARACTER);
+				return;
 			}
 
 			for (auto const& value : g_pPortalDataEx->GetBannedWords())
@@ -1276,6 +1285,7 @@ void AllegianceManager::SetAllegianceName(CPlayerWeenie * player, std::string na
 			int nextSetTime = (info->_info.m_NameLastSetTime + 86400) - time(0); // how long before it can be changed again in seconds
 
 			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_NAME_TIMER, TimeToString(nextSetTime).c_str());
+			Save();
 		}
 	}
 }
@@ -1289,7 +1299,7 @@ void AllegianceManager::ClearAllegianceName(CPlayerWeenie * player)
 		return;
 	}
 
-	if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel)))
+	if (!IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1299,6 +1309,7 @@ void AllegianceManager::ClearAllegianceName(CPlayerWeenie * player)
 	{
 		info->_info.m_AllegianceName.clear();
 		player->SendText("Your allegiance name has been cleared.", LTT_DEFAULT);
+		Save();
 	}
 }
 
@@ -1333,7 +1344,7 @@ void AllegianceManager::SetOfficerTitle(CPlayerWeenie * player, int level, std::
 		return;
 	}
 
-	if (!(IsMonarch(playerNode) || IsOfficer(playerNode)))
+	if (!IsOfficer(playerNode))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1351,13 +1362,10 @@ void AllegianceManager::SetOfficerTitle(CPlayerWeenie * player, int level, std::
 		return;
 	}
 
-	for (auto c : title)
+	if (containsBadCharacters(title, 2))
 	{
-		if (!(c == 32 || c == 39 || c == 45 || (64 < c && c < 91) || (96 < c && c < 123))) // space, single quote, hyphen, A-Z, a-z
-		{
-			player->NotifyWeenieError(WERROR_ALLEGIANCE_OFFICER_TITLE_BAD_CHARACTER);
-			return;
-		}
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_OFFICER_TITLE_BAD_CHARACTER);
+		return;
 	}
 
 	for (auto const& value : g_pPortalDataEx->GetBannedWords())
@@ -1371,9 +1379,10 @@ void AllegianceManager::SetOfficerTitle(CPlayerWeenie * player, int level, std::
 
 	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
 	{
-		info->_info.m_OfficerTitles.array_data[level] = title;
+		info->_info.m_OfficerTitles.array_data[level-1] = title;
 
 		player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_TITLE_SET, title.c_str());
+		Save();
 	}
 }
 
@@ -1386,7 +1395,7 @@ void AllegianceManager::ClearOfficerTitles(CPlayerWeenie * player)
 		return;
 	}
 
-	if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel)))
+	if (!IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1394,10 +1403,16 @@ void AllegianceManager::ClearOfficerTitles(CPlayerWeenie * player)
 
 	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
 	{
-		info->_info.m_OfficerTitles.array_data[1] = "Speaker";
-		info->_info.m_OfficerTitles.array_data[2] = "Seneschal";
-		info->_info.m_OfficerTitles.array_data[3] = "Castellan";
+		std::string speaker = "Speaker";
+		std::string seneschal = "Seneschal";
+		std::string castellan = "Castellan";
+
+		info->_info.m_OfficerTitles.grow(0);
+		info->_info.m_OfficerTitles.add(&speaker);
+		info->_info.m_OfficerTitles.add(&seneschal);
+		info->_info.m_OfficerTitles.add(&castellan);
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_OFFICER_TITLE_CLEARED);
+		Save();
 	}
 }
 
@@ -1413,18 +1428,36 @@ void AllegianceManager::ListOfficerTitles(CPlayerWeenie * player)
 	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
 	{
 		player->SendText("Allegiance Officer Titles:", LTT_DEFAULT);
-		for (int i = 1; i < 4; i++)
+		for (int i = 0; i < 3; i++)
 		{
-			player->SendText(csprintf("%d. %s", i, info->_info.m_OfficerTitles.array_data[i]), LTT_DEFAULT);
+			player->SendText(csprintf("%d. %s", i+1, info->_info.m_OfficerTitles.array_data[i]), LTT_DEFAULT);
 		}
 	}
 }
 
 void AllegianceManager::SetOfficer(CPlayerWeenie * player, std::string officer_name, eAllegianceOfficerLevel level)
 {
+	AllegianceTreeNode* playerNode = GetTreeNode(player->GetID());
+	if (!playerNode)
+	{
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
+		return;
+	}
+
+	if (!IsOfficer(playerNode))
+	{
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
+		return;
+	}
+
 	DWORD officerID = g_pDBIO->GetPlayerCharacterId(officer_name.c_str());
 	if (AllegianceTreeNode* officerNode = GetTreeNode(officerID))
 	{
+		if (IsMonarch(officerNode))
+		{
+			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_NOT_SET, officer_name.c_str());
+			return;
+		}
 
 		if (IsOfficer(officerNode) && GetOfficerLevel(officerID) == level)
 		{
@@ -1438,69 +1471,59 @@ void AllegianceManager::SetOfficer(CPlayerWeenie * player, std::string officer_n
 			return;
 		}
 
-		AllegianceTreeNode* playerNode = GetTreeNode(player->GetID());
-		if (!playerNode)
-		{
-			player->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
-			return;
-		}
-
-		if (!(IsMonarch(playerNode) || IsOfficer(playerNode)))
-		{
-			player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
-			return;
-		}
-
 		if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
 		{
-			if (info->_info.m_AllegianceOfficers.size() == 12)
-			{
+			if (info->_info.m_AllegianceOfficers.size() >= 12) {
 				player->NotifyWeenieError(WERROR_ALLEGIANCE_OFFICER_FULL);
 				return;
 			}
 
-			if (IsOfficer(officerNode))
-			{
+			if (IsOfficer(officerNode))	{
 				info->_info.m_AllegianceOfficers[officerID] = level;
 			}
-			else
-			{
+			else {
 				info->_info.m_AllegianceOfficers.emplace(officerID, level);
 			}
 			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_SET, officer_name.c_str());
-			g_pWorld->FindPlayer(officerID)->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_YOU_ARE_NOW_AN_OFFICER, GetOfficerTitle(officer_name).c_str());
+			if (CPlayerWeenie* officer = g_pWorld->FindPlayer(officerID)) {
+				officer->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_YOU_ARE_NOW_AN_OFFICER, GetOfficerTitle(officer_name).c_str());
+			}
+			Save();
 		}
 	}
+	else 
+		player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_NOT_SET, officer_name.c_str());
 }
 
 void AllegianceManager::RemoveOfficer(CPlayerWeenie * player, std::string officer_name)
 {
+	AllegianceTreeNode* playerNode = GetTreeNode(player->GetID());
+	if (!playerNode)
+	{
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
+		return;
+	}
+	// only monarchs and level 2+ officers are authorized to remove officers
+	if (!IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel))
+	{
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
+		return;
+	}
+
 	DWORD officerID = g_pDBIO->GetPlayerCharacterId(officer_name.c_str());
 
 	if (AllegianceTreeNode* officerNode = GetTreeNode(officerID))
 	{
-		if (!IsOfficer(officerNode))
+		if (!IsOfficer(officerNode) || IsMonarch(officerNode)) // can't remove someone who isn't on the list or the monarch
 		{
 			player->SendText(csprintf("%s is not an allegiance officer!", officer_name.c_str()), LTT_DEFAULT);
 			return;
 		}
 
-		AllegianceTreeNode* playerNode = GetTreeNode(player->GetID());
-		if (!playerNode)
-		{
-			player->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
-			return;
-		}
-		// only monarchs and level 2+ officers are authorized to remove officers
-		if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)))
-		{
-			player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
-			return;
-		}
 		// only level 3 officers and monarchs can remove level 2+ officers
 		if (IsOfficerWithLevel(officerNode, Seneschal_AllegianceOfficerLevel))
 		{
-			if (!(IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel) || IsMonarch(playerNode)))
+			if (!IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel))
 			{
 				player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 				return;
@@ -1515,12 +1538,15 @@ void AllegianceManager::RemoveOfficer(CPlayerWeenie * player, std::string office
 				{
 					info->_info.m_AllegianceOfficers.remove(officerID);
 					player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_REMOVED, officer_name.c_str());
-					g_pWorld->FindPlayer(officerID)->NotifyWeenieError(WERROR_ALLEGIANCE_YOU_ARE_NO_LONGER_AN_OFFICER);
+					if (CPlayerWeenie* officer = g_pWorld->FindPlayer(officerID)) {
+						officer->NotifyWeenieError(WERROR_ALLEGIANCE_YOU_ARE_NO_LONGER_AN_OFFICER);
+					}
 					break;
 				}
 			}	
 		}
 		player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_NOT_REMOVED, officer_name.c_str());
+		Save();
 	}
 }
 
@@ -1552,8 +1578,8 @@ void AllegianceManager::ClearOfficers(CPlayerWeenie * player)
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
 		return;
 	}
-	// only monarch or level 3 officers can clear officer list - TODO check if this is monarch only?
-	if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel)))
+	// only monarch or level 3 officers can clear officer list
+	if (!IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1563,13 +1589,14 @@ void AllegianceManager::ClearOfficers(CPlayerWeenie * player)
 	{
 		for (auto officer : info->_info.m_AllegianceOfficers)
 		{
-			if (CPlayerWeenie* off = g_pWorld->FindPlayer(officer.first))
+			if (CPlayerWeenie* player = g_pWorld->FindPlayer(officer.first))
 			{
-				off->NotifyWeenieError(WERROR_ALLEGIANCE_YOU_ARE_NO_LONGER_AN_OFFICER);
+				player->NotifyWeenieError(WERROR_ALLEGIANCE_YOU_ARE_NO_LONGER_AN_OFFICER);
 			}
 		}
 		info->_info.m_AllegianceOfficers.clear();
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_OFFICERS_CLEARED);
+		Save();
 	}
 }
 
@@ -1582,7 +1609,7 @@ void AllegianceManager::AllegianceInfoRequest(CPlayerWeenie * player, std::strin
 		return;
 	}
 
-	if (!(IsMonarch(myNode) || IsOfficerWithLevel(myNode, Seneschal_AllegianceOfficerLevel)))
+	if (!IsOfficerWithLevel(myNode, Seneschal_AllegianceOfficerLevel))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1613,8 +1640,7 @@ void AllegianceManager::AllegianceInfoRequest(CPlayerWeenie * player, std::strin
 	{
 		player->SendText(csprintf("%s is not a member of your allegiance.", target_name.c_str()), LTT_DEFAULT);
 		return;
-	}
-	
+	}	
 
 	// TODO: convert this to server to client message
 	unsigned int rank = 0;
@@ -1638,7 +1664,7 @@ void AllegianceManager::AllegianceLockAction(CPlayerWeenie * player, DWORD lock_
 {
 	if (AllegianceTreeNode* playerNode = GetTreeNode(player->GetID()))
 	{
-		if (IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel))
+		if (IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel))
 		{
 			if (AllegianceInfo* allegianceInfo = GetInfo(playerNode->_monarchID))
 			{
@@ -1648,12 +1674,14 @@ void AllegianceManager::AllegianceLockAction(CPlayerWeenie * player, DWORD lock_
 				{
 					allegianceInfo->_info.m_isLocked = false;
 					player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_SET, "Unlocked");
+					Save();
 					break;
 				}
 				case LockedOn:
 				{
 					allegianceInfo->_info.m_isLocked = true;
 					player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_SET, "Locked");
+					Save();
 					break;
 				}
 				case ToggleLocked:
@@ -1662,12 +1690,14 @@ void AllegianceManager::AllegianceLockAction(CPlayerWeenie * player, DWORD lock_
 					{
 						allegianceInfo->_info.m_isLocked = true;
 						player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_SET, "Locked");
+						Save();
 						break;
 					}
 					else
 					{
 						allegianceInfo->_info.m_isLocked = false;
 						player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_SET, "Unlocked");
+						Save();
 						break;
 					}
 				}
@@ -1694,6 +1724,7 @@ void AllegianceManager::AllegianceLockAction(CPlayerWeenie * player, DWORD lock_
 				{
 					allegianceInfo->_info.m_ApprovedVassal = 0;
 					player->NotifyWeenieError(WERROR_ALLEGIANCE_APPROVED_CLEARED);
+					Save();
 					break;
 				}
 				}
@@ -1740,16 +1771,18 @@ void AllegianceManager::ApproveVassal(CPlayerWeenie * player, std::string vassal
 	DWORD playerID = player->GetID();
 	AllegianceTreeNode* playerNode = GetTreeNode(playerID);
 
-	if (playerNode && (playerNode->_monarchID == playerID || GetOfficerLevel(playerID) >= 2)) // either a monarch or a level 2 or 3 officer
+	if (playerNode && IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // either a monarch or a level 2 or 3 officer
 	{
 		if (IsBanned(approvedVassalID, playerNode->_monarchID)) // check potential approved vassal's account isn't banned from the allegiance
 		{
 			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_BANNED, vassal_name.c_str());
 			return;
 		}
-
-		GetInfo(playerID)->_info.m_ApprovedVassal = approvedVassalID;
-		player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_APPROVED_SET, vassal_name.c_str());
+		if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID)) {
+			ai->_info.m_ApprovedVassal = approvedVassalID;
+			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_APPROVED_SET, vassal_name.c_str());
+			Save();
+		}
 	}
 	else
 	{
@@ -1779,7 +1812,7 @@ void AllegianceManager::BootPlayer(CPlayerWeenie * player, std::string bootee, b
 		return;
 	}
 
-	if (IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // check caller has correct authority
+	if (IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // check caller has correct authority
 	{
 		DWORD booteeID = g_pWorld->GetPlayerId(bootee.c_str(), true);
 		if (AllegianceTreeNode* booteeNode = GetTreeNode(booteeID))
@@ -1805,6 +1838,7 @@ void AllegianceManager::BootPlayer(CPlayerWeenie * player, std::string bootee, b
 
 				TryBreakAllegiance(booteeID, booteeNode->_patronID);
 				player->SendText(csprintf("You have successfully booted %s from the allegiance.", bootee.c_str()), LTT_DEFAULT);
+				Save();
 			}
 		}
 	}
@@ -1829,7 +1863,7 @@ void AllegianceManager::ChatBoot(CPlayerWeenie * player, std::string target, std
 		return;
 	}
 
-	if (!(IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)))
+	if (!IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel))
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
@@ -1867,7 +1901,7 @@ void AllegianceManager::AddBan(CPlayerWeenie* player, std::string char_name)
 
 	DWORD monarchID = playerNode->_monarchID;
 
-	if (IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // check caller has correct authority
+	if (IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // check caller has correct authority
 	{
 		CharacterDesc_t bannedCharInfo = g_pDBIO->GetCharacterInfo(bannedPlayerID);
 		AllegianceHierarchy ah = GetInfo(monarchID)->_info;
@@ -1887,7 +1921,7 @@ void AllegianceManager::AddBan(CPlayerWeenie* player, std::string char_name)
 			}
 		}
 
-		ah.m_BanList.emplace_back(bannedCharInfo.account_id, bannedCharInfo.name); // add account id & name of character to ban list of allegiance
+		ah.m_BanList.add(bannedCharInfo.account_id, &bannedCharInfo.name); // add account id & name of character to ban list of allegiance
 
 		std::list<CharacterDesc_t> bannedCharacters = g_pDBIO->GetCharacterList(bannedCharInfo.account_id);
 		for (auto character : bannedCharacters)
@@ -1898,6 +1932,7 @@ void AllegianceManager::AddBan(CPlayerWeenie* player, std::string char_name)
 				TryBreakAllegiance(characterNode->_patronID, character.weenie_id); // ...boot them from allegiance
 			}
 		}
+		Save();
 	}
 	else
 	{
@@ -1916,17 +1951,19 @@ void AllegianceManager::RemoveBan(CPlayerWeenie * player, std::string char_name)
 
 	DWORD monarchID = playerNode->_monarchID;
 
-	if (IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // check caller has correct authority
+	if (IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // check caller has correct authority
 	{
-		AllegianceHierarchy ah = GetInfo(monarchID)->_info;
+		if (AllegianceInfo* ai = GetInfo(monarchID)) {
 
-		for (int i=0; i <ah.m_BanList.size(); i++)
-		{
-			if (ah.m_BanList[i].second == char_name) // check if their account is already banned
+			for (auto c : ai->_info.m_BanList) // check if their account is already banned
 			{
-				ah.m_BanList.erase(ah.m_BanList.begin() + i);
-				player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_CHAR_UNBANNED_SUCCESSFULLY, char_name.c_str());
-				return;
+				if (c.second == char_name)
+				{
+					ai->_info.m_BanList.remove(c.first);
+					player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_CHAR_UNBANNED_SUCCESSFULLY, char_name.c_str());
+					Save();
+					return;
+				}
 			}
 		}
 		player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_CHAR_NOT_BANNED, char_name.c_str());
@@ -1948,14 +1985,15 @@ void AllegianceManager::GetBanList(CPlayerWeenie * player)
 
 	DWORD monarchID = playerNode->_monarchID;
 
-	if (IsMonarch(playerNode) || IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // check caller has correct authority
+	if (IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // check caller has correct authority
 	{
 		if (AllegianceInfo* ai = GetInfo(monarchID))
 		{
 			player->NotifyWeenieError(WERROR_ALLEGIANCE_LIST_BANNED_CHARACTERS);
 			for (auto banned : ai->_info.m_BanList)
 			{
-				player->SendText(banned.second.c_str(), LTT_DEFAULT);
+				if (banned.second != "")
+					player->SendText(banned.second.c_str(), LTT_DEFAULT);
 			}
 		}
 	}
