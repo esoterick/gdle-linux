@@ -336,6 +336,7 @@ void CPhysicsObj::set_frame(Frame &frame)
 	}
 
 	m_Position.frame = i_frame;
+	m_LastValidPosition.frame = i_frame;
 
 	if (!(m_PhysicsState & PARTICLE_EMITTER_PS))
 	{
@@ -1156,7 +1157,6 @@ void CPhysicsObj::leave_cell(BOOL is_changing_cell)
 	if (!is_changing_cell)
 	{
 		cell = NULL;
-		_lastGoodCell = NULL;
 	}
 }
 
@@ -1177,7 +1177,6 @@ void CPhysicsObj::enter_cell(CObjCell *pCell)
 	m_Position.objcell_id = pCell->id;
 	set_cell_id(pCell->id);
 	
-	_lastGoodCell = cell;
 	cell = pCell;
 
 	if (part_array)
@@ -2090,6 +2089,7 @@ void CPhysicsObj::change_cell(CObjCell *new_cell)
 
 	if (new_cell)
 	{
+		m_LastValidPosition.objcell_id = new_cell->id;
 		enter_cell(new_cell);
 	}
 	else
@@ -2101,8 +2101,7 @@ void CPhysicsObj::change_cell(CObjCell *new_cell)
 				part_array->SetCellID(0);
 		}
 
-		//cell = NULL;
-		cell = _lastGoodCell;
+		cell = NULL;
 	}
 }
 
