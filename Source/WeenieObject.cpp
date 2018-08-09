@@ -6424,9 +6424,8 @@ void CWeenieObject::SetStackSize(DWORD stackSize)
 	if (CWeenieObject *owner = GetWorldTopLevelOwner())
 	{
 		owner->RecalculateEncumbrance();
-		if (owner->AsPlayer() && m_Qualities.id == W_COINSTACK_CLASS)
-			owner->RecalculateCoinAmount();
-
+		if (owner->AsPlayer() && IsCurrency(m_Qualities.id))
+			owner->RecalculateCoinAmount(m_Qualities.id);
 	}
 }
 
@@ -6662,5 +6661,20 @@ void CWeenieObject::HandleEventInactive()
 	if (m_Qualities._generator_queue)
 	{
 		m_Qualities._generator_queue->_queue.clear();
+	}
+}
+
+bool CWeenieObject::IsCurrency(int currencyid)
+{
+	switch (currencyid)// Add alt currencies to this list
+	{
+	case W_TRADENOTE250000_CLASS:
+	case W_COINSTACK_CLASS:
+	{
+		return TRUE;
+	}
+
+	default:
+		return FALSE; // Not a currency
 	}
 }

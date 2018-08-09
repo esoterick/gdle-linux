@@ -517,8 +517,8 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 	if (wasWielded && get_minterp()->InqStyle() != Motion_NonCombat)
 		AdjustToNewCombatMode();
 
-	if (AsPlayer() && sourceItem->m_Qualities.id == W_COINSTACK_CLASS)
-		RecalculateCoinAmount();
+	if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
+		RecalculateCoinAmount(sourceItem->m_Qualities.id);
 
 	sourceItem->m_Qualities.RemoveFloat(TIME_TO_ROT_FLOAT);
 	sourceItem->_timeToRot = -1.0;
@@ -602,8 +602,8 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 
 	RecalculateEncumbrance();
 
-	if (AsPlayer() && sourceItem->m_Qualities.id == W_COINSTACK_CLASS)
-		RecalculateCoinAmount();
+	if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
+		RecalculateCoinAmount(sourceItem->m_Qualities.id);
 
 	if (bWasWielded && get_minterp()->InqStyle() != Motion_NonCombat)
 		AdjustToNewCombatMode();
@@ -950,8 +950,9 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 
 		RecalculateEncumbrance();
 
-		if (AsPlayer() && sourceItem->m_Qualities.id == W_COINSTACK_CLASS)
-			RecalculateCoinAmount();
+		if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
+			RecalculateCoinAmount(sourceItem->m_Qualities.id);
+
 	}
 
 	return true;
@@ -1345,8 +1346,8 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 				newStackItem->AsContainer()->MakeAwareViewContent(topLevelOwner);
 			}
 
-			if (AsPlayer() && newStackItem->m_Qualities.id == W_COINSTACK_CLASS)
-				RecalculateCoinAmount();
+			if (AsPlayer() && IsCurrency(newStackItem->m_Qualities.id))
+				RecalculateCoinAmount(newStackItem->m_Qualities.id);
 
 			topLevelOwner->OnReceiveInventoryItem(this, newStackItem, 0);
 			topLevelOwner->DebugValidate();
