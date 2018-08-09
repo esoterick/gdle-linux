@@ -336,7 +336,6 @@ void CPhysicsObj::set_frame(Frame &frame)
 	}
 
 	m_Position.frame = i_frame;
-	m_LastValidPosition.frame = i_frame;
 
 	if (!(m_PhysicsState & PARTICLE_EMITTER_PS))
 	{
@@ -2089,7 +2088,7 @@ void CPhysicsObj::change_cell(CObjCell *new_cell)
 
 	if (new_cell)
 	{
-		m_LastValidPosition.objcell_id = new_cell->id;
+		m_LastValidPosition = m_Position;
 		enter_cell(new_cell);
 	}
 	else

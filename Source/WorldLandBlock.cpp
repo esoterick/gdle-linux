@@ -936,7 +936,8 @@ BOOL CWorldLandBlock::Think()
 							if (player->m_LastValidPosition.objcell_id != 0)
 								player->Movement_Teleport(player->m_LastValidPosition);
 							else
-								player->Movement_Teleport(Position(0xA9B4001F, Vector(87.750603f, 147.722321f, 66.005005f), Quaternion(0.011819f, 0.000000, 0.000000, -0.999930f)), false);
+								//player->Movement_Teleport(Position(0xA9B4001F, Vector(87.750603f, 147.722321f, 66.005005f), Quaternion(0.011819f, 0.000000, 0.000000, -0.999930f)), false);
+								player->TeleportToLifestone();
 						}
 					}
 				}
