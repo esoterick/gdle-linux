@@ -1172,7 +1172,7 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 	
 	}
 
-	weenie->RecalculateCoinAmount();
+	weenie->RecalculateCoinAmount(W_COINSTACK_CLASS);
 }
 
 void CClient::SendLandblock(DWORD dwFileID)

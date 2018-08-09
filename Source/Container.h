@@ -30,10 +30,8 @@ public:
 
 	virtual void RecalculateEncumbrance() override;
 
-	virtual DWORD RecalculateCoinAmount() override;
-	virtual DWORD RecalculateAltCoinAmount(int currencyid) override;
-	virtual DWORD ConsumeCoin(int amountToConsume) override;
-	virtual DWORD ConsumeAltCoin(int amountToConsume, int currencyid) override;
+	virtual DWORD RecalculateCoinAmount(int currencyid) override;
+	virtual DWORD ConsumeCoin(int amountToConsume, int currencyid) override;
 
 	bool IsGroundContainer();
 	bool IsInOpenRange(CWeenieObject *other);
