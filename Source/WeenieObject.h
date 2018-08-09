@@ -435,10 +435,9 @@ public:
 	const char *GetLongDescription();
 	DWORD GetSpellID();
 
-	virtual DWORD RecalculateCoinAmount() { return 0; };
-	virtual DWORD RecalculateAltCoinAmount(int currencyid) { return 0; };
-	virtual DWORD ConsumeCoin(int amountToConsume) { return 0; };
-	virtual DWORD ConsumeAltCoin(int amountToConsume, int currencyid) { return 0; };
+	virtual DWORD RecalculateCoinAmount(int currencyid) { return 0; };
+	virtual DWORD ConsumeCoin(int amountToConsume, int currencyid) { return 0; };
+
 	void SetValue(DWORD amount);
 	DWORD GetValue();
 
@@ -715,6 +714,7 @@ public:
 	bool IsBonded();
 	bool IsDroppedOnDeath();
 	bool IsDestroyedOnDeath();
+	virtual bool IsCurrency(int currencyid);
 
 	void CheckVitalRanges();
 

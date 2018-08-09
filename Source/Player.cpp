@@ -621,7 +621,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	DWORD coinConsumed = 0;
 	if (level > 5)
 	{
-		coinConsumed = ConsumeCoin(RecalculateCoinAmount() / 2);
+		coinConsumed = ConsumeCoin(RecalculateCoinAmount(W_COINSTACK_CLASS) / 2, W_COINSTACK_CLASS);
 		pCorpse->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed);
 	}
 
@@ -999,8 +999,8 @@ DWORD CPlayerWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject
 
 	DWORD result = Container_InsertInventoryItem(source->GetLandcell(), item, desired_slot);
 
-	if (item->m_Qualities.id == W_COINSTACK_CLASS)
-		RecalculateCoinAmount();
+	if (AsPlayer() && item->IsCurrency(item->m_Qualities.id))
+		RecalculateCoinAmount(item->m_Qualities.id);
 
 	return result;
 }

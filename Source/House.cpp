@@ -798,7 +798,7 @@ void CSlumLordWeenie::BuyHouse(CPlayerWeenie *player, const PackableList<DWORD> 
 		DoForcedMotion(Motion_On);
 		g_pHouseManager->SendHouseData(player, house->GetHouseDID());
 		DoUseResponse(player);
-		player->RecalculateCoinAmount();
+		player->RecalculateCoinAmount(W_COINSTACK_CLASS);
 		player->Save();
 		if(house->ShouldSave())
 			house->Save();
@@ -1043,7 +1043,7 @@ void CSlumLordWeenie::RentHouse(CPlayerWeenie *player, const PackableList<DWORD>
 			}
 		}
 		DoUseResponse(player);
-		player->RecalculateCoinAmount();
+		player->RecalculateCoinAmount(W_COINSTACK_CLASS);
 		player->Save();
 		if (house->ShouldSave())
 			house->Save();

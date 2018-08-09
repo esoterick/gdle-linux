@@ -1408,25 +1408,7 @@ void CContainerWeenie::DebugValidate()
 #endif
 }
 
-DWORD CContainerWeenie::RecalculateCoinAmount()
-{
-	int coinAmount = 0;
-	for (auto item : m_Items)
-	{
-		if (item->m_Qualities.id == W_COINSTACK_CLASS)
-			coinAmount += item->InqIntQuality(STACK_SIZE_INT, 1, true);
-	}
-
-	for (auto pack : m_Packs)
-		coinAmount += pack->RecalculateCoinAmount();
-
-	m_Qualities.SetInt(COIN_VALUE_INT, coinAmount);
-	NotifyIntStatUpdated(COIN_VALUE_INT);
-
-	return coinAmount;
-}
-
-DWORD CContainerWeenie::RecalculateAltCoinAmount(int currencyid)
+DWORD CContainerWeenie::RecalculateCoinAmount(int currencyid)
 {
 	int coinAmount = 0;
 	for (auto item : m_Items)
@@ -1436,19 +1418,23 @@ DWORD CContainerWeenie::RecalculateAltCoinAmount(int currencyid)
 	}
 
 	for (auto pack : m_Packs)
-		coinAmount += pack->RecalculateAltCoinAmount(currencyid);
+		coinAmount += pack->RecalculateCoinAmount(currencyid);
+
+	m_Qualities.SetInt(COIN_VALUE_INT, coinAmount);
+	NotifyIntStatUpdated(COIN_VALUE_INT);
 
 	return coinAmount;
 }
 
-DWORD CContainerWeenie::ConsumeCoin(int amountToConsume)
+
+DWORD CContainerWeenie::ConsumeCoin(int amountToConsume, int currencyid)
 {
 	if (amountToConsume < 1)
 		return 0;
 
 	if (AsPlayer()) //we don't need to recalculate this if we're a subcontainer
 	{
-		if (RecalculateCoinAmount() < amountToConsume) //force recalculate our coin amount and check so we don't even try to consume if we don't have enough.
+		if (RecalculateCoinAmount(currencyid) < amountToConsume) //force recalculate our coin amount and check so we don't even try to consume if we don't have enough.
 			return 0;
 	}
 
@@ -1457,7 +1443,7 @@ DWORD CContainerWeenie::ConsumeCoin(int amountToConsume)
 	DWORD amountConsumed = 0;
 	for (auto item : m_Items)
 	{
-		if (item->m_Qualities.id == W_COINSTACK_CLASS)
+		if (item->m_Qualities.id == currencyid)
 		{
 			int stackSize = item->InqIntQuality(STACK_SIZE_INT, 1, true);
 			if (stackSize <= amountToConsume)
@@ -1469,6 +1455,7 @@ DWORD CContainerWeenie::ConsumeCoin(int amountToConsume)
 			else
 			{
 				item->SetStackSize(stackSize - amountToConsume);
+				amountToConsume -= stackSize;
 				amountConsumed += amountToConsume;
 				break;
 			}
@@ -1482,7 +1469,7 @@ DWORD CContainerWeenie::ConsumeCoin(int amountToConsume)
 	{
 		for (auto pack : m_Packs)
 		{
-			DWORD amountFromPack = pack->ConsumeCoin(amountToConsume);
+			DWORD amountFromPack = pack->ConsumeCoin(amountToConsume, currencyid);
 			amountToConsume -= amountFromPack;
 			amountConsumed += amountFromPack;
 
@@ -1492,62 +1479,7 @@ DWORD CContainerWeenie::ConsumeCoin(int amountToConsume)
 	}
 
 	if(AsPlayer())
-		RecalculateCoinAmount();
-	return amountConsumed;
-}
-
-DWORD CContainerWeenie::ConsumeAltCoin(int amountToConsume, int currencyid)
-{
-	if (amountToConsume < 1)
-		return 0;
-
-	if (AsPlayer()) //we don't need to recalculate this if we're a subcontainer
-	{
-		if (RecalculateAltCoinAmount(currencyid) < amountToConsume) //force recalculate our coin amount and check so we don't even try to consume if we don't have enough.
-			return 0;
-	}
-
-	std::list<CWeenieObject *> removeList;
-
-	DWORD amountConsumed = 0;
-	for (auto item : m_Items)
-	{
-		if (item->m_Qualities.id == currencyid)
-		{
-			int stackSize = item->InqIntQuality(STACK_SIZE_INT, 1, true);
-			if (stackSize <= amountToConsume)
-			{
-				removeList.push_back(item);
-				amountToConsume -= stackSize;
-				amountConsumed += stackSize;
-			}
-			else
-			{
-				item->SetStackSize(stackSize - amountToConsume);
-				amountConsumed += amountToConsume;
-				break;
-			}
-		}
-	}
-
-	for (auto item : removeList)
-		item->Remove();
-
-	if (amountToConsume > 0)
-	{
-		for (auto pack : m_Packs)
-		{
-			DWORD amountFromPack = pack->ConsumeAltCoin(amountToConsume, currencyid);
-			amountToConsume -= amountFromPack;
-			amountConsumed += amountFromPack;
-
-			if (amountToConsume <= 0)
-				break;
-		}
-	}
-
-	if (AsPlayer())
-		RecalculateAltCoinAmount(currencyid);
+		RecalculateCoinAmount(currencyid);
 	return amountConsumed;
 }
 
