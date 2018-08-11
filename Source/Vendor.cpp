@@ -287,7 +287,7 @@ void CVendor::PreSpawnCreate()
 	{
 		for (auto i = m_Qualities._create_list->begin(); i != m_Qualities._create_list->end(); i++)
 		{
-			if (i->destination == DestinationType::Shop_DestinationType | DestinationType::Contain_DestinationType)
+			if (i->destination == DestinationType::Shop_DestinationType || i->destination == DestinationType::Contain_DestinationType)
 			{
 				if (i->destination == DestinationType::Contain_DestinationType || i->destination == DestinationType::Wield_DestinationType)
 				{
