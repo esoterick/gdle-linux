@@ -93,14 +93,16 @@ DWORD CPhatServer::InternalThreadProc()
 	srand((unsigned int)time(NULL));
 	Random::Init();
 
-	Init();
-	
-	DWORD sleepTime = g_pConfig->FastTick() ? 0 : 1;
-
-	while (WaitForSingleObject(m_hQuitEvent, 0) != WAIT_OBJECT_0)
+	if (Init())
 	{
-		Tick();
-		Sleep(sleepTime);
+
+		DWORD sleepTime = g_pConfig->FastTick() ? 0 : 1;
+
+		while (WaitForSingleObject(m_hQuitEvent, 0) != WAIT_OBJECT_0)
+		{
+			Tick();
+			Sleep(sleepTime);
+		}
 	}
 
 	Shutdown();
@@ -171,6 +173,13 @@ bool CPhatServer::Init()
 	g_pHouseManager = new CHouseManager();
 
 	g_pObjectIDGen = new CObjectIDGenerator();
+
+	if (!g_pObjectIDGen->IsIdRangeValid())
+	{
+		WINLOG(Temp, Normal, "ID system failed to start.\n");
+		SERVER_INFO << "ID system failed to start.";
+		return false;
+	}
 
 	g_pGameDatabase = new CGameDatabase();
 	g_pCellManager = new ServerCellManager();
