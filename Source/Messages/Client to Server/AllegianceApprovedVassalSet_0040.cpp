@@ -23,5 +23,5 @@ void MAllegianceApprovedVassalSet_0040::Parse(BinaryReader * reader)
 
 void MAllegianceApprovedVassalSet_0040::Process()
 {
-	g_pAllegianceManager->ApproveVassal(m_pPlayer, m_szCharName);
+//	g_pAllegianceManager->ApproveVassal(m_pPlayer, m_szCharName);
 }

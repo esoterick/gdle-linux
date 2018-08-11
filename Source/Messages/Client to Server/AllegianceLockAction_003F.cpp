@@ -23,5 +23,5 @@ void MAllegianceLockAction_003F::Parse(BinaryReader * reader)
 
 void MAllegianceLockAction_003F::Process()
 {
-	g_pAllegianceManager->AllegianceLockAction(m_pPlayer, m_dwLockAction);
+//	g_pAllegianceManager->AllegianceLockAction(m_pPlayer, m_dwLockAction);
 }

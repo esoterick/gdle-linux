@@ -71,15 +71,6 @@ void AllegianceNode::SetMayPassupExperience(BOOL val)
 
 AllegianceHierarchy::AllegianceHierarchy()
 {
-	std::string speaker = "Speaker";
-	m_OfficerTitleList.add(1, &speaker);
-	m_OfficerTitles.add(&speaker);
-	std::string seneschal = "Seneschal";
-	m_OfficerTitleList.add(2, &seneschal);
-	m_OfficerTitles.add(&seneschal);
-	std::string castellan = "Castellan";
-	m_OfficerTitleList.add(3, &castellan);
-	m_OfficerTitles.add(&castellan);
 }
 
 AllegianceHierarchy::~AllegianceHierarchy()
@@ -112,8 +103,6 @@ DEFINE_PACK(AllegianceHierarchy)
 	pWriter->Write<int>(m_NameLastSetTime);
 	pWriter->Write<int>(m_isLocked);
 	pWriter->Write<int>(m_ApprovedVassal);
-	m_BanList.Pack(pWriter);
-	m_OfficerTitleList.Pack(pWriter);
 
 	// normally would pack m_pMonarch nodes here, but we'll use a different means
 	bool bMonarch = true;
@@ -153,16 +142,16 @@ DEFINE_UNPACK(AllegianceHierarchy)
 	m_NameLastSetTime = pReader->Read<int>();
 	m_isLocked = pReader->Read<int>();
 	m_ApprovedVassal = pReader->Read<int>();
-	m_BanList.UnPack(pReader);
-	m_OfficerTitleList.UnPack(pReader);
+
 	/*
 	AllegianceData data;
 	for (DWORD i = 0; i < packedNodes; i++)
 	{
-		// this way of doing things is unsettling, let's not
-		UNFINISHED();
+	// this way of doing things is unsettling, let's not
+	UNFINISHED();
 	}
 	*/
+
 	// normally would pack m_pMonarch nodes here, but we'll use a different means
 	assert(!packedNodes);
 

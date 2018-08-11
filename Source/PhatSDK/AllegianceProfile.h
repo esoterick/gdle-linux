@@ -67,10 +67,6 @@ public:
 	Position m_BindPoint;
 	int m_isLocked = 0;
 	unsigned int m_ApprovedVassal = 0;
-	PHashTable<DWORD, std::string> m_BanList;
-	PHashTable<DWORD, std::string> m_OfficerTitleList;
-
-	//std::vector<std::pair<DWORD, std::string>> m_BanList; // vector of account id, character name pairs - not part of pack/unpack
 };
 
 class AllegianceProfile : public PackObj

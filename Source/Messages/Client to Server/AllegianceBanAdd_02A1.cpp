@@ -23,5 +23,5 @@ void MAllegianceBanAdd_02A1::Parse(BinaryReader * reader)
 
 void MAllegianceBanAdd_02A1::Process()
 {
-	g_pAllegianceManager->AddBan(m_pPlayer, m_szCharName);
+//	g_pAllegianceManager->AddBan(m_pPlayer, m_szCharName);
 }

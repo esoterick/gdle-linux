@@ -14,5 +14,5 @@ void MAllegianceMOTDQuery_0255::Parse(BinaryReader * reader)
 
 void MAllegianceMOTDQuery_0255::Process()
 {
-	g_pAllegianceManager->QueryMOTD(m_pPlayer);
+	//g_pAllegianceManager->QueryMOTD(m_pPlayer);
 }

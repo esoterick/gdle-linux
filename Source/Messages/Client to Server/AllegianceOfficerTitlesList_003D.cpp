@@ -14,5 +14,5 @@ void MAllegianceOfficerTitlesList_003D::Parse(BinaryReader * reader)
 
 void MAllegianceOfficerTitlesList_003D::Process()
 {
-	g_pAllegianceManager->ListOfficerTitles(m_pPlayer);
+//	g_pAllegianceManager->ListOfficerTitles(m_pPlayer);
 }

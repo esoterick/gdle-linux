@@ -22,5 +22,5 @@ void MAllegianceMOTDSet_0254::Parse(BinaryReader * reader)
 
 void MAllegianceMOTDSet_0254::Process()
 {
-	g_pAllegianceManager->SetMOTD(m_pPlayer, m_szMessage);
+	//g_pAllegianceManager->SetMOTD(m_pPlayer, m_szMessage);
 }

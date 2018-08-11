@@ -14,5 +14,5 @@ public:
 private:
 	void Process();
 	CPlayerWeenie* m_pPlayer;
-	DWORD m_dwTarget;
+	CPlayerWeenie* m_pTarget;
 };
