@@ -2013,7 +2013,7 @@ void CWeenieObject::TryToUnloadAllegianceXP(bool bShowText)
 			if (bShowText)
 			{
 				// this was from logging in
-				SendText(csprintf("Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain %s xp.",
+				SendText(csprintf("Your Vassals have produced experience points for you. Taking your skills as a leader into account, you gain %s xp.",
 					FormatNumberString(node->_cp_pool_to_unload).c_str()), LTT_DEFAULT);
 			}
 
