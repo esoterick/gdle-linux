@@ -119,6 +119,7 @@ public:
 	void ApproveVassal(CPlayerWeenie * player, std::string vassal_name);
 	void BootPlayer(CPlayerWeenie* player, std::string bootee, bool whole_account);
 	
+	bool IsGagged(DWORD player_id);
 	void ChatGag(CPlayerWeenie* player, std::string target, bool toggle);
 	void ChatBoot(CPlayerWeenie* player, std::string target, std::string reason);
 
@@ -127,6 +128,7 @@ public:
 	void RemoveBan(CPlayerWeenie * player, std::string char_name);
 	void GetBanList(CPlayerWeenie * player);
 
+	bool isForDB;
 private:
 	void BreakAllegiance(AllegianceTreeNode *patron, AllegianceTreeNode *vassal);
 
@@ -134,4 +136,5 @@ private:
 	void RemoveAllegianceNode(AllegianceTreeNode *node);
 
 	double m_LastSave = 0.0;
+	double m_LastGagCheck = 0.0;
 };

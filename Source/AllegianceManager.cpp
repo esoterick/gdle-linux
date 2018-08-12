@@ -186,9 +186,11 @@ void AllegianceManager::Load()
 
 void AllegianceManager::Save()
 {
+	isForDB = true;
 	BinaryWriter data;
 	Pack(&data);
 	g_pDBIO->CreateOrUpdateGlobalData(DBIO_GLOBAL_ALLEGIANCE_DATA, data.GetData(), data.GetSize());
+	isForDB = false;
 }
 
 void AllegianceManager::WalkTreeAndBumpOnlineTime(AllegianceTreeNode *node, int onlineSecondsDelta) {
@@ -211,6 +213,24 @@ void AllegianceManager::Tick()
 			WalkTreeAndBumpOnlineTime(entry.second, ((int)round(Timer::cur_time - m_LastSave)));
 		Save();
 		m_LastSave = Timer::cur_time;
+	}
+	
+	// check for expired chat gags
+	if (m_LastGagCheck <= (Timer::cur_time - 5))
+	{
+		for (auto entry : _allegInfos) { 
+			auto gagList = entry.second->_info.m_chatGagList;
+			std::vector<DWORD> toRemove;
+			for (auto gagged : gagList)	{
+				if (gagged.second <= Timer::cur_time) {
+					toRemove.push_back(gagged.first);
+				}
+			}
+			for (auto id : toRemove) {
+				gagList.erase(id);
+			}
+		}
+		m_LastGagCheck = Timer::cur_time;
 	}
 }
 
@@ -594,6 +614,7 @@ void AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject 
 	{
 		if (IsBanned(source->GetID(), targetTreeNode->_monarchID))
 		{
+			source->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_YOU_ARE_BANNED, target->GetName().c_str());
 			target->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_BANNED, source->GetName().c_str());
 			return;
 		}
@@ -1037,12 +1058,13 @@ bool AllegianceManager::IsOfficer(AllegianceTreeNode* playerNode)
 		if (IsMonarch(playerNode))
 			return true;
 
-		AllegianceHierarchy hierarchy = GetInfo(playerNode->_monarchID)->_info;
-		for (auto officer : hierarchy.m_AllegianceOfficers)
-		{
-			if (officer.first == playerNode->_charID)
+		if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID)) {
+			for (auto officer : ai->_info.m_officerList)
 			{
-				return true;
+				if (officer.first == playerNode->_charID)
+				{
+					return true;
+				}
 			}
 		}
 	}
@@ -1077,12 +1099,13 @@ eAllegianceOfficerLevel AllegianceManager::GetOfficerLevel(DWORD player_id)
 			if (IsMonarch(playerNode))
 				return Castellan_AllegianceOfficerLevel;
 
-			AllegianceHierarchy hierarchy = GetInfo(playerNode->_monarchID)->_info;
-			for (auto officer : hierarchy.m_AllegianceOfficers)
-			{
-				if (officer.first == player_id)
+			if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID)) {
+				for (auto officer : ai->_info.m_officerList)
 				{
-					return officer.second;
+					if (officer.first == player_id)
+					{
+						return officer.second;
+					}
 				}
 			}
 		}
@@ -1105,9 +1128,14 @@ std::string AllegianceManager::GetOfficerTitle(DWORD player_id)
 	{
 		if (AllegianceTreeNode* playerNode = GetTreeNode(player_id))
 		{
-			AllegianceHierarchy hierarchy = GetInfo(playerNode->_monarchID)->_info;
-			if (hierarchy.m_OfficerTitles.array_data)
-				return hierarchy.m_OfficerTitles.array_data[officerLevel]; // is this set to the default titles if the allegiance hasnt set any custom ones?
+			if (IsMonarch(playerNode)) {
+				return "Monarch";
+			}
+
+			if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
+			{
+				return ai->_info.m_officerTitleList[officerLevel - 1];
+			}
 		}
 	}
 	return "";
@@ -1121,12 +1149,13 @@ bool AllegianceManager::IsOfficerWithLevel(AllegianceTreeNode* playerNode, eAlle
 		if (IsMonarch(playerNode))
 			return true;
 
-		AllegianceHierarchy hierarchy = GetInfo(playerNode->_monarchID)->_info;
-		for (auto officer : hierarchy.m_AllegianceOfficers)
-		{
-			if (officer.first == playerNode->_charID && officer.second >= min && officer.second <= max)
+		if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID)) {
+			for (auto officer : ai->_info.m_officerList)
 			{
-				return true;
+				if (officer.first == playerNode->_charID && officer.second >= min && officer.second <= max)
+				{
+					return true;
+				}
 			}
 		}
 	}
@@ -1135,6 +1164,9 @@ bool AllegianceManager::IsOfficerWithLevel(AllegianceTreeNode* playerNode, eAlle
 
 void AllegianceManager::SetMOTD(CPlayerWeenie* player, std::string msg)
 {
+	if (msg.empty())
+		return;
+
 	AllegianceTreeNode* playerNode = GetTreeNode(player->GetID());
 	if (!playerNode)
 	{
@@ -1148,10 +1180,10 @@ void AllegianceManager::SetMOTD(CPlayerWeenie* player, std::string msg)
 		return;
 	}
 
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
-		info->_info.m_motd = msg;
-		info->_info.m_motdSetBy = player->GetName();
+		ai->_info.m_storedMOTD = msg;
+		ai->_info.m_storedMOTDSetBy = player->GetName();
 		player->SendText("Your allegiance message of the day has been set.", LTT_DEFAULT);
 		Save();
 	}
@@ -1163,13 +1195,13 @@ void AllegianceManager::LoginMOTD(CPlayerWeenie * player)
 	if (!self)
 		return;
 
-	AllegianceInfo *info = GetInfo(self->_monarchID);
-	if (!info)
+	AllegianceInfo* ai = GetInfo(self->_monarchID);
+	if (!ai)
 		return;
 
-	if (!info->_info.m_motd.empty())
+	if (!ai->_info.m_storedMOTD.empty())
 	{
-		player->SendText(csprintf("%s -- %s %s", info->_info.m_motd.c_str(), GetOfficerTitle(info->_info.m_motdSetBy).c_str(), info->_info.m_motdSetBy.c_str()), LTT_DEFAULT);
+		player->SendText(csprintf("%s -- %s %s", ai->_info.m_storedMOTD.c_str(), GetOfficerTitle(ai->_info.m_storedMOTDSetBy).c_str(), ai->_info.m_storedMOTDSetBy.c_str()), LTT_DEFAULT);
 	}
 }
 
@@ -1188,10 +1220,10 @@ void AllegianceManager::ClearMOTD(CPlayerWeenie * player)
 		return;
 	}
 
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
-		info->_info.m_motd.clear();
-		info->_info.m_motdSetBy.clear();
+		ai->_info.m_storedMOTD.clear();
+		ai->_info.m_storedMOTDSetBy.clear();
 		player->SendText("Your allegiance message of the day has been cleared.", LTT_DEFAULT);
 		Save();
 	}
@@ -1205,15 +1237,15 @@ void AllegianceManager::QueryMOTD(CPlayerWeenie * player)
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
 		return;
 	}
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
-		if (info->_info.m_motd.empty())
+		if (ai->_info.m_storedMOTD.empty())
 		{
 			player->SendText("Your allegiance has not set a message of the day.", LTT_DEFAULT);
 		}
 		else
 		{
-			player->SendText(csprintf("%s -- %s %s", info->_info.m_motd.c_str(), GetOfficerTitle(info->_info.m_motdSetBy).c_str(), info->_info.m_motdSetBy.c_str()), LTT_DEFAULT);
+			player->SendText(csprintf("%s -- %s %s", ai->_info.m_storedMOTD.c_str(), GetOfficerTitle(ai->_info.m_storedMOTDSetBy).c_str(), ai->_info.m_storedMOTDSetBy.c_str()), LTT_DEFAULT);
 		}
 	}
 }
@@ -1233,11 +1265,11 @@ void AllegianceManager::SetAllegianceName(CPlayerWeenie * player, std::string na
 		return;
 	}
 
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
-		if (info->_info.m_NameLastSetTime + 86400 <= time(0)) // check if 24 hours since last change
+		if (ai->_info.m_NameLastSetTime + 86400 <= time(0)) // check if 24 hours since last change
 		{
-			if (name == info->_info.m_AllegianceName)
+			if (name == ai->_info.m_AllegianceName)
 			{
 				player->NotifyWeenieError(WERROR_ALLEGIANCE_NAME_SAME_NAME);
 				return;
@@ -1276,13 +1308,13 @@ void AllegianceManager::SetAllegianceName(CPlayerWeenie * player, std::string na
 				}
 			}
 
-			info->_info.m_AllegianceName = name;
+			ai->_info.m_AllegianceName = name;
 			player->SendText("Your allegiance name has been set.", LTT_DEFAULT);
-			info->_info.m_NameLastSetTime = time(0);
+			ai->_info.m_NameLastSetTime = time(0);
 		}
 		else
 		{
-			int nextSetTime = (info->_info.m_NameLastSetTime + 86400) - time(0); // how long before it can be changed again in seconds
+			int nextSetTime = (ai->_info.m_NameLastSetTime + 86400) - time(0); // how long before it can be changed again in seconds
 
 			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_NAME_TIMER, TimeToString(nextSetTime).c_str());
 			Save();
@@ -1305,9 +1337,9 @@ void AllegianceManager::ClearAllegianceName(CPlayerWeenie * player)
 		return;
 	}
 
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
-		info->_info.m_AllegianceName.clear();
+		ai->_info.m_AllegianceName.clear();
 		player->SendText("Your allegiance name has been cleared.", LTT_DEFAULT);
 		Save();
 	}
@@ -1322,15 +1354,15 @@ void AllegianceManager::QueryAllegianceName(CPlayerWeenie * player)
 		return;
 	}
 
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
-		if (info->_info.m_AllegianceName.empty())
+		if (ai->_info.m_AllegianceName.empty())
 		{
 			player->SendText("Your allegiance hasn't set an allegiance name.", LTT_DEFAULT);
 		}
 		else
 		{
-			player->SendText(csprintf("Your allegiance name is %s", info->_info.m_AllegianceName.c_str()), LTT_DEFAULT);
+			player->SendText(csprintf("Your allegiance name is %s", ai->_info.m_AllegianceName.c_str()), LTT_DEFAULT);
 		}
 	}
 }
@@ -1377,9 +1409,9 @@ void AllegianceManager::SetOfficerTitle(CPlayerWeenie * player, int level, std::
 		}
 	}
 
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
-		info->_info.m_OfficerTitles.array_data[level-1] = title;
+		ai->_info.m_officerTitleList[level-1] = title;
 
 		player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_TITLE_SET, title.c_str());
 		Save();
@@ -1401,16 +1433,10 @@ void AllegianceManager::ClearOfficerTitles(CPlayerWeenie * player)
 		return;
 	}
 
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
-		std::string speaker = "Speaker";
-		std::string seneschal = "Seneschal";
-		std::string castellan = "Castellan";
-
-		info->_info.m_OfficerTitles.grow(0);
-		info->_info.m_OfficerTitles.add(&speaker);
-		info->_info.m_OfficerTitles.add(&seneschal);
-		info->_info.m_OfficerTitles.add(&castellan);
+		ai->_info.m_officerTitleList.clear();
+		ai->_info.m_officerTitleList = { "Speaker", "Seneschal", "Castellan" };
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_OFFICER_TITLE_CLEARED);
 		Save();
 	}
@@ -1425,12 +1451,15 @@ void AllegianceManager::ListOfficerTitles(CPlayerWeenie * player)
 		return;
 	}
 
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
+		if (ai->_info.m_officerTitleList.empty()) {
+			ai->_info.m_officerTitleList = { "Speaker", "Seneschal", "Castellan" };
+		}
 		player->SendText("Allegiance Officer Titles:", LTT_DEFAULT);
 		for (int i = 0; i < 3; i++)
 		{
-			player->SendText(csprintf("%d. %s", i+1, info->_info.m_OfficerTitles.array_data[i]), LTT_DEFAULT);
+			player->SendText(csprintf("%d. %s", i + 1, ai->_info.m_officerTitleList[i].c_str()), LTT_DEFAULT);
 		}
 	}
 }
@@ -1471,20 +1500,22 @@ void AllegianceManager::SetOfficer(CPlayerWeenie * player, std::string officer_n
 			return;
 		}
 
-		if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+		if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 		{
-			if (info->_info.m_AllegianceOfficers.size() >= 12) {
+			if (ai->_info.m_officerList.size() >= 12) {
 				player->NotifyWeenieError(WERROR_ALLEGIANCE_OFFICER_FULL);
 				return;
 			}
 
 			if (IsOfficer(officerNode))	{
-				info->_info.m_AllegianceOfficers[officerID] = level;
+				ai->_info.m_officerList[officerID] = level;
+				player->SendText(csprintf("%s's allegiance officer status has been modified. %s now holds the position of: %s.", officer_name.c_str(), officer_name.c_str(), ai->_info.m_officerTitleList[level - 1].c_str()), LTT_DEFAULT);
 			}
 			else {
-				info->_info.m_AllegianceOfficers.emplace(officerID, level);
+				ai->_info.m_officerList.emplace(officerID, level);
+				player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_SET, officer_name.c_str());
 			}
-			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_SET, officer_name.c_str());
+
 			if (CPlayerWeenie* officer = g_pWorld->FindPlayer(officerID)) {
 				officer->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_YOU_ARE_NOW_AN_OFFICER, GetOfficerTitle(officer_name).c_str());
 			}
@@ -1530,24 +1561,25 @@ void AllegianceManager::RemoveOfficer(CPlayerWeenie * player, std::string office
 			}
 		}
 
-		if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+		if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 		{
-			for (auto officer : info->_info.m_AllegianceOfficers)
+			for (auto officer : ai->_info.m_officerList)
 			{
 				if (officer.first == officerID)
 				{
-					info->_info.m_AllegianceOfficers.remove(officerID);
+					ai->_info.m_officerList.remove(officerID);
 					player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_REMOVED, officer_name.c_str());
+
 					if (CPlayerWeenie* officer = g_pWorld->FindPlayer(officerID)) {
 						officer->NotifyWeenieError(WERROR_ALLEGIANCE_YOU_ARE_NO_LONGER_AN_OFFICER);
 					}
-					break;
+					Save();
+					return;
 				}
 			}	
 		}
-		player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_NOT_REMOVED, officer_name.c_str());
-		Save();
 	}
+	player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_OFFICER_NOT_REMOVED, officer_name.c_str());
 }
 
 void AllegianceManager::ListOfficers(CPlayerWeenie * player)
@@ -1559,13 +1591,13 @@ void AllegianceManager::ListOfficers(CPlayerWeenie * player)
 		return;
 	}
 
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
 		player->SendText("Allegiance Officers:", LTT_DEFAULT);
 		player->SendText(csprintf("%s (Monarch)", g_pDBIO->GetPlayerCharacterName(playerNode->_monarchID)), LTT_DEFAULT);
-		for (auto officer : info->_info.m_AllegianceOfficers)
+		for (auto officer : ai->_info.m_officerList)
 		{
-			player->SendText(csprintf("%s (%s)", g_pDBIO->GetPlayerCharacterName(officer.first), GetOfficerTitle(officer.first)), LTT_DEFAULT);
+			player->SendText(csprintf("%s (%s)", g_pDBIO->GetPlayerCharacterName(officer.first), GetOfficerTitle(officer.first).c_str()), LTT_DEFAULT);
 		}
 	}
 }
@@ -1585,21 +1617,21 @@ void AllegianceManager::ClearOfficers(CPlayerWeenie * player)
 		return;
 	}
 
-	if (AllegianceInfo* info = GetInfo(playerNode->_monarchID))
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
-		for (auto officer : info->_info.m_AllegianceOfficers)
+		for (auto officer : ai->_info.m_officerList)
 		{
 			if (CPlayerWeenie* player = g_pWorld->FindPlayer(officer.first))
 			{
 				player->NotifyWeenieError(WERROR_ALLEGIANCE_YOU_ARE_NO_LONGER_AN_OFFICER);
 			}
 		}
-		info->_info.m_AllegianceOfficers.clear();
+		ai->_info.m_officerList.clear();
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_OFFICERS_CLEARED);
 		Save();
 	}
 }
-
+// TODO info request time limit
 void AllegianceManager::AllegianceInfoRequest(CPlayerWeenie * player, std::string target_name)
 {
 	AllegianceTreeNode *myNode = GetTreeNode(player->GetID());
@@ -1666,36 +1698,36 @@ void AllegianceManager::AllegianceLockAction(CPlayerWeenie * player, DWORD lock_
 	{
 		if (IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel))
 		{
-			if (AllegianceInfo* allegianceInfo = GetInfo(playerNode->_monarchID))
+			if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 			{
 				switch (lock_action)
 				{
 				case LockedOff:
 				{
-					allegianceInfo->_info.m_isLocked = false;
+					ai->_info.m_isLocked = false;
 					player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_SET, "Unlocked");
 					Save();
 					break;
 				}
 				case LockedOn:
 				{
-					allegianceInfo->_info.m_isLocked = true;
+					ai->_info.m_isLocked = true;
 					player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_SET, "Locked");
 					Save();
 					break;
 				}
 				case ToggleLocked:
 				{
-					if (allegianceInfo->_info.m_isLocked == false)
+					if (ai->_info.m_isLocked == false)
 					{
-						allegianceInfo->_info.m_isLocked = true;
+						ai->_info.m_isLocked = true;
 						player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_SET, "Locked");
 						Save();
 						break;
 					}
 					else
 					{
-						allegianceInfo->_info.m_isLocked = false;
+						ai->_info.m_isLocked = false;
 						player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_SET, "Unlocked");
 						Save();
 						break;
@@ -1703,26 +1735,26 @@ void AllegianceManager::AllegianceLockAction(CPlayerWeenie * player, DWORD lock_
 				}
 				case CheckLocked:
 				{
-					player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_DISPLAY, allegianceInfo->_info.m_isLocked ? "Locked" : "Unlocked");
+					player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_DISPLAY, ai->_info.m_isLocked ? "Locked" : "Unlocked");
 					break;
 				}
 				case DisplayBypass: // show approved vassal
 				{
-					if (!allegianceInfo->_info.m_ApprovedVassal)
+					if (!ai->_info.m_ApprovedVassal)
 					{
 						player->NotifyWeenieError(WERROR_ALLEGIANCE_LOCK_NO_APPROVED);
 						break;
 					}
 					else
 					{
-						std::string vassal = g_pWorld->GetPlayerName(allegianceInfo->_info.m_ApprovedVassal, true);
+						std::string vassal = g_pWorld->GetPlayerName(ai->_info.m_ApprovedVassal, true);
 						player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_APPROVED_DISPLAY, vassal.c_str());
 						break;
 					}
 				}
 				case ClearBypass: // clear approved vassal
 				{
-					allegianceInfo->_info.m_ApprovedVassal = 0;
+					ai->_info.m_ApprovedVassal = 0;
 					player->NotifyWeenieError(WERROR_ALLEGIANCE_APPROVED_CLEARED);
 					Save();
 					break;
@@ -1753,9 +1785,9 @@ void AllegianceManager::RecallHometown(CPlayerWeenie * player)
 		return;
 	}
 
-	AllegianceInfo *allegianceInfo = GetInfo(allegianceNode->_monarchID);
+	AllegianceInfo* ai = GetInfo(allegianceNode->_monarchID);
 
-	if (allegianceInfo && allegianceInfo->_info.m_BindPoint.objcell_id)
+	if (ai && ai->_info.m_BindPoint.objcell_id) // TODO change to server side store?
 	{
 		player->ExecuteUseEvent(new CAllegianceHometownRecallUseEvent());
 	}
@@ -1828,7 +1860,7 @@ void AllegianceManager::BootPlayer(CPlayerWeenie * player, std::string bootee, b
 						{
 							if (bNode->_monarchID == playerNode->_monarchID)
 							{
-								TryBreakAllegiance(bNode->_charID, bNode->_patronID);
+								TryBreakAllegiance(bNode->_patronID, bNode->_charID);
 							}
 						}
 					}
@@ -1836,7 +1868,7 @@ void AllegianceManager::BootPlayer(CPlayerWeenie * player, std::string bootee, b
 					return;
 				}
 
-				TryBreakAllegiance(booteeID, booteeNode->_patronID);
+				TryBreakAllegiance(booteeNode->_patronID, booteeID);
 				player->SendText(csprintf("You have successfully booted %s from the allegiance.", bootee.c_str()), LTT_DEFAULT);
 				Save();
 			}
@@ -1848,7 +1880,20 @@ void AllegianceManager::BootPlayer(CPlayerWeenie * player, std::string bootee, b
 	}
 }
 
-void AllegianceManager::ChatBoot(CPlayerWeenie * player, std::string target, std::string reason)
+bool AllegianceManager::IsGagged(DWORD player_id)
+{
+	if (AllegianceTreeNode* playerNode = GetTreeNode(player_id)) {
+		if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID)) {
+			auto it = ai->_info.m_chatGagList.find(player_id);
+			if (it != ai->_info.m_chatGagList.end()) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void AllegianceManager::ChatGag(CPlayerWeenie * player, std::string target, bool toggle)
 {
 	AllegianceTreeNode* playerNode = GetTreeNode(player->GetID());
 	if (!playerNode)
@@ -1863,14 +1908,85 @@ void AllegianceManager::ChatBoot(CPlayerWeenie * player, std::string target, std
 		return;
 	}
 
-	if (!IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel))
+	if (!IsOfficer(playerNode)) // all officers can gag/ungag
+	{
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
+		return;
+	}
+
+	DWORD gagTargetID = g_pDBIO->GetPlayerCharacterId(target.c_str());
+
+	AllegianceTreeNode* gagTargetNode = GetTreeNode(gagTargetID);
+	if (!gagTargetNode)
+		return;
+
+	if (gagTargetNode->_monarchID != playerNode->_monarchID)
+		return;
+
+	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
+	{
+		CPlayerWeenie* gagTarget = g_pWorld->FindPlayer(gagTargetID);
+		auto it = ai->_info.m_chatGagList.find(gagTargetID);
+
+		if (it != ai->_info.m_chatGagList.end()) { // target is in the gag list
+			if (toggle) { // adding a gag, fail		
+					player->NotifyWeenieError(WERROR_ALLEGIANCE_GAG_ALREADY);
+					return;
+			}
+			else { // removing a gag, success
+				ai->_info.m_chatGagList.erase(it);
+				player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_GAG_UNGAG_OFFICER, target.c_str());
+
+				if (gagTarget) {
+					gagTarget->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_GAG_UNGAG_TARGET, player->GetName().c_str());
+				}
+				return;
+			}
+		}
+		else { // target not on gag list
+			if (toggle) { // adding a gag, success
+
+				int gagEndTime = Timer::cur_time + 300;
+				ai->_info.m_chatGagList.add(gagTargetID, &gagEndTime);
+
+				player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_GAG_OFFICER, target.c_str());
+
+				if (gagTarget) {
+					gagTarget->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_GAG_TARGET, player->GetName().c_str());
+				}
+				return;
+			}
+			else { // removing a gag, fail
+				player->NotifyWeenieError(WERROR_ALLEGIANCE_GAG_NOT_ALREADY);
+				return;
+			}
+		}
+	}
+	// TODO: WERROR_ALLEGIANCE_GAG_AUTO_UNGAG once time is up
+	// check player on F7DE send/receive to allegiance channel for a gag
+}
+
+void AllegianceManager::ChatBoot(CPlayerWeenie * player, std::string target, std::string reason)
+{
+	AllegianceTreeNode* playerNode = GetTreeNode(player->GetID());
+	if (!playerNode)
+	{
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_NONEXISTENT);
+		return;
+	}
+	if (target.empty())
+	{
+		player->NotifyWeenieError(WERROR_ALLEGIANCE_BOOT_EMPTY_NAME);
+		return;
+	}
+
+	if (!IsOfficer(playerNode)) // all officers can boot from allegiance chat
 	{
 		player->NotifyWeenieError(WERROR_ALLEGIANCE_NOT_AUTHORIZED);
 		return;
 	}
 
 	// TODO: needs join/leave channel functionality
-
 }
 
 bool AllegianceManager::IsBanned(DWORD player_to_check_id, DWORD monarch_id)
@@ -1878,12 +1994,9 @@ bool AllegianceManager::IsBanned(DWORD player_to_check_id, DWORD monarch_id)
 	CharacterDesc_t potentialVassal = g_pDBIO->GetCharacterInfo(player_to_check_id); // get chardesc for account id
 	if (AllegianceInfo* ai = GetInfo(monarch_id))
 	{
-		for (auto banned : ai->_info.m_BanList)
+		if (ai->_info.m_BanList.find(potentialVassal.account_id) != ai->_info.m_BanList.end()) // if account id is on the ban list, return true
 		{
-			if (banned.first == potentialVassal.account_id) // if account id is on the ban list, return true
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 	return false;
@@ -1904,35 +2017,34 @@ void AllegianceManager::AddBan(CPlayerWeenie* player, std::string char_name)
 	if (IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // check caller has correct authority
 	{
 		CharacterDesc_t bannedCharInfo = g_pDBIO->GetCharacterInfo(bannedPlayerID);
-		AllegianceHierarchy ah = GetInfo(monarchID)->_info;
-		
-		if (ah.m_BanList.size() > 50) 	// max ban list as of 01/06 patch notes
+		if (AllegianceInfo* ai = GetInfo(monarchID))
 		{
-			player->NotifyWeenieError(WERROR_ALLEGIANCE_BANNED_LIST_FULL);
-			return;
-		}
+			if (ai->_info.m_BanList.size() > 50) 	// max ban list as of 01/06 patch notes
+			{
+				player->NotifyWeenieError(WERROR_ALLEGIANCE_BANNED_LIST_FULL);
+				return;
+			}
 
-		for (auto pair : ah.m_BanList)
-		{
-			if (pair.first == bannedCharInfo.account_id) // check if their account is already banned
+			if (ai->_info.m_BanList.find(bannedCharInfo.account_id) != ai->_info.m_BanList.end()) // check if their account is already banned
 			{
 				player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_CHAR_ALREADY_BANNED, bannedCharInfo.name.c_str());
 				return;
 			}
-		}
 
-		ah.m_BanList.add(bannedCharInfo.account_id, &bannedCharInfo.name); // add account id & name of character to ban list of allegiance
+			ai->_info.m_BanList.add(bannedCharInfo.account_id, &bannedCharInfo.name); // add account id & name of character to ban list of allegiance
 
-		std::list<CharacterDesc_t> bannedCharacters = g_pDBIO->GetCharacterList(bannedCharInfo.account_id);
-		for (auto character : bannedCharacters)
-		{
-			AllegianceTreeNode* characterNode = GetTreeNode(character.weenie_id);
-			if (characterNode && characterNode->_monarchID == monarchID) // if any characters are currently in the allegiance...
+			std::list<CharacterDesc_t> bannedCharacters = g_pDBIO->GetCharacterList(bannedCharInfo.account_id);
+			for (auto character : bannedCharacters)
 			{
-				TryBreakAllegiance(characterNode->_patronID, character.weenie_id); // ...boot them from allegiance
+				AllegianceTreeNode* characterNode = GetTreeNode(character.weenie_id);
+				if (characterNode && characterNode->_monarchID == monarchID) // if any characters are currently in the allegiance...
+				{
+					TryBreakAllegiance(characterNode->_patronID, character.weenie_id); // ...boot them from allegiance
+				}
 			}
+			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_CHAR_BANNED_SUCCESSFULLY, char_name.c_str());
+			Save(); // TODO should we send updated allegiance profile here?
 		}
-		Save();
 	}
 	else
 	{
@@ -1989,12 +2101,13 @@ void AllegianceManager::GetBanList(CPlayerWeenie * player)
 	{
 		if (AllegianceInfo* ai = GetInfo(monarchID))
 		{
-			player->NotifyWeenieError(WERROR_ALLEGIANCE_LIST_BANNED_CHARACTERS);
+			std::string bans;
 			for (auto banned : ai->_info.m_BanList)
 			{
-				if (banned.second != "")
-					player->SendText(banned.second.c_str(), LTT_DEFAULT);
+				bans += banned.second;
+				bans += "\n";
 			}
+			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LIST_BANNED_CHARACTERS, bans.c_str());
 		}
 	}
 	else

@@ -2,6 +2,7 @@
 #include "StdAfx.h"
 #include "PhatSDK.h"
 #include "AllegianceProfile.h"
+#include "AllegianceManager.h"
 
 DEFINE_PACK(AllegianceData)
 {
@@ -71,15 +72,6 @@ void AllegianceNode::SetMayPassupExperience(BOOL val)
 
 AllegianceHierarchy::AllegianceHierarchy()
 {
-	std::string speaker = "Speaker";
-	m_OfficerTitleList.add(1, &speaker);
-	m_OfficerTitles.add(&speaker);
-	std::string seneschal = "Seneschal";
-	m_OfficerTitleList.add(2, &seneschal);
-	m_OfficerTitles.add(&seneschal);
-	std::string castellan = "Castellan";
-	m_OfficerTitleList.add(3, &castellan);
-	m_OfficerTitles.add(&castellan);
 }
 
 AllegianceHierarchy::~AllegianceHierarchy()
@@ -112,9 +104,19 @@ DEFINE_PACK(AllegianceHierarchy)
 	pWriter->Write<int>(m_NameLastSetTime);
 	pWriter->Write<int>(m_isLocked);
 	pWriter->Write<int>(m_ApprovedVassal);
-	m_BanList.Pack(pWriter);
-	m_OfficerTitleList.Pack(pWriter);
 
+	if (g_pAllegianceManager->isForDB) {
+		pWriter->WriteString(m_storedMOTD);
+		pWriter->WriteString(m_storedMOTDSetBy);
+
+		for (int i = 0; i < 3; i++)	{
+			pWriter->WriteString(m_officerTitleList[i]);
+		}
+
+		m_officerList.Pack(pWriter);
+		m_BanList.Pack(pWriter);
+		m_chatGagList.Pack(pWriter);
+	}
 	// normally would pack m_pMonarch nodes here, but we'll use a different means
 	bool bMonarch = true;
 	for (auto &entry : _nodes)
@@ -153,8 +155,15 @@ DEFINE_UNPACK(AllegianceHierarchy)
 	m_NameLastSetTime = pReader->Read<int>();
 	m_isLocked = pReader->Read<int>();
 	m_ApprovedVassal = pReader->Read<int>();
+
+	m_storedMOTD = pReader->ReadString();
+	m_storedMOTDSetBy = pReader->ReadString();
+	for (int i = 0; i < 3; i++) {
+		m_officerTitleList[i] = pReader->ReadString();
+	}
+	m_officerList.UnPack(pReader);
 	m_BanList.UnPack(pReader);
-	m_OfficerTitleList.UnPack(pReader);
+	m_chatGagList.UnPack(pReader);
 	/*
 	AllegianceData data;
 	for (DWORD i = 0; i < packedNodes; i++)
