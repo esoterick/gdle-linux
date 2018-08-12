@@ -818,7 +818,7 @@ void CWorld::BroadcastPVS(DWORD dwCell, void *_data, DWORD _len, WORD _group, DW
 	maxy = BLOCK_OFFSET(maxy);
 
 	CWorldLandBlock *pBlock = m_pBlocks[block];
-	if (pBlock && (dwCell &0xFFFF) > 0x100) //check if inside
+	if ((pBlock && (dwCell & 0xFFFF) > 0x100) && !pBlock->PossiblyVisibleToOutdoors(dwCell)) //check if inside
 	{
 		// dungeons are usually contained in water blocks usually and we will only broadcast to them individually
 		pBlock->Broadcast(_data, _len, _group, ignore_ent, _game_event);
@@ -1139,7 +1139,7 @@ void CWorld::EnumNearby(const Position &position, float fRange, std::list<CWeeni
 	WORD cell = CELL_WORD(dwCell);
 
 	CWorldLandBlock *pBlock = m_pBlocks[block];
-	if ((pBlock && (dwCell & 0xFFFF) > 0x100) || pBlock && !pBlock->PossiblyVisibleToOutdoors(dwCell)) //check if inside
+	if ((pBlock && (dwCell & 0xFFFF) > 0x100) && !pBlock->PossiblyVisibleToOutdoors(dwCell)) //check if inside
 	{
 		pBlock->EnumNearby(position, fRange, pResults);
 	}
@@ -1189,7 +1189,7 @@ void CWorld::EnumNearbyPlayers(const Position &position, float fRange, std::list
 	WORD cell = CELL_WORD(dwCell);
 
 	CWorldLandBlock *pBlock = m_pBlocks[block];
-	if ((pBlock && (dwCell & 0xFFFF) > 0x100) || pBlock && !pBlock->PossiblyVisibleToOutdoors(dwCell)) //check if inside
+	if ((pBlock && (dwCell & 0xFFFF) > 0x100) && !pBlock->PossiblyVisibleToOutdoors(dwCell)) //check if inside
 	{
 		pBlock->EnumNearbyPlayers(position, fRange, pResults);
 	}
@@ -1266,7 +1266,7 @@ void CWorld::EnumNearby(CWeenieObject *pSource, float fRange, std::list<CWeenieO
 		WORD cell = CELL_WORD(dwCell);
 
 		CWorldLandBlock *pBlock = m_pBlocks[block];
-		if ((pBlock && (dwCell & 0xFFFF) > 0x100) || pBlock && !pBlock->PossiblyVisibleToOutdoors(dwCell)) //check if inside
+		if ((pBlock && (dwCell & 0xFFFF) > 0x100) && !pBlock->PossiblyVisibleToOutdoors(dwCell)) //check if inside
 		{
 			pBlock->EnumNearby(pSource, fRange, pResults);
 		}
@@ -1318,7 +1318,7 @@ void CWorld::EnumNearbyPlayers(CWeenieObject *pSource, float fRange, std::list<C
 		WORD cell = CELL_WORD(dwCell);
 
 		CWorldLandBlock *pBlock = m_pBlocks[block];
-		if ((pBlock && (dwCell & 0xFFFF) > 0x100) || pBlock && !pBlock->PossiblyVisibleToOutdoors(dwCell)) //check if inside
+		if ((pBlock && (dwCell & 0xFFFF) > 0x100) && !pBlock->PossiblyVisibleToOutdoors(dwCell)) //check if inside
 		{
 			pBlock->EnumNearbyPlayers(pSource, fRange, pResults);
 		}

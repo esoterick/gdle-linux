@@ -495,8 +495,8 @@ TransitionState CSphere::slide_sphere(OBJECTINFO *object, SPHEREPATH *path, COLL
 			return TransitionState::COLLIDED_TS;
 
 		direction.x = collision_normal.x - someVec.x;
-		direction.y = direction.y - someVec.x;
-		direction.z = direction.z - someVec.x;
+		direction.y = direction.y - someVec.y;
+		direction.z = direction.z - someVec.z;
 
 		path->add_offset_to_check_pos(&direction, path->global_sphere[sphere_num].radius);
 		return TransitionState::SLID_TS;

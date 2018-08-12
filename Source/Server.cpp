@@ -25,11 +25,13 @@
 #include "House.h"
 #include "easylogging++.h"
 #include "ChessManager.h"
+#include "..\RecipeFactory.h"
 
 // should all be encapsulated realistically, but we aren't going to multi-instance the server...
 CDatabase *g_pDB = NULL;
 CMYSQLDatabase *g_pDB2 = NULL;
 CMYSQLDatabase *g_pDB2Async = NULL;
+CMYSQLDatabase *g_pDBDynamicIDs = NULL;
 CDatabaseIO *g_pDBIO = NULL;
 CGameDatabase *g_pGameDatabase = NULL;
 ServerCellManager *g_pCellManager = NULL;
@@ -47,6 +49,7 @@ CInferredCellData *g_pCellDataEx = NULL;
 TURBINEPORTAL *g_pPortal = NULL;
 TURBINECELL *g_pCell = NULL;
 CHouseManager *g_pHouseManager = NULL;
+RecipeFactory *g_pRecipeFactory = NULL;
 
 CPhatServer::CPhatServer(const char *configFilePath)
 {
@@ -91,14 +94,16 @@ DWORD CPhatServer::InternalThreadProc()
 	srand((unsigned int)time(NULL));
 	Random::Init();
 
-	Init();
-	
-	DWORD sleepTime = g_pConfig->FastTick() ? 0 : 1;
-
-	while (WaitForSingleObject(m_hQuitEvent, 0) != WAIT_OBJECT_0)
+	if (Init())
 	{
-		Tick();
-		Sleep(sleepTime);
+
+		DWORD sleepTime = g_pConfig->FastTick() ? 0 : 1;
+
+		while (WaitForSingleObject(m_hQuitEvent, 0) != WAIT_OBJECT_0)
+		{
+			Tick();
+			Sleep(sleepTime);
+		}
 	}
 
 	Shutdown();
@@ -146,6 +151,9 @@ bool CPhatServer::Init()
 	g_pTreasureFactory = new CTreasureFactory();
 	g_pTreasureFactory->Initialize();
 
+	g_pRecipeFactory = new RecipeFactory();
+	g_pRecipeFactory->Initialize();
+
 	g_pDB = new CDatabase(); // Old, dumb, bad
 
 	g_pDBIO = new CDatabaseIO();
@@ -156,9 +164,23 @@ bool CPhatServer::Init()
 		m_Config.DatabasePassword(),
 		m_Config.DatabaseName()); // Newer, shiny, makes pancakes in the morning
 
+	g_pDBDynamicIDs = new CMYSQLDatabase(
+		m_Config.DatabaseIP(),
+		m_Config.DatabasePort(),
+		m_Config.DatabaseUsername(),
+		m_Config.DatabasePassword(),
+		m_Config.DatabaseName());
+
 	g_pHouseManager = new CHouseManager();
 
 	g_pObjectIDGen = new CObjectIDGenerator();
+
+	if (!g_pObjectIDGen->IsIdRangeValid())
+	{
+		WINLOG(Temp, Normal, "ID system failed to start.\n");
+		SERVER_INFO << "ID system failed to start.";
+		return false;
+	}
 
 	g_pGameDatabase = new CGameDatabase();
 	g_pCellManager = new ServerCellManager();
@@ -311,6 +333,7 @@ void CPhatServer::Shutdown()
 	SafeDelete(g_pGameDatabase);
 	SafeDelete(g_pHouseManager);
 	SafeDelete(g_pDB2);
+	SafeDelete(g_pDBDynamicIDs);
 	SafeDelete(g_pDBIO);
 	SafeDelete(g_pDB);
 

@@ -80,7 +80,7 @@ public:
 	// Allegiance functionality
 	void TrySwearAllegiance(DWORD target);
 	void TryBreakAllegiance(DWORD target);
-	void SetRequestAllegianceUpdate(int on);
+	void SetRequestAllegianceUpdate(bool on);
 	void SendAllegianceUpdate();
 	void SendAllegianceMOTD();
 	void AllegianceInfoRequest(const std::string &target);

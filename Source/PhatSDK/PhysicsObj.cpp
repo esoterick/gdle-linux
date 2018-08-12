@@ -1156,7 +1156,6 @@ void CPhysicsObj::leave_cell(BOOL is_changing_cell)
 	if (!is_changing_cell)
 	{
 		cell = NULL;
-		_lastGoodCell = NULL;
 	}
 }
 
@@ -1177,7 +1176,6 @@ void CPhysicsObj::enter_cell(CObjCell *pCell)
 	m_Position.objcell_id = pCell->id;
 	set_cell_id(pCell->id);
 	
-	_lastGoodCell = cell;
 	cell = pCell;
 
 	if (part_array)
@@ -2101,8 +2099,7 @@ void CPhysicsObj::change_cell(CObjCell *new_cell)
 				part_array->SetCellID(0);
 		}
 
-		//cell = NULL;
-		cell = _lastGoodCell;
+		cell = NULL;
 	}
 }
 
@@ -2446,6 +2443,8 @@ int CPhysicsObj::SetPositionInternal(CTransition *transit)
 	unsigned int prev_on_walkable = transient_state & ON_WALKABLE_TS;
 	CObjCell *transitCell = transit->sphere_path.curr_cell;
 	unsigned int prev_contact = transient_state & CONTACT_TS;
+	bool changed_cell = false;
+
 	if (transitCell)
 	{
 		if (cell == transitCell)
@@ -2476,9 +2475,13 @@ int CPhysicsObj::SetPositionInternal(CTransition *transit)
 		else
 		{
 			change_cell(transitCell);
+			changed_cell = true;
 		}
 
 		set_frame(transit->sphere_path.curr_pos.frame);
+
+		if (changed_cell)
+			m_LastValidPosition = m_Position;
 
 		int is_water = transit->collision_info.contact_plane_is_water;
 

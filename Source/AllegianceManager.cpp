@@ -67,14 +67,14 @@ void AllegianceTreeNode::FillAllegianceNode(AllegianceNode *node)
 	node->_data._loyalty = _loyalty;
 	node->_data._name = _charName;
 	node->_data._id = _charID;
-//	node->_data._allegiance_age = _unixTimeSwornAt; what unit is this and what does the client do with this information?
-//	node->_data._time_online = _ingameSecondsSworn; what unit is this and what does the client do with this information?
+	//	node->_data._allegiance_age = _unixTimeSwornAt; what unit is this and what does the client do with this information?
+	//	node->_data._time_online = _ingameSecondsSworn; what unit is this and what does the client do with this information?
 }
 
 void AllegianceTreeNode::UpdateWithWeenie(CWeenieObject *weenie)
 {
 	_charID = weenie->GetID();
-	_charName = weenie->GetName();	
+	_charName = weenie->GetName();
 	_hg = static_cast<HeritageGroup>(weenie->InqIntQuality(HERITAGE_GROUP_INT, Invalid_HeritageGroup));
 	_gender = static_cast<Gender>(weenie->InqIntQuality(GENDER_INT, Invalid_Gender));
 	_level = weenie->InqIntQuality(LEVEL_INT, 1);
@@ -131,7 +131,8 @@ DEFINE_UNPACK(AllegianceTreeNode)
 	if (version < 2) {
 		_unixTimeSwornAt = time(0); // set to now
 		_ingameSecondsSworn = 1;
-	} else {
+	}
+	else {
 		_unixTimeSwornAt = pReader->Read<DWORD64>();
 		_ingameSecondsSworn = pReader->Read<DWORD64>();
 	}
@@ -393,7 +394,7 @@ void AllegianceManager::SetWeenieAllegianceQualities(CWeenieObject *weenie)
 {
 	if (!weenie)
 		return;
-	
+
 	AllegianceTreeNode *monarch;
 	AllegianceTreeNode *patron;
 
@@ -529,7 +530,7 @@ AllegianceProfile *AllegianceManager::CreateAllegianceProfile(DWORD char_id, uns
 
 				if (g_pWorld->FindPlayer(vassal->_charID))
 					vassalNode->_data._bitfield |= LoggedIn_AllegianceIndex;
-				
+
 				prof->_allegiance._nodes.push_back(vassalNode);
 			}
 		}
@@ -850,7 +851,7 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 
 	double generatedPercent = 0.01 * (factor1 + factor2 * loyaltyFactor * (1.0 + realDaysSwornFactor * ingameHoursSwornFactor));
 	double receivedPercent = 0.01 * (factor1 + factor2 * leadershipFactor * (1.0 + vassalFactor * avgRealDaysVassalsSwornFactor * avgIngameHoursVassalsSwornFactor));
-	
+
 	double passup = generatedPercent * receivedPercent;
 
 	unsigned long long passupAmount = amount * passup;

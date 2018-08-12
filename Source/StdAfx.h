@@ -75,7 +75,7 @@
 #define PUBLIC_STRING ""
 #endif
 
-#define SERVER_VERSION_NUMBER_STRING "1.20"
+#define SERVER_VERSION_NUMBER_STRING "1.21"
 #define SERVER_VERSION_STRING __DATE__ " @ " __TIME__ " (" CONFIGURATION_STRING " " PLATFORM_STRING PUBLIC_STRING ")"
 
 //#define SERVER_VERSION_NUMBER_STRING "1.0.0.9" // "1.0.0.11"
@@ -88,10 +88,12 @@ class CPlayerWeenie;
 #include "Common.h"
 #include "Util.h"
 #include "Globals.h"
+#include "..\RecipeFactory.h"
 
 extern class CDatabase *g_pDB;
 extern class CMYSQLDatabase *g_pDB2;
 extern class CMYSQLDatabase *g_pDB2Async;
+extern class CMYSQLDatabase *g_pDBDynamicIDs;
 extern class CDatabaseIO *g_pDBIO;
 extern class CGameDatabase *g_pGameDatabase;
 extern class ServerCellManager *g_pCellManager;
@@ -108,6 +110,7 @@ extern class CInferredPortalData *g_pPortalDataEx;
 extern class CInferredCellData *g_pCellDataEx;
 extern class CPhatDataBin *g_pPhatDataBin;
 extern class CHouseManager *g_pHouseManager;
+extern class RecipeFactory *g_pRecipeFactory;
 
 #include "DATDisk.h"
 #include "TurbineData.h"

@@ -243,6 +243,18 @@ CLIENT_COMMAND(global, "<text> [color=1]", "Displays text globally.", ADMIN_ACCE
 }
 
 
+CLIENT_COMMAND(overlay, "<text>", "Displays <text> at the top-middle of the 3D window.", ADMIN_ACCESS)
+{
+	if (argc < 1)
+	{
+		return true;
+	}
+	const char* szText = argv[0];
+	pPlayer->SendTextToOverlay(szText);
+	return false;
+}
+
+
 CLIENT_COMMAND(animationall, "<num> [speed]", "Performs an animation for everyone.", ADMIN_ACCESS)
 {
 
@@ -2305,6 +2317,83 @@ void SendDungeonInfo(CPlayerWeenie* pPlayer, WORD wBlockID)
 		SendDungeonInfo(pPlayer, pInfo);
 }
 
+CLIENT_COMMAND(exportrecipe, "<recipeid>", "Export recipe number", ADMIN_ACCESS)
+{
+	if (argc < 1)
+	{
+		pPlayer->SendText("No recipe ID given", LTT_DEFAULT);
+		return true;
+	}
+	
+	DWORD recipeId = stoi(argv[0], NULL, 10);
+
+	// Get CCraftOperation that aligns with recipeid
+	CCraftOperation *craft = g_pPortalDataEx->_craftTableData._operations.lookup(recipeId);
+
+	if (!craft)
+	{
+		pPlayer->SendText(csprintf("Unable to find recipe ID: %s.", recipeId), LTT_DEFAULT);
+		return true;
+	}
+
+	json recipeData;
+	craft->PackJson(recipeData);
+
+	string dataFile = std::to_string(recipeId) + ".json";
+
+	ofstream ofstream(dataFile);
+	if (!ofstream.bad())
+	{
+		ofstream << recipeData;
+		ofstream.close();
+	}
+
+	pPlayer->SendText("RecipeID saved in recipe folder.", LTT_DEFAULT);
+
+	return true;
+}
+
+
+
+
+CLIENT_COMMAND(importrecipe, "<recipeid>", "Import a recipes", ADMIN_ACCESS)
+{
+	if (argc < 1)
+	{
+		pPlayer->SendText("No recipe ID given", LTT_DEFAULT);
+		return true;
+	}
+
+	DWORD recipeId = stoi(argv[0], NULL, 10);
+
+	// Get CCraftOperation that aligns with recipeid
+	CCraftOperation *craft = g_pPortalDataEx->_craftTableData._operations.lookup(recipeId);
+
+	if (!craft)
+	{
+		pPlayer->SendText(csprintf("Unable to find recipe ID: %s.", recipeId), LTT_DEFAULT);
+		return true;
+	}
+
+	string dataFile = std::to_string(recipeId) + ".json";
+
+	ifstream ifstream(dataFile.c_str());
+	if (ifstream.is_open())
+	{
+		json recipeData;
+		ifstream >> recipeData;
+		ifstream.close();
+		
+		CCraftOperation newcraft;
+		newcraft.UnPackJson(recipeData);
+		g_pPortalDataEx->_craftTableData._operations[recipeId] = newcraft;
+	}
+
+	pPlayer->SendText(csprintf("RecipeID %d loaded and updated.", recipeId), LTT_DEFAULT);
+	return false;
+}
+
+
 CLIENT_COMMAND(dungeon, "<command>", "Dungeon commands.", BASIC_ACCESS)
 {
 	if (argc < 1)
@@ -3029,6 +3118,9 @@ CLIENT_COMMAND(activeevents, "", "", ADMIN_ACCESS)
 
 CLIENT_COMMAND(startevent, "[event]", "Starts an event.", ADMIN_ACCESS)
 {
+	if (argc < 1)
+		return true;
+
 	auto &events = g_pGameEventManager->_gameEvents;
 
 	std::string eventText = "Event started.";
@@ -3052,6 +3144,9 @@ CLIENT_COMMAND(startevent, "[event]", "Starts an event.", ADMIN_ACCESS)
 
 CLIENT_COMMAND(stopevent, "[event]", "Stops an event.", ADMIN_ACCESS)
 {
+	if (argc < 1)
+		return true;
+
 	auto &events = g_pGameEventManager->_gameEvents;
 
 	std::string eventText = "Event stopped.";

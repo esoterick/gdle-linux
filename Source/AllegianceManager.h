@@ -23,7 +23,7 @@ public:
 	AllegianceTreeNode *FindCharByNameRecursivelySlow(const std::string &charName);
 	void FillAllegianceNode(AllegianceNode *node);
 	void UpdateWithWeenie(CWeenieObject *weenie);
-	
+
 	unsigned int _charID = 0;
 	std::string _charName;
 
@@ -52,7 +52,7 @@ public:
 	virtual ~AllegianceManager();
 
 	DECLARE_PACKABLE()
-	
+
 	void Load();
 	void Save();
 	void Tick();

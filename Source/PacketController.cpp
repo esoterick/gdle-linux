@@ -743,19 +743,22 @@ void CPacketController::IncomingBlob(BlobPacket_s *blob, double recvTime)
 		{
 			short intervalDiff = (short)(header->wTime - m_in._clientIntervalBase);
 
-			if (intervalDiff > 120 || intervalDiff < 0)
+			if (intervalDiff < 0)
 			{
 				m_in._clientIntervalBase = header->wTime;
 				m_in._clientIntervalBaseStart = recvTime;
 			}
-			else if (intervalDiff > 30)
+			else if (intervalDiff > 60)
 			{
 				DWORD expectedIntervals = (recvTime - m_in._clientIntervalBaseStart) * 2.0;
 				DWORD actualIntervals = intervalDiff;
+				intervalDiff = (short)(header->wTime - m_in._clientIntervalBase);
 
-				if ((float)actualIntervals > (float)(expectedIntervals * 2.0))
+				double rate = (double)actualIntervals / (double)expectedIntervals;
+
+				if (rate > g_pConfig->SpeedHackKickThreshold())
 				{
-					SERVER_ERROR << "Possible speed hack on user:" << m_pClient->GetDescription() << "([rate:" << ((double)actualIntervals / (double)expectedIntervals) << "]) Disconnecting.";
+					SERVER_ERROR << "Possible speed hack on user:" << m_pClient->GetDescription() << "([rate:" << rate << "]) Disconnecting.";
 
 					Kill(__FILE__, __LINE__);
 

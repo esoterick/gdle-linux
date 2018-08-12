@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "World.h"
 #include "WorldLandBlock.h"
@@ -218,6 +217,8 @@ void CWorldLandBlock::SpawnDynamics()
 	CLandBlockExtendedData *data = g_pCellDataEx->GetLandBlockData((DWORD)m_wHeader << 16);
 	if (data)
 	{
+		SmartArray<CLandBlockWeenieLink> tmp_links = data->weenie_links;
+
 		for (DWORD i = 0; i < data->weenies.num_used; i++)
 		{
 			DWORD wcid = data->weenies.array_data[i].wcid;
@@ -320,21 +321,21 @@ void CWorldLandBlock::SpawnDynamics()
 				if (bDynamicID)
 				{
 					DWORD weenie_id = weenie->GetID();
-					for (DWORD i = 0; i < data->weenie_links.num_used; i++)
+					for (DWORD i = 0; i < tmp_links.num_used; i++)
 					{
-						if (data->weenie_links.array_data[i].source == iid)
-							data->weenie_links.array_data[i].source = weenie_id;
-						if (data->weenie_links.array_data[i].target == iid)
-							data->weenie_links.array_data[i].target = weenie_id;
+						if (tmp_links.array_data[i].source == iid)
+							tmp_links.array_data[i].source = weenie_id;
+						if (tmp_links.array_data[i].target == iid)
+							tmp_links.array_data[i].target = weenie_id;
 					}
 				}
 			}
 		}
 
-		for (DWORD i = 0; i < data->weenie_links.num_used; i++)
+		for (DWORD i = 0; i < tmp_links.num_used; i++)
 		{
-			DWORD source_id = data->weenie_links.array_data[i].source;
-			DWORD target_id = data->weenie_links.array_data[i].target;
+			DWORD source_id = tmp_links.array_data[i].source;
+			DWORD target_id = tmp_links.array_data[i].target;
 
 			CWeenieObject *source_weenie = g_pWorld->FindObject(source_id); // often creature, or respawnable item
 			if (source_weenie)
@@ -343,7 +344,6 @@ void CWorldLandBlock::SpawnDynamics()
 				if (target_weenie)
 				{
 					target_weenie->EnsureLink(source_weenie);
-
 					if (target_weenie->m_Qualities._generator_table)
 					{
 						GeneratorProfile prof;
@@ -603,9 +603,13 @@ void CWorldLandBlock::ExchangePVS(CWeenieObject *pSource, WORD old_block_id)
 {
 	if (!pSource)
 		return;
-	
+
+	WORD cell = CELL_WORD(pSource->GetLandcell());
+
 	CWorldLandBlock *pBlock = pSource->GetBlock();
-	if (pBlock && (pSource->GetLandcell() & 0xFFFF) > 0x100) //if indoors only exchange data on this landblock.
+
+	//if in a Dungeon only exchange data on this landblock. Indoor landblocks, such as inside buildings should still exchange.
+	if ((pBlock && (pSource->GetLandcell() & 0xFFFF) > 0x100) && !PossiblyVisibleToOutdoors(pSource->GetLandcell()))
 	{
 			pBlock->ExchangeData(pSource);
 	}
@@ -687,7 +691,7 @@ bool CWorldLandBlock::HasAnySeenOutside()
 	return _cached_any_seen_outside;
 }
 
-bool CWorldLandBlock::PossiblyVisibleToOutdoors(DWORD cell_id)
+bool CWorldLandBlock::PossiblyVisibleToOutdoors(WORD cell_id)
 {
 	if (cell_id >= LandDefs::first_envcell_id && cell_id <= LandDefs::last_envcell_id)
 	{
@@ -805,12 +809,6 @@ void CWorldLandBlock::Destroy(CWeenieObject *pEntity, bool bDoRelease)
 		Release(pEntity);
 	}
 
-	//if generator_queue or registry, wipe generator_queue and registry
-	if (pEntity->m_Qualities._generator_registry && !pEntity->m_Qualities._generator_registry->_registry.empty())
-		pEntity->m_Qualities._generator_registry->_registry.clear();
-	if (pEntity->m_Qualities._generator_queue && !pEntity->m_Qualities._generator_queue->_queue.empty())
-		pEntity->m_Qualities._generator_queue->_queue.clear();
-
 	g_pWorld->EnsureRemoved(pEntity);
 
 #if FALSE
@@ -917,22 +915,29 @@ BOOL CWorldLandBlock::Think()
 
 			if (!pEntity->ShouldDestroy())
 			{
+				// ...why?
+#ifdef DEBUG
 				static bool checkMe = true;
 				if (checkMe)
 				{
 					assert(pEntity->cell);
 					checkMe = false;
 				}
+#endif
 
-				if (!pEntity->cell && !cell_id)
+				if (!pEntity->cell)
 				{
 					if (CPlayerWeenie *player = pEntity->AsPlayer())
 					{
 						if (player->_nextTryFixBrokenPosition < Timer::cur_time)
 						{
 							player->_nextTryFixBrokenPosition = Timer::cur_time + 2.0;
-							pEntity->cell = pEntity->_lastGoodCell;
-							//player->Movement_Teleport(Position(0xA9B4001F, Vector(87.750603f, 147.722321f, 66.005005f), Quaternion(0.011819f, 0.000000, 0.000000, -0.999930f)), false);
+
+							if (player->m_LastValidPosition.objcell_id != 0)
+								player->Movement_Teleport(player->m_LastValidPosition);
+							else
+								//player->Movement_Teleport(Position(0xA9B4001F, Vector(87.750603f, 147.722321f, 66.005005f), Quaternion(0.011819f, 0.000000, 0.000000, -0.999930f)), false);
+								player->TeleportToLifestone();
 						}
 					}
 				}

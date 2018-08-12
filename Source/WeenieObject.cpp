@@ -2013,7 +2013,7 @@ void CWeenieObject::TryToUnloadAllegianceXP(bool bShowText)
 			if (bShowText)
 			{
 				// this was from logging in
-				SendText(csprintf("Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain %s xp.",
+				SendText(csprintf("Your Vassals have produced experience points for you. Taking your skills as a leader into account, you gain %s xp.",
 					FormatNumberString(node->_cp_pool_to_unload).c_str()), LTT_DEFAULT);
 			}
 
@@ -2045,6 +2045,9 @@ DWORD CWeenieObject::GiveAttributeXP(STypeAttribute key, DWORD amount)
 			SendText(csprintf("Your base %s is now %u!", Attribute::GetAttributeName(key), newLevel), LTT_ADVANCEMENT);
 		}
 	}
+
+	if (attribute._level_from_cp == 190)
+		EmitEffect(PS_WeddingBliss, 1.0f);
 
 	NotifyAttributeStatUpdated(key);
 
@@ -2095,6 +2098,9 @@ DWORD CWeenieObject::GiveAttribute2ndXP(STypeAttribute2nd key, DWORD amount)
 			SendText(csprintf("Your base %s is now %u!", GetAttribute2ndName(key), newLevel), LTT_ADVANCEMENT);
 		}
 	}
+
+	if (attribute2nd._level_from_cp == 196)
+		EmitEffect(PS_WeddingBliss, 1.0f);
 
 	NotifyAttribute2ndStatUpdated(key);
 	return raised;
@@ -2161,8 +2167,6 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 	DWORD oldLevel = skill._level_from_pp;
 	skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
 
-	m_Qualities.SetSkill(key, skill);
-
 	std::string skillName = "Unknown";
 
 	if (SkillTable *pSkillTable = SkillSystem::GetSkillTable())
@@ -2182,6 +2186,11 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 
 		SendText(notice, LTT_ADVANCEMENT);
 	}
+
+	if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && oldLevel == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && oldLevel == 226))
+		return 0;
+
+	m_Qualities.SetSkill(key, skill);
 
 	DWORD raised = skill._level_from_pp - oldLevel;
 	if (raised)
@@ -2291,6 +2300,11 @@ void CWeenieObject::GiveSkillCredits(DWORD amount, bool showText)
 void CWeenieObject::SendText(const char* szText, long lColor)
 {
 	SendNetMessage(ServerText(szText, lColor), PRIVATE_MSG, FALSE, TRUE);
+}
+
+void CWeenieObject::SendTextToOverlay(const char* szText)
+{
+	SendNetMessage(OverlayText(szText), PRIVATE_MSG, FALSE, TRUE);
 }
 
 float Calc_BurdenMod(float flBurden)
@@ -3093,9 +3107,8 @@ void CWeenieObject::PostSpawn()
 		SetLocked(FALSE);
 	}
 
-	if (!m_Qualities._generator_queue)// Prevents generators that have a generator_registry from reinitializing
+	if (!m_Qualities._generator_queue)// Prevents generators that have a generator_queue from reinitializing
 		InitCreateGenerator();
-
 
 	double heartbeatInterval;
 	if (m_Qualities.InqFloat(HEARTBEAT_INTERVAL_FLOAT, heartbeatInterval, TRUE))
@@ -3799,14 +3812,14 @@ BODY_PART_ENUM GetRandomBodyPartByDamageQuadrant(DAMAGE_QUADRANT dq)
 	}
 	else if (dq & DQ_MEDIUM)
 	{
-		switch (Random::GenInt(0, 6))
+		switch (Random::GenInt(0, 5))
 		{
 		case 0: result = BP_UPPER_LEG; break;
 		case 1: result = BP_ABDOMEN; break;
 		case 2: result = BP_CHEST; break;
 		case 3: result = BP_HAND; break;
-		case 5: result = BP_LOWER_ARM; break;
-		case 6: result = BP_UPPER_ARM; break;
+		case 4: result = BP_LOWER_ARM; break;
+		case 5: result = BP_UPPER_ARM; break;
 		}
 	}
 	else if (dq & DQ_HIGH)
@@ -3870,7 +3883,6 @@ void CWeenieObject::TryToDealDamage(DamageEventData &data)
 				hitHeight = BODY_HEIGHT::MEDIUM_BODY_HEIGHT;
 
 			//todo: taking into account the rest of the quadrant data(front/sides/etc)
-
 			for (auto &bp : data.target->m_Qualities._body->_body_part_table)
 			{
 				if (bp.second._bh == hitHeight)
@@ -3885,8 +3897,10 @@ void CWeenieObject::TryToDealDamage(DamageEventData &data)
 			data.hitPart = (BODY_PART_ENUM)*randomBodyPartIterator;
 		}
 		else
+		{
 			data.hitPart = GetRandomBodyPartByDamageQuadrant(data.hit_quadrant);
-	}
+		}
+	}	
 
 	data.target->TakeDamage(data);
 }
@@ -5016,7 +5030,46 @@ int CWeenieObject::Activate(DWORD activator_id)
 		}
 	}
 
-	return WERROR_NONE;
+		//activation code copied from CSwitchWeenie::Activate() seems to fix the generators not spawning mobs on Activate_EmoteType used on mobs like Scold that spawn more mobs on death.
+		if (get_minterp()->interpreted_state.GetNumActions())
+			return WERROR_NONE;
+
+			int activationResponse = InqIntQuality(ACTIVATION_RESPONSE_INT, 0);
+
+			if (DWORD activation_target_id = InqIIDQuality(ACTIVATION_TARGET_IID, 0))
+			{
+				CWeenieObject *activation_target = g_pWorld->FindObject(activation_target_id);
+				if (activation_target)
+					activation_target->Activate(activator_id);
+			}
+
+			//if (activationResponse & Activation_CastSpell)
+			{
+				if (DWORD spell_did = InqDIDQuality(SPELL_DID, 0))
+				{
+					MakeSpellcastingManager()->CastSpellInstant(activator_id, spell_did);
+				}
+			}
+
+			if (activationResponse & Generate_ActivationResponse)
+			{
+				g_pWeenieFactory->AddFromGeneratorTable(this, false);
+			}
+
+			if (activationResponse & Talk_ActivationResponse)
+			{
+				std::string talkText;
+				if (m_Qualities.InqString(ACTIVATION_TALK_STRING, talkText))
+				{
+					CPlayerWeenie *player = g_pWorld->FindPlayer(activator_id);
+					if (player)
+						player->SendText(talkText.c_str(), LTT_DEFAULT);
+				}
+			}
+
+			DoActivationEmote(activator_id);
+
+			return WERROR_NONE;	
 }
 
 int CWeenieObject::DoUseWithResponse(CWeenieObject *player, CWeenieObject *with)
@@ -5037,6 +5090,25 @@ bool CWeenieObject::IsExecutingEmote()
 	}
 
 	return false;
+}
+
+bool CWeenieObject::HasEmoteForID(EmoteCategory emoteCategory, DWORD item_id)
+{
+	// check emote item acceptance for category
+	PackableList<EmoteSet> *emoteCategoryResult = m_Qualities._emote_table->_emote_table.lookup(emoteCategory);
+
+	if (emoteCategoryResult)
+	{
+		for (auto &emoteSet : *emoteCategoryResult)
+		{
+			if (emoteSet.classID == item_id)
+			{
+				return TRUE;
+			}
+		}
+	}
+	else
+		return FALSE;
 }
 
 void CWeenieObject::ChanceExecuteEmoteSet(DWORD other_id, EmoteCategory category)
@@ -5504,8 +5576,16 @@ int CWeenieObject::SimulateGiveObject(CContainerWeenie *target_container, CWeeni
 			}
 			else
 			{
-				SendText(csprintf("You give %s %s.", target_container->GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
-				target_container->SendText(csprintf("%s gives you %s.", GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
+				// check emote Refusal here to avoid the extra "%s gives you %s." text on Refuse Emotes.
+				if (m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->id))
+				{
+					SendText(csprintf("You allow %s to examine your %s.", target_container->GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
+				}
+				else
+				{
+					SendText(csprintf("You give %s %s.", target_container->GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
+					target_container->SendText(csprintf("%s gives you %s.", GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
+				}
 			}
 		}
 	}
@@ -5730,7 +5810,7 @@ double CWeenieObject::GetMeleeDefenseModUsingWielded()
 
 double CWeenieObject::GetMeleeDefenseMod()
 {
-	double mod = InqFloatQuality(WEAPON_DEFENSE_FLOAT, 1.0, FALSE);
+	double mod = InqFloatQuality(WEAPON_DEFENSE_FLOAT, 1.0, TRUE);
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_DEFENSE_FLOAT, &mod);
@@ -5738,7 +5818,7 @@ double CWeenieObject::GetMeleeDefenseMod()
 	CWeenieObject *wielder = GetWorldWielder();
 	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
 	{
-		mod *= wielder->GetMeleeDefenseMod();
+		mod += (wielder->GetMeleeDefenseMod()) - 1.0;
 	}
 
 	return mod;
@@ -5751,7 +5831,7 @@ double CWeenieObject::GetMissileDefenseModUsingWielded()
 
 double CWeenieObject::GetMissileDefenseMod()
 {
-	double mod = InqFloatQuality(WEAPON_MISSILE_DEFENSE_FLOAT, 1.0, FALSE);
+	double mod = InqFloatQuality(WEAPON_MISSILE_DEFENSE_FLOAT, 1.0, TRUE);
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_MISSILE_DEFENSE_FLOAT, &mod);
@@ -5759,7 +5839,7 @@ double CWeenieObject::GetMissileDefenseMod()
 	CWeenieObject *wielder = GetWorldWielder();
 	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
 	{
-		mod *= wielder->GetMissileDefenseMod();
+		mod += (wielder->GetMissileDefenseMod()) - 1.0;
 	}
 
 	return mod;
@@ -5772,7 +5852,7 @@ double CWeenieObject::GetMagicDefenseModUsingWielded()
 
 double CWeenieObject::GetMagicDefenseMod()
 {
-	double mod = InqFloatQuality(WEAPON_MAGIC_DEFENSE_FLOAT, 1.0, FALSE);
+	double mod = InqFloatQuality(WEAPON_MAGIC_DEFENSE_FLOAT, 1.0, TRUE);
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_MAGIC_DEFENSE_FLOAT, &mod);
@@ -5780,7 +5860,7 @@ double CWeenieObject::GetMagicDefenseMod()
 	CWeenieObject *wielder = GetWorldWielder();
 	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
 	{
-		mod *= wielder->GetMagicDefenseMod();
+		mod += (wielder->GetMagicDefenseMod()) - 1.0;
 	}
 
 	return mod;
@@ -5788,7 +5868,7 @@ double CWeenieObject::GetMagicDefenseMod()
 
 double CWeenieObject::GetOffenseMod()
 {
-	double mod = InqFloatQuality(WEAPON_OFFENSE_FLOAT, 1.0, FALSE);
+	double mod = InqFloatQuality(WEAPON_OFFENSE_FLOAT, 1.0, TRUE);
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_OFFENSE_FLOAT, &mod);
@@ -5796,7 +5876,7 @@ double CWeenieObject::GetOffenseMod()
 	CWeenieObject *wielder = GetWorldWielder();
 	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
 	{
-		mod *= wielder->GetOffenseMod();
+		mod += (wielder->GetOffenseMod()) - 1.0;
 	}
 
 	return mod;
@@ -5928,6 +6008,38 @@ int CWeenieObject::GetAttackTime()
 	// 100 = 1.0
 	// 1.0 / (1.0 + ((100 - speed) * (0.0075)))
 	return speed;
+}
+
+double CWeenieObject::GetManaCon()
+{
+	CWeenieObject *wielder = GetWorldWielder();
+
+	double manacon = 0;
+	m_Qualities.InqFloat(MANA_CONVERSION_MOD_FLOAT, manacon, TRUE);
+
+	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
+	{
+		if (wielder->m_Qualities._enchantment_reg)
+			wielder->m_Qualities._enchantment_reg->EnchantFloat(MANA_CONVERSION_MOD_FLOAT, &manacon);
+	}
+
+	return manacon;
+}
+
+double CWeenieObject::GetElementalDamage()
+{
+	CWeenieObject *wielder = GetWorldWielder();
+
+	double elementdmg = 0;
+	m_Qualities.InqFloat(ELEMENTAL_DAMAGE_MOD_FLOAT, elementdmg, TRUE);
+
+	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
+	{
+		if (wielder->m_Qualities._enchantment_reg)
+			wielder->m_Qualities._enchantment_reg->EnchantFloat(ELEMENTAL_DAMAGE_MOD_FLOAT, &elementdmg);
+	}
+
+	return elementdmg;
 }
 
 int CWeenieObject::GetAttackTimeUsingWielded()
@@ -6312,9 +6424,8 @@ void CWeenieObject::SetStackSize(DWORD stackSize)
 	if (CWeenieObject *owner = GetWorldTopLevelOwner())
 	{
 		owner->RecalculateEncumbrance();
-		if (owner->AsPlayer() && m_Qualities.id == W_COINSTACK_CLASS)
-			owner->RecalculateCoinAmount();
-
+		if (owner->AsPlayer() && IsCurrency(m_Qualities.id))
+			owner->RecalculateCoinAmount(m_Qualities.id);
 	}
 }
 
@@ -6550,5 +6661,20 @@ void CWeenieObject::HandleEventInactive()
 	if (m_Qualities._generator_queue)
 	{
 		m_Qualities._generator_queue->_queue.clear();
+	}
+}
+
+bool CWeenieObject::IsCurrency(int currencyid)
+{
+	switch (currencyid)// Add alt currencies to this list
+	{
+	case W_TRADENOTE250000_CLASS:
+	case W_COINSTACK_CLASS:
+	{
+		return TRUE;
+	}
+
+	default:
+		return FALSE; // Not a currency
 	}
 }
