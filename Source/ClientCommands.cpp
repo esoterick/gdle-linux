@@ -42,6 +42,7 @@
 #include "easylogging++.h"
 #include "ObjectMsgs.h"
 #include "EnumUtil.h"
+#include "ChessManager.h"
 
 // Most of these commands are just for experimenting and never meant to be used in a real game
 // TODO: Add flags to these commands so they are only accessible under certain modes such as a sandbox mode
@@ -4712,6 +4713,12 @@ CLIENT_COMMAND(movetome, "", "Brings an object to you.", ADMIN_ACCESS)
 	}
 
 	return false;
+}
+
+CLIENT_COMMAND(challengeai, "", "Challenge an AI to a game of Chess.", BASIC_ACCESS)
+{
+    sChessManager->ChallengeAi(pPlayer);
+    return false;
 }
 
 

@@ -458,10 +458,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\ChessManager.cpp" />
+    <ClCompile Include="Source\ChessMatch.cpp" />
     <ClCompile Include="Source\AugmentationDevice.cpp" />
     <ClCompile Include="Source\BindStone.cpp" />
     <ClCompile Include="Source\easylogging++.cpp" />
     <ClCompile Include="Source\EnumUtil.cpp" />
+    <ClCompile Include="Source\Game.cpp" />
+    <ClCompile Include="Source\GamePiece.cpp" />
     <ClCompile Include="Source\ManaStone.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\CombatFormulas.cpp" />
     <ClCompile Include="Source\PhatSDK\Support\Random.cpp" />
@@ -649,10 +653,15 @@
     <ClCompile Include="Source\TradeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\ChessDefines.h" />
+    <ClInclude Include="Source\ChessManager.h" />
+    <ClInclude Include="Source\ChessMatch.h" />
     <ClInclude Include="Source\EnumUtil.h" />
     <ClInclude Include="Source\AugmentationDevice.h" />
     <ClInclude Include="Source\BindStone.h" />
     <ClInclude Include="Source\easylogging++.h" />
+    <ClInclude Include="Source\Game.h" />
+    <ClInclude Include="Source\GamePiece.h" />
     <ClInclude Include="Source\ManaStone.h" />
     <ClInclude Include="Source\PhatSDK\SmartArray.h" />
     <ClInclude Include="Source\PhatSDK\Support\CombatFormulas.h" />

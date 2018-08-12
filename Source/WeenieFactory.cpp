@@ -37,6 +37,8 @@
 #include "GameEventManager.h"
 #include "TreasureFactory.h"
 #include "AugmentationDevice.h"
+#include "Game.h"
+#include "GamePiece.h"
 
 CWeenieFactory::CWeenieFactory()
 {
@@ -920,6 +922,12 @@ CWeenieObject *CWeenieFactory::CreateBaseWeenieByType(int weenieType, unsigned i
 			weenie = new CAugmentationDeviceWeenie();
 			break;
 		}
+    case Game_WeenieType:
+	    weenie = new GameWeenie();
+        break;
+    case GamePiece_WeenieType:
+        weenie = new GamePieceWeenie();
+        break;
 	default:
 		weenie = new CWeenieObject();
 		break;

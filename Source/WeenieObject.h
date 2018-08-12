@@ -213,6 +213,8 @@ public:
 	virtual class CTownCrier *AsTownCrier() { return NULL; }
 	virtual class CVendor *AsVendor() { return NULL; }
 	virtual class CAugmentationDeviceWeenie *AsAugmentationDevice() { return NULL; }
+    virtual class GameWeenie *AsGame() { return nullptr; }
+    virtual class GamePieceWeenie *AsGamePiece() { return nullptr; }
 
 	virtual bool IsAdvocate() { return false; }
 	virtual bool IsSentinel() { return false; }
