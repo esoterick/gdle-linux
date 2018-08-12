@@ -458,12 +458,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-<<<<<<< HEAD
     <ClCompile Include="Source\ChessManager.cpp" />
     <ClCompile Include="Source\ChessMatch.cpp" />
-=======
     <ClCompile Include="RecipeFactory.cpp" />
->>>>>>> origin/testserver
     <ClCompile Include="Source\AugmentationDevice.cpp" />
     <ClCompile Include="Source\BindStone.cpp" />
     <ClCompile Include="Source\easylogging++.cpp" />

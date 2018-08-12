@@ -620,6 +620,7 @@
     </ClCompile>
     <ClCompile Include="Source\GamePiece.cpp">
       <Filter>Source Files\Objects\Weenie Types</Filter>
+    </ClCompile>
     <ClCompile Include="RecipeFactory.cpp">
       <Filter>Source Files\Objects</Filter>
     </ClCompile>
@@ -703,7 +704,6 @@
     </ClCompile>
     <ClCompile Include="Source\Messages\Client to Server\AllegianceUpdate_001F.cpp">
       <Filter>Source Files\Messages\ClientToServer</Filter>
->>>>>>> origin/testserver
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1325,7 +1325,6 @@
     <ClInclude Include="Source\PhatSDK\SmartArray.h">
       <Filter>PhatSDK</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="Source\ChessMatch.h">
       <Filter>Source Files\World</Filter>
     </ClInclude>
@@ -1340,7 +1339,7 @@
     </ClInclude>
     <ClInclude Include="Source\GamePiece.h">
       <Filter>Source Files\Objects\Weenie Types</Filter>
-=======
+    </ClInclude>
     <ClInclude Include="RecipeFactory.h">
       <Filter>Source Files\Objects</Filter>
     </ClInclude>
@@ -1430,7 +1429,6 @@
     </ClInclude>
     <ClInclude Include="Source\Messages\Client to Server\AllegianceUpdate_001F.h">
       <Filter>Source Files\Messages\ClientToServer</Filter>
->>>>>>> origin/testserver
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
