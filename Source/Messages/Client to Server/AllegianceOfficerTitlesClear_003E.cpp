@@ -14,5 +14,5 @@ void MAllegianceOfficerTitlesClear_003E::Parse(BinaryReader * reader)
 
 void MAllegianceOfficerTitlesClear_003E::Process()
 {
-	g_pAllegianceManager->ClearOfficerTitles(m_pPlayer);
+//	g_pAllegianceManager->ClearOfficerTitles(m_pPlayer);
 }

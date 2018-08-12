@@ -14,5 +14,5 @@ void MAllegianceRecallHometown_02AB::Parse(BinaryReader * reader)
 
 void MAllegianceRecallHometown_02AB::Process()
 {
-	g_pAllegianceManager->RecallHometown(m_pPlayer);
+	//g_pAllegianceManager->RecallHometown(m_pPlayer);
 }

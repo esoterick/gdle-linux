@@ -23,7 +23,7 @@ public:
 	AllegianceTreeNode *FindCharByNameRecursivelySlow(const std::string &charName);
 	void FillAllegianceNode(AllegianceNode *node);
 	void UpdateWithWeenie(CWeenieObject *weenie);
-	
+
 	unsigned int _charID = 0;
 	std::string _charName;
 
@@ -52,7 +52,7 @@ public:
 	virtual ~AllegianceManager();
 
 	DECLARE_PACKABLE()
-	
+
 	void Load();
 	void Save();
 	void Tick();
@@ -68,9 +68,8 @@ public:
 	void SetWeenieAllegianceQualities(CWeenieObject *weenie);
 	AllegianceProfile *CreateAllegianceProfile(DWORD char_id, unsigned int *pRank);
 	void SendAllegianceProfile(CWeenieObject *pPlayer);
-	void TrySwearAllegiance(CWeenieObject *source, CWeenieObject *target);
-	void TryBreakAllegiance(CWeenieObject *source, DWORD target_id);
-	void TryBreakAllegiance(DWORD source_id, DWORD target_id);
+	int TrySwearAllegiance(CWeenieObject *source, CWeenieObject *target);
+	int TryBreakAllegiance(CWeenieObject *source, DWORD target_id);
 	void BreakAllAllegiance(DWORD char_id);
 
 	void ChatMonarch(DWORD sender_id, const char *text);
@@ -85,47 +84,6 @@ public:
 	void HandleAllegiancePassup(DWORD source_id, long long amount, bool direct);
 
 	DWORD GetCachedMonarchIDForPlayer(CPlayerWeenie *player);
-
-	bool IsMonarch(AllegianceTreeNode* playerNode);
-	bool IsOfficer(AllegianceTreeNode* playerNode);
-	eAllegianceOfficerLevel GetOfficerLevel(std::string player_name);
-	eAllegianceOfficerLevel GetOfficerLevel(DWORD player_id);
-	std::string GetOfficerTitle(std::string player_name);
-	std::string GetOfficerTitle(DWORD player_id);
-	bool IsOfficerWithLevel(AllegianceTreeNode* playerNode, eAllegianceOfficerLevel min, eAllegianceOfficerLevel max = Castellan_AllegianceOfficerLevel);
-
-	void SetMOTD(CPlayerWeenie * player, std::string msg);
-	void LoginMOTD(CPlayerWeenie* player);
-	void ClearMOTD(CPlayerWeenie * player);
-	void QueryMOTD(CPlayerWeenie * player);
-
-	void SetAllegianceName(CPlayerWeenie * player, std::string name);
-	void ClearAllegianceName(CPlayerWeenie * player);
-	void QueryAllegianceName(CPlayerWeenie * player);
-
-	void SetOfficerTitle(CPlayerWeenie * player, int level, std::string title);
-	void ClearOfficerTitles(CPlayerWeenie * player);
-	void ListOfficerTitles(CPlayerWeenie * player);
-
-	void SetOfficer(CPlayerWeenie * player, std::string officer_name, eAllegianceOfficerLevel level);
-	void RemoveOfficer(CPlayerWeenie * player, std::string officer_name);
-	void ListOfficers(CPlayerWeenie * player);
-	void ClearOfficers(CPlayerWeenie* player);
-
-	void AllegianceInfoRequest(CPlayerWeenie* player, std::string target_name);
-	void AllegianceLockAction(CPlayerWeenie* player, DWORD lock_action);
-	void RecallHometown(CPlayerWeenie* player);
-
-	void ApproveVassal(CPlayerWeenie * player, std::string vassal_name);
-	void BootPlayer(CPlayerWeenie* player, std::string bootee, bool whole_account);
-	
-	void ChatGag(CPlayerWeenie* player, std::string target, bool toggle);
-	void ChatBoot(CPlayerWeenie* player, std::string target, std::string reason);
-
-	bool IsBanned(DWORD player_to_check_id, DWORD monarch_id);
-	void AddBan(CPlayerWeenie * player, std::string char_name);
-	void RemoveBan(CPlayerWeenie * player, std::string char_name);
-	void GetBanList(CPlayerWeenie * player);
 
 private:
 	void BreakAllegiance(AllegianceTreeNode *patron, AllegianceTreeNode *vassal);

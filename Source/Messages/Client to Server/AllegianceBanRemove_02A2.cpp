@@ -22,5 +22,5 @@ void MAllegianceBanRemove_02A2::Parse(BinaryReader * reader)
 
 void MAllegianceBanRemove_02A2::Process()
 {
-	g_pAllegianceManager->RemoveBan(m_pPlayer, m_szCharName);
+	//g_pAllegianceManager->RemoveBan(m_pPlayer, m_szCharName);
 }

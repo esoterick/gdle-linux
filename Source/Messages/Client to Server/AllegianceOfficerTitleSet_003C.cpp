@@ -24,5 +24,5 @@ void MAllegianceOfficerTitleSet_003C::Parse(BinaryReader * reader)
 
 void MAllegianceOfficerTitleSet_003C::Process()
 {
-	g_pAllegianceManager->SetOfficerTitle(m_pPlayer, m_OfficerLevel, m_OfficerTitle);
+	//g_pAllegianceManager->SetOfficerTitle(m_pPlayer, m_OfficerLevel, m_OfficerTitle);
 }

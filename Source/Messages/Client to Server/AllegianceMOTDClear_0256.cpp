@@ -14,5 +14,5 @@ void MAllegianceMOTDClear_0256::Parse(BinaryReader * reader)
 
 void MAllegianceMOTDClear_0256::Process()
 {
-	g_pAllegianceManager->ClearMOTD(m_pPlayer);
+//	g_pAllegianceManager->ClearMOTD(m_pPlayer);
 }
