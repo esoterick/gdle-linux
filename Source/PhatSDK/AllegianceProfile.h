@@ -69,14 +69,17 @@ public:
 	unsigned int m_ApprovedVassal = 0;
 
 	// part of pack/unpack to database only - not sent as part of the allegiance update according to retail PCAPs
-	std::string m_storedMOTD;
-	std::string m_storedMOTDSetBy;
-	Position m_storedBindPoint;
+	std::string m_storedMOTD = "";
+	std::string m_storedMOTDSetBy = "";
+	Position m_storedBindPoint = Position();
 	std::vector<std::string> m_officerTitleList = { "Speaker", "Seneschal", "Castellan" };
-	PHashTable<DWORD, eAllegianceOfficerLevel> m_officerList; // weenie id, officer level pairs
+	PHashTable<DWORD, eAllegianceOfficerLevel> m_officerList = {}; // weenie id, officer level pairs
 
-	PHashTable<DWORD, std::string> m_BanList; // account id, character name pairs (was never sent as part of allegiance update)
-	PHashTable<DWORD, int> m_chatGagList; // (player id, gag end time in seconds)
+	PHashTable<DWORD, std::string> m_BanList = {}; // account id, character name pairs (was never sent as part of allegiance update)
+	PHashTable<DWORD, int> m_chatGagList = {}; // (player id, gag end time in seconds)
+
+	bool allAllegiancesUpdated = false;
+	bool packForDB = false;
 };
 
 class AllegianceProfile : public PackObj

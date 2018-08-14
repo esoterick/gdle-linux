@@ -86,7 +86,7 @@ public:
 
 	virtual int PKRespiteTime() { return m_PKRespiteTime; }
 	virtual bool SpellPurgeOnLogin() { return m_bSpellPurgeOnLogin; }
-	
+	virtual bool UpdateAllegianceData() { return m_bUpdateAllegianceData; }
 
 protected:
 	virtual void PostLoad() override;
@@ -166,6 +166,7 @@ protected:
 
 	int m_PKRespiteTime = 300;
 	bool m_bSpellPurgeOnLogin = false;
+	bool m_bUpdateAllegianceData = false;
 };
 
 extern CPhatACServerConfig *g_pConfig;

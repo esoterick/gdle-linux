@@ -7,6 +7,7 @@
 #include "ChatMsgs.h"
 #include "InferredPortalData.h"
 #include "Util.h"
+#include "Config.h"
 
 #define RELEASE_ASSERT(x) if (!(x)) DebugBreak();
 
@@ -179,6 +180,32 @@ void AllegianceManager::Load()
 	{
 		BinaryReader reader(data, length);
 		UnPack(&reader);
+		for (auto alleg : _allegInfos) {
+			if (g_pConfig->UpdateAllegianceData() && !allAllegiancesUpdated)
+			{
+				alleg.second->_info.m_oldVersion = ApprovedVassal_AllegianceVersion;
+				alleg.second->_info.m_officerList = {};
+				alleg.second->_info.m_BanList = {};
+				alleg.second->_info.m_chatGagList = {};
+				alleg.second->_info.m_officerTitleList = { "Speaker", "Seneschal", "Castellan" };
+				alleg.second->_info.m_storedMOTD = "";
+				alleg.second->_info.m_storedMOTDSetBy = "";
+			}
+		}
+		int count = 0;
+		for (auto alleg : _allegInfos) {
+			if (alleg.second->_info.m_officerTitleList.empty()) {
+				count++;
+			}
+		}
+		if (!count) {
+			for (auto alleg : _allegInfos) {
+				alleg.second->_info.allAllegiancesUpdated = true;
+			}
+			allAllegiancesUpdated = true;
+			Save();
+			WINLOG(Temp, Normal, "Successfully updated all allegiances!\n");
+		}
 	}
 
 	m_LastSave = Timer::cur_time;
@@ -186,11 +213,14 @@ void AllegianceManager::Load()
 
 void AllegianceManager::Save()
 {
-	isForDB = true;
+	for (auto ai : _allegInfos) {
+		ai.second->_info.packForDB = true;
+	}
 	BinaryWriter data;
 	Pack(&data);
-	g_pDBIO->CreateOrUpdateGlobalData(DBIO_GLOBAL_ALLEGIANCE_DATA, data.GetData(), data.GetSize());
-	isForDB = false;
+	bool success = g_pDBIO->CreateOrUpdateGlobalData(DBIO_GLOBAL_ALLEGIANCE_DATA, data.GetData(), data.GetSize());
+	if (!success)
+		WINLOG(Temp, Normal, "Problem saving allegiance data to DB!\n");
 }
 
 void AllegianceManager::WalkTreeAndBumpOnlineTime(AllegianceTreeNode *node, int onlineSecondsDelta) {
@@ -427,6 +457,7 @@ void AllegianceManager::SetWeenieAllegianceQualities(CWeenieObject *weenie)
 
 		weenie->m_Qualities.SetInt(ALLEGIANCE_FOLLOWERS_INT, node->_numFollowers);
 		weenie->m_Qualities.SetInt(ALLEGIANCE_RANK_INT, node->_rank);
+		weenie->NotifyIntStatUpdated(ALLEGIANCE_RANK_INT);
 		// wrong weenie->m_Qualities.SetInt(ALLEGIANCE_CP_POOL_INT, node->_cp_cached);
 	}
 	else
@@ -447,12 +478,19 @@ void AllegianceManager::SetWeenieAllegianceQualities(CWeenieObject *weenie)
 		if (monarch->_charID != weenie->GetID())
 		{
 			weenie->m_Qualities.SetString(MONARCHS_NAME_STRING, monarch->_charName);
-			weenie->m_Qualities.SetString(MONARCHS_TITLE_STRING, monarch->_charName); // TODO prefix
+			std::string title = GetRankTitle(monarch->_gender, monarch->_hg, monarch->_rank) + " " + monarch->_charName;
+			weenie->m_Qualities.SetString(MONARCHS_TITLE_STRING, title);
 		}
 		else
 		{
 			weenie->m_Qualities.RemoveString(MONARCHS_NAME_STRING);
 			weenie->m_Qualities.RemoveString(MONARCHS_TITLE_STRING);
+		}
+
+		if (AllegianceInfo* ai = GetInfo(monarch->_charID))
+		{
+			if (!ai->_info.m_AllegianceName.empty())
+				weenie->m_Qualities.SetString(ALLEGIANCE_NAME_STRING, ai->_info.m_AllegianceName);
 		}
 	}
 	else
@@ -461,12 +499,14 @@ void AllegianceManager::SetWeenieAllegianceQualities(CWeenieObject *weenie)
 		weenie->m_Qualities.RemoveInt(MONARCHS_RANK_INT);
 		weenie->m_Qualities.RemoveString(MONARCHS_NAME_STRING);
 		weenie->m_Qualities.RemoveString(MONARCHS_TITLE_STRING);
+		weenie->m_Qualities.RemoveString(ALLEGIANCE_NAME_STRING);
 	}
 
 	if (patron)
 	{
 		weenie->m_Qualities.SetInstanceID(PATRON_IID, patron->_charID);
-		weenie->m_Qualities.SetString(PATRONS_TITLE_STRING, patron->_charName); // TODO prefix
+		std::string title = GetRankTitle(patron->_gender, patron->_hg, patron->_rank) + " " + patron->_charName;
+		weenie->m_Qualities.SetString(PATRONS_TITLE_STRING, title);
 	}
 	else
 	{
@@ -722,6 +762,82 @@ void AllegianceManager::RemoveAllegianceNode(AllegianceTreeNode *node)
 	}
 
 	delete node;
+}
+
+std::string AllegianceManager::GetRankTitle(Gender gender, HeritageGroup heritage, unsigned int rank)
+{
+	std::string title;
+
+	switch (heritage)
+	{
+	case Aluvian_HeritageGroup:
+		if (gender == Male_Gender)
+			title = AluvianMaleRanks[rank - 1];
+		else
+			title = AluvianFemaleRanks[rank - 1];
+		break;
+	case Gharundim_HeritageGroup:
+		if (gender == Male_Gender)
+			title = GharundimMaleRanks[rank - 1];
+		else
+			title = GharundimFemaleRanks[rank - 1];
+		break;
+	case Sho_HeritageGroup:
+		if (gender == Male_Gender)
+			title = ShoMaleRanks[rank - 1];
+		else
+			title = ShoFemaleRanks[rank - 1];
+		break;
+	case Viamontian_HeritageGroup:
+		if (gender == Male_Gender)
+			title = ViamontianMaleRanks[rank - 1];
+		else
+			title = ViamontianFemaleRanks[rank - 1];
+		break;
+	case Shadowbound_HeritageGroup:
+		if (gender == Male_Gender)
+			title = ShadowMaleRanks[rank - 1];
+		else
+			title = ShadowFemaleRanks[rank - 1];
+		break;
+	case Gearknight_HeritageGroup:
+		if (gender == Male_Gender)
+			title = GearKnightMaleRanks[rank - 1];
+		else
+			title = GearKnightFemaleRanks[rank - 1];
+		break;
+	case Tumerok_HeritageGroup:
+		if (gender == Male_Gender)
+			title = TumerokMaleRanks[rank - 1];
+		else
+			title = TumerokFemaleRanks[rank - 1];
+		break;
+	case Lugian_HeritageGroup:
+		if (gender == Male_Gender)
+			title = LugianMaleRanks[rank - 1];
+		else
+			title = LugianFemaleRanks[rank - 1];
+		break;
+	case Empyrean_HeritageGroup:
+		if (gender == Male_Gender)
+			title = EmpyreanMaleRanks[rank - 1];
+		else
+			title = EmpyreanFemaleRanks[rank - 1];
+		break;
+	case Penumbraen_HeritageGroup:
+		if (gender == Male_Gender)
+			title = ShadowMaleRanks[rank - 1];
+		else
+			title = ShadowFemaleRanks[rank - 1];
+		break;
+	case Undead_HeritageGroup:
+		if (gender == Male_Gender)
+			title = UndeadMaleRanks[rank - 1];
+		else
+			title = UndeadFemaleRanks[rank - 1];
+		break;
+	}
+	return title;
 }
 
 void AllegianceManager::BreakAllegiance(AllegianceTreeNode *patronNode, AllegianceTreeNode *vassalNode)
@@ -1311,13 +1427,14 @@ void AllegianceManager::SetAllegianceName(CPlayerWeenie * player, std::string na
 			ai->_info.m_AllegianceName = name;
 			player->SendText("Your allegiance name has been set.", LTT_DEFAULT);
 			ai->_info.m_NameLastSetTime = time(0);
+			Save();
+			NotifyTreeRefreshRecursively(GetTreeNode(playerNode->_monarchID));
 		}
 		else
 		{
 			int nextSetTime = (ai->_info.m_NameLastSetTime + 86400) - time(0); // how long before it can be changed again in seconds
 
 			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_NAME_TIMER, TimeToString(nextSetTime).c_str());
-			Save();
 		}
 	}
 }
@@ -1342,6 +1459,7 @@ void AllegianceManager::ClearAllegianceName(CPlayerWeenie * player)
 		ai->_info.m_AllegianceName.clear();
 		player->SendText("Your allegiance name has been cleared.", LTT_DEFAULT);
 		Save();
+		NotifyTreeRefreshRecursively(GetTreeNode(playerNode->_monarchID));
 	}
 }
 
@@ -1480,6 +1598,9 @@ void AllegianceManager::SetOfficer(CPlayerWeenie * player, std::string officer_n
 	}
 
 	DWORD officerID = g_pDBIO->GetPlayerCharacterId(officer_name.c_str());
+	if (!officerID)
+		return;
+
 	if (AllegianceTreeNode* officerNode = GetTreeNode(officerID))
 	{
 		if (IsMonarch(officerNode))
@@ -1986,7 +2107,21 @@ void AllegianceManager::ChatBoot(CPlayerWeenie * player, std::string target, std
 		return;
 	}
 
-	// TODO: needs join/leave channel functionality
+	CPlayerWeenie* targetPlayer = g_pWorld->FindPlayer(target.c_str());
+	if (!targetPlayer)
+		return;
+
+	AllegianceTreeNode* targetNode = GetTreeNode(targetPlayer->GetID());
+	if (!targetNode)
+		return;
+
+	if (targetNode->_monarchID != playerNode->_monarchID)
+		return;
+
+	if (targetPlayer->_playerModule.options_)
+		targetPlayer->_playerModule.options_ &= ~HearAllegianceChat_CharacterOption;
+
+	// TODO: set player option for hear allegiance chat to off
 }
 
 bool AllegianceManager::IsBanned(DWORD player_to_check_id, DWORD monarch_id)

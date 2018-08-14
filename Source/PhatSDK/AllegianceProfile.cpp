@@ -105,18 +105,6 @@ DEFINE_PACK(AllegianceHierarchy)
 	pWriter->Write<int>(m_isLocked);
 	pWriter->Write<int>(m_ApprovedVassal);
 
-	if (g_pAllegianceManager->isForDB) {
-		pWriter->WriteString(m_storedMOTD);
-		pWriter->WriteString(m_storedMOTDSetBy);
-
-		for (int i = 0; i < 3; i++)	{
-			pWriter->WriteString(m_officerTitleList[i]);
-		}
-
-		m_officerList.Pack(pWriter);
-		m_BanList.Pack(pWriter);
-		m_chatGagList.Pack(pWriter);
-	}
 	// normally would pack m_pMonarch nodes here, but we'll use a different means
 	bool bMonarch = true;
 	for (auto &entry : _nodes)
@@ -127,6 +115,20 @@ DEFINE_PACK(AllegianceHierarchy)
 			bMonarch = false;
 
 		entry->Pack(pWriter);
+	}
+
+	if (packForDB) {
+		pWriter->WriteString(m_storedMOTD);
+		pWriter->WriteString(m_storedMOTDSetBy);
+
+		for (int i = 0; i < 3; i++) {
+			pWriter->WriteString(m_officerTitleList[i]);
+		}
+
+		m_officerList.Pack(pWriter);
+		m_BanList.Pack(pWriter);
+		m_chatGagList.Pack(pWriter);
+		packForDB = false;
 	}
 }
 
@@ -156,22 +158,6 @@ DEFINE_UNPACK(AllegianceHierarchy)
 	m_isLocked = pReader->Read<int>();
 	m_ApprovedVassal = pReader->Read<int>();
 
-	m_storedMOTD = pReader->ReadString();
-	m_storedMOTDSetBy = pReader->ReadString();
-	for (int i = 0; i < 3; i++) {
-		m_officerTitleList[i] = pReader->ReadString();
-	}
-	m_officerList.UnPack(pReader);
-	m_BanList.UnPack(pReader);
-	m_chatGagList.UnPack(pReader);
-	/*
-	AllegianceData data;
-	for (DWORD i = 0; i < packedNodes; i++)
-	{
-		// this way of doing things is unsettling, let's not
-		UNFINISHED();
-	}
-	*/
 	// normally would pack m_pMonarch nodes here, but we'll use a different means
 	assert(!packedNodes);
 
@@ -182,16 +168,30 @@ DEFINE_UNPACK(AllegianceHierarchy)
 
 		DWORD patronID = 0;
 		if (!bMonarch)
-			patronID = pReader->Read<DWORD>(); // pWriter->Write<DWORD>(entry->_patron ? entry->_patron->_data._id : 0);
+			patronID = pReader->Read<DWORD>(); 
 		else
 			bMonarch = false;
 
 		node->UnPack(pReader);
 		_nodes.push_back(node);
 	}
-
-	// if (m_pMonarch)
-	//	m_pMonarch->SetMayPassupExperience(FALSE);
+	if (allAllegiancesUpdated) {
+		m_storedMOTD = pReader->ReadString();
+		m_storedMOTDSetBy = pReader->ReadString();
+		for (int i = 0; i < 3; i++) {
+			m_officerTitleList[i] = pReader->ReadString();
+			if (m_officerTitleList[i].empty())
+				switch (i)
+				{
+				case 0: m_officerTitleList[i] = "Speaker"; break;
+				case 1: m_officerTitleList[i] = "Seneschal"; break;
+				case 2:m_officerTitleList[i] = "Castellan"; break;
+				}
+		}
+		m_officerList.UnPack(pReader);
+		m_BanList.UnPack(pReader);
+		m_chatGagList.UnPack(pReader);
+	}
 
 	return true;
 }
