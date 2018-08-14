@@ -4,7 +4,10 @@
 void GamePieceWeenie::Move(Position const& to)
 {
     MovementParameters params;
-    params.desired_heading = to.frame.get_heading();
+    params.distance_to_object = 0.1;
+    params.use_spheres        = 0;
+    params.use_final_heading  = 1;
+    params.desired_heading    = to.frame.get_heading();
 
     MovementStruct mvs;
     mvs.type   = MoveToPosition;
