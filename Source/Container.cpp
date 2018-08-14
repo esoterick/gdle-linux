@@ -1455,7 +1455,7 @@ DWORD CContainerWeenie::ConsumeCoin(int amountToConsume, int currencyid)
 			else
 			{
 				item->SetStackSize(stackSize - amountToConsume);
-				amountToConsume -= stackSize;
+				//amountToConsume -= stackSize;
 				amountConsumed += amountToConsume;
 				break;
 			}
