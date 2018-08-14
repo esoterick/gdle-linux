@@ -798,7 +798,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			profile._spellBook->add((DWORD *)&spell.first);
 	}
 
-	if (pEntity->IsCreature())
+	if (pEntity->IsCreature() && !pEntity->m_Qualities.GetBool(NPC_LOOKS_LIKE_OBJECT_BOOL, false))
 	{
 		profile.creature_profile = new CreatureAppraisalProfile();
 
