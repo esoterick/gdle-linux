@@ -57,26 +57,15 @@ CPhatServer::CPhatServer(const char *configFilePath)
 
 	m_fStartupTime = g_pGlobals->UpdateTime();
 
-	m_hQuitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-	m_hServerThread = CreateThread(NULL, 0, InternalThreadProcStatic, this, 0, NULL);
+	m_serverThread = std::thread([&](){ InternalThreadProc(); });
 }
 
 CPhatServer::~CPhatServer()
 {
-	SetEvent(m_hQuitEvent);
+	m_running = false;
 
-	if (m_hServerThread)
-	{
-		WaitForSingleObject(m_hServerThread, 60000);
-		CloseHandle(m_hServerThread);
-		m_hServerThread = NULL;
-	}
-
-	if (m_hQuitEvent)
-	{
-		CloseHandle(m_hQuitEvent);
-		m_hQuitEvent = NULL;
-	}
+	if (m_serverThread.joinable())
+		m_serverThread.join();
 }
 
 DWORD WINAPI CPhatServer::InternalThreadProcStatic(LPVOID lpThis)
@@ -95,14 +84,21 @@ DWORD CPhatServer::InternalThreadProc()
 
 	if (Init())
 	{
+		m_running = true;
 
 		DWORD sleepTime = g_pConfig->FastTick() ? 0 : 1;
 
-		while (WaitForSingleObject(m_hQuitEvent, 0) != WAIT_OBJECT_0)
+		while (m_running)
 		{
 			Tick();
-			Sleep(sleepTime);
+			std::this_thread::yield();
 		}
+
+		//while (WaitForSingleObject(m_hQuitEvent, 0) != WAIT_OBJECT_0)
+		//{
+		//	Tick();
+		//	Sleep(sleepTime);
+		//}
 	}
 
 	Shutdown();
