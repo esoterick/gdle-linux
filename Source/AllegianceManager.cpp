@@ -631,11 +631,8 @@ void AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject 
 		}
 	}
 
-	if (source->InqIntQuality(LEVEL_INT, 0) > target->InqIntQuality(LEVEL_INT, 0))
-	{
-		source->NotifyWeenieError(WERROR_ALLEGIANCE_ILLEGAL_LEVEL);
-		return;
-	}
+	//if (source->InqIntQuality(LEVEL_INT, 0) > target->InqIntQuality(LEVEL_INT, 0))
+	//	return WERROR_ALLEGIANCE_ILLEGAL_LEVEL;
 
 	AllegianceTreeNode *selfTreeNode = GetTreeNode(source->GetID());
 	if (selfTreeNode && selfTreeNode->_patronID)
@@ -1037,7 +1034,7 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 
 	unsigned long long passupAmount = amount * passup;
 
-	if (passup > 0)
+	if (passup > 0 && node->_level <= patron->_level)
 	{
 		node->_cp_tithed += passupAmount;
 		patron->_cp_cached += passupAmount;
