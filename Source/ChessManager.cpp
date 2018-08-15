@@ -100,6 +100,17 @@ void ChessManager::ChallengeAi(CPlayerWeenie* player) const
         match->AddAi();
 }
 
+void ChessManager::PieceReady(uint32_t const gameGuid, uint32_t const pieceGuid)
+{
+    GameStore::iterator const itr = m_games.find(gameGuid);
+    assert(itr != m_games.end());
+
+    ChessMatch* match = itr->second.GetMatch();
+    assert(match);
+
+    match->PieceReady(pieceGuid);
+}
+
 ChessMatch* ChessManager::GetGame(uint32_t const guid) const
 {
     for (GameStore::value_type const& pair : m_games)

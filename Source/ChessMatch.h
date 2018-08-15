@@ -182,10 +182,10 @@ public:
     ChessMove(ChessMoveFlag const flags, ChessColour const colour, ChessPieceType const type,
         ChessPieceCoord from, ChessPieceCoord to, ChessPieceType const promotion, ChessPieceType const captured,
         uint32_t const move, uint32_t const halfMove, std::array<uint32_t, CHESS_COLOUR_COUNT> const castling,
-        std::optional<ChessPieceCoord> enPassantCoord, uint32_t const guid)
+        std::optional<ChessPieceCoord> enPassantCoord, uint32_t const guid, uint32_t const capturedGuid)
         : flags(flags), m_colour(colour), m_type(type), m_from(std::move(from)), m_to(std::move(to)),
             m_promotion(promotion),m_captured(captured), m_move(move), m_halfMove(halfMove), m_castling(castling),
-            m_enPassantCoord(std::move(enPassantCoord)), m_guid(guid) { }
+            m_enPassantCoord(std::move(enPassantCoord)), m_guid(guid), m_capturedGuid(capturedGuid) { }
 
     ChessMoveFlag GetFlags() const { return flags; }
     ChessColour GetColour() const { return m_colour; }
@@ -199,6 +199,7 @@ public:
     std::array<uint32_t, CHESS_COLOUR_COUNT> GetCastling() const { return m_castling; }
     std::optional<ChessPieceCoord> GetEnPassantCoord() const { return m_enPassantCoord; }
     uint32_t GetGuid() const { return m_guid; }
+    uint32_t GetCapturedGuid() const { return m_capturedGuid; }
 
 private:
     ChessMoveFlag flags;
@@ -213,6 +214,7 @@ private:
     std::array<uint32_t, CHESS_COLOUR_COUNT> m_castling { };
     std::optional<ChessPieceCoord> m_enPassantCoord;
     uint32_t m_guid;
+    uint32_t m_capturedGuid;
 };
 
 typedef std::vector<ChessMove> ChessMoveStore;
@@ -376,7 +378,7 @@ private:
 };
 
 typedef std::queue<ChessDelayedAction> DelayedActionQueue;
-typedef std::vector<uint32_t> WeenieMotionStore;
+typedef std::set<uint32_t> WeenieMotionStore;
 
 class ChessMatch
 {
@@ -412,6 +414,8 @@ public:
     void AsyncMoveAiSimple(ChessAiAsyncTurnKey, ChessAiMoveResult& result);
     void AsyncMoveAiComplex(ChessAiAsyncTurnKey, ChessAiMoveResult& result);
 
+    void PieceReady(uint32_t pieceGuid);
+
     static void SendJoinGameResponse(CPlayerWeenie* player, uint32_t guid, std::optional<ChessColour> colour);
 
 private:
@@ -423,7 +427,7 @@ private:
 
     void StartAiMove();
     void FinishAIMove();
-    void FinaliseWeenieMove(ChessMoveResult result, ChessPieceCoord const& to);
+    void FinaliseWeenieMove(ChessMoveResult result);
 
     void MoveDelayed(ChessDelayedAction const& action);
     void MovePassDelayed(ChessDelayedAction const& action);
@@ -433,8 +437,9 @@ private:
     void CalculateWeeniePosition(ChessPieceCoord const& coord, ChessColour colour, Position& position) const;
     void AddWeeniePiece(BasePiece* piece) const;
     void MoveWeeniePiece(BasePiece* piece);
+    void AttackWeeniePiece(BasePiece* piece, uint32_t victim);
     void RemoveWeeniePiece(BasePiece* piece) const;
-    void CheckWeenieMotion();
+    void AddPendingWeenieMotion(BasePiece* piece);
 
     void SendStartGame(CPlayerWeenie* player, ChessColour colour) const;
     void SendMoveResponse(CPlayerWeenie* player, ChessMoveResult result) const;
@@ -453,8 +458,8 @@ private:
     std::future<ChessAiMoveResult> m_aiFuture;
 
     ChessMoveResult m_moveResult;
+    bool m_waitingForWeenieMotion;
     WeenieMotionStore m_weenieMotion;
-    std::optional<std::chrono::time_point<std::chrono::steady_clock>> m_weenieMotionTime;
 };
 
 } // GDLE::Chess

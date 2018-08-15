@@ -4364,4 +4364,10 @@ enum ConfirmationTypes
 	YesNoConfirm
 };
 
+enum TargetingTaticType
+{
+    TargetingTaticNone      = 0,
+    TargetingTaticGamePiece = 6
+};
+
 #include "GameStatEnums.h"

@@ -2499,3 +2499,15 @@ int CMonsterWeenie::AdjustHealth(int amount)
 
 	return adjustedAmount;
 }
+
+bool CMonsterWeenie::CanTarget(CWeenieObject* target)
+{
+    TargetingTaticType const targetingTatic = static_cast<TargetingTaticType>(m_Qualities.GetInt(TARGETING_TACTIC_INT, TargetingTaticNone));
+    switch (targetingTatic)
+    {
+        case TargetingTaticGamePiece:
+            return target->IsGamePiece();
+        default:
+            return false;
+    }
+}

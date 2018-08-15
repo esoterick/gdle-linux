@@ -4,7 +4,6 @@
 #include "World.h"
 #include "WeenieFactory.h"
 #include "MathLib.h"
-#include "MovementManager.h"
 #include "RandomRange.h"
 #include "GamePiece.h"
 
@@ -593,6 +592,7 @@ void ChessLogic::BuildMove(ChessMoveStore& storage, uint32_t result, ChessColour
     ChessPieceType const type, ChessPieceCoord const& from, ChessPieceCoord const& to) const
 {
     BasePiece* fromPiece = GetPiece(from);
+    BasePiece* toPiece   = GetPiece(to);
 
     // AC's Chess implementation doesn't support underpromotion
     ChessPieceType promotion = Empty;
@@ -604,13 +604,14 @@ void ChessLogic::BuildMove(ChessMoveStore& storage, uint32_t result, ChessColour
         result |= ChessMoveFlagPromotion;
 
     ChessPieceType captured = Empty;
-    if (BasePiece* toPiece = GetPiece(to))
+    if (toPiece)
         captured = toPiece->GetType();
     else if (result & ChessMoveFlagEnPassantCapture)
         captured = Pawn;
 
     storage.emplace_back(static_cast<ChessMoveFlag>(result), colour, type, from, to, promotion,
-        captured, m_move, m_halfMove, m_castling, m_enPassantCoord, fromPiece->GetGuid());
+        captured, m_move, m_halfMove, m_castling, m_enPassantCoord, fromPiece->GetGuid(),
+        captured ? toPiece->GetGuid() : 0);
 }
 
 ChessMoveResult ChessLogic::FinaliseMove(ChessMove const& move)
@@ -785,7 +786,7 @@ CPlayerWeenie* ChessSide::GetPlayer() const
 }
 
 ChessMatch::ChessMatch(CWeenieObject* game)
-    : m_guid(game->GetID()), m_position(game->GetPosition()), m_state(), m_aiState(), m_moveResult() { }
+    : m_guid(game->GetID()), m_position(game->GetPosition()), m_state(), m_aiState(), m_moveResult(), m_waitingForWeenieMotion() { }
 
 ChessMatch::~ChessMatch()
 {
@@ -833,13 +834,9 @@ void ChessMatch::Update()
     if (m_aiState != ChessAiStateNone)
         return;
 
-    // don't handle any delayed actions while weenie pieces are moving
-    if (m_weenieMotionTime.has_value())
-    {
-        if (*m_weenieMotionTime <= std::chrono::steady_clock::now())
-            CheckWeenieMotion();
+    // don't handle any delayed actions while weenie pieces are moving or attacking
+    if (m_waitingForWeenieMotion)
         return;
-    }
 
     while (!m_actions.empty())
     {
@@ -977,6 +974,16 @@ void ChessMatch::AsyncMoveAiComplex(ChessAiAsyncTurnKey, ChessAiMoveResult& resu
     m_aiState = ChessAiStateWaitingForFinish;
 }
 
+void ChessMatch::PieceReady(uint32_t const pieceGuid)
+{
+    m_weenieMotion.erase(pieceGuid);
+    if (m_weenieMotion.empty())
+    {
+        m_waitingForWeenieMotion = false;
+        FinishTurn();
+    }
+}
+
 void ChessMatch::SendJoinGameResponse(CPlayerWeenie* player, uint32_t guid, std::optional<ChessColour> colour)
 {
     BinaryWriter joinGameResponse;
@@ -1095,20 +1102,24 @@ void ChessMatch::FinishAIMove()
 
     ChessAiMoveResult result = m_aiFuture.get();
     m_moveResult = result.GetResult();
-    FinaliseWeenieMove(result.GetResult(), result.GetToCoord());
+    FinaliseWeenieMove(result.GetResult());
 
     LOG_PRIVATE(Data, Normal, "Calculated Chess AI move in %u ms with %u minimax calculations.\n",
         result.GetProfilingTime(), result.GetProfilingCounter());
 }
 
-void ChessMatch::FinaliseWeenieMove(ChessMoveResult const result, ChessPieceCoord const& to)
+void ChessMatch::FinaliseWeenieMove(ChessMoveResult const result)
 {
-    if ((result & (OKMoveToEmptySquare | OKMoveToOccupiedSquare)) != 0)
-    {
-        // need to use destination coordinate as m_logic has already moved the piece
-        BasePiece* piece = m_logic.GetPiece(to);
+    ChessMove const& move = m_logic.GetLastMove();
+
+    // need to use destination coordinate as m_logic has already moved the piece
+    BasePiece* piece = m_logic.GetPiece(move.GetToCoord());
+
+    if ((result & OKMoveToEmptySquare) != 0)
         MoveWeeniePiece(piece);
-    }
+
+    if ((result & OKMoveToOccupiedSquare) != 0)
+        AttackWeeniePiece(piece, move.GetCapturedGuid());
 
     if ((result & OKMovePromotion) != 0)
     {
@@ -1132,7 +1143,7 @@ void ChessMatch::MoveDelayed(ChessDelayedAction const& action)
     }
 
     m_moveResult = result;
-    FinaliseWeenieMove(result, action.GetToCoord());
+    FinaliseWeenieMove(result);
 }
 
 void ChessMatch::MovePassDelayed(ChessDelayedAction const& action)
@@ -1208,6 +1219,8 @@ void ChessMatch::AddWeeniePiece(BasePiece* piece) const
     }
 
     assert(weeniePiece);
+
+    weeniePiece->AsGamePiece()->SetGuid(m_guid);
     piece->SetGuid(weeniePiece->GetID());
 }
 
@@ -1218,11 +1231,22 @@ void ChessMatch::MoveWeeniePiece(BasePiece* piece)
 
     Position weeniePosition = m_position;
     CalculateWeeniePosition(piece->GetCoord(), piece->GetColour(), weeniePosition);
-    gamePiece->AsGamePiece()->Move(weeniePosition);
+    gamePiece->AsGamePiece()->MoveEnqueue(weeniePosition);
 
-    m_weenieMotion.push_back(piece->GetGuid());
-    if (!m_weenieMotionTime.has_value())
-        m_weenieMotionTime.emplace(std::chrono::steady_clock::now() + std::chrono::seconds(1));
+    AddPendingWeenieMotion(piece);
+}
+
+void ChessMatch::AttackWeeniePiece(BasePiece* piece, uint32_t const victim)
+{
+    CWeenieObject* gamePiece = g_pWorld->FindObject(piece->GetGuid());
+    assert(gamePiece);
+
+    Position weeniePosition = m_position;
+    CalculateWeeniePosition(piece->GetCoord(), piece->GetColour(), weeniePosition);
+
+    gamePiece->AsGamePiece()->AttackEnqueue(weeniePosition, victim);
+
+    AddPendingWeenieMotion(piece);
 }
 
 void ChessMatch::RemoveWeeniePiece(BasePiece* piece) const
@@ -1238,26 +1262,10 @@ void ChessMatch::RemoveWeeniePiece(BasePiece* piece) const
     gamePiece->Remove();
 }
 
-void ChessMatch::CheckWeenieMotion()
+void ChessMatch::AddPendingWeenieMotion(BasePiece* piece)
 {
-    for (WeenieMotionStore::iterator itr = m_weenieMotion.begin(); itr != m_weenieMotion.end(); )
-    {
-        CWeenieObject* gamePiece = g_pWorld->FindObject(*itr);
-        assert(gamePiece);
-
-        if (gamePiece->IsMovingTo())
-            ++itr;
-        else
-            itr = m_weenieMotion.erase(itr);
-    }
-
-    if (!m_weenieMotion.empty())
-        m_weenieMotionTime.emplace(std::chrono::steady_clock::now() + std::chrono::seconds(1));
-    else
-    {
-        m_weenieMotionTime.reset();
-        FinishTurn();
-    }
+    m_weenieMotion.insert(piece->GetGuid());
+    m_waitingForWeenieMotion = true;
 }
 
 void ChessMatch::SendStartGame(CPlayerWeenie* player, ChessColour colour) const

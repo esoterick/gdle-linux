@@ -4251,7 +4251,10 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 	if (damageData.damageAfterMitigation > 0 || damageData.damage_type == HEALTH_DAMAGE_TYPE || damageData.damage_type == STAMINA_DAMAGE_TYPE || damageData.damage_type == MANA_DAMAGE_TYPE)
 	{
 		if (!AsPlayer() || damageData.ignoreMagicResist)
-			damageData.damageAfterMitigation *= resistanceRegular;
+		{
+            if (resistanceRegular != 0.f)
+                damageData.damageAfterMitigation *= resistanceRegular;
+		}
 		else //only players have natural resistances.
 		{
 			//Some combination of strength and endurance allows one to have a level of "natural resistances" to the 7 damage types.This caps out at a 50 % resistance(the equivalent to level 5 life prots) to these damage types.This resistance is not additive to life protections : higher level life protections will overwrite these natural resistances, although life vulns will take these natural resistances into account, if the player does not have a higher level life protection cast upon them.

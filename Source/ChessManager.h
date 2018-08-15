@@ -66,6 +66,8 @@ public:
 
     void ChallengeAi(CPlayerWeenie* player) const;
 
+    void PieceReady(uint32_t gameGuid, uint32_t pieceGuid);
+
 private:
     ChessManager() = default;
 
