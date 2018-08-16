@@ -6279,6 +6279,7 @@ void CWeenieObject::Movement_Teleport(const Position &position, bool bWasDeath)
 
 	SetPositionStruct sps;
 	sps.pos = position;
+	sps.pos.frame.m_origin.z += 0.005f;
 	sps.SetFlags(SEND_POSITION_EVENT_SPF | SLIDE_SPF | PLACEMENT_SPF | TELEPORT_SPF);
 	SetPosition(sps);
 
