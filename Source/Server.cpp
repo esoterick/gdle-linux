@@ -75,10 +75,6 @@ DWORD WINAPI CPhatServer::InternalThreadProcStatic(LPVOID lpThis)
 
 DWORD CPhatServer::InternalThreadProc()
 {
-	WSADATA	wsaData;
-	USHORT wVersionRequested = 0x0202;
-	WSAStartup(wVersionRequested, &wsaData);
-
 	srand((unsigned int)time(NULL));
 	Random::Init();
 
@@ -93,17 +89,9 @@ DWORD CPhatServer::InternalThreadProc()
 			Tick();
 			std::this_thread::yield();
 		}
-
-		//while (WaitForSingleObject(m_hQuitEvent, 0) != WAIT_OBJECT_0)
-		//{
-		//	Tick();
-		//	Sleep(sleepTime);
-		//}
 	}
 
 	Shutdown();
-
-	WSACleanup();
 
 	return 0;
 }
@@ -116,12 +104,6 @@ bool CPhatServer::Init()
 	m_hostport = m_Config.BindPort();
 
 	g_pGlobals->ResetPackets();
-
-	m_socketCount = 10;
-	for (int i = 0; i < m_socketCount; i++)
-		m_sockets[i] = INVALID_SOCKET;
-
-	InitializeSocket(m_hostport, m_hostaddr);
 
 	g_pPortal = new TURBINEPORTAL();
 	g_pCell = new TURBINECELL();
@@ -186,7 +168,15 @@ bool CPhatServer::Init()
 	g_pGameEventManager->Initialize();
 
 	g_pWorld = new CWorld();
-	g_pNetwork = new CNetwork(this, m_sockets, m_socketCount);
+
+	//m_socketCount = 10;
+	//for (int i = 0; i < m_socketCount; i++)
+	//	m_sockets[i] = INVALID_SOCKET;
+
+	//InitializeSocket(m_hostport, m_hostaddr);
+	//g_pNetwork = new CNetwork(this, m_sockets, m_socketCount);
+	g_pNetwork = new CNetwork(this, m_hostaddr, m_hostport);
+
 	g_pGameDatabase->Init();
 
 	//#ifndef QUICKSTART
@@ -367,63 +357,63 @@ CPhatACServerConfig &CPhatServer::Config()
 
 void CPhatServer::InitializeSocket(unsigned short port, in_addr address)
 {
-	SOCKADDR_IN localhost;
-	localhost.sin_family = AF_INET;
-	localhost.sin_addr = address;
+	//SOCKADDR_IN localhost;
+	//localhost.sin_family = AF_INET;
+	//localhost.sin_addr = address;
 
-	for (int i = 0; i < m_socketCount; i++)
-		m_sockets[i] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	//for (int i = 0; i < m_socketCount; i++)
+	//	m_sockets[i] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-	u_short startport = port;
-	u_short failport = startport + 30;
-	while (port < failport)
-	{
-		localhost.sin_port = htons(port);
-		if (!bind(m_sockets[0], (struct sockaddr *)&localhost, sizeof(SOCKADDR_IN)))
-		{
-			WINLOG(Temp, Normal, "Bound to port %u!\n", port);
-			SERVER_INFO << "Bound to port" << port << "!";
-			break;
-		}
-		WINLOG(Temp, Normal, "Failed bind on port %u!\n", port);
-		SERVER_ERROR << "Failed bind on port:" << port;
-		port++;
-	}
+	//u_short startport = port;
+	//u_short failport = startport + 30;
+	//while (port < failport)
+	//{
+	//	localhost.sin_port = htons(port);
+	//	if (!bind(m_sockets[0], (struct sockaddr *)&localhost, sizeof(SOCKADDR_IN)))
+	//	{
+	//		WINLOG(Temp, Normal, "Bound to port %u!\n", port);
+	//		SERVER_INFO << "Bound to port" << port << "!";
+	//		break;
+	//	}
+	//	WINLOG(Temp, Normal, "Failed bind on port %u!\n", port);
+	//	SERVER_ERROR << "Failed bind on port:" << port;
+	//	port++;
+	//}
 
-	if (port == failport)
-	{
-		WINLOG(Temp, Normal, "Failure to bind socket!\n");
-		SERVER_ERROR << "Failed bind on socket";
-	}
-	else
-	{
-		// SendMessage(GetDlgItem(g_pGlobals->GetWindowHandle(), IDC_SERVERPORT), WM_SETTEXT, 0, (LPARAM)csprintf("%u", port));
+	//if (port == failport)
+	//{
+	//	WINLOG(Temp, Normal, "Failure to bind socket!\n");
+	//	SERVER_ERROR << "Failed bind on socket";
+	//}
+	//else
+	//{
+	//	// SendMessage(GetDlgItem(g_pGlobals->GetWindowHandle(), IDC_SERVERPORT), WM_SETTEXT, 0, (LPARAM)csprintf("%u", port));
 
-		int basePort = port;
+	//	int basePort = port;
 
-		// Try to bind the other ports
-		for (int i = 1; i < m_socketCount; i++)
-		{
-			localhost.sin_port = htons(basePort + i);
-			if (bind(m_sockets[i], (struct sockaddr *)&localhost, sizeof(SOCKADDR_IN)))
-			{
-				WINLOG(Temp, Normal, "Failure to bind socket port %d!\n", basePort + i);
-				SERVER_ERROR << "Failed bind on socket port:" << (basePort + i);
-			}
-		}
-	}
+	//	// Try to bind the other ports
+	//	for (int i = 1; i < m_socketCount; i++)
+	//	{
+	//		localhost.sin_port = htons(basePort + i);
+	//		if (bind(m_sockets[i], (struct sockaddr *)&localhost, sizeof(SOCKADDR_IN)))
+	//		{
+	//			WINLOG(Temp, Normal, "Failure to bind socket port %d!\n", basePort + i);
+	//			SERVER_ERROR << "Failed bind on socket port:" << (basePort + i);
+	//		}
+	//	}
+	//}
 
-	//Non-blocking sockets are more fun
-	for (int i = 0; i < m_socketCount; i++)
-	{
-		unsigned long arg = 1;
-		ioctlsocket(m_sockets[i], FIONBIO, &arg);
+	////Non-blocking sockets are more fun
+	//for (int i = 0; i < m_socketCount; i++)
+	//{
+	//	unsigned long arg = 1;
+	//	ioctlsocket(m_sockets[i], FIONBIO, &arg);
 
-		int sndbuf = 131072;
-		int rcvbuf = 131072;
-		setsockopt(m_sockets[i], SOL_SOCKET, SO_SNDBUF, (char *)&sndbuf, sizeof(sndbuf));
-		setsockopt(m_sockets[i], SOL_SOCKET, SO_RCVBUF, (char *)&rcvbuf, sizeof(rcvbuf));
-	}
+	//	int sndbuf = 131072;
+	//	int rcvbuf = 131072;
+	//	setsockopt(m_sockets[i], SOL_SOCKET, SO_SNDBUF, (char *)&sndbuf, sizeof(sndbuf));
+	//	setsockopt(m_sockets[i], SOL_SOCKET, SO_RCVBUF, (char *)&rcvbuf, sizeof(rcvbuf));
+	//}
 }
 
 void CPhatServer::SystemBroadcast(char *text)

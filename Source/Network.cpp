@@ -17,11 +17,11 @@
 
 // NOTE: A client can easily perform denial of service attacks by issuing a large number of connection requests if there ever comes a time this matters to fix
 
-CNetwork::CNetwork(CPhatServer *server, SOCKET *sockets, int socketCount)
+CNetwork::CNetwork(class CPhatServer *server, in_addr address, WORD port)
 {
 	m_server = server;
-	m_sockets = sockets;
-	m_socketCount = socketCount;
+	m_port = port;
+	m_addr = address;
 	m_ServerID = 11; // arbitrary
 
 	m_ClientArray = new CClient *[m_MaxClients];
@@ -37,63 +37,30 @@ CNetwork::CNetwork(CPhatServer *server, SOCKET *sockets, int socketCount)
 
 	LoadBans();
 
-	InitializeCriticalSection(&_incomingLock);
-	InitializeCriticalSection(&_outgoingLock);
+	Init();
 
-	m_hNetEvent = new HANDLE[socketCount];
-	for (int i = 0; i < m_socketCount; i++)
-	{
-		m_hNetEvent[i] = CreateEvent(NULL, FALSE, FALSE, NULL);
-		::WSAEventSelect(m_sockets[i], m_hNetEvent[i], FD_READ|FD_WRITE);
-	}
+	m_running = true;
+	m_incomingThread = std::thread([&]() { IncomingThreadProc(); });
+	m_outgoingThread = std::thread([&]() { OutgoingThreadProc(); });
 
-	m_hMakeTick = CreateEvent(NULL, FALSE, FALSE, NULL);
-	m_hQuitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-	m_hPumpThread = CreateThread(NULL, 0, InternalThreadProcStatic, this, 0, NULL);
 }
 
 CNetwork::~CNetwork()
 {
+	m_running = false;
+
+	if (m_outgoingThread.joinable())
+		m_outgoingThread.join();
+
+	if (m_incomingThread.joinable())
+		m_incomingThread.join();
+
+	Shutdown();
+
 	for (int i = 0; i < m_NumClients; i++)
 	{
 		SafeDelete(m_ClientArray[i]);
 	}
-
-	SetEvent(m_hQuitEvent);
-
-	if (m_hPumpThread)
-	{
-		WaitForSingleObject(m_hPumpThread, 60000);
-		CloseHandle(m_hPumpThread);
-		m_hPumpThread = NULL;
-	}
-
-	if (m_hMakeTick)
-	{
-		CloseHandle(m_hMakeTick);
-		m_hMakeTick = NULL;
-	}
-
-	for (int i = 0; i < m_socketCount; i++)
-	{
-		if (m_hNetEvent[i])
-		{
-			::WSAEventSelect(m_sockets[i], m_hNetEvent[i], 0);
-			CloseHandle(m_hNetEvent[i]);
-			m_hNetEvent[i] = NULL;
-		}
-	}
-	SafeDeleteArray(m_hNetEvent);
-
-	if (m_hQuitEvent)
-	{
-		CloseHandle(m_hQuitEvent);
-		m_hQuitEvent = NULL;
-	}
-
-	DeleteCriticalSection(&_incomingLock);
-	DeleteCriticalSection(&_outgoingLock);
 
 	for (auto &qp : _queuedIncoming)
 	{
@@ -113,68 +80,85 @@ CNetwork::~CNetwork()
 
 void CNetwork::Init()
 {
-}
+	srand((unsigned int)time(NULL));
 
-void CNetwork::Shutdown()
-{
-}
-
-DWORD WINAPI CNetwork::InternalThreadProcStatic(LPVOID lpThis)
-{
-	return ((CNetwork *)lpThis)->InternalThreadProc();
-}
-
-DWORD CNetwork::InternalThreadProc()
-{
 	WSADATA	wsaData;
 	USHORT wVersionRequested = 0x0202;
 	WSAStartup(wVersionRequested, &wsaData);
 
-	srand((unsigned int)time(NULL));
+	SOCKADDR_IN localhost;
+	localhost.sin_family = AF_INET;
+	localhost.sin_addr = m_addr;
 
-	DWORD numEvents = (DWORD)(m_socketCount + 2);
-	HANDLE *hEvents = new HANDLE[numEvents];
+	m_read_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	m_write_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-	hEvents[0] = m_hMakeTick;
-	hEvents[1] = m_hQuitEvent;
-	memcpy(&hEvents[2], m_hNetEvent, sizeof(HANDLE) * m_socketCount);
-
-	bool bRun = true;
-
-	while (bRun)
+	localhost.sin_port = htons(m_port);
+	if (bind(m_read_sock, reinterpret_cast<const sockaddr*>(&localhost), sizeof(SOCKADDR_IN)))
 	{
-		EnterCriticalSection(&_outgoingLock);
-		bool bIsSendQueueEmpty = _queuedOutgoing.empty();
-		LeaveCriticalSection(&_outgoingLock);
-		
-		switch (::WaitForMultipleObjects(numEvents, hEvents, FALSE, bIsSendQueueEmpty ? 500 : 0))
-		{
-		case (WAIT_OBJECT_0 + 0): // Make Think Event
-			break;
-
-		case (WAIT_OBJECT_0 + 1): // Quit Event
-			bRun = false;
-			break;
-
-		default:
-		case (WAIT_OBJECT_0 + 2): // Net Event or Timeout
-			break;
-		}
-
-		for (int i = 0; i < m_socketCount; i++)
-		{
-			QueueIncomingOnSocket(m_sockets[i]);
-		}
-		SendQueuedOutgoing();
+		WINLOG(Temp, Normal, "Failed bind on recv port %u!\n", m_port);
+		SERVER_ERROR << "Failed bind on recv port:" << m_port;
 	}
+
+	WORD sport = m_port + 1;
+	localhost.sin_port = htons(sport);
+	if (bind(m_write_sock, reinterpret_cast<const sockaddr*>(&localhost), sizeof(SOCKADDR_IN)))
+	{
+		WINLOG(Temp, Normal, "Failed bind on send port %u!\n", sport);
+		SERVER_ERROR << "Failed bind on send port:" << sport;
+	}
+
+	// configure for non-blocking
+	int buffsize = 131072;
+
+	unsigned long arg = 1;
+	ioctlsocket(m_read_sock, FIONBIO, &arg);
+	setsockopt(m_read_sock, SOL_SOCKET, SO_SNDBUF, (char *)&buffsize, sizeof(buffsize));
+	setsockopt(m_read_sock, SOL_SOCKET, SO_RCVBUF, (char *)&buffsize, sizeof(buffsize));
+
+	ioctlsocket(m_write_sock, FIONBIO, &arg);
+	setsockopt(m_write_sock, SOL_SOCKET, SO_SNDBUF, (char *)&buffsize, sizeof(buffsize));
+	setsockopt(m_write_sock, SOL_SOCKET, SO_RCVBUF, (char *)&buffsize, sizeof(buffsize));
+}
+
+void CNetwork::Shutdown()
+{
+	closesocket(m_read_sock);
+	closesocket(m_write_sock);
 	
-	delete [] hEvents;
-
-	Shutdown();
-
 	WSACleanup();
+}
 
-	return 0;
+void CNetwork::IncomingThreadProc()
+{
+	while (m_running)
+	{
+		QueueIncomingOnSocket(m_read_sock);
+		QueueIncomingOnSocket(m_write_sock);
+		std::this_thread::yield();
+	}
+}
+
+void CNetwork::OutgoingThreadProc()
+{
+	while (m_running)
+	{
+		if (!_queuedOutgoing.empty())
+		{
+			std::scoped_lock lock(m_outgoingLock);
+
+			auto entry = _queuedOutgoing.begin();
+			if (entry != _queuedOutgoing.end())
+			{
+				CQueuedPacket queued = *entry;
+				OutputDebugString("Outgoing Thread Sending\n");
+				if (SendPacket(queued.useReadStream ? m_read_sock : m_write_sock, &queued.addr, queued.data, queued.len))
+					_queuedOutgoing.erase(entry);
+			}
+		}
+
+		std::this_thread::yield();
+	}
 }
 
 WORD CNetwork::GetServerID(void)
@@ -182,7 +166,7 @@ WORD CNetwork::GetServerID(void)
 	return m_ServerID;
 }
 
-void CNetwork::SendConnectlessBlob(SOCKADDR_IN *peer, BlobPacket_s *blob, DWORD dwFlags, DWORD dwSequence = 0, WORD wTime = 0)
+void CNetwork::SendConnectlessBlob(SOCKADDR_IN *peer, BlobPacket_s *blob, DWORD dwFlags, DWORD dwSequence = 0, WORD wTime = 0, bool useReadStream)
 {
 	BlobHeader_s *header = &blob->header;
 
@@ -195,12 +179,12 @@ void CNetwork::SendConnectlessBlob(SOCKADDR_IN *peer, BlobPacket_s *blob, DWORD 
 
 	GenericCRC(blob);
 
-	QueuePacket(peer, blob, BLOBLEN(blob));
+	QueuePacket(peer, blob, BLOBLEN(blob), useReadStream);
 }
 
-bool CNetwork::SendPacket(SOCKADDR_IN *peer, void *data, DWORD len)
+bool CNetwork::SendPacket(SOCKET socket, SOCKADDR_IN *peer, void *data, DWORD len)
 {
-	SOCKET socket = m_sockets[0];
+	//SOCKET socket = m_sockets[0];
 
 	if (socket == INVALID_SOCKET)
 	{
@@ -233,55 +217,19 @@ bool CNetwork::SendPacket(SOCKADDR_IN *peer, void *data, DWORD len)
 	return success;
 }
 
-void CNetwork::QueuePacket(SOCKADDR_IN *peer, void *data, DWORD len)
+void CNetwork::QueuePacket(SOCKADDR_IN *peer, void *data, DWORD len, bool useReadStream)
 {
 	CQueuedPacket qp;
 	qp.addr = *peer;
 	qp.data = new BYTE[len];
 	memcpy(qp.data, data, len);
 	qp.len = len;
+	qp.useReadStream = useReadStream;
 
-	EnterCriticalSection(&_outgoingLock);
-	_queuedOutgoing.push_back(qp);
-	LeaveCriticalSection(&_outgoingLock);
-
-	SetEvent(m_hMakeTick);
-}
-
-void CNetwork::SendQueuedOutgoing()
-{
-	EnterCriticalSection(&_outgoingLock);
-
-	auto entry = _queuedOutgoing.begin();
-
-	while (entry != _queuedOutgoing.end())
 	{
-		// copy it locally
-		CQueuedPacket queued = *entry;
-		// remove
-		_queuedOutgoing.erase(entry);
-
-		// unlock while we send it
-		LeaveCriticalSection(&_outgoingLock);
-
-		if (!SendPacket(&queued.addr, queued.data, queued.len))
-		{
-			// failed to send
-			EnterCriticalSection(&_outgoingLock);
-
-			// queue it back
-			_queuedOutgoing.push_front(queued);
-			break;
-		}
-
-		// delete now that the packet is sent
-		delete[] queued.data;
-
-		EnterCriticalSection(&_outgoingLock);
-		entry = _queuedOutgoing.begin();
+		std::scoped_lock lock(m_incomingLock);
+		_queuedOutgoing.push_back(qp);
 	}
-
-	LeaveCriticalSection(&_outgoingLock);
 }
 
 void CNetwork::QueueIncomingOnSocket(SOCKET socket)
@@ -338,9 +286,10 @@ void CNetwork::QueueIncomingOnSocket(SOCKET socket)
 		qp.len = bloblen;
 		qp.recvTime = g_pGlobals->UpdateTime();
 
-		EnterCriticalSection(&_incomingLock);
-		_queuedIncoming.push_back(qp);
-		LeaveCriticalSection(&_incomingLock);
+		{
+			std::scoped_lock lock(m_incomingLock);
+			_queuedIncoming.push_back(qp);
+		}
 
 		// blob->header.dwCRC -= CalcTransportCRC((DWORD *)blob);
 		
@@ -389,14 +338,14 @@ void CNetwork::ProcessQueuedIncoming()
 	{
 		bHasQueued = false;
 
-		EnterCriticalSection(&_incomingLock);
 		if (!_queuedIncoming.empty())
 		{
+			std::scoped_lock lock(m_incomingLock);
+
 			qp = _queuedIncoming.front();
 			_queuedIncoming.pop_front();
 			bHasQueued = true;
 		}
-		LeaveCriticalSection(&_incomingLock);
 
 		if (bHasQueued)
 		{
@@ -559,7 +508,7 @@ void CNetwork::SendConnectLoginFailure(sockaddr_in *addr, int error, const char 
 	CREATEBLOB(BadLogin, sizeof(DWORD));
 	*((DWORD *)BadLogin->data) = 0x00000000;
 
-	SendConnectlessBlob(addr, BadLogin, BT_ERROR, NULL);
+	SendConnectlessBlob(addr, BadLogin, BT_ERROR, NULL, true);
 
 	DELETEBLOB(BadLogin);
 
@@ -663,7 +612,7 @@ void CNetwork::ConnectionRequest(sockaddr_in *addr, BlobPacket_s *p)
 		CREATEBLOB(ServerFull, sizeof(DWORD));
 		*((DWORD *)ServerFull->data) = 0x00000005;
 
-		SendConnectlessBlob(addr, ServerFull, BT_ERROR, NULL);
+		SendConnectlessBlob(addr, ServerFull, BT_ERROR, NULL, true);
 
 		DELETEBLOB(ServerFull);
 		return;
@@ -703,7 +652,7 @@ void CNetwork::ConnectionRequest(sockaddr_in *addr, BlobPacket_s *p)
 		CREATEBLOB(Woot, (WORD)dwLength);
 		memcpy(Woot->data, AcceptConnect.GetData(), dwLength);
 
-		SendConnectlessBlob(addr, Woot, BT_LOGINREPLY, 0x00000000);
+		SendConnectlessBlob(addr, Woot, BT_LOGINREPLY, 0x00000000, true);
 
 		DELETEBLOB(Woot);
 	}
