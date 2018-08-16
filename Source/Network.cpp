@@ -151,7 +151,6 @@ void CNetwork::OutgoingThreadProc()
 			if (entry != _queuedOutgoing.end())
 			{
 				CQueuedPacket queued = *entry;
-				OutputDebugString("Outgoing Thread Sending\n");
 				if (SendPacket(queued.useReadStream ? m_read_sock : m_write_sock, &queued.addr, queued.data, queued.len))
 					_queuedOutgoing.erase(entry);
 			}
