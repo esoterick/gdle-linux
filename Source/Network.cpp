@@ -62,16 +62,7 @@ CNetwork::~CNetwork()
 		SafeDelete(m_ClientArray[i]);
 	}
 
-	for (auto &qp : _queuedIncoming)
-	{
-		delete [] qp.data;
-	}
 	_queuedIncoming.clear();
-
-	for (auto &qp : _queuedOutgoing)
-	{
-		delete [] qp.data;
-	}
 	_queuedOutgoing.clear();
 
 	SafeDeleteArray(m_ClientSlots);
@@ -150,9 +141,11 @@ void CNetwork::OutgoingThreadProc()
 			auto entry = _queuedOutgoing.begin();
 			if (entry != _queuedOutgoing.end())
 			{
-				CQueuedPacket queued = *entry;
-				if (SendPacket(queued.useReadStream ? m_read_sock : m_write_sock, &queued.addr, queued.data, queued.len))
+				CQueuedPacket& queued = *entry;
+				if (SendPacket(queued.useReadStream ? m_read_sock : m_write_sock, &queued.addr, queued.data.get(), queued.len))
+				{
 					_queuedOutgoing.erase(entry);
+				}
 			}
 		}
 
@@ -220,14 +213,14 @@ void CNetwork::QueuePacket(SOCKADDR_IN *peer, void *data, DWORD len, bool useRea
 {
 	CQueuedPacket qp;
 	qp.addr = *peer;
-	qp.data = new BYTE[len];
-	memcpy(qp.data, data, len);
+	qp.data = std::make_unique<BYTE[]>(len);
+	memcpy(qp.data.get(), data, len);
 	qp.len = len;
 	qp.useReadStream = useReadStream;
 
 	{
-		std::scoped_lock lock(m_incomingLock);
-		_queuedOutgoing.push_back(qp);
+		std::scoped_lock lock(m_outgoingLock);
+		_queuedOutgoing.push_back(std::move(qp));
 	}
 }
 
@@ -280,14 +273,14 @@ void CNetwork::QueueIncomingOnSocket(SOCKET socket)
 
 		CQueuedPacket qp;
 		memcpy(&qp.addr, &clientaddr, sizeof(sockaddr_in));
-		qp.data = new BYTE[bloblen];
-		memcpy(qp.data, buffer, bloblen);
+		qp.data = std::make_unique<BYTE[]>(bloblen);
+		memcpy(qp.data.get(), buffer, bloblen);
 		qp.len = bloblen;
 		qp.recvTime = g_pGlobals->UpdateTime();
 
 		{
 			std::scoped_lock lock(m_incomingLock);
-			_queuedIncoming.push_back(qp);
+			_queuedIncoming.push_back(std::move(qp));
 		}
 
 		// blob->header.dwCRC -= CalcTransportCRC((DWORD *)blob);
@@ -330,40 +323,27 @@ void CNetwork::QueueIncomingOnSocket(SOCKET socket)
 
 void CNetwork::ProcessQueuedIncoming()
 {
-	CQueuedPacket qp;
-	bool bHasQueued;
-
-	do 
+	while (!_queuedIncoming.empty())
 	{
-		bHasQueued = false;
-
-		if (!_queuedIncoming.empty())
+		CQueuedPacket qp;
 		{
 			std::scoped_lock lock(m_incomingLock);
-
-			qp = _queuedIncoming.front();
+			qp = std::move(_queuedIncoming.front());
 			_queuedIncoming.pop_front();
-			bHasQueued = true;
 		}
+			
+		BlobPacket_s *blob = (BlobPacket_s *)qp.data.get();
+		blob->header.dwCRC -= CalcTransportCRC((DWORD *)blob);
 
-		if (bHasQueued)
+		if (!blob->header.wRecID)
 		{
-			BlobPacket_s *blob = (BlobPacket_s *) qp.data;
-			blob->header.dwCRC -= CalcTransportCRC((DWORD *)blob);
-		
-			if (!blob->header.wRecID)
-			{
-				ProcessConnectionless(&qp.addr, blob);
-			}
-			else if (CClient *client = ValidateClient(blob->header.wRecID, &qp.addr))
-			{
-				client->IncomingBlob(blob, qp.recvTime);
-			}
-
-			delete [] qp.data;
+			ProcessConnectionless(&qp.addr, blob);
 		}
-
-	} while (bHasQueued);
+		else if (CClient *client = ValidateClient(blob->header.wRecID, &qp.addr))
+		{
+			client->IncomingBlob(blob, qp.recvTime);
+		}
+	}
 }
 
 void CNetwork::LogoutAll()

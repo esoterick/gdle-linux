@@ -28,8 +28,14 @@ public:
 class CQueuedPacket
 {
 public:
+	CQueuedPacket() = default;
+	CQueuedPacket(CQueuedPacket&&) = default;
+	//CQueuedPacket(CQueuedPacket&) = default;
+	CQueuedPacket& operator=(CQueuedPacket&&) = default;
+
 	SOCKADDR_IN addr;
-	BYTE *data = NULL;
+	//BYTE *data = NULL;
+	std::unique_ptr<BYTE[]> data;
 	DWORD len = 0;
 	double recvTime;
 	bool useReadStream = false;
