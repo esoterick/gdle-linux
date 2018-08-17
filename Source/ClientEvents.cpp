@@ -3030,7 +3030,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-			HouseRent(slumlord, items);
+			//HouseRent(slumlord, items);
 			break;
 		}
 		case HOUSE_ADD_GUEST: //House_AddPermanentGuest 
