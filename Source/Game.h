@@ -9,7 +9,7 @@ public:
     GameWeenie* AsGame() override { return this; }
 
     void PostSpawn() override;
-    void Remove() override;
+    void NotifyRemoveFromWorld() override;
 };
 
 #endif // GAME_H

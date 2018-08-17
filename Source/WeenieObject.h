@@ -731,6 +731,8 @@ public:
 
     virtual bool CanTarget(CWeenieObject* target) { return false; }
 
+    virtual void NotifyRemoveFromWorld() { }
+
 protected:
 	CWorldLandBlock *m_pBlock = NULL;
 

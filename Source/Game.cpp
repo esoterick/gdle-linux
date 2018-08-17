@@ -7,7 +7,7 @@ void GameWeenie::PostSpawn()
     sChessManager->RegisterGameBoard(this);
 }
 
-void GameWeenie::Remove()
+void GameWeenie::NotifyRemoveFromWorld()
 {
     sChessManager->UnregisterGameBoard(this);
 }
