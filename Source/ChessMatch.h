@@ -431,7 +431,7 @@ private:
 
     void MoveDelayed(ChessDelayedAction const& action);
     void MovePassDelayed(ChessDelayedAction const& action);
-    void QuitDelayed(ChessDelayedAction const& action);
+    void QuitDelayed(ChessColour colour);
     void StalemateDelayed(ChessDelayedAction const& action);
 
     void CalculateWeeniePosition(ChessPieceCoord const& coord, ChessColour colour, Position& position) const;
@@ -460,6 +460,8 @@ private:
     ChessMoveResult m_moveResult;
     bool m_waitingForWeenieMotion;
     WeenieMotionStore m_weenieMotion;
+
+    std::optional<std::chrono::time_point<std::chrono::steady_clock>> m_nextRangeCheck;
 };
 
 } // GDLE::Chess

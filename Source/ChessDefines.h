@@ -16,7 +16,7 @@ enum ChessColour
 #define CHESS_COLOUR_INVALID -1
 
 #define CHESS_WINNER_STALEMATE -1
-#define CHESS_WINNER_END_GAME  -2
+#define CHESS_WINNER_END_GAME  -2 // finishes match with no winners
 
 enum ChessPieceType
 {

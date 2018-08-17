@@ -858,10 +858,38 @@ void ChessMatch::Update()
                 StalemateDelayed(action);
                 break;
             case DelayedActionTypeQuit:
-                QuitDelayed(action);
+                QuitDelayed(action.GetColour());
                 break;
             default:
                 break;
+        }
+    }
+
+    if (m_nextRangeCheck)
+    {
+        using namespace std::chrono;
+
+        time_point<steady_clock> const now = steady_clock::now();
+        if (m_nextRangeCheck <= now)
+        {
+            for (ChessSide* side : m_side)
+            {
+                if (!side)
+                    continue;
+
+                if (side->IsAi())
+                    continue;
+
+                CPlayerWeenie* player = side->GetPlayer();
+                assert(player);
+
+                // arbitrary distance, should there be some warning before reaching leash range? 
+                float const distanceToGame = m_position.distance(player->GetPosition());
+                if (abs(distanceToGame) > 40.f)
+                    QuitDelayed(side->GetColour());
+            }
+
+            m_nextRangeCheck = now + seconds(5);
         }
     }
 }
@@ -898,7 +926,13 @@ void ChessMatch::Join(CPlayerWeenie* player)
 {
     std::optional<ChessColour> colour = GetFreeColour();
     if (colour.has_value())
+    {
+        using namespace std::chrono;
+        if (!m_nextRangeCheck)
+            m_nextRangeCheck = steady_clock::now() + seconds(5);
+
         AddSide(player->GetID(), *colour);
+    }
 
     SendJoinGameResponse(player, m_guid, colour);
 }
@@ -1031,6 +1065,7 @@ void ChessMatch::Finish(int32_t const winner)
 
         CPlayerWeenie* player = side->GetPlayer();
         assert(player);
+
         SendGameOver(player, winner);
 
         if (winner != CHESS_WINNER_END_GAME)
@@ -1064,6 +1099,7 @@ void ChessMatch::Finish(int32_t const winner)
     });
 
     m_state = ChessStateFinished;
+    m_nextRangeCheck.reset();
 }
 
 void ChessMatch::FinishTurn()
@@ -1150,7 +1186,7 @@ void ChessMatch::MovePassDelayed(ChessDelayedAction const& action)
 {
 }
 
-void ChessMatch::QuitDelayed(ChessDelayedAction const& action)
+void ChessMatch::QuitDelayed(ChessColour const colour)
 {
     switch (m_state)
     {
@@ -1158,7 +1194,7 @@ void ChessMatch::QuitDelayed(ChessDelayedAction const& action)
             Finish(CHESS_WINNER_END_GAME);
             break;
         case ChessStateInProgress:
-            Finish(InverseColour(action.GetColour()));
+            Finish(InverseColour(colour));
             break;
         default:
             break;
