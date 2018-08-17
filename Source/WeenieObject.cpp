@@ -4252,8 +4252,8 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 	{
 		if (!AsPlayer() || damageData.ignoreMagicResist)
 		{
-            if (resistanceRegular != 0.f)
-                damageData.damageAfterMitigation *= resistanceRegular;
+			if (resistanceRegular != 0.f)
+				damageData.damageAfterMitigation *= resistanceRegular;
 		}
 		else //only players have natural resistances.
 		{

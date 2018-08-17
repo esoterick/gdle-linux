@@ -456,7 +456,7 @@ void CPhatServer::Tick(void)
 	g_pAllegianceManager->Tick();
 	g_pDB2->Tick();
 
-    sChessManager->Update();
+	sChessManager->Update();
 
 	m_Stats.EndServerFrame();
 }

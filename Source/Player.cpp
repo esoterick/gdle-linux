@@ -164,7 +164,7 @@ void CPlayerWeenie::BeginLogout()
 		m_pTradeManager = NULL;
 	}
 
-    sChessManager->Quit(this);
+	sChessManager->Quit(this);
 	
 	StopCompletely(0);
 }

@@ -829,7 +829,7 @@ void CWorldLandBlock::Destroy(CWeenieObject *pEntity, bool bDoRelease)
 	// LOG(Temp, Normal, "Removing entity %08X %04X @ %08X \n", pEntity->GetID(), pEntity->_instance_timestamp, pEntity->GetLandcell());
 #endif
 
-    pEntity->NotifyRemoveFromWorld();
+	pEntity->NotifyRemoveFromWorld();
 
 	pEntity->exit_world();
 	pEntity->leave_world();

@@ -58,10 +58,5 @@ protected:
 	std::multimap<std::string, CWeenieDefaults *> m_WeenieDefaultsByName;
 
 	std::unordered_map<DWORD, DWORD> m_ScrollWeenies; // keyed by spell ID
-
-private:
-    typedef std::unordered_map<DWORD, CWeenieDefaults*>::value_type WeenieDefaultValue;
-
-    void InitialiseChessBoards();
 };
 

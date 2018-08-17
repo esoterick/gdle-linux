@@ -922,12 +922,12 @@ CWeenieObject *CWeenieFactory::CreateBaseWeenieByType(int weenieType, unsigned i
 			weenie = new CAugmentationDeviceWeenie();
 			break;
 		}
-    case Game_WeenieType:
-	    weenie = new GameWeenie();
-        break;
-    case GamePiece_WeenieType:
-        weenie = new GamePieceWeenie();
-        break;
+	case Game_WeenieType:
+		weenie = new GameWeenie();
+		break;
+	case GamePiece_WeenieType:
+		weenie = new GamePieceWeenie();
+		break;
 	default:
 		weenie = new CWeenieObject();
 		break;

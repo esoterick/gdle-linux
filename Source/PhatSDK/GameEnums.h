@@ -4366,8 +4366,8 @@ enum ConfirmationTypes
 
 enum TargetingTaticType
 {
-    TargetingTaticNone      = 0,
-    TargetingTaticGamePiece = 6
+	TargetingTaticNone      = 0,
+	TargetingTaticGamePiece = 6
 };
 
 #include "GameStatEnums.h"

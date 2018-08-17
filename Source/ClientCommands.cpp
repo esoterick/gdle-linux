@@ -4812,8 +4812,8 @@ CLIENT_COMMAND(movetome, "", "Brings an object to you.", ADMIN_ACCESS)
 
 CLIENT_COMMAND(challengeai, "", "Challenge an AI to a game of Chess.", BASIC_ACCESS)
 {
-    sChessManager->ChallengeAi(pPlayer);
-    return false;
+	sChessManager->ChallengeAi(pPlayer);
+	return false;
 }
 
 

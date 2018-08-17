@@ -213,8 +213,8 @@ public:
 	virtual class CTownCrier *AsTownCrier() { return NULL; }
 	virtual class CVendor *AsVendor() { return NULL; }
 	virtual class CAugmentationDeviceWeenie *AsAugmentationDevice() { return NULL; }
-    virtual class GameWeenie *AsGame() { return nullptr; }
-    virtual class GamePieceWeenie *AsGamePiece() { return nullptr; }
+	virtual class GameWeenie *AsGame() { return nullptr; }
+	virtual class GamePieceWeenie *AsGamePiece() { return nullptr; }
 
 	virtual bool IsAdvocate() { return false; }
 	virtual bool IsSentinel() { return false; }
@@ -317,7 +317,7 @@ public:
 	bool IsPortal() { return m_Qualities.m_WeenieType == Portal_WeenieType; }
 	bool IsAttackable() { return InqBoolQuality(ATTACKABLE_BOOL, TRUE) ? true : false; }
 	bool IsContainer() { return InqType() & TYPE_CONTAINER ? true : false; }
-    bool IsGamePiece() { return m_Qualities.m_WeenieType == GamePiece_WeenieType; }
+	bool IsGamePiece() { return m_Qualities.m_WeenieType == GamePiece_WeenieType; }
 
 	virtual bool RequiresPackSlot() { return InqBoolQuality(REQUIRES_BACKPACK_SLOT_BOOL, FALSE) ? true : false; }
 
@@ -729,9 +729,9 @@ public:
 
 	double _blockNewAttacksUntil = -1.0;
 
-    virtual bool CanTarget(CWeenieObject* target) { return false; }
+	virtual bool CanTarget(CWeenieObject* target) { return false; }
 
-    virtual void NotifyRemoveFromWorld() { }
+	virtual void NotifyRemoveFromWorld() { }
 
 protected:
 	CWorldLandBlock *m_pBlock = NULL;

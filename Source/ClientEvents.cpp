@@ -3166,38 +3166,38 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseAddOrRemoveAllegianceToStorageList(newSetting > 0);
 			break;
 		}
-        case CHESS_JOIN:
-        {
-            auto const guid = pReader->Read<uint32_t>();
-            pReader->Read<uint32_t>(); // teamId, not used
+		case CHESS_JOIN:
+		{
+			auto const guid = pReader->Read<uint32_t>();
+			pReader->Read<uint32_t>(); // teamId, not used
 
-            CWeenieObject* object = g_pWorld->FindObject(guid);
-            if (!object)
-                break;
+			CWeenieObject* object = g_pWorld->FindObject(guid);
+			if (!object)
+				break;
 
-            sChessManager->Join(m_pPlayer, object);
-            break;
-        }
-        case CHESS_QUIT:
-            sChessManager->Quit(m_pPlayer);
-            break;
-        case CHESS_MOVE:
-        {
-            GDLE::Chess::ChessPieceCoord from, to;
-            from.UnPack(pReader);
-            to.UnPack(pReader);
-            sChessManager->Move(m_pPlayer, from, to);
-            break;
-        }
-        case CHESS_PASS:
-            sChessManager->MovePass(m_pPlayer);
-            break;
-        case CHESS_STALEMATE:
-        {
-            auto const on = pReader->Read<uint32_t>();
-            sChessManager->Stalemate(m_pPlayer, on);
-            break;
-        }
+			sChessManager->Join(m_pPlayer, object);
+			break;
+		}
+		case CHESS_QUIT:
+			sChessManager->Quit(m_pPlayer);
+			break;
+		case CHESS_MOVE:
+		{
+			GDLE::Chess::ChessPieceCoord from, to;
+			from.UnPack(pReader);
+			to.UnPack(pReader);
+			sChessManager->Move(m_pPlayer, from, to);
+			break;
+		}
+		case CHESS_PASS:
+			sChessManager->MovePass(m_pPlayer);
+			break;
+		case CHESS_STALEMATE:
+		{
+			auto const on = pReader->Read<uint32_t>();
+			sChessManager->Stalemate(m_pPlayer, on);
+			break;
+		}
 		case HOUSE_LIST_AVAILABLE:
 		{
 			// Read: HouseType houseType - type of house to list, cottage 1, villa 2, mansion 3, apartment 4
