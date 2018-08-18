@@ -704,30 +704,30 @@ CLIENT_COMMAND(serverstatus, "", "Provides information on the server's status.",
 	return false;
 }
 
-CLIENT_COMMAND(netinfo, "", "Provides information on the player's network connection.", BASIC_ACCESS)
-{
-	int sendbuf = 0;
-	int sendbuflen = sizeof(sendbuf);
-	getsockopt(g_pNetwork->m_sockets[0], SOL_SOCKET, SO_SNDBUF, (char *)&sendbuf, &sendbuflen);
-	pPlayer->SendText(csprintf("SNDBUF: %u", sendbuf), LTT_DEFAULT);
-
-	int recvbuf = 0;
-	int recvbuflen = sizeof(recvbuf);
-	getsockopt(g_pNetwork->m_sockets[0], SOL_SOCKET, SO_RCVBUF, (char *)&recvbuf, &recvbuflen);
-	pPlayer->SendText(csprintf("RCVBUF: %u", recvbuf), LTT_DEFAULT);
-
-	pPlayer->SendText(csprintf("INSEQ: %u", player_client->GetPacketController()->m_in.sequence), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("ACTIVESEQ: %u", player_client->GetPacketController()->m_in.activesequence), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("FLUSHSEQ: %u", player_client->GetPacketController()->m_in.flushsequence), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("OUTSEQ: %u", player_client->GetPacketController()->m_out.sequence), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("RECEIVED: %I64u", player_client->GetPacketController()->m_in.receivedbytes), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("SENT: %I64u", player_client->GetPacketController()->m_out._sentBytes), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("RETRANSMIT: %u", player_client->GetPacketController()->m_out.numretransmit), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("DENIED: %u", player_client->GetPacketController()->m_out.numdenied), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("REQUESTED: %u", player_client->GetPacketController()->m_in.numresendrequests), LTT_DEFAULT);
-
-	return false;
-}
+//CLIENT_COMMAND(netinfo, "", "Provides information on the player's network connection.", BASIC_ACCESS)
+//{
+//	int sendbuf = 0;
+//	int sendbuflen = sizeof(sendbuf);
+//	getsockopt(g_pNetwork->m_sockets[0], SOL_SOCKET, SO_SNDBUF, (char *)&sendbuf, &sendbuflen);
+//	pPlayer->SendText(csprintf("SNDBUF: %u", sendbuf), LTT_DEFAULT);
+//
+//	int recvbuf = 0;
+//	int recvbuflen = sizeof(recvbuf);
+//	getsockopt(g_pNetwork->m_sockets[0], SOL_SOCKET, SO_RCVBUF, (char *)&recvbuf, &recvbuflen);
+//	pPlayer->SendText(csprintf("RCVBUF: %u", recvbuf), LTT_DEFAULT);
+//
+//	pPlayer->SendText(csprintf("INSEQ: %u", player_client->GetPacketController()->m_in.sequence), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("ACTIVESEQ: %u", player_client->GetPacketController()->m_in.activesequence), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("FLUSHSEQ: %u", player_client->GetPacketController()->m_in.flushsequence), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("OUTSEQ: %u", player_client->GetPacketController()->m_out.sequence), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("RECEIVED: %I64u", player_client->GetPacketController()->m_in.receivedbytes), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("SENT: %I64u", player_client->GetPacketController()->m_out._sentBytes), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("RETRANSMIT: %u", player_client->GetPacketController()->m_out.numretransmit), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("DENIED: %u", player_client->GetPacketController()->m_out.numdenied), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("REQUESTED: %u", player_client->GetPacketController()->m_in.numresendrequests), LTT_DEFAULT);
+//
+//	return false;
+//}
 
 #ifndef PUBLIC_BUILD
 CLIENT_COMMAND(debug, "<index>", "", ADMIN_ACCESS)
