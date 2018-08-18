@@ -118,7 +118,7 @@ void CObjectIDGenerator::SaveRangeStart()
 {
 	BinaryWriter banData;
 	banData.Write<DWORD>(m_dwHintDynamicGUID);
-	if (g_pConfig->UseIncrementalID())
+	if (!g_pConfig->UseIncrementalID())
 	{
 		g_pDBIO->CreateOrUpdateGlobalData(DBIO_GLOBAL_ID_RANGE_START, banData.GetData(), banData.GetSize());
 	}
@@ -130,6 +130,7 @@ void CObjectIDGenerator::LoadRangeStart()
 	DWORD length = 0;
 	if (!g_pConfig->UseIncrementalID())
 	{
+		g_pDBIO->GetGlobalData(DBIO_GLOBAL_ID_RANGE_START, &data, &length);
 		BinaryReader reader(data, length);
 		m_dwHintDynamicGUID = reader.ReadDWORD() + IDQUEUEMIN;
 		if (m_dwHintDynamicGUID < IDRANGESTART)
