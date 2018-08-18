@@ -484,35 +484,35 @@ void ChessLogic::GenerateMoves(BasePiece* piece, bool const single, ChessMoveSto
 
 			if (m_castling[colour] & ChessMoveFlagKingSideCastle)
 			{
-				ChessPieceCoord castlingToD = kingCoord; // destination
-				castlingToD.MoveOffset(2, 0);
-				ChessPieceCoord castlingTo1 = kingCoord; // intermediate
-				castlingTo1.MoveOffset(1, 0);
+				ChessPieceCoord castlingToK = kingCoord; // destination king
+				castlingToK.MoveOffset(2, 0);
+				ChessPieceCoord castlingToR = kingCoord; // destination rook
+				castlingToR.MoveOffset(1, 0);
 
-				if (!GetPiece(castlingTo1)
-					&& !GetPiece(castlingToD)
+				if (!GetPiece(castlingToR)
+					&& !GetPiece(castlingToK)
 					&& !CanAttack(opColour, kingCoord)
-					&& !CanAttack(opColour, castlingTo1)
-					&& !CanAttack(opColour, castlingToD))
-					BuildMove(storage, ChessMoveFlagKingSideCastle, colour, King, kingCoord, castlingToD);
+					&& !CanAttack(opColour, castlingToR)
+					&& !CanAttack(opColour, castlingToK))
+					BuildMove(storage, ChessMoveFlagKingSideCastle, colour, King, kingCoord, castlingToK);
 			}
 
 			if (m_castling[colour] & ChessMoveFlagQueenSideCastle)
 			{
-				ChessPieceCoord castlingToD = kingCoord; // destination
-				castlingToD.MoveOffset(-2, 0);
-				ChessPieceCoord castlingTo1 = kingCoord; // intermediate
-				castlingTo1.MoveOffset(-1, 0);
-				ChessPieceCoord castlingTo2 = kingCoord; // swap
-				castlingTo2.MoveOffset(-3, 0);
+				ChessPieceCoord castlingToK = kingCoord; // destination king
+				castlingToK.MoveOffset(-2, 0);
+				ChessPieceCoord castlingToR = kingCoord; // destination rook
+				castlingToR.MoveOffset(-1, 0);
+				ChessPieceCoord castlingToI = kingCoord; // intermediate
+				castlingToI.MoveOffset(-3, 0);
 
-				if (!GetPiece(castlingTo1)
-					&& !GetPiece(castlingToD)
-					&& !GetPiece(castlingTo2)
+				if (!GetPiece(castlingToR)
+					&& !GetPiece(castlingToK)
+					&& !GetPiece(castlingToI)
 					&& !CanAttack(opColour, kingCoord)
-					&& !CanAttack(opColour, castlingTo1)
-					&& !CanAttack(opColour, castlingToD))
-					BuildMove(storage, ChessMoveFlagQueenSideCastle, colour, King, kingCoord, castlingToD);
+					&& !CanAttack(opColour, castlingToR)
+					&& !CanAttack(opColour, castlingToK))
+					BuildMove(storage, ChessMoveFlagQueenSideCastle, colour, King, kingCoord, castlingToK);
 			}
 		}
 	}
@@ -673,7 +673,7 @@ void ChessLogic::InternalMove(ChessMove const& move)
 				castlingFrom.MoveOffset(-2, 0);
 			}
 
-			MovePiece(castlingTo, castlingFrom);
+			MovePiece(castlingFrom, castlingTo);
 		}
 
 		// turn off castling, our king has moved
@@ -1152,7 +1152,24 @@ void ChessMatch::FinaliseWeenieMove(ChessMoveResult const result)
 	BasePiece* piece = m_logic.GetPiece(move.GetToCoord());
 
 	if ((result & OKMoveToEmptySquare) != 0)
+	{
 		MoveWeeniePiece(piece);
+
+		ChessMoveFlag const flags = move.GetFlags();
+		if (flags & (ChessMoveFlagKingSideCastle | ChessMoveFlagQueenSideCastle))
+		{
+			ChessPieceCoord castlingTo = move.GetToCoord();
+			if (flags & ChessMoveFlagKingSideCastle)
+				castlingTo.MoveOffset(-1, 0);
+			if (flags & ChessMoveFlagQueenSideCastle)
+				castlingTo.MoveOffset(1, 0);
+
+			BasePiece* rookPiece = m_logic.GetPiece(castlingTo);
+			assert(rookPiece);
+
+			MoveWeeniePiece(rookPiece);
+		}
+	}
 
 	if ((result & OKMoveToOccupiedSquare) != 0)
 		AttackWeeniePiece(piece, move.GetCapturedGuid());
