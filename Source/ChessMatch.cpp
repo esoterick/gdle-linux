@@ -196,10 +196,26 @@ BasePiece* ChessLogic::GetPiece(ChessColour colour, ChessPieceType type) const
 	return itr != std::end(m_board) ? *itr : nullptr;
 }
 
+BasePiece* ChessLogic::GetPiece(uint32_t const pieceGuid) const
+{
+	auto const itr = std::find_if(std::begin(m_board), std::end(m_board),
+		[pieceGuid](BasePiece* piece) { return piece && piece->GetGuid() == pieceGuid; });
+	return itr != std::end(m_board) ? *itr : nullptr;
+}
+
 void ChessLogic::RemovePiece(ChessPieceCoord const& victim)
 {
-	delete GetPiece(victim);
-	m_board[victim.GetOffset()] = nullptr;
+	if (BasePiece* piece = GetPiece(victim))
+		RemovePiece(piece);
+}
+
+void ChessLogic::RemovePiece(BasePiece* piece)
+{
+	assert(piece);
+
+	ChessPieceCoord const coord = piece->GetCoord();
+	delete piece;
+	m_board[coord.GetOffset()] = nullptr;
 }
 
 void ChessLogic::MovePiece(ChessPieceCoord const& from, ChessPieceCoord const& to)
@@ -598,10 +614,10 @@ void ChessLogic::BuildMove(ChessMoveStore& storage, uint32_t result, ChessColour
 	ChessPieceType promotion = Empty;
 	if (fromPiece->GetType() == Pawn
 		&& (to.GetRank() == Rank8 || to.GetRank() == Rank1))
+	{
 		promotion = Queen;
-
-	if (promotion)
 		result |= ChessMoveFlagPromotion;
+	}
 
 	ChessPieceType captured = Empty;
 	if (toPiece)
@@ -650,8 +666,13 @@ void ChessLogic::InternalMove(ChessMove const& move)
 
 	if (flags & ChessMoveFlagPromotion)
 	{
-		RemovePiece(to);
-		AddPiece(colour, Queen, to.GetX(), to.GetY());
+		BasePiece* pawnPiece = GetPiece(to);
+		uint32_t const guid = pawnPiece->GetGuid();
+
+		RemovePiece(pawnPiece);
+
+		BasePiece* queenPiece = AddPiece(colour, Queen, to.GetX(), to.GetY());
+		queenPiece->SetGuid(guid);
 	}
 
 	if (move.GetType() == King)
@@ -1013,6 +1034,13 @@ void ChessMatch::AsyncMoveAiComplex(ChessAiAsyncTurnKey, ChessAiMoveResult& resu
 
 void ChessMatch::PieceReady(uint32_t const pieceGuid)
 {
+	if ((m_moveResult & OKMovePromotion) != 0)
+	{
+		BasePiece* piece = m_logic.GetPiece(pieceGuid);
+		assert(piece);
+		UpgradeWeeniePiece(piece);
+	}
+
 	m_weenieMotion.erase(pieceGuid);
 	if (m_weenieMotion.empty())
 	{
@@ -1173,14 +1201,8 @@ void ChessMatch::FinaliseWeenieMove(ChessMoveResult const result)
 			MoveWeeniePiece(rookPiece);
 		}
 	}
-
-	if ((result & OKMoveToOccupiedSquare) != 0)
+	else if ((result & OKMoveToOccupiedSquare) != 0)
 		AttackWeeniePiece(piece, move.GetCapturedGuid());
-
-	if ((result & OKMovePromotion) != 0)
-	{
-		// TODO: upgrade weenie
-	}
 }
 
 void ChessMatch::MoveDelayed(ChessDelayedAction const& action)
@@ -1311,11 +1333,20 @@ void ChessMatch::RemoveWeeniePiece(BasePiece* piece) const
 	if (!guid)
 		return;
 
-	CWeenieObject* gamePiece = g_pWorld->FindObject(piece->GetGuid());
+	CWeenieObject* gamePiece = g_pWorld->FindObject(guid);
 	assert(gamePiece);
 
 	piece->SetGuid(0);
 	gamePiece->Remove();
+}
+
+void ChessMatch::UpgradeWeeniePiece(BasePiece* piece) const
+{
+	RemoveWeeniePiece(piece);
+
+	// AC's Chess implementation doesn't support underpromotion
+	piece->SetType(Queen);
+	AddWeeniePiece(piece);
 }
 
 void ChessMatch::AddPendingWeenieMotion(BasePiece* piece)

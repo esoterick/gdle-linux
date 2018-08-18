@@ -104,6 +104,7 @@ public:
 	ChessPieceCoord const& GetCoord() const { return m_coord; }
 	uint32_t GetGuid() const { return m_guid; }
 
+	void SetType(ChessPieceType const type) { m_type = type; }
 	void SetCoord(ChessPieceCoord const& to) { m_coord = to; }
 	void SetGuid(uint32_t guid) { m_guid = guid; }
 
@@ -316,6 +317,7 @@ public:
 			return nullptr;
 		return m_board[(from.GetY() * CHESS_BOARD_SIZE) + from.GetX()];
 	}
+	BasePiece* GetPiece(uint32_t pieceGuid) const;
 	ChessMove const& GetLastMove() const { return m_history.top(); }
 
 	void WalkPieces(std::function<void(BasePiece*)> const& func) const;
@@ -331,6 +333,7 @@ private:
 	BasePiece* AddPiece(ChessColour colour, ChessPieceType type, uint8_t x, uint8_t y);
 	BasePiece* GetPiece(ChessColour colour, ChessPieceType type) const;
 	void RemovePiece(ChessPieceCoord const& victim);
+	void RemovePiece(BasePiece* piece);
 	void MovePiece(ChessPieceCoord const& from, ChessPieceCoord const& to);
 
 	float MinimaxAlphaBeta(uint8_t depth, float alpha, float beta, bool isMaximisingPlayer, uint32_t& counter);
@@ -439,6 +442,7 @@ private:
 	void MoveWeeniePiece(BasePiece* piece);
 	void AttackWeeniePiece(BasePiece* piece, uint32_t victim);
 	void RemoveWeeniePiece(BasePiece* piece) const;
+	void UpgradeWeeniePiece(BasePiece* piece) const;
 	void AddPendingWeenieMotion(BasePiece* piece);
 
 	void SendStartGame(CPlayerWeenie* player, ChessColour colour) const;
