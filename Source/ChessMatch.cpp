@@ -601,6 +601,7 @@ bool ChessLogic::InCheck() const
 bool ChessLogic::InCheckmate() const
 {
 	ChessMoveStore storage;
+	GenerateMoves(m_turn, storage);
 	return InCheck() && storage.empty();
 }
 
