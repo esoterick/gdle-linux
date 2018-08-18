@@ -31,7 +31,7 @@
 #include <psapi.h>
 
 #include "zlib/zlib.h"
-#include "mysql.h"
+#include "../Lib/mysql/include/mysql.h"
 
 //STL
 #include <vector>

@@ -9,8 +9,13 @@ const uint32_t IDQUEUEMIN = 50000;
 const uint32_t IDRANGESTART = 0x80000000;
 const uint32_t IDRANGEEND = 0xff000000;
 
+const uint32_t IDEPHEMERALSTART = 0x60000000;
+const uint32_t IDEPHEMERALMASK = 0x6fffffff;
+
+
 CObjectIDGenerator::CObjectIDGenerator()
 {
+	m_ephemeral = IDEPHEMERALSTART;
 	if (g_pConfig->UseIncrementalID())
 	{
 		WINLOG(Data, Normal, "Using Incremental ID system.....\n");
@@ -99,6 +104,11 @@ DWORD CObjectIDGenerator::GenerateGUID(eGUIDClass type)
 
 		return result;
 	}
+	case eEphemeral:
+	{
+		m_ephemeral &= IDEPHEMERALMASK;
+		return m_ephemeral++;
+	} 
 	}
 
 	return 0;

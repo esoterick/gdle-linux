@@ -135,7 +135,7 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(CWeenieObject *item, bool deleteItem
 		return NULL;
 	}
 
-	item->SetID(g_pWorld->GenerateGUID(eDynamicGUID));
+	item->SetID(g_pWorld->GenerateGUID(eEphemeral));
 
 	if (!g_pWorld->CreateEntity(item, false))
 	{
