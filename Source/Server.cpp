@@ -326,6 +326,7 @@ void CPhatServer::Shutdown()
 	SafeDelete(g_pPortalDataEx);
 
 	SafeDelete(g_pTreasureFactory);
+	SafeDelete(g_pRecipeFactory);
 	SafeDelete(g_pWeenieFactory);
 	SafeDelete(g_pWeenieLandCoverage);
 	CleanupPhatDataBin();
