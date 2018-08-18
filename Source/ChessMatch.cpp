@@ -886,7 +886,10 @@ void ChessMatch::Update()
 				// arbitrary distance, should there be some warning before reaching leash range? 
 				float const distanceToGame = m_position.distance(player->GetPosition());
 				if (abs(distanceToGame) > 40.f)
+				{
 					QuitDelayed(side->GetColour());
+					return;
+				}
 			}
 
 			m_nextRangeCheck = now + seconds(5);
