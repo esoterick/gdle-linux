@@ -93,8 +93,10 @@ int CVendor::TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<ItemProf
 	if (desiredItems.size() >= 100)
 		return WERROR_NO_OBJECT;
 
-	int currencyid = profile.trade_id;
-	int pyreals = buyer->InqIntQuality(COIN_VALUE_INT, 0);
+	int currencyid = W_COINSTACK_CLASS;
+	if (profile.trade_id)
+		currencyid = profile.trade_id;
+	int currencyamount = buyer->InqIntQuality(COIN_VALUE_INT, 0);
 
 	// check cost of items
 	UINT64 totalCost = 0;
@@ -124,7 +126,7 @@ int CVendor::TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<ItemProf
 	if (totalCost >= MAX_COIN_PURCHASE)
 		return WERROR_NO_OBJECT; // limit to purchases less than 2 billion pyreal
 	
-	if (profile.trade_num == 0 && pyreals < totalCost)
+	if (profile.trade_num == 0 && currencyamount < totalCost)
 	{		
 		buyer->SendText("You don't have enough money.", LTT_DEFAULT);
 		return WERROR_NO_OBJECT;
@@ -138,27 +140,13 @@ int CVendor::TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<ItemProf
 
 	DWORD coinConsumed = 0;
 
-	if (currencyid < 1)
-	{
-		coinConsumed = buyer->ConsumeCoin(totalCost);
-	}
-	if (currencyid > 0)
-	{	
-		coinConsumed = buyer->ConsumeAltCoin(totalCost, currencyid);
-	}
+	coinConsumed = buyer->ConsumeCoin(totalCost, currencyid);
 
 	if (coinConsumed < totalCost)
 	{
 		//This shouldn't happen.
 		buyer->SendText("Couldn't find all the money for the payment.", LTT_DEFAULT);
-		if (currencyid > 0)
-		{
-			buyer->SpawnInContainer(currencyid, coinConsumed); //give back what we consumed and abort.
-		}
-		if (currencyid < 1)
-		{
-			buyer->SpawnInContainer(W_COINSTACK_CLASS, coinConsumed); //give back what we consumed and abort.
-		}
+		buyer->SpawnInContainer(currencyid, coinConsumed); //give back what we consumed and abort.
 		
 		return WERROR_NO_OBJECT;
 	}
@@ -172,6 +160,9 @@ int CVendor::TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<ItemProf
 	}
 
 	DoVendorEmote(Buy_VendorTypeEmote, buyer->GetID());
+
+	profile.trade_num = buyer->RecalculateCoinAmount(currencyid);
+	SendVendorInventory(buyer);
 
 	return WERROR_NONE;
 }
@@ -296,9 +287,18 @@ void CVendor::PreSpawnCreate()
 	{
 		for (auto i = m_Qualities._create_list->begin(); i != m_Qualities._create_list->end(); i++)
 		{
-			if (i->destination == DestinationType::Shop_DestinationType)
+			if (i->destination == DestinationType::Shop_DestinationType || i->destination == DestinationType::Contain_DestinationType)
 			{
-				AddVendorItem(i->wcid, i->palette, i->shade, -1);
+				if (i->destination == DestinationType::Contain_DestinationType || i->destination == DestinationType::Wield_DestinationType)
+				{
+					if (i->wcid == profile.trade_id)
+					{
+						CWeenieDefaults *currency = g_pWeenieFactory->GetWeenieDefaults(i->wcid);
+						profile.trade_name = currency->m_Qualities.GetString(NAME_STRING, "");
+					}
+				}
+				else
+					AddVendorItem(i->wcid, i->palette, i->shade, -1);
 			}
 		}
 	}
@@ -311,16 +311,7 @@ void CVendor::SendVendorInventory(CWeenieObject *other)
 	BinaryWriter vendorInfo;
 	vendorInfo.Write<DWORD>(0x62);
 	vendorInfo.Write<DWORD>(GetID());
-	// set profile.trade_num here, look through player inventory to find profile.trade_id and trade_name this is a poor method. There is probably a better way.
-	if (profile.trade_id > 0)
-	{
-		profile.trade_num = other->RecalculateAltCoinAmount(profile.trade_id);
-		for (auto item : m_Items)
-		{
-			if (item->weenie->m_Qualities.GetID() == profile.trade_id)
-				profile.trade_name = item->weenie->GetName();
-		}
-	}
+
 	profile.Pack(&vendorInfo);
 	
 	vendorInfo.Write<DWORD>(m_Items.size());
@@ -372,6 +363,13 @@ int CVendor::DoUseResponse(CWeenieObject *player)
 		MovementParameters params;
 		TurnToObject(player->GetID(), &params);
 	}
+
+	if (profile.trade_id)
+	{
+		profile.trade_num = player->RecalculateCoinAmount(profile.trade_id);
+	}
+	else
+		player->RecalculateCoinAmount(W_COINSTACK_CLASS);
 		
 	SendVendorInventory(player);
 	DoVendorEmote(Open_VendorTypeEmote, player->GetID());

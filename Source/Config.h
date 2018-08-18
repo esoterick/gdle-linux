@@ -42,6 +42,7 @@ public:
 	const char *WelcomeMessage() { return m_WelcomeMessage.c_str(); }
 
 	virtual bool FastTick() { return m_bFastTick; }
+	virtual bool UseIncrementalID() { return m_bUseIncrementalIDs; }
 
 	virtual bool HardcoreMode() { return m_bHardcoreMode; }
 	virtual bool HardcoreModePlayersOnly() { return m_bHardcoreModePlayersOnly; }
@@ -65,7 +66,7 @@ public:
 	virtual double RewardXPMultiplier(int level);
 	virtual double DropRateMultiplier() { return m_fDropRateMultiplier; }
 	virtual double RespawnTimeMultiplier() { return m_fRespawnTimeMultiplier; }
-	virtual double IsSpellFociEnabled() { return m_bSpellFociEnabled; }
+	virtual bool IsSpellFociEnabled() { return m_bSpellFociEnabled; }
 
 	virtual bool AutoCreateAccounts() { return m_bAutoCreateAccounts; }
 
@@ -74,6 +75,7 @@ public:
 
 	virtual bool ShowLogins() { return m_bShowLogins; }
 	virtual bool SpeedHackKicking() { return m_bSpeedHackKicking; }
+	virtual double SpeedHackKickThreshold() { return m_fSpeedHackKickThreshold; }
 	virtual bool ShowDeathMessagesGlobally() { return m_bShowDeathMessagesGlobally; }
 	virtual bool ShowPlayerDeathMessagesGlobally() { return m_bShowPlayerDeathMessagesGlobally; }
 
@@ -84,6 +86,7 @@ public:
 
 	virtual int PKRespiteTime() { return m_PKRespiteTime; }
 	virtual bool SpellPurgeOnLogin() { return m_bSpellPurgeOnLogin; }
+	
 
 protected:
 	virtual void PostLoad() override;
@@ -102,6 +105,7 @@ protected:
 	std::string m_WelcomeMessage;
 
 	bool m_bFastTick = false;
+	bool m_bUseIncrementalIDs = false;
 
 	bool m_bHardcoreMode = false;
 	bool m_bHardcoreModePlayersOnly = false;
@@ -150,6 +154,7 @@ protected:
 
 	bool m_bShowLogins = true;
 	bool m_bSpeedHackKicking = true;
+	double m_fSpeedHackKickThreshold = 1.2;
 
 	bool m_bShowDeathMessagesGlobally = false;
 	bool m_bShowPlayerDeathMessagesGlobally = false;

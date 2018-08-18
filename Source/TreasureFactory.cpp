@@ -1439,14 +1439,14 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 				}
 			}
 
-			if (itemType == TYPE_CASTER)
+			/*if (itemType == TYPE_CASTER)
 			{
 				for (int i = 0; i < 2; i++)
 				{
 					//increase chance of no weapon skill casters as that is only used for war magic.
 					possibleWieldTiers.push_back(zeroReqWieldTier);
 				}
-			}
+			}*/
 
 			if (possibleWieldTiers.size() == 0)
 				return false;
@@ -2266,8 +2266,7 @@ void CTreasureFactory::AddSpells(CWeenieObject *newItem, sItemCreationInfo &crea
 
 	if (creationInfo.isMagical)
 	{
-		if (newItem->InqIntQuality(UI_EFFECTS_INT, 0, true) == 0)
-			newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_MAGICAL);
+		newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_MAGICAL);
 
 		newItem->m_Qualities.SetInt(ITEM_SPELLCRAFT_INT, getRandomNumber(creationInfo.highestPower, creationInfo.highestPower * 1.3, eRandomFormula::favorMid, 2, 0));
 		newItem->m_Qualities.SetInt(ITEM_MAX_MANA_INT, creationInfo.totalMana);

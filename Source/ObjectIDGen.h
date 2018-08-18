@@ -1,8 +1,4 @@
-
 #pragma once
-
-#include <queue>
-#include <thread>
 
 enum eGUIDClass {
 	ePresetGUID = 0,
@@ -19,15 +15,17 @@ public:
 	~CObjectIDGenerator();
 
 	void LoadState();
+	void SaveRangeStart();
+	void LoadRangeStart();
+	bool IsIdRangeValid(){ return isIdRangeValid;}
 
 	DWORD GenerateGUID(eGUIDClass guidClass);
 
-	void ReleaseObjectId(DWORD id);
-
 protected:
-	std::list<std::pair<unsigned int, unsigned int>> m_lpuiIntervals;
-
+	DWORD m_dwHintDynamicGUID = 0x80000000;
+	bool outOfIds = false;
 	bool m_bLoadingState = false;
-	std::thread m_thrLoadState;
+	bool queryInProgress = false;
+	std::queue<unsigned int, std::deque<unsigned int>> listOfIdsForWeenies;
+	bool isIdRangeValid = true;
 };
-

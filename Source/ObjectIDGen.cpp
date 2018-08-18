@@ -2,47 +2,63 @@
 #include "StdAfx.h"
 #include "ObjectIDGen.h"
 #include "DatabaseIO.h"
+#include "Server.h"
 
-const uint32_t IDQUEUEMAX = 1000000;
-const uint32_t IDQUEUEMIN = 5000;
+const uint32_t IDQUEUEMAX = 250000;
+const uint32_t IDQUEUEMIN = 50000;
 const uint32_t IDRANGESTART = 0x80000000;
 const uint32_t IDRANGEEND = 0xff000000;
 
 CObjectIDGenerator::CObjectIDGenerator()
 {
+	if (g_pConfig->UseIncrementalID())
+	{
+		WINLOG(Data, Normal, "Using Incremental ID system.....\n");
+	}
+	else
+	{
+		// Verify IDRanges tables exists and has values
+		if (g_pDBIO->IDRangeTableExistsAndValid())
+		{
+			WINLOG(Data, Normal, "Using ID Mined system.....\n");
+		}
+		else
+		{
+			isIdRangeValid = false;
+		}
+	}
+	LoadRangeStart();
 	LoadState();
 }
 
 CObjectIDGenerator::~CObjectIDGenerator()
 {
-	if (m_thrLoadState.joinable())
-	{
-		m_thrLoadState.join();
-	}
 }
 
 void CObjectIDGenerator::LoadState()
 {
-	uint32_t start = IDRANGESTART;
-
-	if (!m_lpuiIntervals.empty())
+	if (!g_pConfig->UseIncrementalID())
 	{
-		start = m_lpuiIntervals.end()->second;
+		queryInProgress = true;
+		std::list<unsigned int> startupRange = g_pDBIO->GetNextIDRange(m_dwHintDynamicGUID, IDQUEUEMAX);
+		m_dwHintDynamicGUID += IDQUEUEMAX;
+		SaveRangeStart();
 
-		if (start >= IDRANGEEND)
-		{
-			start = IDRANGESTART;
-		}
+		DEBUG_DATA << "New Group count:" << startupRange.size();
+
+		for (std::list<unsigned int>::iterator it = startupRange.begin(); it != startupRange.end(); ++it)
+			listOfIdsForWeenies.push(*it);
+
+		if (listOfIdsForWeenies.empty())
+			outOfIds = true;
+
+		startupRange.clear();
+
+		m_bLoadingState = false;
+		queryInProgress = false;
 	}
-
-	// get list from db
-	m_lpuiIntervals.merge(g_pDBIO->GetUnusedIdRanges(start, IDRANGEEND));
-
-	// if it returned nothing, we have the full requested range, or we're screwed
-	if (m_lpuiIntervals.empty())
-		m_lpuiIntervals.push_back(std::pair<unsigned int, unsigned int>(IDRANGESTART, IDRANGEEND));
-
-	m_bLoadingState = false;
+	else
+		m_dwHintDynamicGUID = g_pDBIO->GetHighestWeenieID(IDRANGESTART, IDRANGEEND);
 }
 
 DWORD CObjectIDGenerator::GenerateGUID(eGUIDClass type)
@@ -51,37 +67,62 @@ DWORD CObjectIDGenerator::GenerateGUID(eGUIDClass type)
 	{
 	case eDynamicGUID:
 	{
-		if (m_lpuiIntervals.empty())
+
+		DWORD result = 0;
+
+		if (!g_pConfig->UseIncrementalID())
 		{
-			m_thrLoadState.join();
-		}
-
-		auto puiInterval = m_lpuiIntervals.begin();
-		DWORD result = puiInterval->first;
-
-		puiInterval->first++;
-
-		if (puiInterval->first == puiInterval->second)
-		{
-			m_lpuiIntervals.pop_front();
-		}
-
-		if (!m_bLoadingState && m_lpuiIntervals.size() < 500)
-		{
-			if (m_thrLoadState.joinable())
+			if (outOfIds || listOfIdsForWeenies.empty())
 			{
-				m_thrLoadState.join();
+				SERVER_ERROR << "Dynamic GUID overflow!";
+				return 0;
 			}
 
-			m_bLoadingState = true;
+			result = listOfIdsForWeenies.front();
+			listOfIdsForWeenies.pop();
 
-			m_thrLoadState = std::thread(&CObjectIDGenerator::LoadState, this);
+			if (!m_bLoadingState && !queryInProgress && listOfIdsForWeenies.size() < IDQUEUEMIN)
+			{
+				m_bLoadingState = true;
+				LoadState();
+			}
+		}
+		else
+		{
+			if (m_dwHintDynamicGUID >= IDRANGEEND)
+			{
+				SERVER_ERROR << "Dynamic GUID overflow!";
+				return 0;
+			}
+			result = ++m_dwHintDynamicGUID;
 		}
 
 		return result;
-	}	// case eDynamicGUID
-
-	}	// switch (type)
+	}
+	}
 
 	return 0;
+}
+
+void CObjectIDGenerator::SaveRangeStart()
+{
+	BinaryWriter banData;
+	banData.Write<DWORD>(m_dwHintDynamicGUID);
+	if (g_pConfig->UseIncrementalID())
+	{
+		g_pDBIO->CreateOrUpdateGlobalData(DBIO_GLOBAL_ID_RANGE_START, banData.GetData(), banData.GetSize());
+	}
+}
+
+void CObjectIDGenerator::LoadRangeStart()
+{
+	void *data = NULL;
+	DWORD length = 0;
+	if (!g_pConfig->UseIncrementalID())
+	{
+		BinaryReader reader(data, length);
+		m_dwHintDynamicGUID = reader.ReadDWORD() + IDQUEUEMIN;
+		if (m_dwHintDynamicGUID < IDRANGESTART)
+			m_dwHintDynamicGUID = IDRANGESTART;
+	}
 }

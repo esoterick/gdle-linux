@@ -234,6 +234,7 @@ public:
 	void DoUseEmote(CWeenieObject *other);
 	void ChanceExecuteEmoteSet(DWORD other_id, EmoteCategory category);
 	bool IsExecutingEmote();
+	bool HasEmoteForID(EmoteCategory emoteCategory, DWORD item_id);
 
 	virtual void EnsureLink(CWeenieObject *source);
 	virtual void NotifyGeneratedDeath(CWeenieObject *weenie);
@@ -342,6 +343,8 @@ public:
 
 	void SendText(const char* szText, long lColor);
 
+	void SendTextToOverlay(const char * szText);
+
 	float DistanceTo(CWeenieObject *other, bool bUseSpheres = false);
 	float DistanceSquared(CWeenieObject *other);
 	float HeadingTo(CWeenieObject *target, bool relative = true);
@@ -432,10 +435,9 @@ public:
 	const char *GetLongDescription();
 	DWORD GetSpellID();
 
-	virtual DWORD RecalculateCoinAmount() { return 0; };
-	virtual DWORD RecalculateAltCoinAmount(int currencyid) { return 0; };
-	virtual DWORD ConsumeCoin(int amountToConsume) { return 0; };
-	virtual DWORD ConsumeAltCoin(int amountToConsume, int currencyid) { return 0; };
+	virtual DWORD RecalculateCoinAmount(int currencyid) { return 0; };
+	virtual DWORD ConsumeCoin(int amountToConsume, int currencyid) { return 0; };
+
 	void SetValue(DWORD amount);
 	DWORD GetValue();
 
@@ -642,6 +644,8 @@ public:
 
 	virtual double GetOffenseMod();
 	virtual int GetAttackTime();
+	virtual double GetManaCon();
+	virtual double GetElementalDamage();
 	virtual int GetAttackTimeUsingWielded();
 	virtual int GetAttackDamage();
 
@@ -710,6 +714,7 @@ public:
 	bool IsBonded();
 	bool IsDroppedOnDeath();
 	bool IsDestroyedOnDeath();
+	virtual bool IsCurrency(int currencyid);
 
 	void CheckVitalRanges();
 

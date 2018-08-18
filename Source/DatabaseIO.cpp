@@ -306,6 +306,48 @@ CDatabaseIO::GetUnusedIdRanges(unsigned int min_range, unsigned int max_range)
 	return result;
 }
 
+bool CDatabaseIO::IDRangeTableExistsAndValid()
+{
+	bool retval = false;
+
+	if (g_pDB2->Query("SELECT unused FROM idranges WHERE unused > 2147999999 LIMIT 1"))
+	{
+		CSQLResult *pQueryResult = g_pDB2->GetResult();
+		if (pQueryResult)
+		{
+			delete pQueryResult;
+			retval = true;
+		}
+	}
+
+	return retval;
+}
+
+
+std::list<unsigned int> CDatabaseIO::GetNextIDRange(unsigned int rangeStart, unsigned int count)
+{
+	std::list< unsigned int> result;
+
+	const char *szQuery = "SELECT unused FROM idranges WHERE unused > %u limit %u;";
+
+	if (g_pDB2->Query(szQuery, rangeStart, count))
+	{
+		CSQLResult *pRes = g_pDB2->GetResult();
+		if (pRes)
+		{
+			while (SQLResultRow_t row = pRes->FetchRow())
+			{
+				unsigned int newId = strtoul(row[0], NULL, 10);
+
+				result.push_back(newId);
+			}
+
+			delete pRes;
+		}
+	}
+
+	return result;
+}
 
 unsigned int CDatabaseIO::GetHighestWeenieID(unsigned int min_range, unsigned int max_range)
 {

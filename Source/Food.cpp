@@ -3,6 +3,7 @@
 #include "WeenieObject.h"
 #include "Food.h"
 #include "Player.h"
+#include "SpellcastingManager.h"
 
 CFoodWeenie::CFoodWeenie()
 {
@@ -42,6 +43,11 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 		other->EmitSound(use_sound_did, 1.0f);
 	else
 		other->EmitSound(Sound_Eat1, 1.0f);
+
+	if (DWORD spell_did = InqDIDQuality(SPELL_DID, 0))
+		MakeSpellcastingManager()->CastSpellInstant(other->GetID(), spell_did);
+	else
+		other->SendText("You can't do that yet!", LTT_ERROR);
 
 	DWORD boost_stat = InqIntQuality(BOOSTER_ENUM_INT, 0);
 	int boost_value = InqIntQuality(BOOST_VALUE_INT, 0);
@@ -102,9 +108,9 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 			}
 
 			if (boost_value >= 0)
-				other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), diff, vitalName), LTT_DEFAULT);
+				other->SendText(csprintf("The %s restores %d points of your %s.", GetName().c_str(), abs(diff), vitalName), LTT_DEFAULT);
 			else
-				other->SendText(csprintf("The %s takes %d points of your %s.", GetName().c_str(), diff, vitalName), LTT_DEFAULT);
+				other->SendText(csprintf("The %s takes %d points of your %s.", GetName().c_str(), abs(diff), vitalName), LTT_DEFAULT);
 
 			if (boost_stat == HEALTH_ATTRIBUTE_2ND)
 			{

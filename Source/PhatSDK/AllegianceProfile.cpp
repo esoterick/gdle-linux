@@ -142,13 +142,13 @@ DEFINE_UNPACK(AllegianceHierarchy)
 	m_NameLastSetTime = pReader->Read<int>();
 	m_isLocked = pReader->Read<int>();
 	m_ApprovedVassal = pReader->Read<int>();
-	
+
 	/*
 	AllegianceData data;
 	for (DWORD i = 0; i < packedNodes; i++)
 	{
-		// this way of doing things is unsettling, let's not
-		UNFINISHED();
+	// this way of doing things is unsettling, let's not
+	UNFINISHED();
 	}
 	*/
 

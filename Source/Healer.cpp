@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "WeenieObject.h"
 #include "Healer.h"
@@ -28,9 +27,43 @@ int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 		return WERROR_NONE;
 	}
 
-	if (with->GetHealth() == with->GetMaxHealth())
+	DWORD boostEnum = m_Qualities.GetInt(BOOSTER_ENUM_INT, 0);
+
+	switch (boostEnum)
 	{
-		return WERROR_HEAL_FULL_HEALTH;
+	case HEALTH_ATTRIBUTE_2ND:
+	{
+		if (with->GetHealth() == with->GetMaxHealth())
+		{
+			player->NotifyWeenieError(WERROR_HEAL_FULL_HEALTH);
+			player->NotifyUseDone(0);
+			return WERROR_NONE;
+		}
+		else
+			break;
+	}
+	case STAMINA_ATTRIBUTE_2ND:
+	{
+		if (with->GetStamina() == with->GetMaxStamina())
+		{
+			player->NotifyWeenieError(WERROR_HEAL_FULL_HEALTH);
+			player->NotifyUseDone(0);
+			return WERROR_NONE;
+		}
+		else
+			break;
+	}
+	case MANA_ATTRIBUTE_2ND:
+	{
+		if (with->GetMana() == with->GetMaxMana())
+		{
+			player->NotifyWeenieError(WERROR_HEAL_FULL_HEALTH);
+			player->NotifyUseDone(0);
+			return WERROR_NONE;
+		}
+		else
+			break;
+	}
 	}
 
 	CHealerUseEvent *useEvent = new CHealerUseEvent;
@@ -44,6 +77,14 @@ int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 
 void CHealerUseEvent::OnReadyToUse()
 {
+	if (_weenie->GetStamina() == 0)
+	{
+		//don't perform healing animation if there's zero stamina
+		_weenie->NotifyWeenieError(WERROR_STAMINA_TOO_LOW);
+		Cancel();
+		return;
+	}
+
 	if (_target_id == _weenie->GetID())
 	{
 		ExecuteUseAnimation(Motion_SkillHealSelf);
@@ -108,13 +149,15 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 
 					if (_weenie->GetStamina() < staminaNecessary)
 					{
-						//can't heal if there's not enough stamina
-						_weenie->NotifyWeenieError(WERROR_STAMINA_TOO_LOW);
-						Cancel();
-						return;
+						staminaNecessary = _weenie->GetStamina();
+						amountHealed = staminaNecessary * 5;
+						if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
+						{
+							pPlayer->SendText("You're exhausted!", LTT_ERROR);
+						}
 					}
 					_weenie->AdjustStamina(-staminaNecessary);
-
+					
 					success = Random::RollDice(0.0, 1.0) <= GetSkillChance(healing_skill, difficulty);
 					if (success)
 					{

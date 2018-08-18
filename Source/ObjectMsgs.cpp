@@ -664,6 +664,11 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 
 		double *weapon_defense = profile._floatStatsTable->lookup(WEAPON_DEFENSE_FLOAT);
 		double old_weapon_defense = weapon_defense ? *weapon_defense : 1.0;
+		double *mana_con = profile._floatStatsTable->lookup(MANA_CONVERSION_MOD_FLOAT);
+		double old_mana_con = mana_con ? *mana_con : 0.0;
+		double *elemental_dmg = profile._floatStatsTable->lookup(ELEMENTAL_DAMAGE_MOD_FLOAT);
+		double old_elemental_dmg = elemental_dmg ? *elemental_dmg : 0.0;
+
 
 		if (pEntity->m_Qualities._enchantment_reg)
 		{
@@ -683,6 +688,28 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 				profile.weapon_ench_bitfield |= BF_WEAPON_DEFENSE;
 				if (*weapon_defense > old_weapon_defense)
 					profile.weapon_ench_bitfield |= BF_WEAPON_DEFENSE_HI;
+			}
+		}
+		if (mana_con)
+		{
+			*mana_con = pEntity->GetManaCon();
+
+			if (fabs(*mana_con - old_mana_con) >= F_EPSILON)
+			{
+				profile.resist_ench_bitfield |= BF_MANA_CON_MOD;
+				if (*mana_con > old_mana_con)
+					profile.resist_ench_bitfield |= BF_MANA_CON_MOD_HI;
+			}
+		}
+		if (elemental_dmg)
+		{
+			*elemental_dmg = pEntity->GetElementalDamage();
+
+			if (fabs(*elemental_dmg - old_elemental_dmg) >= F_EPSILON)
+			{
+				profile.resist_ench_bitfield |= BF_ELE_DAMAGE_MOD;
+				if (*elemental_dmg > old_elemental_dmg)
+					profile.resist_ench_bitfield |= BF_ELE_DAMAGE_MOD_HI;
 			}
 		}
 	}
@@ -771,7 +798,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			profile._spellBook->add((DWORD *)&spell.first);
 	}
 
-	if (pEntity->IsCreature())
+	if (pEntity->IsCreature() && !pEntity->m_Qualities.GetBool(NPC_LOOKS_LIKE_OBJECT_BOOL, false))
 	{
 		profile.creature_profile = new CreatureAppraisalProfile();
 

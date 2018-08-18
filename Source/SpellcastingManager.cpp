@@ -788,6 +788,16 @@ void CSpellcastingManager::BeginPortalSend(const Position &targetPos)
 			player->BeginRecall(targetPos);
 		}
 	}
+	else if (m_pWeenie->HasOwner())
+	{
+		if (CPlayerWeenie *gemtarget = m_pWeenie->GetWorldTopLevelOwner()->AsPlayer())
+		{
+			if (!gemtarget->IsRecalling())
+			{
+				gemtarget->BeginRecall(targetPos);
+			}
+		}
+	}
 	else
 	{
 		m_pWeenie->Movement_Teleport(targetPos, false);
@@ -1469,8 +1479,8 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 		case SpellType::PortalRecall_SpellType:
 		{
-			if (m_pWeenie->HasOwner())
-				break;
+			/*if (m_pWeenie->HasOwner()) //Needed to comment out for Rare gems.
+				break;*/
 
 			if (m_pWeenie->AsPlayer() && m_pWeenie->AsPlayer()->CheckPKActivity())
 			{
@@ -1502,6 +1512,10 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 			{
 				Position lastPortalPos;
 				if (m_pWeenie->m_Qualities.InqPosition(LAST_PORTAL_POSITION, lastPortalPos) && lastPortalPos.objcell_id != 0)
+				{
+					BeginPortalSend(lastPortalPos);
+				}
+				else if (m_pWeenie->GetWorldTopLevelOwner()->m_Qualities.InqPosition(LAST_PORTAL_POSITION, lastPortalPos) && lastPortalPos.objcell_id != 0)
 				{
 					BeginPortalSend(lastPortalPos);
 				}
@@ -1693,7 +1707,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 				// NPKs should not be able to buff PKs
 				if (m_pWeenie && castTarget && m_pWeenie->AsPlayer() && castTarget->AsPlayer())
 				{
-					if (!m_pWeenie->AsPlayer()->IsPK() && castTarget->AsPlayer()->IsPK())
+					if (!m_pWeenie->IsPK() && castTarget->IsPK())
 					{
 						bSpellPerformed = false;
 						break;
@@ -1713,7 +1727,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 						{
 							if (wielded->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
 							{
-								if (castTarget == m_pWeenie || wielded->parent) // for other targets, only physically wielded allowed
+								if (castTarget == m_pWeenie || wielded->parent || m_pWeenie->GetWorldTopLevelOwner()) // for other targets, only physically wielded allowed, TopLevelOwner for buff gems.
 								{
 									targets.push_back(wielded);
 								}
@@ -1756,7 +1770,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 							if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
 							{
 								// Only Update PK Activity if both target and caster are PK, Prevents PKs from tagging NPKs for PK activity.
-								if (m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+								if (m_pWeenie->IsPK() && target->IsPK())
 								{
 									m_pWeenie->AsPlayer()->UpdatePKActivity();
 									target->AsPlayer()->UpdatePKActivity();
@@ -1895,15 +1909,11 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 				break;
 
 			// NPKs should not be able to buff PKs
-			if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
+			if (m_pWeenie && target && m_pWeenie->IsPK() && target->IsPK())
 			{
-				if (!m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
-				{
 					bSpellPerformed = false;
 					break;
-				}
 			}
-
 			else
 			{
 				Fellowship *fellow = target->GetFellowship();
@@ -2467,7 +2477,7 @@ bool CSpellcastingManager::DoTransferSpell(CWeenieObject *other, const TransferS
 		// NPKs should not be able to heal PKs
 		if (m_pWeenie && other && m_pWeenie->AsPlayer() && other->AsPlayer())
 		{
-			if (!m_pWeenie->AsPlayer()->IsPK() && other->AsPlayer()->IsPK())
+			if (!m_pWeenie->IsPK() && other->IsPK())
 			{
 				return false;
 			}
@@ -2651,7 +2661,7 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	// NPKs should not be able to heal PKs
 	if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
 	{
-		if (!m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+		if (!m_pWeenie->IsPK() && target->IsPK())
 		{
 			return false;
 		}
@@ -2680,7 +2690,7 @@ bool CSpellcastingManager::AdjustVital(CWeenieObject *target)
 	{
 		if (m_pWeenie && target && m_pWeenie->AsPlayer() && target->AsPlayer())
 		{
-			if (m_pWeenie->AsPlayer()->IsPK() && target->AsPlayer()->IsPK())
+			if (m_pWeenie->IsPK() && target->IsPK())
 			{
 				m_pWeenie->AsPlayer()->UpdatePKActivity();
 				target->AsPlayer()->UpdatePKActivity();

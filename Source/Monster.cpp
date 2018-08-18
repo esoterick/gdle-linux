@@ -517,8 +517,8 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 	if (wasWielded && get_minterp()->InqStyle() != Motion_NonCombat)
 		AdjustToNewCombatMode();
 
-	if (AsPlayer() && sourceItem->m_Qualities.id == W_COINSTACK_CLASS)
-		RecalculateCoinAmount();
+	if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
+		RecalculateCoinAmount(sourceItem->m_Qualities.id);
 
 	sourceItem->m_Qualities.RemoveFloat(TIME_TO_ROT_FLOAT);
 	sourceItem->_timeToRot = -1.0;
@@ -602,8 +602,8 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 
 	RecalculateEncumbrance();
 
-	if (AsPlayer() && sourceItem->m_Qualities.id == W_COINSTACK_CLASS)
-		RecalculateCoinAmount();
+	if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
+		RecalculateCoinAmount(sourceItem->m_Qualities.id);
 
 	if (bWasWielded && get_minterp()->InqStyle() != Motion_NonCombat)
 		AdjustToNewCombatMode();
@@ -950,8 +950,9 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 
 		RecalculateEncumbrance();
 
-		if (AsPlayer() && sourceItem->m_Qualities.id == W_COINSTACK_CLASS)
-			RecalculateCoinAmount();
+		if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
+			RecalculateCoinAmount(sourceItem->m_Qualities.id);
+
 	}
 
 	return true;
@@ -1237,12 +1238,12 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 		return;
 	}
 
-	// for now we won't support giving items that are currently equipped
+	/*// for now we won't support giving items that are currently equipped
 	if (sourceItem->IsEquipped() || sourceItem->parent)
 	{
 		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_GIVE_NOT_ALLOWED);
 		return;
-	}
+	}*/
 
 	if (!targetContainer->Container_CanStore(sourceItem))
 	{
@@ -1324,8 +1325,17 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 				}
 				else
 				{
-					SendText(csprintf("You give %s %s.", topLevelOwner->GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
-					topLevelOwner->SendText(csprintf("%s gives you %s.", GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+					// check emote Refusal here for "You allow %s to examine your %s." text.
+					if (topLevelOwner->m_Qualities._emote_table && topLevelOwner->HasEmoteForID(Refuse_EmoteCategory, newStackItem->id))
+					{
+							SendText(csprintf("You allow %s to examine your %s.", topLevelOwner->GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+							topLevelOwner->SendText(csprintf("%s allows you to examine their %s.", GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+					}
+					else
+					{
+						SendText(csprintf("You give %s %s.", topLevelOwner->GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+						topLevelOwner->SendText(csprintf("%s gives you %s.", GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+					}
 				}
 			}
 
@@ -1336,8 +1346,8 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 				newStackItem->AsContainer()->MakeAwareViewContent(topLevelOwner);
 			}
 
-			if (AsPlayer() && newStackItem->m_Qualities.id == W_COINSTACK_CLASS)
-				RecalculateCoinAmount();
+			if (AsPlayer() && IsCurrency(newStackItem->m_Qualities.id))
+				RecalculateCoinAmount(newStackItem->m_Qualities.id);
 
 			topLevelOwner->OnReceiveInventoryItem(this, newStackItem, 0);
 			topLevelOwner->DebugValidate();
@@ -1755,26 +1765,11 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 {
 	CWeenieObject::OnDeath(killer_id);
 	
-	DWORD mostDamageSource = killer_id;
-	int mostDamage = 0;
-	int totalDamage = 0;
-	
-	if (m_aDamageSources.size() == 0)
+	if (m_aDamageSources.empty()) // not sure this should ever happen
 	{
-		mostDamageSource = killer_id;
+		m_highestDamageSource = killer_id;
 	}
-	else {
-		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
-		{
-			totalDamage += it->second;
 
-			if (it->second > mostDamage)
-			{
-				mostDamage = it->second;
-				mostDamageSource = it->first;
-			}
-		}
-	}
 	int level = InqIntQuality(LEVEL_INT, 0);
 
 	int xpForKill = 0;
@@ -1792,7 +1787,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 		for (auto it = m_aDamageSources.begin(); it != m_aDamageSources.end(); ++it)
 		{
 			CWeenieObject *pSource = g_pWorld->FindObject(it->first);
-			double dPercentage = (double)it->second / totalDamage;
+			double dPercentage = (double)it->second / m_totalDamageTaken;
 
 			if (pSource)
 			{
@@ -1801,8 +1796,8 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 		}
 	}
 
-	m_DeathKillerIDForCorpse = mostDamageSource;
-	if (!g_pWorld->FindObjectName(mostDamageSource, m_DeathKillerNameForCorpse))
+	m_DeathKillerIDForCorpse = m_highestDamageSource;
+	if (!g_pWorld->FindObjectName(m_highestDamageSource, m_DeathKillerNameForCorpse))
 		m_DeathKillerNameForCorpse = "fate";
 
 	if (m_Qualities._generator_registry)
@@ -1823,7 +1818,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 	if (g_pConfig->HardcoreMode() && _IsPlayer())
 	{
-		if (CWeenieObject *pKiller = g_pWorld->FindObject(mostDamageSource))
+		if (CWeenieObject *pKiller = g_pWorld->FindObject(m_highestDamageSource))
 		{
 			if (!g_pConfig->HardcoreModePlayersOnly() || pKiller->_IsPlayer())
 			{
@@ -2212,6 +2207,34 @@ DWORD CMonsterWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObjec
 
 							lastProbability = emoteSet.probability;
 
+							return 0;
+						}
+					}
+				}
+			}
+
+			//No give emote for this item, let's check Refuse.
+			emoteCategory = m_Qualities._emote_table->_emote_table.lookup(Refuse_EmoteCategory);
+
+			if (emoteCategory)
+			{
+				double dice = Random::GenFloat(0.0, 1.0);
+				double lastProbability = -1.0;
+
+				for (auto &emoteSet : *emoteCategory)
+				{
+					if (emoteSet.classID == item->m_Qualities.id)
+					{
+						if (dice >= emoteSet.probability)
+							continue;
+
+						if (lastProbability < 0.0 || lastProbability == emoteSet.probability)
+						{
+							MakeEmoteManager()->ExecuteEmoteSet(emoteSet, source->GetID());
+
+							lastProbability = emoteSet.probability;
+
+							SimulateGiveObject(source->AsContainer(), item);
 							return 0;
 						}
 					}
