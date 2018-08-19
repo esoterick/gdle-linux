@@ -5107,8 +5107,8 @@ bool CWeenieObject::HasEmoteForID(EmoteCategory emoteCategory, DWORD item_id)
 			}
 		}
 	}
-	else
-		return FALSE;
+	
+	return FALSE;
 }
 
 void CWeenieObject::ChanceExecuteEmoteSet(DWORD other_id, EmoteCategory category)

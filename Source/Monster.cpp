@@ -1195,7 +1195,7 @@ void CMonsterWeenie::GiveItem(DWORD targetContainerId, DWORD sourceItemId, DWORD
 	}
 
 	CWeenieObject *target = g_pWorld->FindObject(targetContainerId);
-	CWeenieObject *sourceItem = FindContainedItem(sourceItemId);
+	CWeenieObject *sourceItem = g_pWorld->FindObject(sourceItemId);
 
 	if (!sourceItem || !target)
 	{
@@ -1326,7 +1326,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 				else
 				{
 					// check emote Refusal here for "You allow %s to examine your %s." text.
-					if (topLevelOwner->m_Qualities._emote_table && topLevelOwner->HasEmoteForID(Refuse_EmoteCategory, newStackItem->id))
+					if (topLevelOwner->m_Qualities._emote_table && topLevelOwner->HasEmoteForID(Refuse_EmoteCategory, newStackItem->m_Qualities.id))
 					{
 							SendText(csprintf("You allow %s to examine your %s.", topLevelOwner->GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
 							topLevelOwner->SendText(csprintf("%s allows you to examine their %s.", GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
