@@ -122,8 +122,20 @@ void CNetwork::Shutdown()
 
 void CNetwork::IncomingThreadProc()
 {
+	// one second delay
+	timeval waittime = { 1, 0 };
+	fd_set fd = { 0 };
+
 	while (m_running)
 	{
+		FD_ZERO(&fd);
+		FD_SET(m_read_sock, &fd);
+		FD_SET(m_write_sock, &fd);
+
+		// not going to be real picky about the return of select
+		// just check the sockets anyway
+		select(0, &fd, nullptr, nullptr, &waittime);
+
 		QueueIncomingOnSocket(m_read_sock);
 		QueueIncomingOnSocket(m_write_sock);
 		std::this_thread::yield();
@@ -134,7 +146,12 @@ void CNetwork::OutgoingThreadProc()
 {
 	while (m_running)
 	{
-		if (!_queuedOutgoing.empty())
+		{
+			std::unique_lock sigLock(m_sigOutgoingLock);
+			m_sigOutgoing.wait_for(sigLock, std::chrono::seconds(1));
+		}
+
+		while (!_queuedOutgoing.empty())
 		{
 			std::scoped_lock lock(m_outgoingLock);
 
@@ -146,6 +163,8 @@ void CNetwork::OutgoingThreadProc()
 				{
 					_queuedOutgoing.erase(entry);
 				}
+
+				std::this_thread::yield();
 			}
 		}
 
@@ -222,6 +241,7 @@ void CNetwork::QueuePacket(SOCKADDR_IN *peer, void *data, DWORD len, bool useRea
 		std::scoped_lock lock(m_outgoingLock);
 		_queuedOutgoing.push_back(std::move(qp));
 	}
+	m_sigOutgoing.notify_all();
 }
 
 void CNetwork::QueueIncomingOnSocket(SOCKET socket)

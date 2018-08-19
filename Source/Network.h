@@ -126,6 +126,12 @@ private:
 	std::mutex m_incomingLock;
 	std::mutex m_outgoingLock;
 
+	std::mutex m_sigIncomingLock;
+	std::condition_variable m_sigIncoming;
+
+	std::mutex m_sigOutgoingLock;
+	std::condition_variable m_sigOutgoing;
+
 	std::list<CQueuedPacket> _queuedIncoming;
 	std::list<CQueuedPacket> _queuedOutgoing;
 };
