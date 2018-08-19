@@ -77,23 +77,29 @@ void CNetwork::Init()
 	USHORT wVersionRequested = 0x0202;
 	WSAStartup(wVersionRequested, &wsaData);
 
-	SOCKADDR_IN localhost;
-	localhost.sin_family = AF_INET;
-	localhost.sin_addr = m_addr;
+	SOCKADDR_IN local_read;
+	local_read.sin_family = AF_INET;
+	local_read.sin_addr = m_addr;
 
 	m_read_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	m_write_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-	localhost.sin_port = htons(m_port);
-	if (bind(m_read_sock, reinterpret_cast<const sockaddr*>(&localhost), sizeof(SOCKADDR_IN)))
+	WINLOG(Temp, Normal, "Binding to addr %s\n", inet_ntoa(m_addr));
+
+	local_read.sin_port = htons(m_port);
+	if (bind(m_read_sock, reinterpret_cast<const sockaddr*>(&local_read), sizeof(SOCKADDR_IN)))
 	{
 		WINLOG(Temp, Normal, "Failed bind on recv port %u!\n", m_port);
 		SERVER_ERROR << "Failed bind on recv port:" << m_port;
 	}
 
+	SOCKADDR_IN local_write;
+	local_write.sin_family = AF_INET;
+	local_write.sin_addr = m_addr;
+
 	WORD sport = m_port + 1;
-	localhost.sin_port = htons(sport);
-	if (bind(m_write_sock, reinterpret_cast<const sockaddr*>(&localhost), sizeof(SOCKADDR_IN)))
+	local_write.sin_port = htons(sport);
+	if (bind(m_write_sock, reinterpret_cast<const sockaddr*>(&local_write), sizeof(SOCKADDR_IN)))
 	{
 		WINLOG(Temp, Normal, "Failed bind on send port %u!\n", sport);
 		SERVER_ERROR << "Failed bind on send port:" << sport;
@@ -144,6 +150,10 @@ void CNetwork::IncomingThreadProc()
 
 void CNetwork::OutgoingThreadProc()
 {
+	// one second delay
+	//timeval waittime = { 1, 0 };
+	//fd_set fd = { 0 };
+
 	while (m_running)
 	{
 		{
@@ -153,6 +163,12 @@ void CNetwork::OutgoingThreadProc()
 
 		while (!_queuedOutgoing.empty())
 		{
+			//FD_ZERO(&fd);
+			//FD_SET(m_read_sock, &fd);
+			//FD_SET(m_write_sock, &fd);
+
+			//select(0, nullptr, &fd, nullptr, &waittime);
+
 			std::scoped_lock lock(m_outgoingLock);
 
 			auto entry = _queuedOutgoing.begin();
@@ -202,7 +218,10 @@ bool CNetwork::SendPacket(SOCKET socket, SOCKADDR_IN *peer, void *data, DWORD le
 		return false;
 	}
 
+	//WINLOG(Temp, Normal, "Sending to %s:%d\n", inet_ntoa(peer->sin_addr), ntohs(peer->sin_port));
+
 	int bytesSent = sendto(socket, (char *)data, len, 0, (sockaddr *)peer, sizeof(SOCKADDR_IN));
+
 	bool success = (SOCKET_ERROR != bytesSent);
 
 	if (success)
@@ -617,7 +636,7 @@ void CNetwork::ConnectionRequest(sockaddr_in *addr, BlobPacket_s *p)
 		return;
 	}
 
-	SERVER_INFO << "Client" << login_credentials << "(" << inet_ntoa(addr->sin_addr) << ") connected on slot" << slot;
+	SERVER_INFO << "Client" << login_credentials << "(" << inet_ntoa(addr->sin_addr) << ":" << ntohs(addr->sin_port) << ") connected on slot" << slot;
 
 	client = m_ClientSlots[slot] = new CClient(addr, slot, accountInfo);
 	client->SetLoginData(client_unix_timestamp, portal_stamp, cell_stamp);

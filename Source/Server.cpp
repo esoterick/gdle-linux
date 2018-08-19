@@ -99,8 +99,9 @@ DWORD CPhatServer::InternalThreadProc()
 bool CPhatServer::Init()
 {
 	unsigned long bind_ip = m_Config.BindIP();
-	assert(sizeof(bind_ip) == sizeof(in_addr));
-	memcpy(&m_hostaddr, &bind_ip, sizeof(in_addr));
+	//assert(sizeof(bind_ip) == sizeof(in_addr));
+	memset(&m_hostaddr, 0, sizeof(in_addr));
+	m_hostaddr.S_un.S_addr = bind_ip;
 	m_hostport = m_Config.BindPort();
 
 	g_pGlobals->ResetPackets();
