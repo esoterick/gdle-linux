@@ -828,9 +828,32 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 	if (!source->InqBoolQuality(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false)) // if bool was set to false at swear time or doesn't have it flagged
 	{
 		if (node->_unixTimeSwornAt < 1534765700) // if sworn before allegiance patch allow passup (20/08/18)
+		{
 			source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
+		}
+		else if (CWeenieObject* patronWeenie = g_pWorld->FindPlayer(node->_patronID))  // patron is online to get their level
+		{
+			if (source->m_Qualities.GetInt(LEVEL_INT, 2) <= patronWeenie->m_Qualities.GetInt(LEVEL_INT, 1))
+				source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
+			else
+				return;
+		}
+		else if (CWeenieObject* patronWeenie = CWeenieObject::Load(node->_patronID)) // temporarily load the patron so we can compare levels
+		{
+			if (source->m_Qualities.GetInt(LEVEL_INT, 2) <= patronWeenie->m_Qualities.GetInt(LEVEL_INT, 1))
+			{
+				delete patronWeenie;
+				source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
+			}
+			else 
+			{
+				delete patronWeenie;
+				return;
+			}
+				
+		}
 		else
-			return;
+			return; // bool remains false, don't passup
 	}
 
 	time_t currentTime = time(0);
