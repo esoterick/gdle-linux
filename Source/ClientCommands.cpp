@@ -42,6 +42,7 @@
 #include "easylogging++.h"
 #include "ObjectMsgs.h"
 #include "EnumUtil.h"
+#include "AllegianceManager.h"
 
 // Most of these commands are just for experimenting and never meant to be used in a real game
 // TODO: Add flags to these commands so they are only accessible under certain modes such as a sandbox mode
@@ -1023,6 +1024,59 @@ CLIENT_COMMAND(damagesources, "", "Lists all damage sources and values for the l
 		else
 		{
 			pPlayer->SendText("No damage taken.", LTT_DEFAULT);
+		}
+	}
+
+	return false;
+}
+
+CLIENT_COMMAND(sweartime, "<unix timestamp>", "Sets the time that the last assessed player swore to their patron to <unix timestamp> seconds. If no argument is given, shows the current timestamp.", ADMIN_ACCESS)
+{
+	CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!target)
+		return false;
+	if (target->AsPlayer())
+	{
+		if (AllegianceTreeNode* targetNode = g_pAllegianceManager->GetTreeNode(target->id))
+		{
+			if (targetNode->_patronID) {
+				int oldSwornAt = targetNode->_unixTimeSwornAt;
+				if (argc < 1)
+				{
+					pPlayer->SendText(csprintf("%s's unix time sworn at is %d.", targetNode->_charName.c_str(), oldSwornAt), LTT_DEFAULT);
+					return false;
+				}
+				targetNode->_unixTimeSwornAt = atoi(argv[0]);
+				pPlayer->SendText(csprintf("%s's unix time sworn at has been changed from %d to %d.", targetNode->_charName.c_str(), oldSwornAt, targetNode->_unixTimeSwornAt), LTT_DEFAULT);
+			}
+		}
+	}
+
+	return false;
+}
+
+CLIENT_COMMAND(passupbool, "<0 | 1>", "Sets the last assessed player's XP passup bool. If no argument is given, shows the current state.", ADMIN_ACCESS)
+{
+	CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!target)
+		return false;
+	if (target->AsPlayer())
+	{
+		if (AllegianceTreeNode* targetNode = g_pAllegianceManager->GetTreeNode(target->id)) 
+		{
+			bool canPassup = target->InqBoolQuality(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, 0);
+			if (argc < 1)
+				pPlayer->SendText(csprintf("%s's XP passup is currently %s.", target->GetName().c_str(), canPassup ? "enabled" : "disabled"), LTT_DEFAULT);
+			else
+			{
+				int input = atoi(argv[0]);
+				if (!input || input == 1) 
+				{
+					target->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, input);
+					pPlayer->SendText(csprintf("%s's XP passup has now been %s.", target->GetName().c_str(), input ? "enabled" : "disabled"), LTT_DEFAULT);
+				}
+			}
+			
 		}
 	}
 
