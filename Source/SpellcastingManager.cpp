@@ -1727,7 +1727,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 						{
 							if (wielded->GetItemType() & m_SpellCastData.spell->_non_component_target_type)
 							{
-								if (castTarget == m_pWeenie || wielded->parent || m_pWeenie->GetWorldTopLevelOwner()) // for other targets, only physically wielded allowed, TopLevelOwner for buff gems.
+								if (castTarget == m_pWeenie || wielded->parent || m_pWeenie->GetWorldTopLevelOwner() == castTarget->GetWorldTopLevelOwner()) // for other targets, only physically wielded allowed, TopLevelOwner for buff gems.
 								{
 									targets.push_back(wielded);
 								}
