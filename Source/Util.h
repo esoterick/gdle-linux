@@ -1,5 +1,6 @@
-
 #pragma once
+
+#include <mutex>
 
 namespace Random
 {
@@ -69,75 +70,36 @@ public:
 class CLockable
 {
 public:
-	CLockable()
-	{
-		InitializeCriticalSection(&_cs);
-	}
-
-	~CLockable()
-	{
-		DeleteCriticalSection(&_cs);
-	}
+	CLockable() = default;
+	virtual ~CLockable() = default;
 
 	inline void Lock()
 	{
-		EnterCriticalSection(&_cs);
+		mutex.lock();
 	}
 
 	inline void Unlock()
 	{
-		LeaveCriticalSection(&_cs);
+		mutex.unlock();
+	}
+
+protected:
+	inline std::scoped_lock<std::recursive_mutex>& scope_lock()
+	{
+		return std::scoped_lock(mutex);
 	}
 
 private:
-	CRITICAL_SECTION _cs;
+	std::recursive_mutex mutex;
 };
 
 
 template <class T>
-class TLockable : public T
+class TLockable : public T, public CLockable
 {
 public:
-	TLockable()
-	{
-		InitializeCriticalSection(&_cs);
-	}
-
-	virtual ~TLockable()
-	{
-		DeleteCriticalSection(&_cs);
-	}
-
-	inline void Lock()
-	{
-		EnterCriticalSection(&_cs);
-	}
-
-	inline void Unlock()
-	{
-		LeaveCriticalSection(&_cs);
-	}
-
-private:
-	CRITICAL_SECTION _cs;
-};
-
-class CScopedLock
-{
-public:
-	inline CScopedLock(CLockable *lock)
-	{
-		_lock = lock;
-		_lock->Lock();
-	}
-
-	inline ~CScopedLock()
-	{
-		_lock->Unlock();
-	}
-
-private:
-	CLockable *_lock;
+	TLockable() = default;
+	virtual ~TLockable() = default;
 };
 
 class CClient;
