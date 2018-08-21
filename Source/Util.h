@@ -83,7 +83,6 @@ public:
 		mutex.unlock();
 	}
 
-protected:
 	inline std::scoped_lock<std::recursive_mutex>& scope_lock()
 	{
 		return std::scoped_lock(mutex);
