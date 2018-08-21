@@ -38,7 +38,7 @@ public:
 	std::unique_ptr<BYTE[]> data;
 	DWORD len = 0;
 	double recvTime;
-	bool useReadStream = false;
+	bool useReadStream;
 };
 
 class CNetwork
@@ -57,8 +57,13 @@ public:
 	void KickClient(class CClient* pClient);
 	void KickClient(WORD slot);
 	void KillClient(WORD slot);
-	void QueuePacket(SOCKADDR_IN *, void *data, DWORD len, bool useReadStream = false);
-	void SendConnectlessBlob(SOCKADDR_IN *, BlobPacket_s *, DWORD dwFlags, DWORD dwSequence, WORD wTime, bool useReadStream = false);
+	void QueuePacket(SOCKADDR_IN *peer, void *data, DWORD len) { QueuePacket(peer, data, len, false); };
+	void QueuePacket(SOCKADDR_IN *peer, void *data, DWORD len, bool useReadStream);
+	void SendConnectlessBlob(SOCKADDR_IN *peer, BlobPacket_s *blob, DWORD dwFlags, DWORD dwSequence, WORD wTime)
+	{
+		SendConnectlessBlob(peer, blob, dwFlags, dwSequence, wTime, false);
+	};
+	void SendConnectlessBlob(SOCKADDR_IN *peer, BlobPacket_s *blob, DWORD dwFlags, DWORD dwSequence, WORD wTime, bool useReadStream);
 
 	void AddBan(in_addr ipaddr, const char *admin, const char *reason);
 	bool RemoveBan(in_addr ipaddr);

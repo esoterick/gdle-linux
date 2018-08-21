@@ -193,7 +193,7 @@ WORD CNetwork::GetServerID(void)
 	return m_ServerID;
 }
 
-void CNetwork::SendConnectlessBlob(SOCKADDR_IN *peer, BlobPacket_s *blob, DWORD dwFlags, DWORD dwSequence = 0, WORD wTime = 0, bool useReadStream)
+void CNetwork::SendConnectlessBlob(SOCKADDR_IN *peer, BlobPacket_s *blob, DWORD dwFlags, DWORD dwSequence, WORD wTime, bool useReadStream)
 {
 	BlobHeader_s *header = &blob->header;
 
@@ -526,7 +526,7 @@ void CNetwork::SendConnectLoginFailure(sockaddr_in *addr, int error, const char 
 	CREATEBLOB(BadLogin, sizeof(DWORD));
 	*((DWORD *)BadLogin->data) = 0x00000000;
 
-	SendConnectlessBlob(addr, BadLogin, BT_ERROR, NULL, true);
+	SendConnectlessBlob(addr, BadLogin, BT_ERROR, 0, 0, true);
 
 	DELETEBLOB(BadLogin);
 
@@ -630,7 +630,7 @@ void CNetwork::ConnectionRequest(sockaddr_in *addr, BlobPacket_s *p)
 		CREATEBLOB(ServerFull, sizeof(DWORD));
 		*((DWORD *)ServerFull->data) = 0x00000005;
 
-		SendConnectlessBlob(addr, ServerFull, BT_ERROR, NULL, true);
+		SendConnectlessBlob(addr, ServerFull, BT_ERROR, 0, 0, true);
 
 		DELETEBLOB(ServerFull);
 		return;
@@ -670,7 +670,7 @@ void CNetwork::ConnectionRequest(sockaddr_in *addr, BlobPacket_s *p)
 		CREATEBLOB(Woot, (WORD)dwLength);
 		memcpy(Woot->data, AcceptConnect.GetData(), dwLength);
 
-		SendConnectlessBlob(addr, Woot, BT_LOGINREPLY, 0x00000000, true);
+		SendConnectlessBlob(addr, Woot, BT_LOGINREPLY, 0x00000000, 0, true);
 
 		DELETEBLOB(Woot);
 	}
