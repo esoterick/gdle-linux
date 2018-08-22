@@ -1575,6 +1575,10 @@ void CClient::ProcessMessage(BYTE *data, DWORD length, WORD group)
 					case Allegiance_ChatChannel:
 					// case Olthoi_ChatChannel:
 					// case Society_ChatChannel:
+
+						if (listening_channel > 1 && !g_pConfig->AllowGeneralChat())
+							break;
+
 						g_pWorld->BroadcastChatChannel(listening_channel, m_pEvents->GetPlayer(), filteredText);
 						break;
 					}
