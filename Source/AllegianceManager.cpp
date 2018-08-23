@@ -626,6 +626,11 @@ int AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject *
 	selfTreeNode->_unixTimeSwornAt = time(0);
 	selfTreeNode->_ingameSecondsSworn = 1;
 
+	if (selfTreeNode->_level <= targetTreeNode->_level)
+		source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
+	else
+		source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false);
+
 	targetTreeNode->_vassals[selfTreeNode->_charID] = selfTreeNode;
 
 	// not efficient, can revise later
@@ -816,6 +821,41 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 	if (!patron) // shouldn't happen
 		return;
 
+	CPlayerWeenie* source = g_pWorld->FindPlayer(source_id);
+	if (!source)
+		return;
+
+	if (!source->InqBoolQuality(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false)) // if bool was set to false at swear time or doesn't have it flagged
+	{
+		if (node->_unixTimeSwornAt < 1534765700) // if sworn before allegiance patch allow passup (20/08/18)
+		{
+			source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
+		}
+		else if (CWeenieObject* patronWeenie = g_pWorld->FindPlayer(node->_patronID))  // patron is online to get their level
+		{
+			if (source->m_Qualities.GetInt(LEVEL_INT, 2) <= patronWeenie->m_Qualities.GetInt(LEVEL_INT, 1))
+				source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
+			else
+				return;
+		}
+		else if (CWeenieObject* patronWeenie = CWeenieObject::Load(node->_patronID)) // temporarily load the patron so we can compare levels
+		{
+			if (source->m_Qualities.GetInt(LEVEL_INT, 2) <= patronWeenie->m_Qualities.GetInt(LEVEL_INT, 1))
+			{
+				delete patronWeenie;
+				source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
+			}
+			else 
+			{
+				delete patronWeenie;
+				return;
+			}
+				
+		}
+		else
+			return; // bool remains false, don't passup
+	}
+
 	time_t currentTime = time(0);
 
 	double realDaysSworn = 0;
@@ -856,13 +896,13 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 
 	unsigned long long passupAmount = amount * passup;
 
-	if (passup > 0 && node->_level <= patron->_level)
+	if (passupAmount > 0)
 	{
 		node->_cp_tithed += passupAmount;
 		patron->_cp_cached += passupAmount;
 		patron->_cp_pool_to_unload = min(4294967295ull, patron->_cp_pool_to_unload + passupAmount);
 
-		CWeenieObject *patron_weenie = g_pWorld->FindPlayer(patron->_charID);
+		CWeenieObject *patron_weenie = g_pWorld->FindPlayer(patron->_charID); // pass up now if the patron is online (otherwise remains in cp_cached until their next login)
 		if (patron_weenie)
 			patron_weenie->TryToUnloadAllegianceXP(false);
 
