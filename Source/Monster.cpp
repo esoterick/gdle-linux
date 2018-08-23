@@ -1188,6 +1188,13 @@ bool CMonsterWeenie::SplitItemToWield(DWORD sourceItemId, DWORD targetLoc, DWORD
 
 void CMonsterWeenie::GiveItem(DWORD targetContainerId, DWORD sourceItemId, DWORD transferAmount)
 {
+	if (IsExecutingEmote())
+	{
+		SendText(csprintf("%s is busy.", GetName().c_str()), LTT_DEFAULT);
+		NotifyInventoryFailedEvent(sourceItemId, WERROR_GIVE_NOT_ALLOWED);
+		return;
+	}
+
 	if (IsBusyOrInAction())
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_ACTIONS_LOCKED);
