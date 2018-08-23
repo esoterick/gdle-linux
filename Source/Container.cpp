@@ -530,6 +530,7 @@ DWORD CContainerWeenie::Container_InsertInventoryItem(DWORD dwCell, CWeenieObjec
 	}
 
 	item->m_Qualities.SetInt(PARENT_LOCATION_INT, 0);
+	item->NotifyIntStatUpdated(PARENT_LOCATION_INT, 0);
 	item->unset_parent();
 	item->leave_world();
 

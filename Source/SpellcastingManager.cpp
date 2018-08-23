@@ -2872,7 +2872,10 @@ int CSpellcastingManager::CastSpellInstant(DWORD target_id, DWORD spell_id)
 
 	m_bCasting = true;
 	m_SpellCastData = SpellCastData();
-	m_SpellCastData.caster_id = m_pWeenie->GetID();
+	if (oldData.caster_id == 0)
+		m_SpellCastData.caster_id = m_pWeenie->GetID();
+	else
+		m_SpellCastData.caster_id = oldData.caster_id;
 	m_SpellCastData.source_id = m_pWeenie->GetTopLevelID();
 	m_SpellCastData.target_id = target_id;
 	m_SpellCastData.spell_id = spell_id;
@@ -2938,7 +2941,12 @@ int CSpellcastingManager::CastSpellEquipped(DWORD target_id, DWORD spell_id, WOR
 DWORD CSpellcastingManager::DetermineSkillLevelForSpell()
 {
 	int spellcraft = 0;
-	if (m_pWeenie->m_Qualities.InqInt(ITEM_SPELLCRAFT_INT, spellcraft, FALSE, FALSE))
+	CWeenieObject *source = g_pWorld->FindObject(m_SpellCastData.caster_id);
+
+	if (!source)
+		return 0;
+
+	if (source->m_Qualities.InqInt(ITEM_SPELLCRAFT_INT, spellcraft, FALSE, FALSE))
 		return (DWORD)spellcraft;
 
 	if (!m_SpellCastData.spell)

@@ -3414,6 +3414,12 @@ CWandSpellUseEvent::CWandSpellUseEvent(DWORD wandId, DWORD targetId)
 
 void CWandSpellUseEvent::OnReadyToUse()
 {
+	if (_manager->_next_allowed_use > Timer::cur_time)
+	{	
+		Cancel();
+		return;
+	}
+
 	CWeenieObject *wand = g_pWorld->FindObject(_wandId);
 	if (!wand)
 	{
@@ -3477,6 +3483,7 @@ void CWandSpellUseEvent::OnReadyToUse()
 	}
 
 	_weenie->MakeSpellcastingManager()->m_bCasting = true;
+	_weenie->m_SpellcastingManager->m_SpellCastData.caster_id = _wandId;
 
 	if (motion)
 		ExecuteUseAnimation(motion);
@@ -3500,6 +3507,7 @@ void CWandSpellUseEvent::OnUseAnimSuccess(DWORD motion)
 
 	_weenie->MakeSpellcastingManager()->CastSpellInstant(_targetId, _spellId);
 	_weenie->DoForcedStopCompletely();
+	_manager->_next_allowed_use = Timer::cur_time + 2.0;
 	Done();
 }
 

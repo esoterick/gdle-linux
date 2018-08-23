@@ -739,6 +739,8 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		sourceItem->NotifyIIDStatUpdated(CONTAINER_IID, false);
 		sourceItem->NotifyIIDStatUpdated(WIELDER_IID, false);
 		sourceItem->NotifyIntStatUpdated(CURRENT_WIELDED_LOCATION_INT, false);
+		sourceItem->NotifyIntStatUpdated(PARENT_LOCATION_INT, false);
+		sourceItem->NotifyIntStatUpdated(PLACEMENT_POSITION_INT, false);
 	}
 
 	if (sourceItem->AsClothing() && m_bWorldIsAware)
