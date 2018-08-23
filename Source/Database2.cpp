@@ -153,7 +153,7 @@ CMYSQLConnection *CMYSQLConnection::Create(const char *host, unsigned int port, 
 	if (sqlconnection)
 	{
 		// Disable auto-reconnect (probably already disabled)
-		sqlconnection->reconnect = 0;
+		sqlconnection->reconnect = 1;
 
 		return new CMYSQLConnection(sqlconnection);
 	}

@@ -469,7 +469,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 		if (g_pDBIO->IsCharacterNameOpen(resultName.c_str()))
 		{
 			const int MIN_PLAYER_GUID = 0x50000000;
-			const int MAX_PLAYER_GUID = 0x6FFFFFFF;
+			const int MAX_PLAYER_GUID = 0x5FFFFFFF;
 
 			unsigned int newCharacterGUID = g_pDBIO->GetHighestWeenieID(MIN_PLAYER_GUID, MAX_PLAYER_GUID) + 1;
 
