@@ -3176,6 +3176,11 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		}
 	}
 
+	if (m_Qualities.GetIID(CONTAINER_IID, 0))
+	{
+		m_Qualities.RemoveInstanceID(CONTAINER_IID);
+	}
+
 	//set scale on Lugian and Empyrean characters and Setup DID on Olthoi
 	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Lugian_HeritageGroup)
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.3);
