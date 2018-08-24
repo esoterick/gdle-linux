@@ -2790,7 +2790,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				break;
 
 			std::string DOB = m_pPlayer->InqStringQuality(DATE_OF_BIRTH_STRING, "");
-			SendText(csprintf("You were born on %s", DOB.c_str()), LTT_DEFAULT);
+			SendText(csprintf("%s", DOB.c_str()), LTT_DEFAULT);
 			break;
 		}
 		case TEXT_INDIRECT: // Indirect Text (@me)
