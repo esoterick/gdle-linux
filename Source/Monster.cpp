@@ -65,6 +65,13 @@ void CMonsterWeenie::PreSpawnCreate()
 
 	if (DWORD wieldedTreasureType = InqDIDQuality(WIELDED_TREASURE_TYPE_DID, 0))
 		g_pWeenieFactory->GenerateFromTypeOrWcid(this, DestinationType::WieldTreasure_DestinationType, wieldedTreasureType);
+
+	if (m_Qualities.GetDID(PHYSICS_SCRIPT_DID, 0))
+	{
+		// Add one here or else the wrong script will play. e.g. Frost Breath for Olthoi and Sewer Rats instead of Acid Breath.
+		m_DefaultScript = m_Qualities.GetDID(PHYSICS_SCRIPT_DID, 0) + 1;
+		m_DefaultScriptIntensity = m_Qualities.GetFloat(PHYSICS_SCRIPT_INTENSITY_FLOAT, 1.0);
+	}
 }
 
 void CMonsterWeenie::PostSpawn()
