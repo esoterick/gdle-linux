@@ -486,6 +486,9 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 	sourceItem->SetWeenieContainer(targetContainer->GetID());
 	sourceItem->ReleaseFromBlock();
 
+	//store the current motion here for use later.
+	DWORD oldmotion = get_minterp()->InqStyle();
+
 	// The container will auto-correct this slot into a valid range.
 	targetSlot = targetContainer->Container_InsertInventoryItem(dwCell, sourceItem, targetSlot);
 
@@ -514,7 +517,8 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 	if (sourceItem->GetItemType() & (TYPE_ARMOR | TYPE_CLOTHING))
 		UpdateModel();
 
-	if (wasWielded && get_minterp()->InqStyle() != Motion_NonCombat)
+	// Checks the old motion vs Motion_NonCombat to prevent getting stuck while adjusting to the new combat style.
+	if (wasWielded && oldmotion != Motion_NonCombat)
 		AdjustToNewCombatMode();
 
 	if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
@@ -572,6 +576,9 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 
 	BOOL bWasWielded = sourceItem->IsWielded();
 
+	//store the current motion here for use later.
+	DWORD oldmotion = get_minterp()->InqStyle();
+
 	// Take it out of whatever slot it's in.
 	sourceItem->ReleaseFromAnyWeenieParent(false, true);
 	sourceItem->SetWeenieContainer(0);
@@ -605,7 +612,8 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 	if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
 		RecalculateCoinAmount(sourceItem->m_Qualities.id);
 
-	if (bWasWielded && get_minterp()->InqStyle() != Motion_NonCombat)
+	// Checks the old motion vs Motion_NonCombat to prevent getting stuck while adjusting to the new combat style.
+	if (bWasWielded && oldmotion != Motion_NonCombat)
 		AdjustToNewCombatMode();
 
 	if(bWasWielded)
@@ -725,6 +733,9 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 	sourceItem->SetWieldedLocation(targetLoc);
 	sourceItem->ReleaseFromBlock();
 
+	//store the current motion here for use later.
+	DWORD oldmotion = get_minterp()->InqStyle();
+
 	// The container will auto-correct this slot into a valid range.
 	Container_EquipItem(cell_id, sourceItem, targetLoc, child_location_id, placement_id);
 
@@ -750,7 +761,8 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 	sourceItem->_timeToRot = -1.0;
 	sourceItem->_beganRot = false;
 
-	if (get_minterp()->InqStyle() != Motion_NonCombat)
+	// Checks the old motion vs Motion_NonCombat to prevent getting stuck while adjusting to the new combat style.
+	if (oldmotion != Motion_NonCombat)
 		AdjustToNewCombatMode();
 
 	// apply enchantments

@@ -5812,6 +5812,10 @@ double CWeenieObject::GetMeleeDefenseMod()
 {
 	double mod = InqFloatQuality(WEAPON_DEFENSE_FLOAT, 1.0, TRUE);
 
+	// Don't enchant Ammunition
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return mod;
+
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_DEFENSE_FLOAT, &mod);
 
@@ -5832,6 +5836,10 @@ double CWeenieObject::GetMissileDefenseModUsingWielded()
 double CWeenieObject::GetMissileDefenseMod()
 {
 	double mod = InqFloatQuality(WEAPON_MISSILE_DEFENSE_FLOAT, 1.0, TRUE);
+
+	// Don't enchant Ammunition
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return mod;
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_MISSILE_DEFENSE_FLOAT, &mod);
@@ -5854,6 +5862,10 @@ double CWeenieObject::GetMagicDefenseMod()
 {
 	double mod = InqFloatQuality(WEAPON_MAGIC_DEFENSE_FLOAT, 1.0, TRUE);
 
+	// Don't enchant Ammunition
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return mod;
+
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_MAGIC_DEFENSE_FLOAT, &mod);
 
@@ -5869,6 +5881,10 @@ double CWeenieObject::GetMagicDefenseMod()
 double CWeenieObject::GetOffenseMod()
 {
 	double mod = InqFloatQuality(WEAPON_OFFENSE_FLOAT, 1.0, TRUE);
+
+	// Don't enchant Ammunition
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return mod;
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_OFFENSE_FLOAT, &mod);
@@ -6050,6 +6066,10 @@ int CWeenieObject::GetAttackTimeUsingWielded()
 int CWeenieObject::GetAttackDamage()
 {
 	int damage = InqIntQuality(DAMAGE_INT, 0, TRUE);
+	
+	// Don't enchant Ammunition
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return damage;
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantInt(DAMAGE_INT, &damage, FALSE);

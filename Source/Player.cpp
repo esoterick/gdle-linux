@@ -3816,3 +3816,10 @@ void CPlayerWeenie::ClearConsent(bool onLogout)
 	}
 }
 
+void CPlayerWeenie::UpdatePKActivity()
+{
+	m_iPKActivity = Timer::cur_time + 20;
+
+	//Set LAST_PK_ATTACK_TIMESTAMP_FLOAT for use in CACQualities::JumpStaminaCost as m_iPKActivity is not available.
+	m_Qualities.SetFloat(LAST_PK_ATTACK_TIMESTAMP_FLOAT, (double) m_iPKActivity);
+}
