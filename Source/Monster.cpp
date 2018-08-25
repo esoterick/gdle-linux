@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "WeenieObject.h"
 #include "Monster.h"
@@ -1389,7 +1388,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 		}
 	}
 
-	DebugValidate();
+	//DebugValidate();
 
 	RecalculateEncumbrance();
 }
