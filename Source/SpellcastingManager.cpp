@@ -1492,6 +1492,21 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 			switch (meta->_index)
 			{
+			case 1: // lifestone sending
+			{
+				Position lifestone;
+				if (m_pWeenie->m_Qualities.InqPosition(SANCTUARY_POSITION, lifestone) && lifestone.objcell_id != 0)
+				{
+					BeginPortalSend(lifestone);
+				}
+				else
+				{
+					m_pWeenie->SendText("Your sould is not bound to a lifestone.", LTT_MAGIC);
+				}
+
+				bSpellPerformed = true;
+				break;
+			}
 			case 2: // lifestone recall
 			{
 				Position lifestone;
