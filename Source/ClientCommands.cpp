@@ -265,7 +265,7 @@ CLIENT_COMMAND(animationall, "<num> [speed]", "Performs an animation for everyon
 
 	WORD wIndex = atoi(argv[0]);
 	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	fSpeed = min(10.0, max(0.1, fSpeed));
+	fSpeed = min(10.0f, max(0.1f, fSpeed));
 
 	PlayerWeenieMap *pPlayers = g_pWorld->GetPlayers();
 	for (PlayerWeenieMap::iterator i = pPlayers->begin(); i != pPlayers->end(); i++)
@@ -1313,7 +1313,7 @@ CLIENT_COMMAND(spawnmodel, "<model index> [scale=1] [name=*]", "Spawns a model."
 	if (!(dwModel & 0xFF000000))
 		dwModel |= 0x02000000;
 
-	float flScale = max(0.1, min(10, (float)((argc >= 2) ? atof(argv[1]) : 1.0f)));
+	float flScale = max(0.1f, min(10.0f, (float)((argc >= 2) ? atof(argv[1]) : 1.0f)));
 	const char* szName = (argc >= 3) ? argv[2] : csprintf("Model #%08X", dwModel);
 
 	CWeenieObject *pSpawn = new CWeenieObject();
@@ -1445,7 +1445,7 @@ CLIENT_COMMAND(spawnmonster, "<model index> [scale=1] [name=*] [dotcolor]", "Spa
 	if (!(dwModel & 0xFF000000))
 		dwModel |= 0x02000000;
 
-	float flScale = max(0.1, min(10, (float)((argc >= 2) ? atof(argv[1]) : 1.0f)));
+	float flScale = max(0.1f, min(10.0f, (float)((argc >= 2) ? atof(argv[1]) : 1.0f)));
 	const char* szName = (argc >= 3) ? argv[2] : csprintf("Model #%08X", dwModel);
 	int dotColor = (int)((argc >= 4) ? atoi(argv[3]) : 0);
 
@@ -2126,7 +2126,7 @@ CLIENT_COMMAND(animation, "<index> [speed=1]", "Plays a primary animation.", ADM
 
 	WORD wIndex = atoi(argv[0]);
 	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	fSpeed = min(10.0, max(0.1, fSpeed));
+	fSpeed = min(10.0f, max(0.1f, fSpeed));
 	
 	pPlayer->_server_control_timestamp += 2;
 
@@ -2159,7 +2159,7 @@ CLIENT_COMMAND(animationother, "<index> [speed=1]", "Plays a primary animation."
 
 	WORD wIndex = atoi(argv[0]);
 	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	fSpeed = min(10.0, max(0.1, fSpeed));
+	fSpeed = min(10.0f, max(0.1f, fSpeed));
 
 	other->_server_control_timestamp += 2;
 	other->last_move_was_autonomous = false;
@@ -4159,7 +4159,7 @@ CLIENT_COMMAND(spawnitem2, "[name] [scale]", "Spawns something by name (works fo
 
 	float fScale = 1.0f;
 	if (argc >= 2)
-		fScale = max(0.1, min(10, (float)atof(argv[1])));
+		fScale = max(0.1f, min(10.0f, (float)atof(argv[1])));
 
 	CWeenieObject *pItem = g_pWeenieFactory->CreateWeenieByName(argv[0], &pPlayer->m_Position, false);
 
@@ -4450,7 +4450,7 @@ CLIENT_COMMAND(spawnrandom, "[num to spawn] [scale]", "Spawns random objects.", 
 	
 	float fScale = 1.0f;
 	if (argc >= 2)
-		fScale = max(0.1, min(10, (float) atof(argv[1])));
+		fScale = max(0.1f, min(10.0f, (float) atof(argv[1])));
 
 	int total = num;
 
@@ -4785,8 +4785,8 @@ CLIENT_COMMAND(givecredit, "[value]", "Gives you some skill credits for testing.
 		amount = strtoul(argv[0], NULL, 10);
 	}
 
-	amount = max(amount, 1);
-	amount = min(amount, 100);
+	amount = max(amount, (DWORD)1);
+	amount = min(amount, (DWORD)100);
 
 	pPlayer->GiveSkillCredits(amount, true);
 

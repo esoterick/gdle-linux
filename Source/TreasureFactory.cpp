@@ -2056,13 +2056,13 @@ void CTreasureFactory::MutateArmor(CWeenieObject *newItem, CWieldTier *wieldTier
 	double resistancePierce = newItem->InqFloatQuality(ARMOR_MOD_VS_PIERCE_FLOAT, 0.0, true);
 	double resistanceBludgeon = newItem->InqFloatQuality(ARMOR_MOD_VS_BLUDGEON_FLOAT, 0.0, true);
 
-	resistanceAcid = min(resistanceAcid + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2);
-	resistanceElectric = min(resistanceElectric + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2);
-	resistanceFire = min(resistanceFire + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2);
-	resistanceCold = min(resistanceCold + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2);
-	resistanceSlash = min(resistanceSlash + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2);
-	resistancePierce = min(resistancePierce + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2);
-	resistanceBludgeon = min(resistanceBludgeon + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2);
+	resistanceAcid = min(resistanceAcid + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2.0);
+	resistanceElectric = min(resistanceElectric + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2.0);
+	resistanceFire = min(resistanceFire + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2.0);
+	resistanceCold = min(resistanceCold + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2.0);
+	resistanceSlash = min(resistanceSlash + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2.0);
+	resistancePierce = min(resistancePierce + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2.0);
+	resistanceBludgeon = min(resistanceBludgeon + (getRandomNumber(1, 2, eRandomFormula::favorLow, 1.4, creationInfo.qualityModifier) / 10), 2.0);
 
 	if (getRandomNumberExclusive(100) < 25 * (1 + (creationInfo.qualityModifier * 2)))
 		newItem->m_Qualities.SetFloat(ARMOR_MOD_VS_ACID_FLOAT, resistanceAcid);

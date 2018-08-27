@@ -523,7 +523,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 						//weenie->m_ObjDesc = scg->objDesc;
 						//weenie->m_ObjDesc.paletteID = scg->basePalette;
 
-						cg.hairStyle = max(0, min(scg->mHairStyleList.num_used - 1, cg.hairStyle));
+						cg.hairStyle = max(0, min((int)scg->mHairStyleList.num_used - 1, cg.hairStyle));
 						HairStyle_CG *hairStyle = &scg->mHairStyleList.array_data[cg.hairStyle];
 						//weenie->m_ObjDesc += hairStyle->objDesc;
 
@@ -532,7 +532,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 						if (cg.eyesStrip != -1)
 						{
-							cg.eyesStrip = max(0, min(scg->mEyeStripList.num_used - 1, cg.eyesStrip));
+							cg.eyesStrip = max(0, min((int)scg->mEyeStripList.num_used - 1, cg.eyesStrip));
 							EyesStrip_CG *eyesStrip = &scg->mEyeStripList.array_data[cg.eyesStrip];
 							if (eyesStrip)
 							{
@@ -552,7 +552,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 						}
 						if (cg.noseStrip != -1)
 						{
-							cg.noseStrip = max(0, min(scg->mNoseStripList.num_used - 1, cg.noseStrip));
+							cg.noseStrip = max(0, min((int)scg->mNoseStripList.num_used - 1, cg.noseStrip));
 							FaceStrip_CG *faceStrip = &scg->mNoseStripList.array_data[cg.noseStrip];
 							if (faceStrip)
 							{
@@ -563,7 +563,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 						}
 						if (cg.mouthStrip != -1)
 						{
-							cg.mouthStrip = max(0, min(scg->mMouthStripList.num_used - 1, cg.mouthStrip));
+							cg.mouthStrip = max(0, min((int)scg->mMouthStripList.num_used - 1, cg.mouthStrip));
 							FaceStrip_CG *faceStrip = &scg->mMouthStripList.array_data[cg.mouthStrip];
 							if (faceStrip)
 							{
@@ -582,7 +582,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 							PalSet::Release(ps);
 						}
 
-						cg.hairColor = max(0, min(scg->mHairColorList.num_used - 1, cg.hairColor));
+						cg.hairColor = max(0, min((int)scg->mHairColorList.num_used - 1, cg.hairColor));
 						if (ps = PalSet::Get(scg->mHairColorList.array_data[cg.hairColor]))
 						{
 							DWORD hairPalette = ps->GetPaletteID(cg.hairShade);
@@ -593,7 +593,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 												
 						if (cg.eyeColor != -1)
 						{
-							cg.eyeColor = max(0, min(scg->mEyeColorList.num_used - 1, cg.eyeColor));
+							cg.eyeColor = max(0, min((int)scg->mEyeColorList.num_used - 1, cg.eyeColor));
 							DWORD eyesPalette = scg->mEyeColorList.array_data[cg.eyeColor];
 							weenie->m_Qualities.SetDataID(EYES_PALETTE_DID, eyesPalette);
 							//weenie->m_ObjDesc.AddSubpalette(new Subpalette(eyesPalette, 0x20 << 3, 0x8 << 3));

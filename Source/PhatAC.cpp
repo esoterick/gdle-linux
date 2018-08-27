@@ -6,6 +6,7 @@
 #include "Client.h"
 #include "Logging.h"
 #include "easylogging++.h"
+#include "cxxopts.hpp"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -18,6 +19,11 @@ HWND g_hWndStatus = 0;
 HWND g_hWndMain = 0;
 
 UINT64 framerecord = 0;
+
+std::string g_configFile = "debug_server.cfg";
+bool g_autoStart;
+
+void ToggleServerState(HWND hDlg);
 
 // const char *PACKET_CAPTURE_CREDITS = PACKET_CAPTURE_CREDITS_STRING;
 
@@ -317,11 +323,12 @@ INT_PTR CALLBACK MainProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 			DeleteObject(hIcon);
 
-			SetWindowStringText(GetDlgItem(hDlg, IDC_SERVERCONFIG), DEFAULT_CONFIG_FILE);
+			SetWindowStringText(GetDlgItem(hDlg, IDC_SERVERCONFIG), g_configFile.c_str());
 
 #ifdef PUBLIC_BUILD
 			ShowWindow(GetDlgItem(hDlg, IDC_DEBUGCHECK), SW_HIDE);
 #endif
+
 			return TRUE;
 		}
 	case WM_COMMAND:
@@ -460,44 +467,7 @@ INT_PTR CALLBACK MainProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			case IDC_TOGGLE:
 				if (wEvent == BN_CLICKED)
 				{
-					if (!g_pPhatServer)
-					{
-						std::string serverConfig = GetWindowStringText(GetDlgItem(hDlg, IDC_SERVERCONFIG));
-
-						if (serverConfig.empty())
-						{
-							serverConfig = DEFAULT_CONFIG_FILE;
-						}
-
-						std::string configFilePath = g_pGlobals->GetGameFile(serverConfig.c_str());
-
-						if (FileExists(configFilePath.c_str()))
-						{
-							g_pPhatServer = new CPhatServer(configFilePath.c_str());
-							SetWindowText(GetDlgItem(hDlg, IDC_TOGGLE), "Stop");
-							SetWindowText(GetDlgItem(hDlg, IDC_CONNECTLINK),
-								csprintf("acclient.exe -h %s -p %s -a username:password -rodat off",
-									(!strcmp(g_pPhatServer->Config().GetValue("bind_ip"), "0.0.0.0") ? "127.0.0.1" : g_pPhatServer->Config().GetValue("bind_ip")),
-									g_pPhatServer->Config().GetValue("bind_port")));
-						}
-						else
-						{
-							MsgBox("Please specify a valid config filename.");
-						}
-					}
-					else
-					{
-						g_bOutputConsoleDisabled = true;
-						SafeDelete(g_pPhatServer);
-						g_bOutputConsoleDisabled = false;
-
-
-						SetWindowText(GetDlgItem(hDlg, IDC_TOGGLE), "Start");
-						SetWindowText(GetDlgItem(hDlg, IDC_CONNECTLINK), "");
-
-						WINLOG(Temp, Normal, "Server shutdown.\n");
-						SERVER_INFO << "Server shutdown.";
-					}
+					ToggleServerState(hDlg);
 				}
 				break;
 			}
@@ -525,6 +495,15 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 #if !defined(QUICKSTART) && defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
+
+	cxxopts::Options options("GDLE", "Game Server");
+	options.add_options()
+		("c,config", "configuration file", cxxopts::value<std::string>(g_configFile))
+		("s,start", "start the service automatically", cxxopts::value<bool>(g_autoStart));
+
+	cxxopts::ParseResult result = options.parse(__argc, __argv);
+
+
 	el::Loggers::configureFromGlobal("./GDLELogging.conf");
 	el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
@@ -560,6 +539,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	SERVER_INFO << "Welcome to GDLEnhanced!";
 
 	ShowWindow(g_hWndMain, nCmdShow);
+
+	if (g_autoStart)
+	{
+		ToggleServerState(g_hWndMain);
+	}
 
 	MSG msg;
 	msg.message = WM_NULL;
@@ -614,6 +598,48 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 #endif
 
 	return 0;
+}
+
+void ToggleServerState(HWND hDlg)
+{
+	if (!g_pPhatServer)
+	{
+		std::string serverConfig = GetWindowStringText(GetDlgItem(hDlg, IDC_SERVERCONFIG));
+
+		if (serverConfig.empty())
+		{
+			serverConfig = DEFAULT_CONFIG_FILE;
+		}
+
+		std::string configFilePath = g_pGlobals->GetGameFile(serverConfig.c_str());
+
+		if (FileExists(configFilePath.c_str()))
+		{
+			g_pPhatServer = new CPhatServer(configFilePath.c_str());
+			SetWindowText(GetDlgItem(hDlg, IDC_TOGGLE), "Stop");
+			SetWindowText(GetDlgItem(hDlg, IDC_CONNECTLINK),
+				csprintf("acclient.exe -h %s -p %s -a username:password -rodat off",
+				(!strcmp(g_pPhatServer->Config().GetValue("bind_ip"), "0.0.0.0") ? "127.0.0.1" : g_pPhatServer->Config().GetValue("bind_ip")),
+					g_pPhatServer->Config().GetValue("bind_port")));
+		}
+		else
+		{
+			MsgBox("Please specify a valid config filename.");
+		}
+	}
+	else
+	{
+		g_bOutputConsoleDisabled = true;
+		SafeDelete(g_pPhatServer);
+		g_bOutputConsoleDisabled = false;
+
+
+		SetWindowText(GetDlgItem(hDlg, IDC_TOGGLE), "Start");
+		SetWindowText(GetDlgItem(hDlg, IDC_CONNECTLINK), "");
+
+		WINLOG(Temp, Normal, "Server shutdown.\n");
+		SERVER_INFO << "Server shutdown.";
+	}
 }
 
 #endif

@@ -150,7 +150,7 @@ void CPlayerWeenie::BeginLogout()
 	if (IsLoggingOut())
 		return;
 
-	_beginLogoutTime = max(Timer::cur_time, m_iPKActivity);
+	_beginLogoutTime = max(Timer::cur_time, (double)m_iPKActivity);
 	_logoutTime = _beginLogoutTime + 5.0;
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
@@ -537,7 +537,7 @@ void CPlayerWeenie::OnGivenXP(long long amount, bool allegianceXP)
 {
 	if (m_Qualities.GetVitaeValue() < 1.0 && !allegianceXP)
 	{
-		DWORD64 vitae_pool = InqIntQuality(VITAE_CP_POOL_INT, 0) + min(amount, 1000000000);
+		DWORD64 vitae_pool = InqIntQuality(VITAE_CP_POOL_INT, 0) + min(amount, 1000000000ll);
 		float new_vitae = 1.0;
 		bool has_new_vitae = VitaeSystem::DetermineNewVitaeLevel(m_Qualities.GetVitaeValue(), InqIntQuality(DEATH_LEVEL_INT, 1), &vitae_pool, &new_vitae);
 
@@ -614,7 +614,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	if (!pKiller || !pKiller->_IsPlayer())
 		amountOfItemsToDrop = max(0, (amountOfItemsToDrop - (augDropLess * 5)));
 
-	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
+	pCorpse->_begin_destroy_at = Timer::cur_time + max((60.0 * 5 * level), 60.0 * 60); //override corpse decay time to 5 minutes per level with a minimum of 1 hour.
 	pCorpse->_shouldSave = true;
 	pCorpse->m_bDontClear = true;
 
@@ -701,7 +701,7 @@ void CPlayerWeenie::CalculateAndDropDeathItems(CCorpseWeenie *pCorpse, DWORD kil
 	}
 
 	// cap the amount of items to drop to the number of items we can drop so the message properly ends with " and "
-	amountOfItemsToDrop = min(amountOfItemsToDrop, itemValueList.size());
+	amountOfItemsToDrop = min(amountOfItemsToDrop, (int)itemValueList.size());
 	int itemsLost = 0;
 
 	std::string itemsLostText;
@@ -2097,7 +2097,7 @@ void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation
 	case 0x38000019: //linen
 	{
 		double newEncumbrance = pTarget->InqIntQuality(ENCUMB_VAL_INT, 1, TRUE);
-		newEncumbrance = max(newEncumbrance * 0.85, 1);
+		newEncumbrance = max(newEncumbrance * 0.85, 1.0);
 		pTarget->m_Qualities.SetInt(ENCUMB_VAL_INT, (int)round(newEncumbrance));
 		pTarget->m_Qualities.SetInt(NUM_TIMES_TINKERED_INT, pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0, TRUE) + 1);
 		break;
@@ -2119,7 +2119,7 @@ void CPlayerWeenie::PerformUseModificationScript(DWORD scriptId, CCraftOperation
 		pTarget->m_Qualities.SetInt(NUM_TIMES_TINKERED_INT, pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0, TRUE) + 1);
 		break;
 	case 0x3800001e: //pine
-		pTarget->m_Qualities.SetInt(VALUE_INT, max(pTarget->InqIntQuality(VALUE_INT, 0, TRUE) * 0.75, 1));
+		pTarget->m_Qualities.SetInt(VALUE_INT, max(pTarget->InqIntQuality(VALUE_INT, 0, TRUE) * 0.75, 1.0));
 		pTarget->m_Qualities.SetInt(NUM_TIMES_TINKERED_INT, pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0, TRUE) + 1);
 		break;
 	case 0x3800001f: //gold

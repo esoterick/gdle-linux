@@ -91,8 +91,8 @@ void CMonsterWeenie::PostSpawn()
 
 CWeenieObject *CMonsterWeenie::SpawnWielded(DWORD index, SmartArray<Style_CG> possibleStyles, DWORD color, SmartArray<DWORD> validColors, long double shade)
 {
-	index = max(min(index, possibleStyles.num_used - 1), 0);
-	shade = max(min(shade, 1), 0);
+	index = max(min(index, (DWORD)possibleStyles.num_used - 1), (DWORD)0);
+	shade = max(min(shade, 1.0l), 0.0l);
 
 	DWORD wcid = possibleStyles.array_data[index].weenieDefault;
 	DWORD clothingTable = possibleStyles.array_data[index].clothingTable;

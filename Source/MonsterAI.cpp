@@ -920,7 +920,7 @@ void MonsterAIManager::UpdateMissileModeAttack()
 	float weaponMaxRange = 60; //todo: get the value from the weapon? Players currently have 60 as a fixed max value.
 
 	double fTargetDist = m_pWeenie->DistanceTo(pTarget, true);
-	if (fTargetDist >= max(m_pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE), weaponMaxRange) && m_fAggroTime <= Timer::cur_time)
+	if (fTargetDist >= max(m_pWeenie->InqFloatQuality(VISUAL_AWARENESS_RANGE_FLOAT, DEFAULT_AWARENESS_RANGE), (double)weaponMaxRange) && m_fAggroTime <= Timer::cur_time)
 	{
 		SwitchState(ReturningToSpawn);
 		return;
