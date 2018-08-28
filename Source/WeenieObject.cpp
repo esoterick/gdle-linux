@@ -6445,8 +6445,9 @@ void CWeenieObject::SetStackSize(DWORD stackSize)
 	if (CWeenieObject *owner = GetWorldTopLevelOwner())
 	{
 		owner->RecalculateEncumbrance();
-		if (owner->AsPlayer() && IsCurrency(m_Qualities.id))
-			owner->RecalculateCoinAmount(m_Qualities.id);
+		//ToDo: figure out a method to allow this to work while not interfering with pyreal count when buying MMDs.
+		if (owner->AsPlayer() && m_Qualities.id == W_COINSTACK_CLASS)
+			owner->RecalculateCoinAmount(W_COINSTACK_CLASS);
 	}
 }
 
