@@ -49,6 +49,9 @@
 #include <iomanip>
 #include <locale>
 #include <sstream>
+#include <filesystem>
+#include <thread>
+#include <future>
 
 #include "resource.h"
 
