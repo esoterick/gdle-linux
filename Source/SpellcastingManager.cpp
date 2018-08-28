@@ -311,8 +311,23 @@ void CSpellcastingManager::BeginNextMotion()
 
 		if (m_PendingMotions.empty())
 		{
-			int error = LaunchSpellEffect(false);
-			EndCast(error);
+			int bitfield = m_pWeenie->m_SpellcastingManager->m_SpellCastData.spell->_bitfield;
+			if ((bitfield & Resistable_SpellIndex) && (bitfield & PKSensitive_SpellIndex) && (bitfield & FastCast_SpellIndex)) //streaks
+			{
+				if (m_pWeenie->m_Qualities.GetFloat(NEXT_SPELLCAST_TIMESTAMP_FLOAT, 0.0) <= Timer::cur_time)
+				{
+					int error = LaunchSpellEffect(false);
+					EndCast(error);
+					m_pWeenie->m_Qualities.SetFloat(NEXT_SPELLCAST_TIMESTAMP_FLOAT, Timer::cur_time + 2.0);
+				}
+				else
+					EndCast(WERROR_ACTIONS_LOCKED);
+			}
+			else //everything else
+			{
+				int error = LaunchSpellEffect(false);
+				EndCast(error);
+			}
 		}
 		else
 		{
