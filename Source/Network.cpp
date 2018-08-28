@@ -142,8 +142,11 @@ void CNetwork::IncomingThreadProc()
 		// just check the sockets anyway
 		select(0, &fd, nullptr, nullptr, &waittime);
 
-		QueueIncomingOnSocket(m_read_sock);
-		QueueIncomingOnSocket(m_write_sock);
+		if (FD_ISSET(m_read_sock, &fd))
+			QueueIncomingOnSocket(m_read_sock);
+		if (FD_ISSET(m_write_sock, &fd))
+			QueueIncomingOnSocket(m_write_sock);
+
 		std::this_thread::yield();
 	}
 }

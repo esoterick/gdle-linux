@@ -82,12 +82,13 @@ DWORD CPhatServer::InternalThreadProc()
 	{
 		m_running = true;
 
-		DWORD sleepTime = g_pConfig->FastTick() ? 0 : 1;
-
 		while (m_running)
 		{
 			Tick();
-			std::this_thread::yield();
+			if (g_pConfig->FastTick())
+				std::this_thread::yield();
+			else
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
 	}
 
