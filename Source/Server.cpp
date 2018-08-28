@@ -82,8 +82,6 @@ DWORD CPhatServer::InternalThreadProc()
 	{
 		m_running = true;
 
-		DWORD sleepTime = g_pConfig->FastTick() ? 0 : 1;
-
 		while (m_running)
 		{
 			Tick();
