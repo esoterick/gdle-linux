@@ -286,6 +286,7 @@ void CWeenieFactory::LoadLocalStorage(bool refresh)
 	const auto end = std::filesystem::recursive_directory_iterator();
 
 	std::mutex mapLock;
+	std::mutex multiMapLock;
 	std::list< std::future<void> > tasks;
 
 	uint32_t maxTasks = std::thread::hardware_concurrency();
@@ -363,18 +364,18 @@ void CWeenieFactory::LoadLocalStorage(bool refresh)
 							std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 							name.erase(remove_if(name.begin(), name.end(), isspace), name.end());
 
-							std::scoped_lock lock(mapLock);
-
 							// remove if this WCID is already in here
 							for (std::multimap<std::string, CWeenieDefaults *>::iterator i = m_WeenieDefaultsByName.begin(); i != m_WeenieDefaultsByName.end(); i++)
 							{
 								if (i->second->m_Qualities.GetID() == pDefaults->m_Qualities.GetID())
 								{
+									std::scoped_lock lock(multiMapLock);
 									m_WeenieDefaultsByName.erase(i);
 									break;
 								}
 							}
 
+							std::scoped_lock lock(multiMapLock);
 							m_WeenieDefaultsByName.insert(std::pair<std::string, CWeenieDefaults *>(name, pDefaults));
 						}
 
@@ -411,10 +412,19 @@ void CWeenieFactory::LoadLocalStorage(bool refresh)
 
 		while (tasks.size() > maxTasks)
 		{
-			auto status = tasks.front().wait_for(std::chrono::milliseconds(0));
-			if (status == std::future_status::ready)
-				tasks.pop_front();
-			
+			auto task = tasks.begin();
+			while (task != tasks.end())
+			{
+				auto status = task->wait_for(std::chrono::milliseconds(0));
+				if (status == std::future_status::ready)
+				{
+					task = tasks.erase(task);
+				}
+				else
+				{
+					task++;
+				}
+			}
 			std::this_thread::yield();
 		}
 	}
