@@ -1487,8 +1487,6 @@ DWORD CContainerWeenie::ConsumeCoin(int amountToConsume, int currencyid)
 void CContainerWeenie::RecalculateEncumbrance()
 {
 	int oldValue = InqIntQuality(ENCUMB_VAL_INT, 0);
-	if (oldValue == 0)
-		return;
 
 	int newValue = 0;
 	for (auto wielded : m_Wielded)
