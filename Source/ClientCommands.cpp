@@ -1884,6 +1884,8 @@ CLIENT_COMMAND(fixbusy, "", "Makes you unbusy if you are stuck.", BASIC_ACCESS)
 {
 	pPlayer->NotifyAttackDone();
 	pPlayer->NotifyInventoryFailedEvent(0, 0);
+	if (pPlayer->m_UseManager)
+		pPlayer->m_UseManager->Cancel();
 	pPlayer->NotifyUseDone(0);
 	pPlayer->NotifyWeenieError(0);
 
