@@ -1384,15 +1384,14 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 				RecalculateCoinAmount(newStackItem->m_Qualities.id);
 
 			topLevelOwner->OnReceiveInventoryItem(this, newStackItem, 0);
-			topLevelOwner->DebugValidate();
+			//topLevelOwner->DebugValidate();
 		}
 	}
 
 	//DebugValidate();
-
-	RecalculateEncumbrance();
+	if (AsPlayer())
+		RecalculateEncumbrance();
 }
-
 void CMonsterWeenie::Tick()
 {
 	CContainerWeenie::Tick();

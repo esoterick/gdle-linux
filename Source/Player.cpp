@@ -3313,11 +3313,18 @@ void CPlayerWeenie::HandleItemManaRequest(DWORD itemId)
 
 void CPlayerWeenie::UpdateModuleFromClient(PlayerModule &module)
 {
-	if (&_playerModule && &module) // feels hacky
-	{
-		_playerModule = module;
-		UpdateModel();
-	}
+	_playerModule.options_ = module.options_;
+	_playerModule.options2_ = module.options2_;
+	_playerModule.spell_filters_ = module.spell_filters_;
+
+	for (DWORD i = 0; i < 8; i++)
+		_playerModule.favorite_spells_[i] = module.favorite_spells_[i];
+
+	CloneMemberPointerData<ShortCutManager>(_playerModule.shortcuts_, module.shortcuts_);
+	CloneMemberPointerData<PackableHashTable<DWORD, long>>(_playerModule.desired_comps_, module.desired_comps_);
+	CloneMemberPointerData<GenericQualitiesData>(_playerModule.m_pPlayerOptionsData, module.m_pPlayerOptionsData);
+
+	UpdateModel();
 }
 
 void CPlayerWeenie::LoadEx(CWeenieSave &save)
