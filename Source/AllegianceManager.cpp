@@ -718,6 +718,10 @@ void AllegianceManager::BreakAllegiance(AllegianceTreeNode *patronNode, Allegian
 	}
 
 	Save();
+
+	CPlayerWeenie* source = g_pWorld->FindPlayer(vassalNode->_charID);
+	source->m_Qualities.RemoveBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL);
+	source->Save();
 }
 
 int AllegianceManager::TryBreakAllegiance(CWeenieObject *source, DWORD target_id)
@@ -742,6 +746,7 @@ int AllegianceManager::TryBreakAllegiance(CWeenieObject *source, DWORD target_id
 	{
 		// the target is a vassal
 		BreakAllegiance(selfTreeNode, targetTreeNode);
+
 	}
 	else if (selfTreeNode->_patronID == target_id)
 	{
@@ -752,6 +757,8 @@ int AllegianceManager::TryBreakAllegiance(CWeenieObject *source, DWORD target_id
 	{
 		return WERROR_NO_OBJECT;
 	}
+
+
 
 	source->SendText(csprintf(" You have broken your Allegiance to %s!", targetCharName.c_str()), LTT_DEFAULT);
 
@@ -805,8 +812,7 @@ void AllegianceManager::BreakAllAllegiance(DWORD char_id)
 		}
 	}
 
-	CPlayerWeenie* source = g_pWorld->FindPlayer(char_id);
-	source->m_Qualities.RemoveBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL);
+
 }
 
 void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount, bool direct)
@@ -834,13 +840,10 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 		{
 			source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
 		}
-		else if (node->_level <= patron->_level)
-		{
-			source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
-		}
-		else 
-			return; // bool remains false, don't passup
 	}
+
+	if (node->_level > patron->_level && !source->InqBoolQuality(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false))
+		return;
 
 	time_t currentTime = time(0);
 
