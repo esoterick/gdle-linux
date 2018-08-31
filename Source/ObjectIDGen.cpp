@@ -9,8 +9,13 @@ const uint32_t IDQUEUEMIN = 50000;
 const uint32_t IDRANGESTART = 0x80000000;
 const uint32_t IDRANGEEND = 0xff000000;
 
+const uint32_t IDEPHEMERALSTART = 0x60000000;
+const uint32_t IDEPHEMERALMASK = 0x6fffffff;
+
+
 CObjectIDGenerator::CObjectIDGenerator()
 {
+	m_ephemeral = IDEPHEMERALSTART;
 	if (g_pConfig->UseIncrementalID())
 	{
 		WINLOG(Data, Normal, "Using Incremental ID system.....\n");
@@ -99,6 +104,11 @@ DWORD CObjectIDGenerator::GenerateGUID(eGUIDClass type)
 
 		return result;
 	}
+	case eEphemeral:
+	{
+		m_ephemeral &= IDEPHEMERALMASK;
+		return m_ephemeral++;
+	} 
 	}
 
 	return 0;
@@ -108,7 +118,7 @@ void CObjectIDGenerator::SaveRangeStart()
 {
 	BinaryWriter banData;
 	banData.Write<DWORD>(m_dwHintDynamicGUID);
-	if (g_pConfig->UseIncrementalID())
+	if (!g_pConfig->UseIncrementalID())
 	{
 		g_pDBIO->CreateOrUpdateGlobalData(DBIO_GLOBAL_ID_RANGE_START, banData.GetData(), banData.GetSize());
 	}
@@ -120,6 +130,7 @@ void CObjectIDGenerator::LoadRangeStart()
 	DWORD length = 0;
 	if (!g_pConfig->UseIncrementalID())
 	{
+		g_pDBIO->GetGlobalData(DBIO_GLOBAL_ID_RANGE_START, &data, &length);
 		BinaryReader reader(data, length);
 		m_dwHintDynamicGUID = reader.ReadDWORD() + IDQUEUEMIN;
 		if (m_dwHintDynamicGUID < IDRANGESTART)

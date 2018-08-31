@@ -1439,14 +1439,14 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 				}
 			}
 
-			if (itemType == TYPE_CASTER)
+			/*if (itemType == TYPE_CASTER)
 			{
 				for (int i = 0; i < 2; i++)
 				{
 					//increase chance of no weapon skill casters as that is only used for war magic.
 					possibleWieldTiers.push_back(zeroReqWieldTier);
 				}
-			}
+			}*/
 
 			if (possibleWieldTiers.size() == 0)
 				return false;

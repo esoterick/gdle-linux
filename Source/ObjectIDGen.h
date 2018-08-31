@@ -5,7 +5,7 @@ enum eGUIDClass {
 	ePlayerGUID = 1,
 	// eStaticGUID = 2,
 	eDynamicGUID = 3,
-	// eItemGUID = 4
+	eEphemeral = 4
 };
 
 class CObjectIDGenerator
@@ -28,4 +28,5 @@ protected:
 	bool queryInProgress = false;
 	std::queue<unsigned int, std::deque<unsigned int>> listOfIdsForWeenies;
 	bool isIdRangeValid = true;
+	DWORD m_ephemeral;
 };

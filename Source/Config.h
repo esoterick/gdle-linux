@@ -88,6 +88,10 @@ public:
 	virtual bool SpellPurgeOnLogin() { return m_bSpellPurgeOnLogin; }
 	virtual bool UpdateAllegianceData() { return m_bUpdateAllegianceData; }
 
+
+	virtual bool AllowGeneralChat() { return m_bAllowGeneralChat; }
+	
+
 protected:
 	virtual void PostLoad() override;
 
@@ -167,6 +171,8 @@ protected:
 	int m_PKRespiteTime = 300;
 	bool m_bSpellPurgeOnLogin = false;
 	bool m_bUpdateAllegianceData = false;
+
+	bool m_bAllowGeneralChat = 1;
 };
 
 extern CPhatACServerConfig *g_pConfig;

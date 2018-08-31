@@ -461,7 +461,7 @@ BOOL CContainerWeenie::Container_CanStore(CWeenieObject *pItem, bool bPackSlot)
 			// check Give and Refuse emote item acceptance here
 			if (m_Qualities._emote_table)
 			{
-				if (HasEmoteForID(Give_EmoteCategory, pItem->id) || HasEmoteForID(Refuse_EmoteCategory, pItem->id))
+				if (HasEmoteForID(Give_EmoteCategory, pItem->m_Qualities.id) || HasEmoteForID(Refuse_EmoteCategory, pItem->m_Qualities.id))
 					return TRUE;
 			}
 
@@ -530,6 +530,7 @@ DWORD CContainerWeenie::Container_InsertInventoryItem(DWORD dwCell, CWeenieObjec
 	}
 
 	item->m_Qualities.SetInt(PARENT_LOCATION_INT, 0);
+	item->NotifyIntStatUpdated(PARENT_LOCATION_INT, 0);
 	item->unset_parent();
 	item->leave_world();
 

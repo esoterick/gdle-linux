@@ -125,6 +125,7 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 {
+	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, true);
 	switch (emote.type)
 	{
 	default:
@@ -1300,11 +1301,12 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 
 	}
+	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
 
 bool EmoteManager::IsExecutingAlready()
 {
-	return !_emoteQueue.empty();
+	return _weenie->m_Qualities.GetBool(EXECUTING_EMOTE, false);
 }
 
 void EmoteManager::Tick()

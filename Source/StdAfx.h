@@ -31,7 +31,7 @@
 #include <psapi.h>
 
 #include "zlib/zlib.h"
-#include "mysql/mysql.h"
+#include "../Lib/mysql/include/mysql.h"
 
 //STL
 #include <vector>
@@ -75,7 +75,7 @@
 #define PUBLIC_STRING ""
 #endif
 
-#define SERVER_VERSION_NUMBER_STRING "1.21"
+#define SERVER_VERSION_NUMBER_STRING "1.22"
 #define SERVER_VERSION_STRING __DATE__ " @ " __TIME__ " (" CONFIGURATION_STRING " " PLATFORM_STRING PUBLIC_STRING ")"
 
 //#define SERVER_VERSION_NUMBER_STRING "1.0.0.9" // "1.0.0.11"
