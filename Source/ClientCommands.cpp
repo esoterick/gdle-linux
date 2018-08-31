@@ -244,8 +244,13 @@ CLIENT_COMMAND(allegdump, "", "Prints out the allegiance hierarchy info on the l
 					pPlayer->SendText(csprintf("Monarch: %s", monarch->_charName), LTT_DEFAULT);
 					
 					AllegianceTreeNode *patron = g_pAllegianceManager->GetTreeNode(node->_patronID);
-					// Patron name
-					pPlayer->SendText(csprintf("Patron: %s", patron->_charName), LTT_DEFAULT);
+					if (patron)
+					{
+						// Patron name
+						pPlayer->SendText(csprintf("Patron: %s", patron->_charName), LTT_DEFAULT);
+					}
+					else
+						pPlayer->SendText("Is Monarch", LTT_DEFAULT);
 
 					// Allegiance name
 					pPlayer->SendText(csprintf("Allegiance Name: %s", info->_info.m_AllegianceName), LTT_DEFAULT);

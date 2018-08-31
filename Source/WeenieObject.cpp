@@ -1960,6 +1960,9 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 
 	if (bLeveled)
 	{
+		AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(GetID());
+		if(node)
+			node->_level = currentLevel;
 		m_Qualities.SetInt(LEVEL_INT, currentLevel);
 		NotifyIntStatUpdated(LEVEL_INT);
 
@@ -4853,6 +4856,9 @@ bool CWeenieObject::Load()
 		if (save.UnPack(&reader) && !reader.GetLastError())
 		{
 			LoadEx(save);
+			AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(GetID());
+			if (node)
+				node->_level = m_Qualities.GetInt(LEVEL_INT, 1);
 
 #ifndef PUBLIC_BUILD
 			double elapsed = watch.GetElapsed();
