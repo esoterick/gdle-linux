@@ -1229,6 +1229,7 @@ AttackManager::~AttackManager()
 {
 	SafeDelete(_attackData);
 	SafeDelete(_cleanupData);
+	SafeDelete(_queuedAttackData);
 }
 
 void AttackManager::MarkForCleanup(CAttackEventData *data)

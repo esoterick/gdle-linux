@@ -557,9 +557,6 @@ int AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject *
 			return WERROR_ALLEGIANCE_IGNORING_REQUESTS;
 	}
 
-	if (source->InqIntQuality(LEVEL_INT, 0) > target->InqIntQuality(LEVEL_INT, 0))
-		return WERROR_ALLEGIANCE_ILLEGAL_LEVEL;
-
 	AllegianceTreeNode *selfTreeNode = g_pAllegianceManager->GetTreeNode(source->GetID());
 	if (selfTreeNode && selfTreeNode->_patronID)
 	{
@@ -625,6 +622,11 @@ int AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject *
 	selfTreeNode->_monarchID = targetTreeNode->_monarchID;
 	selfTreeNode->_unixTimeSwornAt = time(0);
 	selfTreeNode->_ingameSecondsSworn = 1;
+
+	if (selfTreeNode->_level <= targetTreeNode->_level)
+		source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
+	else
+		source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false);
 
 	targetTreeNode->_vassals[selfTreeNode->_charID] = selfTreeNode;
 
@@ -713,6 +715,10 @@ void AllegianceManager::BreakAllegiance(AllegianceTreeNode *patronNode, Allegian
 	}
 
 	Save();
+
+	CPlayerWeenie* source = g_pWorld->FindPlayer(vassalNode->_charID);
+	source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false);
+	source->Save();
 }
 
 int AllegianceManager::TryBreakAllegiance(CWeenieObject *source, DWORD target_id)
@@ -737,6 +743,7 @@ int AllegianceManager::TryBreakAllegiance(CWeenieObject *source, DWORD target_id
 	{
 		// the target is a vassal
 		BreakAllegiance(selfTreeNode, targetTreeNode);
+
 	}
 	else if (selfTreeNode->_patronID == target_id)
 	{
@@ -747,6 +754,8 @@ int AllegianceManager::TryBreakAllegiance(CWeenieObject *source, DWORD target_id
 	{
 		return WERROR_NO_OBJECT;
 	}
+
+
 
 	source->SendText(csprintf(" You have broken your Allegiance to %s!", targetCharName.c_str()), LTT_DEFAULT);
 
@@ -799,6 +808,8 @@ void AllegianceManager::BreakAllAllegiance(DWORD char_id)
 			RemoveAllegianceNode(selfTreeNode);
 		}
 	}
+
+
 }
 
 void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount, bool direct)
@@ -814,6 +825,21 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 	RELEASE_ASSERT(patron);
 
 	if (!patron) // shouldn't happen
+		return;
+
+	CPlayerWeenie* source = g_pWorld->FindPlayer(source_id);
+	if (!source)
+		return;
+
+	if (!source->InqBoolQuality(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false)) // if bool was set to false at swear time or doesn't have it flagged
+	{
+		if (node->_unixTimeSwornAt < 1534765700) // if sworn before allegiance patch allow passup (20/08/18)
+		{
+			source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
+		}
+	}
+
+	if (node->_level > patron->_level && !source->InqBoolQuality(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false))
 		return;
 
 	time_t currentTime = time(0);
@@ -856,13 +882,13 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 
 	unsigned long long passupAmount = amount * passup;
 
-	if (passup > 0)
+	if (passupAmount > 0)
 	{
 		node->_cp_tithed += passupAmount;
 		patron->_cp_cached += passupAmount;
 		patron->_cp_pool_to_unload = min(4294967295ull, patron->_cp_pool_to_unload + passupAmount);
 
-		CWeenieObject *patron_weenie = g_pWorld->FindPlayer(patron->_charID);
+		CWeenieObject *patron_weenie = g_pWorld->FindPlayer(patron->_charID); // pass up now if the patron is online (otherwise remains in cp_cached until their next login)
 		if (patron_weenie)
 			patron_weenie->TryToUnloadAllegianceXP(false);
 

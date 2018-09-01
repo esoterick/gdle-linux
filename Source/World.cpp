@@ -379,7 +379,14 @@ bool CWorld::CreateEntity(CWeenieObject *pEntity, bool bMakeAware)
 
 	if (!pEntity->GetID())
 	{
-		pEntity->SetID(GenerateGUID(eDynamicGUID));
+		bool useEphemeral = (pEntity->m_PhysicsState & MISSILE_PS)
+			|| pEntity->IsCreature()
+			// player corpses are invisible at create time
+			|| (pEntity->IsCorpse() && pEntity->m_Qualities.GetBool(VISIBILITY_BOOL, true));
+
+		pEntity->SetID(GenerateGUID(
+			useEphemeral ? eEphemeral : eDynamicGUID));
+
 	}
 
 	if (pEntity->AsPlayer() && pEntity->AsPlayer()->GetClient())

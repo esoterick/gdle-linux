@@ -168,6 +168,8 @@ void CPhatACServerConfig::PostLoad()
 
 	m_PKRespiteTime = atoi(GetValue("pk_respite_time", "300"));
 	m_bSpellPurgeOnLogin = atoi(GetValue("spell_purge_on_login", "0")) != 0;
+
+	m_bAllowGeneralChat = atoi(GetValue("allow_general_chat", "1")) != 0;
 }
 
 double CPhatACServerConfig::GetMultiplierForQuestTime(int questTime)

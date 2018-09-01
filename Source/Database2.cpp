@@ -153,7 +153,7 @@ CMYSQLConnection *CMYSQLConnection::Create(const char *host, unsigned int port, 
 	if (sqlconnection)
 	{
 		// Disable auto-reconnect (probably already disabled)
-		sqlconnection->reconnect = 0;
+		sqlconnection->reconnect = 1;
 
 		return new CMYSQLConnection(sqlconnection);
 	}
@@ -254,21 +254,15 @@ void *CMYSQLConnection::GetInternalConnection()
 }
 
 CDatabase2::CDatabase2()
+	: m_queryThread([&]() { InternalThreadProc(); })
 {
 	m_pConnection = NULL;
-
-	m_hMakeTick = CreateEvent(NULL, FALSE, FALSE, NULL);
-	m_hAsyncThread = CreateThread(NULL, 0, InternalThreadProcStatic, this, 0, NULL);
 }
 
 CDatabase2::~CDatabase2()
 {
 	m_bQuit = true;
-
-	if (m_hMakeTick)
-	{
-		SetEvent(m_hMakeTick);
-	}
+	m_signal.notify_all();
 
 	if (m_pConnection != nullptr)
 	{
@@ -277,24 +271,14 @@ CDatabase2::~CDatabase2()
 		m_pConnection = nullptr;
 	}
 
-	if (m_hAsyncThread)
-	{
-		WaitForSingleObject(m_hAsyncThread, 60000);
-		CloseHandle(m_hAsyncThread);
-		m_hAsyncThread = NULL;
-	}
+	if (m_queryThread.joinable())
+		m_queryThread.join();
 
 	if (m_pAsyncConnection != nullptr)
 	{
 		m_pAsyncConnection->Close();
 		delete m_pAsyncConnection;
 		m_pAsyncConnection = nullptr;
-	}
-
-	if (m_hMakeTick)
-	{
-		CloseHandle(m_hMakeTick);
-		m_hMakeTick = NULL;
 	}
 }
 
@@ -396,7 +380,8 @@ DWORD CDatabase2::InternalThreadProc()
 {
 	do
 	{
-		::WaitForSingleObject(m_hMakeTick, 1000);
+		std::unique_lock lock(m_signalLock);
+		m_signal.wait_for(lock, std::chrono::seconds(1));
 
 		ProcessAsyncQueries();
 		AsyncTick();
@@ -582,39 +567,6 @@ CMYSQLDatabase::CMYSQLDatabase(const char *host, unsigned int port, const char *
 
 CMYSQLDatabase::~CMYSQLDatabase()
 {
-	m_bQuit = true;
-
-	if (m_hMakeTick)
-	{
-		SetEvent(m_hMakeTick);
-	}
-
-	if (m_pConnection != nullptr)
-	{
-		m_pConnection->Close();
-		delete m_pConnection;
-		m_pConnection = nullptr;
-	}
-
-	if (m_hAsyncThread)
-	{
-		WaitForSingleObject(m_hAsyncThread, 60000);
-		CloseHandle(m_hAsyncThread);
-		m_hAsyncThread = NULL;
-	}
-
-	if (m_pAsyncConnection != nullptr)
-	{
-		m_pAsyncConnection->Close();
-		delete m_pAsyncConnection;
-		m_pAsyncConnection = nullptr;
-	}
-
-	if (m_hMakeTick)
-	{
-		CloseHandle(m_hMakeTick);
-		m_hMakeTick = NULL;
-	}
 }
 
 void CMYSQLDatabase::RefreshConnection()
@@ -645,10 +597,11 @@ void CMYSQLDatabase::RefreshAsyncConnection()
 
 void CMYSQLDatabase::QueueAsyncQuery(CMYSQLQuery *query)
 {
-	_asyncQueueLock.Lock();
-	_asyncQueries.push_back(query);
-	SetEvent(m_hMakeTick);
-	_asyncQueueLock.Unlock();
+	{
+		std::scoped_lock lock(m_lock);
+		_asyncQueries.push_back(query);
+	}
+	Signal();
 }
 
 void CMYSQLDatabase::ProcessAsyncQueries()
@@ -657,13 +610,14 @@ void CMYSQLDatabase::ProcessAsyncQueries()
 	{
 		CMYSQLQuery *queuedQuery = NULL;
 
-		_asyncQueueLock.Lock();
-		if (!_asyncQueries.empty())
 		{
-			queuedQuery = _asyncQueries.front();
-			_asyncQueries.pop_front();
+			std::scoped_lock lock(m_lock);
+			if (!_asyncQueries.empty())
+			{
+				queuedQuery = _asyncQueries.front();
+				_asyncQueries.pop_front();
+			}
 		}
-		_asyncQueueLock.Unlock();
 
 		if (!queuedQuery)
 		{
@@ -676,9 +630,8 @@ void CMYSQLDatabase::ProcessAsyncQueries()
 		}
 		else
 		{
-			_asyncQueueLock.Lock();
+			std::scoped_lock lock(m_lock);
 			_asyncQueries.push_front(queuedQuery);
-			_asyncQueueLock.Unlock();
 
 			SERVER_ERROR << "Errro while performing query:" << queuedQuery;
 

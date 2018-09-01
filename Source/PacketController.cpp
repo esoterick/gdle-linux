@@ -743,16 +743,15 @@ void CPacketController::IncomingBlob(BlobPacket_s *blob, double recvTime)
 		{
 			short intervalDiff = (short)(header->wTime - m_in._clientIntervalBase);
 
-			if (intervalDiff < 0)
+			if (intervalDiff > 120 || intervalDiff < 0)
 			{
 				m_in._clientIntervalBase = header->wTime;
 				m_in._clientIntervalBaseStart = recvTime;
 			}
-			else if (intervalDiff > 60)
+			else if (intervalDiff > 30)
 			{
 				DWORD expectedIntervals = (recvTime - m_in._clientIntervalBaseStart) * 2.0;
 				DWORD actualIntervals = intervalDiff;
-				intervalDiff = (short)(header->wTime - m_in._clientIntervalBase);
 
 				double rate = (double)actualIntervals / (double)expectedIntervals;
 

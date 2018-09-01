@@ -683,7 +683,8 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		{
 			*weapon_defense = pEntity->GetMeleeDefenseMod();
 
-			if (fabs(*weapon_defense - old_weapon_defense) >= F_EPSILON)
+			// Don't enchant Ammunition
+			if ((fabs(*weapon_defense - old_weapon_defense) >= F_EPSILON) && pEntity->m_Qualities.m_WeenieType != Ammunition_WeenieType)
 			{
 				profile.weapon_ench_bitfield |= BF_WEAPON_DEFENSE;
 				if (*weapon_defense > old_weapon_defense)
@@ -798,7 +799,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			profile._spellBook->add((DWORD *)&spell.first);
 	}
 
-	if (pEntity->IsCreature())
+	if (pEntity->IsCreature() && !pEntity->m_Qualities.GetBool(NPC_LOOKS_LIKE_OBJECT_BOOL, false))
 	{
 		profile.creature_profile = new CreatureAppraisalProfile();
 
@@ -926,7 +927,8 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			int baseWeaponDamage = pEntity->InqIntQuality(DAMAGE_INT, 0, TRUE);
 			profile.weapon_profile->weapon_damage = pEntity->GetAttackDamage();
 
-			if (baseWeaponDamage != profile.weapon_profile->weapon_damage)
+			// Don't enchant Ammunition
+			if ((baseWeaponDamage != profile.weapon_profile->weapon_damage) && pEntity->m_Qualities.m_WeenieType != Ammunition_WeenieType)
 			{
 				profile.weapon_ench_bitfield |= WeaponEnchantment_BFIndex::BF_DAMAGE;
 				if (profile.weapon_profile->weapon_damage > baseWeaponDamage)
@@ -940,7 +942,8 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			double baseWeaponOffense = pEntity->InqFloatQuality(WEAPON_OFFENSE_FLOAT, 0, TRUE);
 			profile.weapon_profile->weapon_offense = pEntity->GetOffenseMod();
 
-			if (fabs(baseWeaponOffense - profile.weapon_profile->weapon_offense) >= F_EPSILON)
+			// Don't enchant Ammunition
+			if ((fabs(baseWeaponOffense - profile.weapon_profile->weapon_offense) >= F_EPSILON) && pEntity->m_Qualities.m_WeenieType != Ammunition_WeenieType)
 			{
 				profile.weapon_ench_bitfield |= WeaponEnchantment_BFIndex::BF_WEAPON_OFFENSE;
 				if (profile.weapon_profile->weapon_offense > baseWeaponOffense)

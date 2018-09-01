@@ -1265,7 +1265,9 @@ void CClientEvents::AllegianceHometownRecall()
 	if (allegianceInfo && allegianceInfo->_info.m_BindPoint.objcell_id)
 	{
 		if (!m_pPlayer->IsBusyOrInAction())
+		{
 			m_pPlayer->ExecuteUseEvent(new CAllegianceHometownRecallUseEvent());
+		}
 	}
 	else
 		m_pPlayer->NotifyWeenieError(WERROR_ALLEGIANCE_HOMETOWN_NOT_SET);
@@ -3031,7 +3033,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (pReader->GetLastError())
 				break;
 
-			HouseRent(slumlord, items);
+			//HouseRent(slumlord, items);
 			break;
 		}
 		case HOUSE_ADD_GUEST: //House_AddPermanentGuest 
@@ -3317,8 +3319,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case RECALL_ALLEGIANCE_HOMETOWN: //Allegiance_RecallAllegianceHometown (bindstone)
 		{
-			MAllegianceRecallHometown_02AB msg(m_pPlayer);
-			msg.Parse(pReader);
+			AllegianceHometownRecall();
+			/*MAllegianceRecallHometown_02AB msg(m_pPlayer);
+			msg.Parse(pReader);*/
 			break;
 		}
 		case FINISH_BARBER:

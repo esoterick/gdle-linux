@@ -17,6 +17,7 @@ CHouseManager::CHouseManager()
 
 CHouseManager::~CHouseManager()
 {
+	_houseDataMap.clear();
 }
 
 void CHouseManager::Load()
@@ -69,6 +70,8 @@ CHouseData *CHouseManager::GetHouseData(DWORD houseId)
 			houseData->_houseId = houseId;
 
 			_houseDataMap.add(houseId, houseData);
+			delete houseData;
+			houseData = _houseDataMap.lookup(houseId);
 		}
 	}
 
@@ -78,6 +81,8 @@ CHouseData *CHouseManager::GetHouseData(DWORD houseId)
 		houseData->_houseId = houseId;
 
 		_houseDataMap.add(houseId, houseData);
+		delete houseData;
+		houseData = _houseDataMap.lookup(houseId);
 	}
 
 	return houseData;

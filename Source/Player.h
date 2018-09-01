@@ -207,7 +207,7 @@ public:
 
 	virtual void ChangeCombatMode(COMBAT_MODE mode, bool playerRequested) override;
 
-	void UpdatePKActivity() { m_iPKActivity = Timer::cur_time + 20; }
+	void UpdatePKActivity();
 	bool CheckPKActivity() { return m_iPKActivity > Timer::cur_time; }
 	void ClearPKActivity() { m_iPKActivity = Timer::cur_time; }
 

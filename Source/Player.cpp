@@ -3180,6 +3180,11 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		}
 	}
 
+	if (m_Qualities.GetIID(CONTAINER_IID, 0))
+	{
+		m_Qualities.RemoveInstanceID(CONTAINER_IID);
+	}
+
 	//set scale on Lugian and Empyrean characters and Setup DID on Olthoi
 	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Lugian_HeritageGroup)
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.3);
@@ -3312,11 +3317,18 @@ void CPlayerWeenie::HandleItemManaRequest(DWORD itemId)
 
 void CPlayerWeenie::UpdateModuleFromClient(PlayerModule &module)
 {
-	if (&_playerModule && &module) // feels hacky
-	{
-		_playerModule = module;
-		UpdateModel();
-	}
+	_playerModule.options_ = module.options_;
+	_playerModule.options2_ = module.options2_;
+	_playerModule.spell_filters_ = module.spell_filters_;
+
+	for (DWORD i = 0; i < 8; i++)
+		_playerModule.favorite_spells_[i] = module.favorite_spells_[i];
+
+	CloneMemberPointerData<ShortCutManager>(_playerModule.shortcuts_, module.shortcuts_);
+	CloneMemberPointerData<PackableHashTable<DWORD, long>>(_playerModule.desired_comps_, module.desired_comps_);
+	CloneMemberPointerData<GenericQualitiesData>(_playerModule.m_pPlayerOptionsData, module.m_pPlayerOptionsData);
+
+	UpdateModel();
 }
 
 void CPlayerWeenie::LoadEx(CWeenieSave &save)
@@ -3418,6 +3430,12 @@ CWandSpellUseEvent::CWandSpellUseEvent(DWORD wandId, DWORD targetId)
 
 void CWandSpellUseEvent::OnReadyToUse()
 {
+	if (_manager->_next_allowed_use > Timer::cur_time)
+	{	
+		Cancel();
+		return;
+	}
+
 	CWeenieObject *wand = g_pWorld->FindObject(_wandId);
 	if (!wand)
 	{
@@ -3481,6 +3499,7 @@ void CWandSpellUseEvent::OnReadyToUse()
 	}
 
 	_weenie->MakeSpellcastingManager()->m_bCasting = true;
+	_weenie->m_SpellcastingManager->m_SpellCastData.caster_id = _wandId;
 
 	if (motion)
 		ExecuteUseAnimation(motion);
@@ -3504,6 +3523,7 @@ void CWandSpellUseEvent::OnUseAnimSuccess(DWORD motion)
 
 	_weenie->MakeSpellcastingManager()->CastSpellInstant(_targetId, _spellId);
 	_weenie->DoForcedStopCompletely();
+	_manager->_next_allowed_use = Timer::cur_time + 2.0;
 	Done();
 }
 
@@ -3812,3 +3832,10 @@ void CPlayerWeenie::ClearConsent(bool onLogout)
 	}
 }
 
+void CPlayerWeenie::UpdatePKActivity()
+{
+	m_iPKActivity = Timer::cur_time + 20;
+
+	//Set LAST_PK_ATTACK_TIMESTAMP_FLOAT for use in CACQualities::JumpStaminaCost as m_iPKActivity is not available.
+	m_Qualities.SetFloat(LAST_PK_ATTACK_TIMESTAMP_FLOAT, (double) m_iPKActivity);
+}

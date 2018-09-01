@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "WeenieObject.h"
 #include "Monster.h"
@@ -65,6 +64,13 @@ void CMonsterWeenie::PreSpawnCreate()
 
 	if (DWORD wieldedTreasureType = InqDIDQuality(WIELDED_TREASURE_TYPE_DID, 0))
 		g_pWeenieFactory->GenerateFromTypeOrWcid(this, DestinationType::WieldTreasure_DestinationType, wieldedTreasureType);
+
+	if (m_Qualities.GetDID(PHYSICS_SCRIPT_DID, 0))
+	{
+		// Add one here or else the wrong script will play. e.g. Frost Breath for Olthoi and Sewer Rats instead of Acid Breath.
+		m_DefaultScript = m_Qualities.GetDID(PHYSICS_SCRIPT_DID, 0) + 1;
+		m_DefaultScriptIntensity = m_Qualities.GetFloat(PHYSICS_SCRIPT_INTENSITY_FLOAT, 1.0);
+	}
 }
 
 void CMonsterWeenie::PostSpawn()
@@ -135,7 +141,7 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(CWeenieObject *item, bool deleteItem
 		return NULL;
 	}
 
-	item->SetID(g_pWorld->GenerateGUID(eDynamicGUID));
+	item->SetID(g_pWorld->GenerateGUID(m_Qualities.GetInt(HERITAGE_GROUP_INT,0) == 0 ? eEphemeral : eDynamicGUID));
 
 	if (!g_pWorld->CreateEntity(item, false))
 	{
@@ -486,6 +492,9 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 	sourceItem->SetWeenieContainer(targetContainer->GetID());
 	sourceItem->ReleaseFromBlock();
 
+	//store the current motion here for use later.
+	DWORD oldmotion = get_minterp()->InqStyle();
+
 	// The container will auto-correct this slot into a valid range.
 	targetSlot = targetContainer->Container_InsertInventoryItem(dwCell, sourceItem, targetSlot);
 
@@ -514,7 +523,8 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 	if (sourceItem->GetItemType() & (TYPE_ARMOR | TYPE_CLOTHING))
 		UpdateModel();
 
-	if (wasWielded && get_minterp()->InqStyle() != Motion_NonCombat)
+	// Checks the old motion vs Motion_NonCombat to prevent getting stuck while adjusting to the new combat style.
+	if (wasWielded && oldmotion != Motion_NonCombat)
 		AdjustToNewCombatMode();
 
 	if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
@@ -572,6 +582,9 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 
 	BOOL bWasWielded = sourceItem->IsWielded();
 
+	//store the current motion here for use later.
+	DWORD oldmotion = get_minterp()->InqStyle();
+
 	// Take it out of whatever slot it's in.
 	sourceItem->ReleaseFromAnyWeenieParent(false, true);
 	sourceItem->SetWeenieContainer(0);
@@ -605,7 +618,8 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 	if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
 		RecalculateCoinAmount(sourceItem->m_Qualities.id);
 
-	if (bWasWielded && get_minterp()->InqStyle() != Motion_NonCombat)
+	// Checks the old motion vs Motion_NonCombat to prevent getting stuck while adjusting to the new combat style.
+	if (bWasWielded && oldmotion != Motion_NonCombat)
 		AdjustToNewCombatMode();
 
 	if(bWasWielded)
@@ -725,6 +739,9 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 	sourceItem->SetWieldedLocation(targetLoc);
 	sourceItem->ReleaseFromBlock();
 
+	//store the current motion here for use later.
+	DWORD oldmotion = get_minterp()->InqStyle();
+
 	// The container will auto-correct this slot into a valid range.
 	Container_EquipItem(cell_id, sourceItem, targetLoc, child_location_id, placement_id);
 
@@ -739,6 +756,8 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		sourceItem->NotifyIIDStatUpdated(CONTAINER_IID, false);
 		sourceItem->NotifyIIDStatUpdated(WIELDER_IID, false);
 		sourceItem->NotifyIntStatUpdated(CURRENT_WIELDED_LOCATION_INT, false);
+		sourceItem->NotifyIntStatUpdated(PARENT_LOCATION_INT, false);
+		sourceItem->NotifyIntStatUpdated(PLACEMENT_POSITION_INT, false);
 	}
 
 	if (sourceItem->AsClothing() && m_bWorldIsAware)
@@ -748,7 +767,8 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 	sourceItem->_timeToRot = -1.0;
 	sourceItem->_beganRot = false;
 
-	if (get_minterp()->InqStyle() != Motion_NonCombat)
+	// Checks the old motion vs Motion_NonCombat to prevent getting stuck while adjusting to the new combat style.
+	if (oldmotion != Motion_NonCombat)
 		AdjustToNewCombatMode();
 
 	// apply enchantments
@@ -1188,6 +1208,20 @@ bool CMonsterWeenie::SplitItemToWield(DWORD sourceItemId, DWORD targetLoc, DWORD
 
 void CMonsterWeenie::GiveItem(DWORD targetContainerId, DWORD sourceItemId, DWORD transferAmount)
 {
+
+	if (sourceItemId == id)
+	{
+		NotifyInventoryFailedEvent(sourceItemId, WERROR_NONE);
+		return;
+	}
+
+	if (IsExecutingEmote())
+	{
+		SendText(csprintf("%s is busy.", GetName().c_str()), LTT_DEFAULT);
+		NotifyInventoryFailedEvent(sourceItemId, WERROR_GIVE_NOT_ALLOWED);
+		return;
+	}
+
 	if (IsBusyOrInAction())
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_ACTIONS_LOCKED);
@@ -1195,7 +1229,7 @@ void CMonsterWeenie::GiveItem(DWORD targetContainerId, DWORD sourceItemId, DWORD
 	}
 
 	CWeenieObject *target = g_pWorld->FindObject(targetContainerId);
-	CWeenieObject *sourceItem = FindContainedItem(sourceItemId);
+	CWeenieObject *sourceItem = g_pWorld->FindObject(sourceItemId);
 
 	if (!sourceItem || !target)
 	{
@@ -1326,7 +1360,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 				else
 				{
 					// check emote Refusal here for "You allow %s to examine your %s." text.
-					if (topLevelOwner->m_Qualities._emote_table && topLevelOwner->HasEmoteForID(Refuse_EmoteCategory, newStackItem->id))
+					if (topLevelOwner->m_Qualities._emote_table && topLevelOwner->HasEmoteForID(Refuse_EmoteCategory, newStackItem->m_Qualities.id))
 					{
 							SendText(csprintf("You allow %s to examine your %s.", topLevelOwner->GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
 							topLevelOwner->SendText(csprintf("%s allows you to examine their %s.", GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
@@ -1350,15 +1384,14 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 				RecalculateCoinAmount(newStackItem->m_Qualities.id);
 
 			topLevelOwner->OnReceiveInventoryItem(this, newStackItem, 0);
-			topLevelOwner->DebugValidate();
+			//topLevelOwner->DebugValidate();
 		}
 	}
 
-	DebugValidate();
-
-	RecalculateEncumbrance();
+	//DebugValidate();
+	if (AsPlayer())
+		RecalculateEncumbrance();
 }
-
 void CMonsterWeenie::Tick()
 {
 	CContainerWeenie::Tick();

@@ -469,7 +469,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 		if (g_pDBIO->IsCharacterNameOpen(resultName.c_str()))
 		{
 			const int MIN_PLAYER_GUID = 0x50000000;
-			const int MAX_PLAYER_GUID = 0x6FFFFFFF;
+			const int MAX_PLAYER_GUID = 0x5FFFFFFF;
 
 			unsigned int newCharacterGUID = g_pDBIO->GetHighestWeenieID(MIN_PLAYER_GUID, MAX_PLAYER_GUID) + 1;
 
@@ -1575,6 +1575,9 @@ void CClient::ProcessMessage(BYTE *data, DWORD length, WORD group)
 					case Allegiance_ChatChannel:
 					// case Olthoi_ChatChannel:
 					// case Society_ChatChannel:
+						if (listening_channel > 1 && !g_pConfig->AllowGeneralChat())
+							break;
+
 						g_pWorld->BroadcastChatChannel(listening_channel, m_pEvents->GetPlayer(), filteredText);
 						break;
 					}
