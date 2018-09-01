@@ -715,10 +715,6 @@ void AllegianceManager::BreakAllegiance(AllegianceTreeNode *patronNode, Allegian
 	}
 
 	Save();
-
-	CPlayerWeenie* source = g_pWorld->FindPlayer(vassalNode->_charID);
-	source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false);
-	source->Save();
 }
 
 int AllegianceManager::TryBreakAllegiance(CWeenieObject *source, DWORD target_id)
