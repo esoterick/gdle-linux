@@ -3278,7 +3278,8 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case ALLEGIANCE_CHAT_BOOT:
 		{
-			// Read: string charName, string reason
+			MAllegianceChatBoot_02A0 msg(m_pPlayer);
+			msg.Parse(pReader);
 			break;
 		}
 		case ALLEGIANCE_ADD_PLAYER_BAN:

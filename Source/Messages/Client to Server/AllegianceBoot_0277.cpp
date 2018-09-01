@@ -24,5 +24,5 @@ void MAllegianceBoot_0277::Parse(BinaryReader * reader)
 
 void MAllegianceBoot_0277::Process()
 {
-//	g_pAllegianceManager->BootPlayer(m_pPlayer, m_szBooteeName, m_bAccountBoot);
+	g_pAllegianceManager->BootPlayer(m_pPlayer, m_szBooteeName, m_bAccountBoot);
 }

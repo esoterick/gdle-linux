@@ -14,5 +14,5 @@ void MAllegianceBanList_02A3::Parse(BinaryReader * reader)
 
 void MAllegianceBanList_02A3::Process()
 {
-//	g_pAllegianceManager->GetBanList(m_pPlayer);
+	g_pAllegianceManager->GetBanList(m_pPlayer);
 }

@@ -14,5 +14,5 @@ void MAllegianceOfficersClear_02A7::Parse(BinaryReader * reader)
 
 void MAllegianceOfficersClear_02A7::Process()
 {
-//	g_pAllegianceManager->ClearOfficers(m_pPlayer);
+	g_pAllegianceManager->ClearOfficers(m_pPlayer);
 }

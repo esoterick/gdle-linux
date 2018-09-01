@@ -23,5 +23,5 @@ void MAllegianceOfficerSet_003B::Parse(BinaryReader * reader)
 
 void MAllegianceOfficerSet_003B::Process()
 {
-	//g_pAllegianceManager->SetOfficer(m_pPlayer, m_szOfficerName, static_cast<eAllegianceOfficerLevel>(m_dwOfficerLevel));
+	g_pAllegianceManager->SetOfficer(m_pPlayer, m_szOfficerName, static_cast<eAllegianceOfficerLevel>(m_dwOfficerLevel));
 }
