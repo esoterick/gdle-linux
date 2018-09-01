@@ -5113,7 +5113,6 @@ bool CWeenieObject::HasEmoteForID(EmoteCategory emoteCategory, DWORD item_id)
 			}
 		}
 	}
-	
 	return FALSE;
 }
 
@@ -5583,7 +5582,7 @@ int CWeenieObject::SimulateGiveObject(CContainerWeenie *target_container, CWeeni
 			else
 			{
 				// check emote Refusal here to avoid the extra "%s gives you %s." text on Refuse Emotes.
-				if (m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->id))
+				if (m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->m_Qualities.id))
 				{
 					SendText(csprintf("You allow %s to examine your %s.", target_container->GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
 				}
