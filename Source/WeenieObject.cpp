@@ -1960,6 +1960,9 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 
 	if (bLeveled)
 	{
+		AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(GetID());
+		if(node)
+			node->_level = currentLevel;
 		m_Qualities.SetInt(LEVEL_INT, currentLevel);
 		NotifyIntStatUpdated(LEVEL_INT);
 
@@ -4251,7 +4254,10 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 	if (damageData.damageAfterMitigation > 0 || damageData.damage_type == HEALTH_DAMAGE_TYPE || damageData.damage_type == STAMINA_DAMAGE_TYPE || damageData.damage_type == MANA_DAMAGE_TYPE)
 	{
 		if (!AsPlayer() || damageData.ignoreMagicResist)
-			damageData.damageAfterMitigation *= resistanceRegular;
+		{
+			if (resistanceRegular != 0.f)
+				damageData.damageAfterMitigation *= resistanceRegular;
+		}
 		else //only players have natural resistances.
 		{
 			//Some combination of strength and endurance allows one to have a level of "natural resistances" to the 7 damage types.This caps out at a 50 % resistance(the equivalent to level 5 life prots) to these damage types.This resistance is not additive to life protections : higher level life protections will overwrite these natural resistances, although life vulns will take these natural resistances into account, if the player does not have a higher level life protection cast upon them.
@@ -4853,6 +4859,9 @@ bool CWeenieObject::Load()
 		if (save.UnPack(&reader) && !reader.GetLastError())
 		{
 			LoadEx(save);
+			AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(GetID());
+			if (node)
+				node->_level = m_Qualities.GetInt(LEVEL_INT, 1);
 
 #ifndef PUBLIC_BUILD
 			double elapsed = watch.GetElapsed();
@@ -5107,7 +5116,6 @@ bool CWeenieObject::HasEmoteForID(EmoteCategory emoteCategory, DWORD item_id)
 			}
 		}
 	}
-	
 	return FALSE;
 }
 
@@ -5577,7 +5585,7 @@ int CWeenieObject::SimulateGiveObject(CContainerWeenie *target_container, CWeeni
 			else
 			{
 				// check emote Refusal here to avoid the extra "%s gives you %s." text on Refuse Emotes.
-				if (m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->id))
+				if (m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->m_Qualities.id))
 				{
 					SendText(csprintf("You allow %s to examine your %s.", target_container->GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
 				}

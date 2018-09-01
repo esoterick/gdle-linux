@@ -42,6 +42,7 @@
 #include "easylogging++.h"
 #include "ObjectMsgs.h"
 #include "EnumUtil.h"
+#include "ChessManager.h"
 #include "AllegianceManager.h"
 
 // Most of these commands are just for experimenting and never meant to be used in a real game
@@ -244,8 +245,13 @@ CLIENT_COMMAND(allegdump, "", "Prints out the allegiance hierarchy info on the l
 					pPlayer->SendText(csprintf("Monarch: %s", monarch->_charName), LTT_DEFAULT);
 					
 					AllegianceTreeNode *patron = g_pAllegianceManager->GetTreeNode(node->_patronID);
-					// Patron name
-					pPlayer->SendText(csprintf("Patron: %s", patron->_charName), LTT_DEFAULT);
+					if (patron)
+					{
+						// Patron name
+						pPlayer->SendText(csprintf("Patron: %s", patron->_charName), LTT_DEFAULT);
+					}
+					else
+						pPlayer->SendText("Is Monarch", LTT_DEFAULT);
 
 					// Allegiance name
 					pPlayer->SendText(csprintf("Allegiance Name: %s", info->_info.m_AllegianceName), LTT_DEFAULT);
@@ -4907,6 +4913,12 @@ CLIENT_COMMAND(movetome, "", "Brings an object to you.", ADMIN_ACCESS)
 		return true;
 	}
 
+	return false;
+}
+
+CLIENT_COMMAND(challengeai, "", "Challenge an AI to a game of Chess.", BASIC_ACCESS)
+{
+	sChessManager->ChallengeAi(pPlayer);
 	return false;
 }
 

@@ -631,10 +631,7 @@ void AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject 
 		}
 	}
 
-	//if (source->InqIntQuality(LEVEL_INT, 0) > target->InqIntQuality(LEVEL_INT, 0))
-	//	return WERROR_ALLEGIANCE_ILLEGAL_LEVEL;
-
-	AllegianceTreeNode *selfTreeNode = GetTreeNode(source->GetID());
+	AllegianceTreeNode *selfTreeNode = g_pAllegianceManager->GetTreeNode(source->GetID());
 	if (selfTreeNode && selfTreeNode->_patronID)
 	{
 		// already sworn to someone
@@ -887,10 +884,6 @@ void AllegianceManager::BreakAllegiance(AllegianceTreeNode *patronNode, Allegian
 	}
 
 	Save();
-
-	CPlayerWeenie* source = g_pWorld->FindPlayer(vassalNode->_charID);
-	source->m_Qualities.RemoveBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL);
-	source->Save();
 }
 
 void AllegianceManager::TryBreakAllegiance(CWeenieObject *source, DWORD target_id)

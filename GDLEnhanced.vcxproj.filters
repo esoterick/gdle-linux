@@ -609,6 +609,18 @@
     <ClCompile Include="Source\EnumUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ChessManager.cpp">
+      <Filter>Source Files\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ChessMatch.cpp">
+      <Filter>Source Files\World</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Game.cpp">
+      <Filter>Source Files\Objects\Weenie Types</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GamePiece.cpp">
+      <Filter>Source Files\Objects\Weenie Types</Filter>
+    </ClCompile>
     <ClCompile Include="RecipeFactory.cpp">
       <Filter>Source Files\Objects</Filter>
     </ClCompile>
@@ -1312,6 +1324,21 @@
     </ClInclude>
     <ClInclude Include="Source\PhatSDK\SmartArray.h">
       <Filter>PhatSDK</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ChessMatch.h">
+      <Filter>Source Files\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ChessManager.h">
+      <Filter>Source Files\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ChessDefines.h">
+      <Filter>Source Files\World</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game.h">
+      <Filter>Source Files\Objects\Weenie Types</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GamePiece.h">
+      <Filter>Source Files\Objects\Weenie Types</Filter>
     </ClInclude>
     <ClInclude Include="RecipeFactory.h">
       <Filter>Source Files\Objects</Filter>

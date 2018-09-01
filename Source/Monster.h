@@ -114,6 +114,8 @@ public:
 	CWeenieObject *SpawnWielded(DWORD wcid, int ptid, float shade);
 	CWeenieObject *SpawnWielded(DWORD index, SmartArray<Style_CG> possibleStyles, DWORD color, SmartArray<DWORD> validColors, long double shade);
 
+	bool CanTarget(CWeenieObject* target) override;
+
 	// Inventory
 	CWeenieObject *FindValidNearbyItem(DWORD itemId, float maxDistance = 2.0);
 	CContainerWeenie *FindValidNearbyContainer(DWORD itemId, float maxDistance = 2.0);
