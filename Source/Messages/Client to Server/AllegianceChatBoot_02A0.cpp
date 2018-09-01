@@ -23,5 +23,5 @@ void MAllegianceChatBoot_02A0::Parse(BinaryReader * reader)
 
 void MAllegianceChatBoot_02A0::Process()
 {
-	// TODO Allegiance Manager needs chat ban/gag functionality finished
+	g_pAllegianceManager->ChatBoot(m_pPlayer, m_szCharName, m_szReason);
 }

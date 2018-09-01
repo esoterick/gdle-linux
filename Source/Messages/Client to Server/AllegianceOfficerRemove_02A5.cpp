@@ -24,5 +24,5 @@ void MAllegianceOfficerRemove_02A5::Parse(BinaryReader * reader)
 
 void MAllegianceOfficerRemove_02A5::Process()
 {
-	//g_pAllegianceManager->RemoveOfficer(m_pPlayer, m_szCharName);
+	g_pAllegianceManager->RemoveOfficer(m_pPlayer, m_szCharName);
 }

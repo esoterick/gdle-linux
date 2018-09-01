@@ -310,9 +310,10 @@ void CPhatServer::Shutdown()
 #endif
 		g_pNetwork->CompleteLogoutAll();
 		g_pNetwork->Think();
+
 		SafeDelete(g_pNetwork);
 	}
-
+	g_pAllegianceManager->Save();
 	SafeDelete(g_pWorld);
 	SafeDelete(g_pGameEventManager);
 	SafeDelete(g_pFellowshipManager);

@@ -14,5 +14,5 @@ void MAllegianceNameQuery_0030::Parse(BinaryReader * reader)
 
 void MAllegianceNameQuery_0030::Process()
 {
-//	g_pAllegianceManager->QueryAllegianceName(m_pPlayer);
+	g_pAllegianceManager->QueryAllegianceName(m_pPlayer);
 }
