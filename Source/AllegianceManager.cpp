@@ -829,14 +829,13 @@ void AllegianceManager::HandleAllegiancePassup(DWORD source_id, long long amount
 
 	if (!source->InqBoolQuality(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false)) // if bool was set to false at swear time or doesn't have it flagged
 	{
-		if (node->_unixTimeSwornAt < 1534765700) // if sworn before allegiance patch allow passup (20/08/18)
+		if (node->_unixTimeSwornAt < 1534765700 || patron->_level >= node->_level) // if sworn before allegiance patch (20/08/18) or patron has since outleveled source, allow passup 
 		{
 			source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
 		}
+		else
+			return;
 	}
-
-	if (node->_level > patron->_level && !source->InqBoolQuality(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false))
-		return;
 
 	time_t currentTime = time(0);
 
