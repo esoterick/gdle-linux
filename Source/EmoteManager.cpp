@@ -116,7 +116,33 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 	if (result.find("%tqt") != std::string::npos)
 	{
-		while (ReplaceString(result, "%tqt", "some amount of time"));
+		std::string targetName;
+		if (!g_pWorld->FindObjectName(target_id, targetName))
+			return ""; // Couldn't resolve name, don't display this message.
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::string questString = target->Ktref(result.c_str()); //trims the @%tqt off of the quest name and returns the questflag to validate the quest timer against.
+
+		if (target->InqQuest(questString.c_str()))
+		{
+			int timeTilOkay = target->InqTimeUntilOkayToComplete(questString.c_str());
+
+			if (timeTilOkay > 0)
+			{
+				int secs = timeTilOkay % 60;					
+				timeTilOkay /= 60;
+
+				int mins = timeTilOkay % 60;
+				timeTilOkay /= 60;
+
+				int hours = timeTilOkay % 24;
+				timeTilOkay /= 24;
+
+				int days = timeTilOkay;
+
+				result = csprintf("You must wait %dd %dh %dm %ds to complete this quest again.", days, hours, mins, secs);
+			}
+		}
 	}
 
 	return result;
