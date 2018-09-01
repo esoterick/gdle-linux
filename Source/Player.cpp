@@ -22,6 +22,8 @@
 #include "House.h"
 #include "easylogging++.h"
 #include "Util.h"
+#include "ChessManager.h"
+
 #include <chrono>
 #include <algorithm>
 #include <functional>
@@ -161,6 +163,8 @@ void CPlayerWeenie::BeginLogout()
 		m_pTradeManager->CloseTrade(this);
 		m_pTradeManager = NULL;
 	}
+
+	sChessManager->Quit(this);
 	
 	StopCompletely(0);
 }

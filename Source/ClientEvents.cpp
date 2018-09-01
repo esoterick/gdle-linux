@@ -25,6 +25,7 @@
 #include "House.h"
 #include "SpellcastingManager.h"
 #include "TradeManager.h"
+#include "ChessManager.h"
 #include <chrono>
 
 #include "Config.h"
@@ -3169,27 +3170,34 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case CHESS_JOIN:
 		{
-			// Read: uint gameID, uint whichTeam
+			auto const guid = pReader->Read<uint32_t>();
+			pReader->Read<uint32_t>(); // teamId, not used
+
+			CWeenieObject* object = g_pWorld->FindObject(guid);
+			if (!object)
+				break;
+
+			sChessManager->Join(m_pPlayer, object);
 			break;
 		}
 		case CHESS_QUIT:
-		{
-			// Nothing to read
+			sChessManager->Quit(m_pPlayer);
 			break;
-		}
 		case CHESS_MOVE:
 		{
-			// Read: int xFrom, int yFrom, int xTo, int yTo
+			GDLE::Chess::ChessPieceCoord from, to;
+			from.UnPack(pReader);
+			to.UnPack(pReader);
+			sChessManager->Move(m_pPlayer, from, to);
 			break;
 		}
 		case CHESS_PASS:
-		{
-			// Nothing to read
+			sChessManager->MovePass(m_pPlayer);
 			break;
-		}
 		case CHESS_STALEMATE:
 		{
-			// Read: bool on - whether stalemate offer is active or not
+			auto const on = pReader->Read<uint32_t>();
+			sChessManager->Stalemate(m_pPlayer, on);
 			break;
 		}
 		case HOUSE_LIST_AVAILABLE:

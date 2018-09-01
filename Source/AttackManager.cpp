@@ -68,7 +68,7 @@ void CAttackEventData::Begin()
 		return;
 	}
 
-	if (!target->IsAttackable())
+	if (!target->IsAttackable() && !_weenie->CanTarget(target))
 	{
 		Cancel();
 		return;
@@ -252,7 +252,7 @@ bool CAttackEventData::IsValidTarget()
 {
 	CWeenieObject *target = GetTarget();
 
-	if (!target || !target->IsAttackable() || target->IsDead() || target->IsInPortalSpace() || target->ImmuneToDamage(_weenie))
+	if (!target || (!target->IsAttackable() && !_weenie->CanTarget(target)) || target->IsDead() || target->IsInPortalSpace() || target->ImmuneToDamage(_weenie))
 	{
 		return false;
 	}

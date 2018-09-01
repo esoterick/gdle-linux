@@ -249,7 +249,7 @@ bool MonsterAIManager::SeekTarget()
 			if (!weenie->_IsPlayer() && !monster_brawl) // only attack players
 				continue;
 
-			if (!weenie->IsAttackable())
+			if (!weenie->IsAttackable() && !m_pWeenie->CanTarget(weenie))
 				continue;
 
 			if (weenie->ImmuneToDamage(m_pWeenie)) // only attackable players (not dead, not in portal space, etc.
@@ -776,7 +776,7 @@ void MonsterAIManager::UpdateMeleeModeAttack()
 	// dont chase any new target, even if attacked, outside home range
 
 	CWeenieObject *pTarget = GetTargetWeenie();
-	if (!pTarget || pTarget->IsDead() || !pTarget->IsAttackable() || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
+	if (!pTarget || pTarget->IsDead() || (!pTarget->IsAttackable() && !m_pWeenie->CanTarget(pTarget)) || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
 	{
 		if (ShouldSeekNewTarget())
 		{
@@ -897,7 +897,7 @@ void MonsterAIManager::UpdateMissileModeAttack()
 	// dont chase any new target, even if attacked, outside home range
 
 	CWeenieObject *pTarget = GetTargetWeenie();
-	if (!pTarget || pTarget->IsDead() || !pTarget->IsAttackable() || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
+	if (!pTarget || pTarget->IsDead() || (!pTarget->IsAttackable() && !m_pWeenie->CanTarget(pTarget)) || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
 	{
 		if (ShouldSeekNewTarget())
 		{
