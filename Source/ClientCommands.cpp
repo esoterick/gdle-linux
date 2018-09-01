@@ -42,6 +42,7 @@
 #include "easylogging++.h"
 #include "ObjectMsgs.h"
 #include "EnumUtil.h"
+#include "AllegianceManager.h"
 
 // Most of these commands are just for experimenting and never meant to be used in a real game
 // TODO: Add flags to these commands so they are only accessible under certain modes such as a sandbox mode
@@ -221,6 +222,56 @@ CLIENT_COMMAND(spawndoor, "", "Spawns a door at your location.", ADMIN_ACCESS)
 	return false;
 }
 #endif
+
+CLIENT_COMMAND(allegdump, "", "Prints out the allegiance hierarchy info on the last target you assessed.", ADMIN_ACCESS)
+{
+	if (argc < 1)
+		return true;
+
+	if (pPlayer->m_LastAssessed)
+	{
+		CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+		if (target)
+		{
+			AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(target->GetID());
+			if (node)
+			{
+				AllegianceInfo *info = g_pAllegianceManager->GetInfo(node->_monarchID);
+				if (info)
+				{
+					AllegianceTreeNode *monarch = g_pAllegianceManager->GetTreeNode(node->_monarchID);
+					// Monarch name
+					pPlayer->SendText(csprintf("Monarch: %s", monarch->_charName), LTT_DEFAULT);
+					
+					AllegianceTreeNode *patron = g_pAllegianceManager->GetTreeNode(node->_patronID);
+					if (patron)
+					{
+						// Patron name
+						pPlayer->SendText(csprintf("Patron: %s", patron->_charName), LTT_DEFAULT);
+					}
+					else
+						pPlayer->SendText("Is Monarch", LTT_DEFAULT);
+
+					// Allegiance name
+					pPlayer->SendText(csprintf("Allegiance Name: %s", info->_info.m_AllegianceName), LTT_DEFAULT);
+					// Number in allegiance
+					pPlayer->SendText(csprintf("Number in Allegiance: %i", monarch->_numFollowers), LTT_DEFAULT);
+					// Number of Vassels
+					pPlayer->SendText(csprintf("Number in Vassels: %i", node->_numFollowers), LTT_DEFAULT);
+					// Bind point
+					Vector *f = info->_info.m_BindPoint.get_origin();
+					float heading = info->_info.m_BindPoint.heading(info->_info.m_BindPoint);
+					pPlayer->SendText(csprintf("Allegiance Hometown: 0x%08x [ X:%.2f Y:%.2f Z:%.2f ] w:%.2f x:0.0 y:0.0 z:0.0", info->_info.m_BindPoint.objcell_id, 
+						f->x, f->y, f->z, heading), LTT_DEFAULT);
+				}
+			}
+			
+			
+		}
+	}
+
+	return false;
+}
 
 CLIENT_COMMAND(global, "<text> [color=1]", "Displays text globally.", ADMIN_ACCESS)
 {
@@ -704,30 +755,30 @@ CLIENT_COMMAND(serverstatus, "", "Provides information on the server's status.",
 	return false;
 }
 
-CLIENT_COMMAND(netinfo, "", "Provides information on the player's network connection.", BASIC_ACCESS)
-{
-	int sendbuf = 0;
-	int sendbuflen = sizeof(sendbuf);
-	getsockopt(g_pNetwork->m_sockets[0], SOL_SOCKET, SO_SNDBUF, (char *)&sendbuf, &sendbuflen);
-	pPlayer->SendText(csprintf("SNDBUF: %u", sendbuf), LTT_DEFAULT);
-
-	int recvbuf = 0;
-	int recvbuflen = sizeof(recvbuf);
-	getsockopt(g_pNetwork->m_sockets[0], SOL_SOCKET, SO_RCVBUF, (char *)&recvbuf, &recvbuflen);
-	pPlayer->SendText(csprintf("RCVBUF: %u", recvbuf), LTT_DEFAULT);
-
-	pPlayer->SendText(csprintf("INSEQ: %u", player_client->GetPacketController()->m_in.sequence), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("ACTIVESEQ: %u", player_client->GetPacketController()->m_in.activesequence), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("FLUSHSEQ: %u", player_client->GetPacketController()->m_in.flushsequence), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("OUTSEQ: %u", player_client->GetPacketController()->m_out.sequence), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("RECEIVED: %I64u", player_client->GetPacketController()->m_in.receivedbytes), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("SENT: %I64u", player_client->GetPacketController()->m_out._sentBytes), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("RETRANSMIT: %u", player_client->GetPacketController()->m_out.numretransmit), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("DENIED: %u", player_client->GetPacketController()->m_out.numdenied), LTT_DEFAULT);
-	pPlayer->SendText(csprintf("REQUESTED: %u", player_client->GetPacketController()->m_in.numresendrequests), LTT_DEFAULT);
-
-	return false;
-}
+//CLIENT_COMMAND(netinfo, "", "Provides information on the player's network connection.", BASIC_ACCESS)
+//{
+//	int sendbuf = 0;
+//	int sendbuflen = sizeof(sendbuf);
+//	getsockopt(g_pNetwork->m_sockets[0], SOL_SOCKET, SO_SNDBUF, (char *)&sendbuf, &sendbuflen);
+//	pPlayer->SendText(csprintf("SNDBUF: %u", sendbuf), LTT_DEFAULT);
+//
+//	int recvbuf = 0;
+//	int recvbuflen = sizeof(recvbuf);
+//	getsockopt(g_pNetwork->m_sockets[0], SOL_SOCKET, SO_RCVBUF, (char *)&recvbuf, &recvbuflen);
+//	pPlayer->SendText(csprintf("RCVBUF: %u", recvbuf), LTT_DEFAULT);
+//
+//	pPlayer->SendText(csprintf("INSEQ: %u", player_client->GetPacketController()->m_in.sequence), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("ACTIVESEQ: %u", player_client->GetPacketController()->m_in.activesequence), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("FLUSHSEQ: %u", player_client->GetPacketController()->m_in.flushsequence), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("OUTSEQ: %u", player_client->GetPacketController()->m_out.sequence), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("RECEIVED: %I64u", player_client->GetPacketController()->m_in.receivedbytes), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("SENT: %I64u", player_client->GetPacketController()->m_out._sentBytes), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("RETRANSMIT: %u", player_client->GetPacketController()->m_out.numretransmit), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("DENIED: %u", player_client->GetPacketController()->m_out.numdenied), LTT_DEFAULT);
+//	pPlayer->SendText(csprintf("REQUESTED: %u", player_client->GetPacketController()->m_in.numresendrequests), LTT_DEFAULT);
+//
+//	return false;
+//}
 
 #ifndef PUBLIC_BUILD
 CLIENT_COMMAND(debug, "<index>", "", ADMIN_ACCESS)
@@ -1023,6 +1074,59 @@ CLIENT_COMMAND(damagesources, "", "Lists all damage sources and values for the l
 		else
 		{
 			pPlayer->SendText("No damage taken.", LTT_DEFAULT);
+		}
+	}
+
+	return false;
+}
+
+CLIENT_COMMAND(sweartime, "<unix timestamp>", "Sets the time that the last assessed player swore to their patron to <unix timestamp> seconds. If no argument is given, shows the current timestamp.", ADMIN_ACCESS)
+{
+	CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!target)
+		return false;
+	if (target->AsPlayer())
+	{
+		if (AllegianceTreeNode* targetNode = g_pAllegianceManager->GetTreeNode(target->id))
+		{
+			if (targetNode->_patronID) {
+				int oldSwornAt = targetNode->_unixTimeSwornAt;
+				if (argc < 1)
+				{
+					pPlayer->SendText(csprintf("%s's unix time sworn at is %d.", targetNode->_charName.c_str(), oldSwornAt), LTT_DEFAULT);
+					return false;
+				}
+				targetNode->_unixTimeSwornAt = atoi(argv[0]);
+				pPlayer->SendText(csprintf("%s's unix time sworn at has been changed from %d to %d.", targetNode->_charName.c_str(), oldSwornAt, targetNode->_unixTimeSwornAt), LTT_DEFAULT);
+			}
+		}
+	}
+
+	return false;
+}
+
+CLIENT_COMMAND(passupbool, "<0 | 1>", "Sets the last assessed player's XP passup bool. If no argument is given, shows the current state.", ADMIN_ACCESS)
+{
+	CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!target)
+		return false;
+	if (target->AsPlayer())
+	{
+		if (AllegianceTreeNode* targetNode = g_pAllegianceManager->GetTreeNode(target->id)) 
+		{
+			bool canPassup = target->InqBoolQuality(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, 0);
+			if (argc < 1)
+				pPlayer->SendText(csprintf("%s's XP passup is currently %s.", target->GetName().c_str(), canPassup ? "enabled" : "disabled"), LTT_DEFAULT);
+			else
+			{
+				int input = atoi(argv[0]);
+				if (!input || input == 1) 
+				{
+					target->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, input);
+					pPlayer->SendText(csprintf("%s's XP passup has now been %s.", target->GetName().c_str(), input ? "enabled" : "disabled"), LTT_DEFAULT);
+				}
+			}
+			
 		}
 	}
 
@@ -1830,6 +1934,8 @@ CLIENT_COMMAND(fixbusy, "", "Makes you unbusy if you are stuck.", BASIC_ACCESS)
 {
 	pPlayer->NotifyAttackDone();
 	pPlayer->NotifyInventoryFailedEvent(0, 0);
+	if (pPlayer->m_UseManager)
+		pPlayer->m_UseManager->Cancel();
 	pPlayer->NotifyUseDone(0);
 	pPlayer->NotifyWeenieError(0);
 

@@ -514,7 +514,8 @@ void CMotionTable::Release(CMotionTable *pMotionTable)
 void CMotionTable::Destroy()
 {
 	cycles.destroy_contents();
-	modifiers.destroy_contents();
+	if (modifiers.GetBucketCount() > 0)
+		modifiers.destroy_contents();
 
 	// kinda assuming this is what the code did.
 	style_defaults.destroy_contents();

@@ -311,8 +311,23 @@ void CSpellcastingManager::BeginNextMotion()
 
 		if (m_PendingMotions.empty())
 		{
-			int error = LaunchSpellEffect(false);
-			EndCast(error);
+			int bitfield = m_pWeenie->m_SpellcastingManager->m_SpellCastData.spell->_bitfield;
+			if ((bitfield & Resistable_SpellIndex) && (bitfield & PKSensitive_SpellIndex) && (bitfield & FastCast_SpellIndex)) //streaks
+			{
+				if (m_pWeenie->m_Qualities.GetFloat(NEXT_SPELLCAST_TIMESTAMP_FLOAT, 0.0) <= Timer::cur_time)
+				{
+					int error = LaunchSpellEffect(false);
+					EndCast(error);
+					m_pWeenie->m_Qualities.SetFloat(NEXT_SPELLCAST_TIMESTAMP_FLOAT, Timer::cur_time + 2.0);
+				}
+				else
+					EndCast(WERROR_ACTIONS_LOCKED);
+			}
+			else //everything else
+			{
+				int error = LaunchSpellEffect(false);
+				EndCast(error);
+			}
 		}
 		else
 		{
@@ -1492,6 +1507,21 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 			switch (meta->_index)
 			{
+			case 1: // lifestone sending
+			{
+				Position lifestone;
+				if (m_pWeenie->m_Qualities.InqPosition(SANCTUARY_POSITION, lifestone) && lifestone.objcell_id != 0)
+				{
+					BeginPortalSend(lifestone);
+				}
+				else
+				{
+					m_pWeenie->SendText("Your sould is not bound to a lifestone.", LTT_MAGIC);
+				}
+
+				bSpellPerformed = true;
+				break;
+			}
 			case 2: // lifestone recall
 			{
 				Position lifestone;
@@ -2872,7 +2902,10 @@ int CSpellcastingManager::CastSpellInstant(DWORD target_id, DWORD spell_id)
 
 	m_bCasting = true;
 	m_SpellCastData = SpellCastData();
-	m_SpellCastData.caster_id = m_pWeenie->GetID();
+	if (oldData.caster_id == 0)
+		m_SpellCastData.caster_id = m_pWeenie->GetID();
+	else
+		m_SpellCastData.caster_id = oldData.caster_id;
 	m_SpellCastData.source_id = m_pWeenie->GetTopLevelID();
 	m_SpellCastData.target_id = target_id;
 	m_SpellCastData.spell_id = spell_id;
@@ -2938,7 +2971,12 @@ int CSpellcastingManager::CastSpellEquipped(DWORD target_id, DWORD spell_id, WOR
 DWORD CSpellcastingManager::DetermineSkillLevelForSpell()
 {
 	int spellcraft = 0;
-	if (m_pWeenie->m_Qualities.InqInt(ITEM_SPELLCRAFT_INT, spellcraft, FALSE, FALSE))
+	CWeenieObject *source = g_pWorld->FindObject(m_SpellCastData.caster_id);
+
+	if (!source)
+		return 0;
+
+	if (source->m_Qualities.InqInt(ITEM_SPELLCRAFT_INT, spellcraft, FALSE, FALSE))
 		return (DWORD)spellcraft;
 
 	if (!m_SpellCastData.spell)

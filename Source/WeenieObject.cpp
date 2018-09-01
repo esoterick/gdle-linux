@@ -1960,6 +1960,9 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 
 	if (bLeveled)
 	{
+		AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(GetID());
+		if(node)
+			node->_level = currentLevel;
 		m_Qualities.SetInt(LEVEL_INT, currentLevel);
 		NotifyIntStatUpdated(LEVEL_INT);
 
@@ -4853,6 +4856,9 @@ bool CWeenieObject::Load()
 		if (save.UnPack(&reader) && !reader.GetLastError())
 		{
 			LoadEx(save);
+			AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(GetID());
+			if (node)
+				node->_level = m_Qualities.GetInt(LEVEL_INT, 1);
 
 #ifndef PUBLIC_BUILD
 			double elapsed = watch.GetElapsed();
@@ -5107,7 +5113,6 @@ bool CWeenieObject::HasEmoteForID(EmoteCategory emoteCategory, DWORD item_id)
 			}
 		}
 	}
-
 	return FALSE;
 }
 
@@ -5812,6 +5817,10 @@ double CWeenieObject::GetMeleeDefenseMod()
 {
 	double mod = InqFloatQuality(WEAPON_DEFENSE_FLOAT, 1.0, TRUE);
 
+	// Don't enchant Ammunition
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return mod;
+
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_DEFENSE_FLOAT, &mod);
 
@@ -5832,6 +5841,10 @@ double CWeenieObject::GetMissileDefenseModUsingWielded()
 double CWeenieObject::GetMissileDefenseMod()
 {
 	double mod = InqFloatQuality(WEAPON_MISSILE_DEFENSE_FLOAT, 1.0, TRUE);
+
+	// Don't enchant Ammunition
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return mod;
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_MISSILE_DEFENSE_FLOAT, &mod);
@@ -5854,6 +5867,10 @@ double CWeenieObject::GetMagicDefenseMod()
 {
 	double mod = InqFloatQuality(WEAPON_MAGIC_DEFENSE_FLOAT, 1.0, TRUE);
 
+	// Don't enchant Ammunition
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return mod;
+
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_MAGIC_DEFENSE_FLOAT, &mod);
 
@@ -5869,6 +5886,10 @@ double CWeenieObject::GetMagicDefenseMod()
 double CWeenieObject::GetOffenseMod()
 {
 	double mod = InqFloatQuality(WEAPON_OFFENSE_FLOAT, 1.0, TRUE);
+
+	// Don't enchant Ammunition
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return mod;
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_OFFENSE_FLOAT, &mod);
@@ -6050,6 +6071,10 @@ int CWeenieObject::GetAttackTimeUsingWielded()
 int CWeenieObject::GetAttackDamage()
 {
 	int damage = InqIntQuality(DAMAGE_INT, 0, TRUE);
+	
+	// Don't enchant Ammunition
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return damage;
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantInt(DAMAGE_INT, &damage, FALSE);
@@ -6279,7 +6304,7 @@ void CWeenieObject::Movement_Teleport(const Position &position, bool bWasDeath)
 
 	SetPositionStruct sps;
 	sps.pos = position;
-	sps.pos.frame.m_origin.z += 0.005f;
+	sps.pos.frame.m_origin.z += 0.008f;
 	sps.SetFlags(SEND_POSITION_EVENT_SPF | SLIDE_SPF | PLACEMENT_SPF | TELEPORT_SPF);
 	SetPosition(sps);
 
@@ -6425,8 +6450,9 @@ void CWeenieObject::SetStackSize(DWORD stackSize)
 	if (CWeenieObject *owner = GetWorldTopLevelOwner())
 	{
 		owner->RecalculateEncumbrance();
-		if (owner->AsPlayer() && IsCurrency(m_Qualities.id))
-			owner->RecalculateCoinAmount(m_Qualities.id);
+		//ToDo: figure out a method to allow this to work while not interfering with pyreal count when buying MMDs.
+		if (owner->AsPlayer() && m_Qualities.id == W_COINSTACK_CLASS)
+			owner->RecalculateCoinAmount(W_COINSTACK_CLASS);
 	}
 }
 

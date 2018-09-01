@@ -843,8 +843,8 @@ void CWorldLandBlock::Destroy(CWeenieObject *pEntity, bool bDoRelease)
 			target->NotifyGeneratedDeath(pEntity);
 	}
 
-	if(pEntity)
-		DELETE_ENTITY(pEntity);
+	if (pEntity)
+		delete pEntity;
 }
 
 BOOL CWorldLandBlock::Think()
