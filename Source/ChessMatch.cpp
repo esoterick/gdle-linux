@@ -1079,7 +1079,7 @@ void ChessMatch::Start()
 
 		CPlayerWeenie* player = side->GetPlayer();
 		assert(player);
-		SendStartGame(player, side->GetColour());
+		SendStartGame(player, m_logic.GetTurn());
 	}
 }
 
