@@ -4336,7 +4336,7 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 			unsigned long shieldSkill;
 			damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
 
-			float capPercent = (shieldSkill / 433) * cap * st;
+			float capPercent = (static_cast<float>(shieldSkill) / 433.0) * cap * st;
 			float reduction = 0;
 			
 			if (cap > 0.0 && shieldSkill >= 100)
