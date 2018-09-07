@@ -1326,6 +1326,14 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		break;
 	}
 
+	case DeleteSelf_EmoteType:
+	{
+		_weenie->MarkForDestroy();
+	}
+
+	break;
+
+
 	}
 	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
