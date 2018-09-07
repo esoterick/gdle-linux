@@ -1079,8 +1079,8 @@ void AllegianceManager::ChatMonarch(DWORD sender_id, const char *text)
 	if (!target)
 		return;
 
-	sender_weenie->SendNetMessage(ServerText(csprintf("You say to your Monarch, \"%s\"", text), LTT_SPEECH_DIRECT_SEND), PRIVATE_MSG, FALSE, TRUE);
-	target->SendNetMessage(ServerText(csprintf("Your follower %s says to you, \"%s\"", sender_weenie->GetName().c_str(), text), LTT_SPEECH_DIRECT), PRIVATE_MSG, FALSE, TRUE);
+	sender_weenie->SendNetMessage(ChannelChat(Monarch_ChannelID, NULL, text), PRIVATE_MSG, FALSE, TRUE);
+	target->SendNetMessage(ChannelChat(Monarch_ChannelID, sender_weenie->GetName().c_str(), text), PRIVATE_MSG, FALSE, TRUE);
 }
 
 void AllegianceManager::ChatPatron(DWORD sender_id, const char *text)
@@ -1096,9 +1096,9 @@ void AllegianceManager::ChatPatron(DWORD sender_id, const char *text)
 	CWeenieObject *target = g_pWorld->FindPlayer(node->_patronID);
 	if (!target)
 		return;
-
-	sender_weenie->SendNetMessage(ServerText(csprintf("You say to your Patron, \"%s\"", text), LTT_SPEECH_DIRECT_SEND), PRIVATE_MSG, FALSE, TRUE);
-	target->SendNetMessage(ServerText(csprintf("Your vassal %s says to you, \"%s\"", sender_weenie->GetName().c_str(), text), LTT_SPEECH_DIRECT), PRIVATE_MSG, FALSE, TRUE);
+	
+	sender_weenie->SendNetMessage(ChannelChat(Patron_ChannelID, NULL, text), PRIVATE_MSG, FALSE, TRUE);
+	target->SendNetMessage(ChannelChat(Patron_ChannelID, sender_weenie->GetName().c_str(), text), PRIVATE_MSG, FALSE, TRUE);
 }
 
 void AllegianceManager::ChatVassals(DWORD sender_id, const char *text)
@@ -1111,7 +1111,7 @@ void AllegianceManager::ChatVassals(DWORD sender_id, const char *text)
 	if (!sender_weenie)
 		return;
 
-	sender_weenie->SendNetMessage(ServerText(csprintf("You say to your Vassals, \"%s\"", text), LTT_SPEECH_DIRECT_SEND), PRIVATE_MSG, FALSE, TRUE);
+	sender_weenie->SendNetMessage(ChannelChat(Vassals_ChannelID, NULL, text), PRIVATE_MSG, FALSE, TRUE);
 
 	for (auto &entry : node->_vassals)
 	{
@@ -1119,7 +1119,7 @@ void AllegianceManager::ChatVassals(DWORD sender_id, const char *text)
 		if (!target)
 			continue;
 
-		target->SendNetMessage(ServerText(csprintf("Your patron %s says to you, \"%s\"", sender_weenie->GetName().c_str(), text), LTT_SPEECH_DIRECT), PRIVATE_MSG, FALSE, TRUE);
+		target->SendNetMessage(ChannelChat(Vassals_ChannelID, sender_weenie->GetName().c_str(), text), PRIVATE_MSG, FALSE, TRUE);
 	}
 }
 
@@ -1137,7 +1137,7 @@ void AllegianceManager::ChatCovassals(DWORD sender_id, const char *text)
 	if (!sender_weenie)
 		return;
 
-	sender_weenie->SendNetMessage(ServerText(csprintf("[Co-Vassals] You Say, \"%s\"", text), LTT_SPEECH_DIRECT_SEND), PRIVATE_MSG, FALSE, TRUE);
+	sender_weenie->SendNetMessage(ChannelChat(Covassals_ChannelID, NULL, text), PRIVATE_MSG, FALSE, TRUE);
 
 	for (auto &entry : patron_node->_vassals)
 	{
@@ -1146,12 +1146,12 @@ void AllegianceManager::ChatCovassals(DWORD sender_id, const char *text)
 
 		CWeenieObject *target = g_pWorld->FindPlayer(entry.second->_charID);
 		if (target)
-			target->SendNetMessage(ServerText(csprintf("[Co-Vassals] %s says, \"%s\"", sender_weenie->GetName().c_str(), text), LTT_SPEECH_DIRECT), PRIVATE_MSG, FALSE, TRUE);
+			target->SendNetMessage(ChannelChat(Covassals_ChannelID, sender_weenie->GetName().c_str(), text), PRIVATE_MSG, FALSE, TRUE);
 	}
 
 	CWeenieObject *patron_weenie = g_pWorld->FindPlayer(node->_patronID);
 	if (patron_weenie)
-		patron_weenie->SendNetMessage(ServerText(csprintf("[Co-Vassals] %s says, \"%s\"", sender_weenie->GetName().c_str(), text), LTT_SPEECH_DIRECT), PRIVATE_MSG, FALSE, TRUE);
+		patron_weenie->SendNetMessage(ChannelChat(Covassals_ChannelID, sender_weenie->GetName().c_str(), text), PRIVATE_MSG, FALSE, TRUE);
 
 }
 
