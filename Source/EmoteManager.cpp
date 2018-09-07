@@ -142,6 +142,10 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 				result = csprintf("You must wait %dd %dh %dm %ds to complete this quest again.", days, hours, mins, secs);
 			}
+			else
+			{
+				return ""; //Quest timer has expired so return blank cooldown message.
+			}
 		}
 	}
 
