@@ -137,8 +137,8 @@ ChessLogic::ChessLogic()
 	AddPiece(Black, Rook, 0, 7);
 	AddPiece(Black, Knight, 1, 7);
 	AddPiece(Black, Bishop, 2, 7);
-	AddPiece(Black, King, 3, 7);
-	AddPiece(Black, Queen, 4, 7);
+	AddPiece(Black, King, 4, 7);
+	AddPiece(Black, Queen, 3, 7);
 	AddPiece(Black, Bishop, 5, 7);
 	AddPiece(Black, Knight, 6, 7);
 	AddPiece(Black, Rook, 7, 7);
