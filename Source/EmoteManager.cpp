@@ -1333,7 +1333,17 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 	break;
 
+	case SetBoolStat_EmoteType:
+	{
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		if (target)
+		{
+			target->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
+			target->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
+		}
 
+	break;
+	}
 	}
 	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
