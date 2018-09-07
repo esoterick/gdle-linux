@@ -457,7 +457,7 @@ void Fellowship::Chat(DWORD sender_id, const char *text)
 	{
 		std::string sender_name = sender_weenie->GetName();
 
-		sender_weenie->SendNetMessage(ChannelChat(Fellow_ChannelID, sender_name.c_str(), text), PRIVATE_MSG, FALSE, TRUE);
+		sender_weenie->SendNetMessage(ChannelChat(Fellow_ChannelID, NULL, text), PRIVATE_MSG, FALSE, TRUE);
 
 		for (auto &entry : _fellowship_table)
 		{
