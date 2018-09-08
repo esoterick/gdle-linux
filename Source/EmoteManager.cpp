@@ -1322,7 +1322,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			_weenie->m_Qualities.SetInt((STypeInt)82, emote.amount);
 		{
 			if ((emote.amount) != 0)
-				_weenie->InitCreateGeneratorOnDeath();
+				_weenie->InitCreateGeneratorOnDeath(); 
 		}
 
 		break;
@@ -1334,12 +1334,10 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		break;
 	}
 
-	
-
 	case KillSelf_EmoteType:
 	{
 		CMonsterWeenie *monster = _weenie->AsMonster();
-		if (!monster->IsDead() && !monster->IsInPortalSpace() && !monster->IsBusyOrInAction())
+		if (monster && !monster->IsDead() && !monster->IsInPortalSpace() && !monster->IsBusyOrInAction())
 		{
 			monster->SetHealth(0, true);
 			monster->OnDeath(monster->GetID());
@@ -1381,6 +1379,11 @@ void EmoteManager::Tick()
 			break;
 
 		ExecuteEmote(i->_data, i->_target_id);
+
+		//Check if emote queue is empty due to KillSelf_emoteType
+		if (_emoteQueue.empty())
+			return;
+
 		i = _emoteQueue.erase(i);
 		if (i != _emoteQueue.end())
 			i->_executeTime = Timer::cur_time + i->_data.delay;
