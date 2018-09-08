@@ -708,6 +708,12 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		return false;
 	}
 
+	if (sourceItem->InqIIDQuality(ALLOWED_WIELDER_IID, 0) && sourceItem->InqIIDQuality(ALLOWED_WIELDER_IID, 0) != GetID())
+	{
+		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_ATTUNED_ITEM);
+		return false;
+	}
+
 	if (sourceItem->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && sourceItem->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
 	{
 		sourceItem->m_Qualities.SetInt(SHIELD_VALUE_INT, sourceItem->InqIntQuality(ARMOR_LEVEL_INT, 0));
