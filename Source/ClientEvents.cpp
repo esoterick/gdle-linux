@@ -230,6 +230,12 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
+	if (!m_pPlayer->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0))
+	{
+		m_pPlayer->m_Qualities.SetFloat(GLOBAL_XP_MOD_FLOAT, 1.0);
+		m_pPlayer->NotifyFloatStatUpdated(GLOBAL_XP_MOD_FLOAT);
+	}
+
 	last_age_update = chrono::system_clock::to_time_t(chrono::system_clock::now());
 
 	//temporarily send a purge all enchantments packet on login to wipe stacked characters.

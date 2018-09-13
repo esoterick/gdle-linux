@@ -1915,6 +1915,12 @@ void CWeenieObject::GiveSharedXP(long long amount, bool showText)
 	if (amount <= 0)
 		return;
 
+	EnchantedQualityDetails buffDetails;
+	GetFloatEnchantmentDetails(GLOBAL_XP_MOD_FLOAT, 0.0, &buffDetails);
+
+	if (buffDetails.enchantedValue > 0.0)
+		amount *= buffDetails.valueIncreasingMultiplier;
+
 	Fellowship *f = GetFellowship();
 
 	if (f)
