@@ -141,7 +141,7 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 					_weenie->InqSkill(HEALING_SKILL, healing_skill, FALSE);
 					_weenie->m_Qualities.InqSkill(HEALING_SKILL, skill);
 										
-					double sac_mod = skill._sac >= SPECIALIZED_SKILL_ADVANCEMENT_CLASS ? 1.5 : 1.1;
+					double sac_mod = skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS ? 1.5 : 1.1;
 
 					healing_skill = (healing_skill + boost_value) * sac_mod;
 
