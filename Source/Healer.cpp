@@ -149,7 +149,7 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 					DWORD heal_min = 0;
 					DWORD heal_max = 0;
 
-					if (skill._sac >= SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+					if (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
 					{
 						heal_min = (int)(healing_skill * 0.05) * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0);
 						heal_max = (int)(healing_skill * 0.10) * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0);
