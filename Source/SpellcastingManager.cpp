@@ -3189,6 +3189,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 			case ITEM_ENCHANTMENT_SKILL: foci = FindFociInContainer(caster, W_PACKITEMESSENCE_CLASS) || caster->InqIntQuality(AUGMENTATION_INFUSED_ITEM_MAGIC_INT, 0); break;
 			case LIFE_MAGIC_SKILL: foci = FindFociInContainer(caster, W_PACKLIFEESSENCE_CLASS) || caster->InqIntQuality(AUGMENTATION_INFUSED_LIFE_MAGIC_INT, 0); break;
 			case WAR_MAGIC_SKILL: foci = FindFociInContainer(caster, W_PACKWARESSENCE_CLASS) || caster->InqIntQuality(AUGMENTATION_INFUSED_WAR_MAGIC_INT, 0); break;
+			case VOID_MAGIC_SKILL: foci = FindFociInContainer(caster, W_FOCIOFSHADOW_CLASS) || caster->InqIntQuality(AUGMENTATION_INFUSED_VOID_MAGIC_INT, 0); break;
 			}
 		}
 
