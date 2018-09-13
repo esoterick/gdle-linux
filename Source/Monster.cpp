@@ -1830,6 +1830,10 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 			if (pSource)
 			{
+				if (m_Qualities.GetInt(AUGMENTATION_BONUS_XP_INT, 0))
+				{
+					xpForKill *= 1.05;
+				}
 				pSource->GiveSharedXP(dPercentage * xpForKill, false);
 			}
 		}
