@@ -9,6 +9,7 @@
 #include "Container.h"
 #include "Config.h"
 #include "Monster.h"
+#include "Player.h"
 #include "easylogging++.h"
 
 double round(double value, int decimalPlaces)
@@ -365,6 +366,12 @@ void from_json(const nlohmann::json &reader, CTreasureType &output)
 	output.qualityModifier = reader.value("qualityModifier", 0.0f);
 }
 
+void from_json(const nlohmann::json &reader, CRareTier &output)
+{
+	if (HasField(reader, "rareTierWcids"))
+		output.rareTierWcids = reader.at("rareTierWcids").get<std::vector<int>>();
+}
+
 DEFINE_UNPACK_JSON(CTreasureProfile)
 {
 	if (HasField(reader, "options"))
@@ -478,6 +485,16 @@ DEFINE_UNPACK_JSON(CTreasureProfile)
 
 		for (auto iter = tempTreasureTypeOverrides.begin(); iter != tempTreasureTypeOverrides.end(); ++iter)
 			treasureTypeOverrides.emplace(atoi(iter->first.c_str()), iter->second);
+	}
+
+	if (HasField(reader, "rareTiers"))
+	{
+		// nlohmann::json doesn't like int keys in maps, so we read as string and convert to int.
+		std::map<std::string, CRareTier> tempRareTiers;
+		tempRareTiers = reader.at("rareTiers").get<std::map<std::string, CRareTier>>();
+
+		for (auto iter = tempRareTiers.begin(); iter != tempRareTiers.end(); ++iter)
+			rareTiers.emplace(atoi(iter->first.c_str()), iter->second);
 	}
 	return true;
 }
@@ -1115,6 +1132,49 @@ int CTreasureFactory::GenerateFromTypeOrWcid(CWeenieObject *parent, int destinat
 	return amountCreated;
 }
 
+int CTreasureFactory::GenerateRareItem(CWeenieObject *parent, CWeenieObject *killer)
+{
+	int amountCreated = 0;
+	DWORD rareWcid = 0;
+	bool rareDropped = false;
+	int roll = getRandomDouble(1.0);
+	int tier = 0;
+
+	//standard rare drop rate is 1 in 2,500 kills. There is also a timer based on last Rare picked up. After 2 months, this value should be 100% Needs new curve.
+	if (roll < (0.0004 * g_pConfig->RareDropMultiplier()) || roll <= 1 - (1 / (1 + exp(0.0001 * ((Timer::cur_time - killer->AsPlayer()->CheckRareTimer()) - 86400) + 3))))
+		rareDropped = true;
+
+	if (rareDropped)
+	{
+		roll = getRandomNumber(1, 100000);
+
+		if (roll <= 28)
+			tier = 6;
+		else if (roll <= 33)
+			tier = 5;
+		else if (roll <= 80)
+			tier = 4;
+		else if (roll <= 1000)
+			tier = 3;
+		else if (roll <= 10000)
+			tier = 2;
+		else
+			tier = 1;
+
+		if (CWeenieObject *newItem = GenerateRandomRareByTier(tier))
+		{
+			g_pWeenieFactory->AddWeenieToDestination(newItem, parent, Treasure_DestinationType, false);
+			amountCreated++;
+			g_pWorld->BroadcastLocal(killer->GetLandcell(), csprintf("%s has discovered the %s!", killer->GetName().c_str(), newItem->GetName().c_str()), LTT_SYSTEM_EVENT);
+			parent->EmitSound(149, 1.0, false); //To Do, fix this so bell sound plays on rare found.
+
+			killer->AsPlayer()->UpdateRareTimer();
+		}
+	}
+
+	return amountCreated;
+}
+
 int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid, float shade, const GeneratorProfile * profile)
 {
 	int amountCreated = 0;
@@ -1237,6 +1297,26 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * pare
 		}
 	}
 	return amountCreated;
+}
+
+CWeenieObject *CTreasureFactory::GenerateRandomRareByTier(int rareTier)
+{
+	int rareWcid = 0;
+	if (_TreasureProfile->rareTiers.size() == 0)
+		return NULL;
+
+	for each (auto entry in _TreasureProfile->rareTiers)
+	{
+		if (entry.first == rareTier)
+		{
+				rareWcid = entry.second.rareTierWcids[getRandomNumberExclusive((int)entry.second.rareTierWcids.size())];
+				break;
+		}
+	}
+
+	if (rareWcid)
+		return g_pWeenieFactory->CreateWeenieByClassID(rareWcid);
+	return NULL;
 }
 
 CWeenieObject *CTreasureFactory::GenerateMundaneItem(CTreasureTier *tier)
