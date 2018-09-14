@@ -1339,7 +1339,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			case W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
 			case W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
 			case W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
-				successChance = 100.0;
+				successChance = 1.0;
 			}
 
 
