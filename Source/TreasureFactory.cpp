@@ -1302,7 +1302,7 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * pare
 CWeenieObject *CTreasureFactory::GenerateRandomRareByTier(int rareTier)
 {
 	int rareWcid = 0;
-	if (_TreasureProfile->rareTiers.size() == 0)
+	if (_TreasureProfile->rareTiers.empty())
 		return NULL;
 
 	for each (auto entry in _TreasureProfile->rareTiers)

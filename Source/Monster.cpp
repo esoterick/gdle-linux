@@ -1799,7 +1799,7 @@ void CMonsterWeenie::OnDeathAnimComplete()
 		if (pCorpse)
 			GenerateDeathLoot(pCorpse);
 
-		if (pCorpse && m_bIsRareEligible)
+		if (pCorpse && m_bIsRareEligible && !g_pTreasureFactory->_TreasureProfile->rareTiers.empty())
 		{			
 			if (killer && killer->_IsPlayer())
 				g_pWeenieFactory->GenerateRareItem(pCorpse, killer);
