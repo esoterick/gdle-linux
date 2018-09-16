@@ -2754,9 +2754,13 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			PlayerModule module;
 			if (!module.UnPack(pReader) || pReader->GetLastError())
 				break;
-
-			SendText("Updating character configuration.", LTT_SYSTEM_EVENT);
-			m_pPlayer->UpdateModuleFromClient(module);
+			if (m_pPlayer && m_pPlayer->AsPlayer())
+			{
+				SendText("Updating character configuration.", LTT_SYSTEM_EVENT);
+				m_pPlayer->UpdateModuleFromClient(module);
+			}
+			else
+			DEBUG_DATA << "Playermodule call for invalid object";
 			break;
 		}
 		case CANCEL_ATTACK: // Cancel attack

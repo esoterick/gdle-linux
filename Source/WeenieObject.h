@@ -220,6 +220,7 @@ public:
 	virtual bool IsSentinel() { return false; }
 	virtual bool IsAdmin() { return false; }
 	bool IsLocked();
+	bool InUse = false;
 
 	void SetLocked(BOOL locked);
 	virtual void ResetToInitialState() { }
