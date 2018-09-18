@@ -3016,6 +3016,10 @@ void CWeenieObject::CheckRegeneration(double rate, STypeAttribute2nd currentAttr
 					break;
 				case Motion_Sleeping:
 					rate *= 3;
+
+					if (m_Qualities.GetInt(AUGMENTATION_FASTER_REGEN_INT, 0))
+						rate *= 2;
+					
 					break;
 				}
 			}
