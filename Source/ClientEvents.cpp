@@ -558,7 +558,7 @@ void CClientEvents::SendTellByGUID(const char* szText, DWORD dwGUID)
 	{	
 		CWeenieObject *target = g_pWorld->FindObject(dwGUID);
 
-		if (!target->m_Qualities._emote_table->_emote_table.empty())
+		if (target && !target->m_Qualities._emote_table->_emote_table.empty())
 			target->MakeEmoteManager()->ChanceExecuteEmoteSet(ReceiveTalkDirect_EmoteCategory, szText, m_pPlayer->GetID());
 
 		return;
