@@ -48,7 +48,7 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 	{
 		if (critDefense)
 		{
-			if (Random::GenFloat(0.0, 1.0) < (dmgEvent->source->AsPlayer() ? 0.25 : 0.05))
+			if (Random::GenFloat(0.0, 1.0) < (dmgEvent->source->AsPlayer() ? 0.05 : 0.25))
 			{
 				//do not apply crit multiplier - treat this as a normal hit
 				critDefended = true;
