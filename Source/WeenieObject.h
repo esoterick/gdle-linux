@@ -441,6 +441,8 @@ public:
 
 	virtual DWORD RecalculateCoinAmount(int currencyid) { return 0; };
 	virtual DWORD ConsumeCoin(int amountToConsume, int currencyid) { return 0; };
+	virtual DWORD GetItemCount(int itemid) { return 0; };
+	virtual DWORD ConsumeItem(int amountToConsume, int itemid) { return 0; };
 
 	void SetValue(DWORD amount);
 	DWORD GetValue();

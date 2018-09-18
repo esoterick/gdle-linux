@@ -1330,6 +1330,85 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		break;
 	}
 
+	case PopUp_EmoteType: //type: 68 causes a popup message to appear with a with the text from emote.msg and an OK dialog button.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		if (target)
+		{
+
+			BinaryWriter popupMessage;
+			popupMessage.Write<DWORD>(0x4);
+			popupMessage.WriteString(emote.msg);
+
+			target->SendNetMessage(&popupMessage, PRIVATE_MSG, TRUE, FALSE);
+
+		}
+		break;
+	}
+
+	case InqYesNo_EmoteType: //type: 75 causes a popup message to appear with a with the text from emote.msg and Yes/No dialog buttons.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		if (target)
+		{
+			BinaryWriter yesnoMessage;
+			yesnoMessage.Write<DWORD>(0x274);	// Message Type
+			yesnoMessage.Write<DWORD>(0x07);		// Confirm type (Yes/No)
+			yesnoMessage.Write<int>(_weenie->id);			// Sequence number ?? context id
+			yesnoMessage.WriteString(emote.teststring);
+
+			target->SendNetMessage(&yesnoMessage, PRIVATE_MSG, TRUE, FALSE);
+
+		}
+		break;
+	}
+
+	case InqOwnsItems_EmoteType: //type: 76 checks to see if a particular item and count exists in pack.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		DWORD itemWCID = emote.cprof.wcid;
+		int itemAmount = emote.cprof.stack_size;
+		bool success = false;
+
+		if (target)
+		{
+			if (target->GetItemCount(itemWCID) >= itemAmount)
+				success = true;
+
+			ChanceExecuteEmoteSet(success ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, emote.msg, target_id);
+		}
+		break;
+	}
+
+	case TakeItems_EmoteType: //type: 74 removes items from pack.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		DWORD itemWCID = emote.cprof.wcid;
+		int itemAmount = emote.cprof.stack_size;
+
+		if (target)
+		{
+			if (target->GetItemCount(itemWCID) >= itemAmount)
+				target->ConsumeItem(itemAmount, itemWCID);
+		}
+		break;
+	}
 	}
 	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
@@ -1433,4 +1512,9 @@ void EmoteManager::killTaskSub(std::string &mobName, std::string &kCountName, CW
 	{
 		targormember->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
 	}
+}
+
+void EmoteManager::ConfirmationResponse(bool accepted, DWORD target_id)
+{
+	ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, accepted ? "Yes_Response" : "No_Response", target_id);
 }

@@ -19,6 +19,7 @@
 #include "Player.h"
 #include "ChatMsgs.h"
 #include "Movement.h"
+#include "EmoteManager.h"
 #include "MovementManager.h"
 #include "Vendor.h"
 #include "AllegianceManager.h"
@@ -554,7 +555,14 @@ void CClientEvents::SendTellByGUID(const char* szText, DWORD dwGUID)
 	CPlayerWeenie *pTarget;
 
 	if (!(pTarget = g_pWorld->FindPlayer(dwGUID)))
+	{	
+		CWeenieObject *target = g_pWorld->FindObject(dwGUID);
+
+		if (!target->m_Qualities._emote_table->_emote_table.empty())
+			target->MakeEmoteManager()->ChanceExecuteEmoteSet(ReceiveTalkDirect_EmoteCategory, szText, m_pPlayer->GetID());
+
 		return;
+	}
 
 	if (pTarget->GetID() != m_pPlayer->GetID())
 	{
@@ -564,6 +572,7 @@ void CClientEvents::SendTellByGUID(const char* szText, DWORD dwGUID)
 	}
 
 	pTarget->SendNetMessage(DirectChat(szText, m_pPlayer->GetName().c_str(), m_pPlayer->GetID(), pTarget->GetID(), 3), PRIVATE_MSG, TRUE);
+
 }
 
 void CClientEvents::SendTellByName(const char* szText, const char* szName)
@@ -2230,6 +2239,14 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 					m_pPlayer->UseEx(true);
 				}
 				break;
+			case 0x07:
+				CWeenieObject *target = g_pWorld->FindObject(context);
+					
+					if (target)
+					{
+						target->MakeEmoteManager()->ConfirmationResponse(accepted, m_pPlayer->id);
+					}
+
 			}
 
 			break;
