@@ -538,7 +538,7 @@ void CWeenieObject::OnDeath(DWORD killer_id)
 
 	ChanceExecuteEmoteSet(killer_id, Death_EmoteCategory);
 
-	if (m_Qualities._enchantment_reg)
+	if (m_Qualities._enchantment_reg && !m_Qualities.GetInt(AUGMENTATION_SPELLS_REMAIN_PAST_DEATH_INT, 0))
 	{
 		PackableList<DWORD> removed;
 
