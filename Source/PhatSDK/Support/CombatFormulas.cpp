@@ -19,7 +19,7 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 	if (!dmgEvent)
 	{
 		return;
-	}
+	}	
 
 	dmgEvent->damageBeforeMitigation = dmgEvent->damageAfterMitigation = dmgEvent->baseDamage;
 	if (!dmgEvent->source)
@@ -36,15 +36,33 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 	damageCalc += dmgEvent->skillDamageBonus;
 	damageCalc += dmgEvent->slayerDamageBonus;
 
+	bool critExpertise = dmgEvent->source->m_Qualities.GetInt(AUGMENTATION_CRITICAL_EXPERTISE_INT, 0);
+	bool critDefense = dmgEvent->target->m_Qualities.GetInt(AUGMENTATION_CRITICAL_DEFENSE_INT, 0);
+	bool critDefended = false;
+
+	if (critExpertise)
+		dmgEvent->critChance += 0.01;
+
 	dmgEvent->wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent->critChance) ? true : false;
 	if (dmgEvent->wasCrit)
 	{
-		damageCalc += damageCalc * dmgEvent->critMultiplier; //Leave the old formula for Melee/Missile crits.
+		if (critDefense)
+		{
+			if (Random::GenFloat(0.0, 1.0) < (dmgEvent->source->AsPlayer() ? 0.25 : 0.05))
+			{
+				//do not apply crit multiplier - treat this as a normal hit
+				critDefended = true;
+			}			
+		}
+
+		if (!critDefended)
+			damageCalc += damageCalc * dmgEvent->critMultiplier; //Leave the old formula for Melee/Missile crits.
 
 		if (dmgEvent->damage_form == DF_MAGIC) //Multiply base spell damage by the critMultiplier before adding skill and slayer damage bonuses for Magic.
 		{
 			damageCalc = dmgEvent->baseDamage;
-			damageCalc += damageCalc * dmgEvent->critMultiplier;
+			if(!critDefended)
+				damageCalc += damageCalc * dmgEvent->critMultiplier;
 			damageCalc += dmgEvent->skillDamageBonus;
 			damageCalc += dmgEvent->slayerDamageBonus;
 		}
