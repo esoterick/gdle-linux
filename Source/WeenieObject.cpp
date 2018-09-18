@@ -1915,6 +1915,12 @@ void CWeenieObject::GiveSharedXP(long long amount, bool showText)
 	if (amount <= 0)
 		return;
 
+	EnchantedQualityDetails buffDetails;
+	GetFloatEnchantmentDetails(GLOBAL_XP_MOD_FLOAT, 0.0, &buffDetails);
+
+	if (buffDetails.enchantedValue > 0.0)
+		amount *= buffDetails.valueIncreasingMultiplier;
+
 	Fellowship *f = GetFellowship();
 
 	if (f)
@@ -4320,6 +4326,11 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 				if (reduction > 0.25)
 					reduction = 0.25;
 
+				bool isPvP = damageData.source->AsPlayer() && damageData.target->AsPlayer();
+
+				if (isPvP)
+					reduction *= 0.72;
+				
 				damageData.damageAfterMitigation *= 1.0 - reduction;
 			}
 		}
@@ -5934,39 +5945,35 @@ void CWeenieObject::AddImbueEffect(ImbuedEffectType effect)
 		return; //it's already present.
 
 	imbueEffects |= effect;
-	m_Qualities.SetInt(IMBUED_EFFECT_INT, (int)effect);
 
-	//imbue effects 2 to 5 are not used by our dataset.
-	//if (!InqIntQuality(IMBUED_EFFECT_INT, 0, FALSE))
-	//	m_Qualities.SetInt(IMBUED_EFFECT_INT, (int)effect);
-	//else if (!InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE))
-	//	m_Qualities.SetInt(IMBUED_EFFECT_2_INT, (int)effect);
-	//else if (!InqIntQuality(IMBUED_EFFECT_3_INT, 0, FALSE))
-	//	m_Qualities.SetInt(IMBUED_EFFECT_3_INT, (int)effect);
-	//else if (!InqIntQuality(IMBUED_EFFECT_4_INT, 0, FALSE))
-	//	m_Qualities.SetInt(IMBUED_EFFECT_4_INT, (int)effect);
-	//else if (!InqIntQuality(IMBUED_EFFECT_5_INT, 0, FALSE))
-	//	m_Qualities.SetInt(IMBUED_EFFECT_5_INT, (int)effect);
-	//else
-	//	return false;
-	//return true;
+	if (!InqIntQuality(IMBUED_EFFECT_INT, 0, FALSE))
+		m_Qualities.SetInt(IMBUED_EFFECT_INT, (int)effect);
+	else if (!InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE))
+		m_Qualities.SetInt(IMBUED_EFFECT_2_INT, (int)effect);
+	else if (!InqIntQuality(IMBUED_EFFECT_3_INT, 0, FALSE))
+		m_Qualities.SetInt(IMBUED_EFFECT_3_INT, (int)effect);
+	else if (!InqIntQuality(IMBUED_EFFECT_4_INT, 0, FALSE))
+		m_Qualities.SetInt(IMBUED_EFFECT_4_INT, (int)effect);
+	else if (!InqIntQuality(IMBUED_EFFECT_5_INT, 0, FALSE))
+		m_Qualities.SetInt(IMBUED_EFFECT_5_INT, (int)effect);
+	else
+		return;
+	return;
 }
+
 
 DWORD CWeenieObject::GetImbueEffects()
 {
-	return InqIntQuality(IMBUED_EFFECT_INT, 0, FALSE);
+	DWORD imbuedEffect = 0;
 
-	//imbue effects 2 to 5 are not used by our dataset.
-	//DWORD imbuedEffect = 0;
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_INT, 0, FALSE);
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE);
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE);
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_3_INT, 0, FALSE);
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_4_INT, 0, FALSE);
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_5_INT, 0, FALSE);
 
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_INT, 0, FALSE);
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE);
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE);
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_3_INT, 0, FALSE);
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_4_INT, 0, FALSE);
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_5_INT, 0, FALSE);
-
-	//return imbuedEffect;
+	return imbuedEffect;
 }
 
 double CWeenieObject::GetManaConversionMod()

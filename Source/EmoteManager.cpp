@@ -142,6 +142,10 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 				result = csprintf("You must wait %dd %dh %dm %ds to complete this quest again.", days, hours, mins, secs);
 			}
+			else
+			{
+				return ""; //Quest timer has expired so return blank cooldown message.
+			}
 		}
 	}
 
@@ -1299,21 +1303,19 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 
 	case SetQuestCompletions_EmoteType:
-	{
+
 		if (!_weenie->m_Qualities._emote_table)
-		{
 			break;
-		}
-	
+	{
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
 
 		if (target)
 		{
 			target->SetQuestCompletions(emote.msg.c_str(), emote.amount);
 		}
-		break;
+
 	}
-	
+	break;
 
 	case Generate_EmoteType: //type:72 adds from generator table attached to creature weenie. Sets init value of generator table and calls weenie factory to begin generation. Can use same emote with value of 0 in amount field to disable generator.
 	{
@@ -1322,43 +1324,91 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			_weenie->m_Qualities.SetInt((STypeInt)82, emote.amount);
 		{
 			if ((emote.amount) != 0)
-				_weenie->InitCreateGeneratorOnDeath(); 
+				_weenie->InitCreateGeneratorOnDeath();
 		}
 
 		break;
 	}
 
-	case DeleteSelf_EmoteType:
+	case PopUp_EmoteType: //type: 68 causes a popup message to appear with a with the text from emote.msg and an OK dialog button.
 	{
-		_weenie->MarkForDestroy();
-		break;
-	}
+		if (!_weenie->m_Qualities._emote_table)
+			break;
 
-	case KillSelf_EmoteType:
-	{
-		CMonsterWeenie *monster = _weenie->AsMonster();
-		if (monster && !monster->IsDead() && !monster->IsInPortalSpace() && !monster->IsBusyOrInAction())
-		{
-			monster->SetHealth(0, true);
-			monster->OnDeath(monster->GetID());
-		}
-
-	    break;
-
-	}
-
-	case SetBoolStat_EmoteType:
-	{
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
 		if (target)
 		{
-			target->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
-			target->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
-		}
 
-	    break;
+			BinaryWriter popupMessage;
+			popupMessage.Write<DWORD>(0x4);
+			popupMessage.WriteString(emote.msg);
+
+			target->SendNetMessage(&popupMessage, PRIVATE_MSG, TRUE, FALSE);
+
+		}
+		break;
 	}
 
+	case InqYesNo_EmoteType: //type: 75 causes a popup message to appear with a with the text from emote.msg and Yes/No dialog buttons.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		if (target)
+		{
+			BinaryWriter yesnoMessage;
+			yesnoMessage.Write<DWORD>(0x274);	// Message Type
+			yesnoMessage.Write<DWORD>(0x07);		// Confirm type (Yes/No)
+			yesnoMessage.Write<int>(_weenie->id);			// Sequence number ?? context id
+			yesnoMessage.WriteString(emote.teststring);
+
+			target->SendNetMessage(&yesnoMessage, PRIVATE_MSG, TRUE, FALSE);
+
+		}
+		break;
+	}
+
+	case InqOwnsItems_EmoteType: //type: 76 checks to see if a particular item and count exists in pack.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		DWORD itemWCID = emote.cprof.wcid;
+		int itemAmount = emote.cprof.stack_size;
+		bool success = false;
+
+		if (target)
+		{
+			if (target->GetItemCount(itemWCID) >= itemAmount)
+				success = true;
+
+			ChanceExecuteEmoteSet(success ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, emote.msg, target_id);
+		}
+		break;
+	}
+
+	case TakeItems_EmoteType: //type: 74 removes items from pack.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		DWORD itemWCID = emote.cprof.wcid;
+		int itemAmount = emote.cprof.stack_size;
+
+		if (target)
+		{
+			if (target->GetItemCount(itemWCID) >= itemAmount)
+				target->ConsumeItem(itemAmount, itemWCID);
+		}
+		break;
+	}
 	}
 	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
@@ -1379,11 +1429,6 @@ void EmoteManager::Tick()
 			break;
 
 		ExecuteEmote(i->_data, i->_target_id);
-
-		//Check if emote queue is empty due to KillSelf_emoteType
-		if (_emoteQueue.empty())
-			return;
-
 		i = _emoteQueue.erase(i);
 		if (i != _emoteQueue.end())
 			i->_executeTime = Timer::cur_time + i->_data.delay;
@@ -1467,4 +1512,9 @@ void EmoteManager::killTaskSub(std::string &mobName, std::string &kCountName, CW
 	{
 		targormember->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
 	}
+}
+
+void EmoteManager::ConfirmationResponse(bool accepted, DWORD target_id)
+{
+	ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, accepted ? "Yes_Response" : "No_Response", target_id);
 }

@@ -708,6 +708,12 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		return false;
 	}
 
+	if (sourceItem->InqIIDQuality(ALLOWED_WIELDER_IID, 0) && sourceItem->InqIIDQuality(ALLOWED_WIELDER_IID, 0) != GetID())
+	{
+		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_ATTUNED_ITEM);
+		return false;
+	}
+
 	if (sourceItem->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && sourceItem->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
 	{
 		sourceItem->m_Qualities.SetInt(SHIELD_VALUE_INT, sourceItem->InqIntQuality(ARMOR_LEVEL_INT, 0));
@@ -882,7 +888,7 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	}
 
 	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
-	if (!sourceItem)
+	if (!sourceItem || sourceItem->InUse)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
 		return false;
@@ -905,11 +911,14 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 			mergeEvent->_target_id = sourceItemId;
 		mergeEvent->_sourceItemId = sourceItemId;
 		mergeEvent->_targetItemId = targetItemId;
-		mergeEvent->_amountToTransfer = amountToTransfer;
+		mergeEvent->_amountToTransfer = amountToTransfer;		
 		ExecuteUseEvent(mergeEvent);
 	}
 	else
 	{
+		//Set the item to InUse while merging to prevent others from interacting with the item.
+		sourceItem->InUse = true;
+
 		//check if the items is still in range.
 		if (FindValidNearbyItem(sourceItemId, 5.0) == NULL || FindValidNearbyItem(targetItemId, 5.0) == NULL)
 		{
@@ -1824,6 +1833,10 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 			if (pSource)
 			{
+				if (pSource->m_Qualities.GetInt(AUGMENTATION_BONUS_XP_INT, 0))
+				{
+					xpForKill *= 1.05;
+				}
 				pSource->GiveSharedXP(dPercentage * xpForKill, false);
 			}
 		}

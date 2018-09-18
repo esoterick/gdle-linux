@@ -19,6 +19,7 @@
 #include "Player.h"
 #include "ChatMsgs.h"
 #include "Movement.h"
+#include "EmoteManager.h"
 #include "MovementManager.h"
 #include "Vendor.h"
 #include "AllegianceManager.h"
@@ -228,6 +229,12 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 			m_pPlayer->m_Qualities.SetString(DATE_OF_BIRTH_STRING, ss.str());
 			m_pPlayer->NotifyStringStatUpdated(DATE_OF_BIRTH_STRING);
 		}
+	}
+
+	if (!m_pPlayer->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0))
+	{
+		m_pPlayer->m_Qualities.SetFloat(GLOBAL_XP_MOD_FLOAT, 1.0);
+		m_pPlayer->NotifyFloatStatUpdated(GLOBAL_XP_MOD_FLOAT);
 	}
 
 	last_age_update = chrono::system_clock::to_time_t(chrono::system_clock::now());
@@ -548,7 +555,14 @@ void CClientEvents::SendTellByGUID(const char* szText, DWORD dwGUID)
 	CPlayerWeenie *pTarget;
 
 	if (!(pTarget = g_pWorld->FindPlayer(dwGUID)))
+	{	
+		CWeenieObject *target = g_pWorld->FindObject(dwGUID);
+
+		if (target && !target->m_Qualities._emote_table->_emote_table.empty())
+			target->MakeEmoteManager()->ChanceExecuteEmoteSet(ReceiveTalkDirect_EmoteCategory, szText, m_pPlayer->GetID());
+
 		return;
+	}
 
 	if (pTarget->GetID() != m_pPlayer->GetID())
 	{
@@ -558,6 +572,7 @@ void CClientEvents::SendTellByGUID(const char* szText, DWORD dwGUID)
 	}
 
 	pTarget->SendNetMessage(DirectChat(szText, m_pPlayer->GetName().c_str(), m_pPlayer->GetID(), pTarget->GetID(), 3), PRIVATE_MSG, TRUE);
+
 }
 
 void CClientEvents::SendTellByName(const char* szText, const char* szName)
@@ -2224,6 +2239,14 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 					m_pPlayer->UseEx(true);
 				}
 				break;
+			case 0x07:
+				CWeenieObject *target = g_pWorld->FindObject(context);
+					
+					if (target)
+					{
+						target->MakeEmoteManager()->ConfirmationResponse(accepted, m_pPlayer->id);
+					}
+
 			}
 
 			break;
@@ -2748,9 +2771,13 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			PlayerModule module;
 			if (!module.UnPack(pReader) || pReader->GetLastError())
 				break;
-
-			SendText("Updating character configuration.", LTT_SYSTEM_EVENT);
-			m_pPlayer->UpdateModuleFromClient(module);
+			if (m_pPlayer && m_pPlayer->AsPlayer())
+			{
+				SendText("Updating character configuration.", LTT_SYSTEM_EVENT);
+				m_pPlayer->UpdateModuleFromClient(module);
+			}
+			else
+			DEBUG_DATA << "Playermodule call for invalid object";
 			break;
 		}
 		case CANCEL_ATTACK: // Cancel attack

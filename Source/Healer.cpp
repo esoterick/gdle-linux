@@ -87,11 +87,12 @@ void CHealerUseEvent::OnReadyToUse()
 
 	if (_target_id == _weenie->GetID())
 	{
-		ExecuteUseAnimation(Motion_SkillHealSelf);
+		_weenie->DoForcedMotion(Motion_SkillHealSelf);
+		OnUseAnimSuccess(Motion_SkillHealSelf);
 	}
 	else
 	{
-		// TODO find the right animation for healing another player - using Woah animation now, seems right.
+		// Using Woah animation, seems to be correct.
 		ExecuteUseAnimation(Motion_Woah);
 	}
 }
@@ -132,16 +133,41 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 					target->m_Qualities.InqAttribute2nd(maxStatType, maxStatValue, FALSE);
 
 					int missingVital = max(0, (int)maxStatValue - (int)statValue);
-					int difficulty = max(0, (missingVital * 2) - tool->InqIntQuality(BOOST_VALUE_INT, 0));
+					double combat_mod = _weenie->IsInPeaceMode() ? 1.0 : 1.1;
+					int difficulty = max(0, (missingVital * 2) * combat_mod);
 
+					Skill skill;
 					DWORD healing_skill = 0;
 					_weenie->InqSkill(HEALING_SKILL, healing_skill, FALSE);
+					_weenie->m_Qualities.InqSkill(HEALING_SKILL, skill);
+										
+					double sac_mod = skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS ? 1.5 : 1.1;
+
+					healing_skill = (healing_skill + boost_value) * sac_mod;
 
 					// this is wrong, but whatever we'll fake it
-					DWORD heal_min = (int)(healing_skill * 0.2) * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0);
-					DWORD heal_max = (int)(healing_skill * 0.5) * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0);
+					DWORD heal_min = 0;
+					DWORD heal_max = 0;
+
+					if (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+					{
+						heal_min = (int)(healing_skill * 0.05) * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0);
+						heal_max = (int)(healing_skill * 0.10) * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0);
+					}
+					else
+					{
+						heal_min = (int)(healing_skill * 0.025) * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0);
+						heal_max = (int)(healing_skill * 0.05) * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0);
+					}
 
 					amountHealed = Random::GenInt(heal_min, heal_max);
+					
+					if (amountHealed > (int)(heal_max * 0.85))
+					{
+						prefix = "expertly ";
+						amountHealed *= 1.25;
+					}
+
 					if (amountHealed > missingVital)
 						amountHealed = missingVital;
 
@@ -161,9 +187,6 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 					success = Random::RollDice(0.0, 1.0) <= GetSkillChance(healing_skill, difficulty);
 					if (success)
 					{
-						if (amountHealed > (int)(heal_max * 0.8))
-							prefix = "expertly ";
-
 						DWORD newStatValue = min(statValue + amountHealed, maxStatValue);
 
 						int statChange = newStatValue - statValue;
