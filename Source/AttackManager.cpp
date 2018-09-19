@@ -663,6 +663,8 @@ void CMeleeAttackEvent::HandlePerformAttack(CWeenieObject *target, DamageEventDa
 	else
 		hitQuadrant = (DAMAGE_QUADRANT)(hitQuadrant | DAMAGE_QUADRANT::DQ_FRONT);
 
+	dmgEvent.hit_quadrant = hitQuadrant;
+
 	dmgEvent.target = target;
 
 	CalculateCriticalHitData(&dmgEvent, NULL);
