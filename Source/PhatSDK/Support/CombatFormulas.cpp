@@ -36,17 +36,11 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 	damageCalc += dmgEvent->skillDamageBonus;
 	damageCalc += dmgEvent->slayerDamageBonus;
 
-	bool critExpertise = dmgEvent->source->m_Qualities.GetInt(AUGMENTATION_CRITICAL_EXPERTISE_INT, 0);
-	bool critDefense = dmgEvent->target->m_Qualities.GetInt(AUGMENTATION_CRITICAL_DEFENSE_INT, 0);
 	bool critDefended = false;
 
-	if (critExpertise)
-		dmgEvent->critChance += 0.01;
-
-	dmgEvent->wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent->critChance) ? true : false;
 	if (dmgEvent->wasCrit)
 	{
-		if (critDefense)
+		if (bool critDefense = dmgEvent->target->m_Qualities.GetInt(AUGMENTATION_CRITICAL_DEFENSE_INT, 0))
 		{
 			if (Random::GenFloat(0.0, 1.0) < (dmgEvent->source->AsPlayer() ? 0.05 : 0.25))
 			{
@@ -90,7 +84,8 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 	case DF_MISSILE:
 	{
 		DWORD attrib = 0;
-		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL)			dmgEvent->source->m_Qualities.InqAttribute(COORDINATION_ATTRIBUTE, attrib, FALSE);
+		if (dmgEvent->attackSkill == FINESSE_WEAPONS_SKILL || dmgEvent->attackSkill == MISSILE_WEAPONS_SKILL)			
+			dmgEvent->source->m_Qualities.InqAttribute(COORDINATION_ATTRIBUTE, attrib, FALSE);
 		else
 			dmgEvent->source->m_Qualities.InqAttribute(STRENGTH_ATTRIBUTE, attrib, FALSE);
 
@@ -187,6 +182,9 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 		if (imbueEffects & CripplingBlow_ImbuedEffectType)
 			dmgEvent->critMultiplier += GetImbueMultiplier(dmgEvent->attackSkillLevel, 150, 400, 6);
 
+		if (bool critExpertise = dmgEvent->source->m_Qualities.GetInt(AUGMENTATION_CRITICAL_EXPERTISE_INT, 0))
+			dmgEvent->critChance += 0.01;
+
 		dmgEvent->critMultiplier = min(max(dmgEvent->critMultiplier, 0.0), 7.0);
 		dmgEvent->critChance = min(max(dmgEvent->critChance, 0.0), 1.0);
 		return;
@@ -210,6 +208,9 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 
 		if (imbueEffects & CripplingBlow_ImbuedEffectType)
 			dmgEvent->critMultiplier += GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 6);
+
+		if (bool critExpertise = dmgEvent->source->m_Qualities.GetInt(AUGMENTATION_CRITICAL_EXPERTISE_INT, 0))
+			dmgEvent->critChance += 0.01;
 
 		dmgEvent->critMultiplier = min(max(dmgEvent->critMultiplier, 0.0), 7.0);
 		dmgEvent->critChance = min(max(dmgEvent->critChance, 0.0), 1.0);
@@ -261,6 +262,10 @@ void CalculateCriticalHitData(DamageEventData *dmgEvent, SpellCastData *spellDat
 					dmgEvent->critMultiplier += GetImbueMultiplier(dmgEvent->attackSkillLevel, 125, 360, 5.0);
 			}
 		}
+		
+		if (bool critExpertise = dmgEvent->source->m_Qualities.GetInt(AUGMENTATION_CRITICAL_EXPERTISE_INT, 0))
+			dmgEvent->critChance += 0.01;
+
 		dmgEvent->critMultiplier = min(max(dmgEvent->critMultiplier, 0.0), 7.0);
 		dmgEvent->critChance = min(max(dmgEvent->critChance, 0.0), 1.0);
 		return;
