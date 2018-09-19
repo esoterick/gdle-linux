@@ -1790,10 +1790,10 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 					}
 
 					int text_option = 0; // 0 = normal cast text, 1 = refreshes text, 2 = surpassed by text, 3 = surpasses text
-					std::string existing_spell_name;
+					std::string existing_spell_name = "";
 					if (CEnchantmentRegistry* enchant_reg = target->m_Qualities._enchantment_reg) 
 					{
-						if (Enchantment* highest_enchant = enchant_reg->GetHighestEnchantOfCategory(enchant._spell_category)) // check if spell of this category already exists
+						if (Enchantment* highest_enchant = enchant_reg->GetHighestEnchantOfCategory(enchant._spell_category, enchant._smod.type)) // check if spell of this category already exists
 						{
 							if (highest_enchant->_id == enchant._id)
 								text_option = 1;
