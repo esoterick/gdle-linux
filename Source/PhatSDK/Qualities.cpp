@@ -2673,6 +2673,32 @@ void CEnchantmentRegistry::GetExpiredEnchantments(PackableListWithJson<DWORD> *e
 		expired->push_back(_vitae->_id);
 }
 
+Enchantment* CEnchantmentRegistry::GetHighestEnchantOfCategory(unsigned int category)
+{
+	std::vector<PackableListWithJson<Enchantment>*> all_lists = { _mult_list, _add_list, _cooldown_list };
+	Enchantment* highest = nullptr;
+	int highest_power = 0;
+
+	for (auto const &list : all_lists)
+	{
+		if (list)
+		{
+			for (auto &entry : *list)
+			{
+				if (category == entry._spell_category && entry._power_level > highest_power) // a more powerful enchant exists
+				{
+					highest_power = entry._power_level;
+					highest = &entry;
+				}
+			}
+			if (highest) // if we've gotten a result from this loop, no need to go further
+				return highest;
+		}
+	}
+
+	return highest;
+}
+
 BOOL CACQualities::PurgeEnchantments()
 {
 	if (_enchantment_reg)

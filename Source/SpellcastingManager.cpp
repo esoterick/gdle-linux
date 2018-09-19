@@ -1789,9 +1789,25 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 						continue;
 					}
 
-					bool bAlreadyExisted = false;
-					if (target->m_Qualities._enchantment_reg && target->m_Qualities._enchantment_reg->IsEnchanted(enchant._id))
-						bAlreadyExisted = true;
+					int text_option = 0; // 0 = normal cast text, 1 = refreshes text, 2 = surpassed by text, 3 = surpasses text
+					std::string existing_spell_name;
+					if (CEnchantmentRegistry* enchant_reg = target->m_Qualities._enchantment_reg) 
+					{
+						if (Enchantment* highest_enchant = enchant_reg->GetHighestEnchantOfCategory(enchant._spell_category)) // check if spell of this category already exists
+						{
+							if (highest_enchant->_id == enchant._id)
+								text_option = 1;
+
+							else 
+							{
+								// if the current highest enchant is more powerful than the one being cast, use surpassed by text (2), otherwise use surpasses text (3)
+								text_option = highest_enchant->_power_level > enchant._power_level ? 2 : 3; 
+
+								CSpellTable* st = MagicSystem::GetSpellTable();
+								existing_spell_name = st->GetSpellBase(highest_enchant->_id)->_name;
+							}
+						}
+					}
 
 					if (m_pWeenie != target)
 					{
@@ -1891,21 +1907,50 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 					target->NotifyEnchantmentUpdated(&enchant);
 
 					target->CheckVitalRanges();
-
+					const char* spell_name = m_SpellCastData.spell->_name.c_str();
 					if (m_pWeenie == target)
 					{
-						m_pWeenie->SendText(csprintf("You cast %s on yourself", m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
+						switch (text_option)
+						{
+						default:
+						case 0:
+							m_pWeenie->SendText(csprintf("You cast %s on yourself", spell_name), LTT_MAGIC);
+							break;
+						case 1:
+							m_pWeenie->SendText(csprintf("You cast %s on yourself, refreshing %s", spell_name, spell_name), LTT_MAGIC);
+							break;
+						case 2:
+							m_pWeenie->SendText(csprintf("You cast %s on yourself, but it is surpassed by %s", spell_name, existing_spell_name.c_str()), LTT_MAGIC);
+							break;
+						case 3:
+							m_pWeenie->SendText(csprintf("You cast %s on yourself, surpassing %s", spell_name, existing_spell_name.c_str()), LTT_MAGIC);
+						}							
 					}
 					else
 					{
-						m_pWeenie->SendText(csprintf("You cast %s on %s", m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
-
-						if (m_pWeenie != topLevelOwner)
+						switch (text_option)
 						{
-							if (target == topLevelOwner)
-								target->SendText(csprintf("%s cast %s on you", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str()), LTT_MAGIC);
-							else
-								topLevelOwner->SendText(csprintf("%s cast %s on %s", m_pWeenie->GetName().c_str(), m_SpellCastData.spell->_name.c_str(), target->GetName().c_str()), LTT_MAGIC);
+						default:
+						case 0:
+							m_pWeenie->SendText(csprintf("You cast %s on %s", spell_name, target->GetName().c_str()), LTT_MAGIC);
+							if (m_pWeenie != topLevelOwner)
+								topLevelOwner->SendText(csprintf("%s cast %s on %s", m_pWeenie->GetName().c_str(), spell_name, target == topLevelOwner ? "you" : target->GetName().c_str()), LTT_MAGIC);
+							break;
+						case 1:
+							m_pWeenie->SendText(csprintf("You cast %s on %s, refreshing %s", spell_name, target->GetName().c_str(), spell_name), LTT_MAGIC);
+							if (m_pWeenie != topLevelOwner)
+								topLevelOwner->SendText(csprintf("%s cast %s on %s, refreshing %s", m_pWeenie->GetName().c_str(), spell_name, target == topLevelOwner ? "you" : target->GetName().c_str(), spell_name), LTT_MAGIC);
+							break;
+						case 2:
+							m_pWeenie->SendText(csprintf("You cast %s on %s, but it is surpassed by %s", spell_name, target->GetName().c_str(), existing_spell_name.c_str()), LTT_MAGIC);
+							if (m_pWeenie != topLevelOwner)
+								topLevelOwner->SendText(csprintf("%s cast %s on %s, but it is surpassed by %s", m_pWeenie->GetName().c_str(), spell_name, target == topLevelOwner ? "you" : target->GetName().c_str(), existing_spell_name.c_str()), LTT_MAGIC);
+							break;
+						case 3:
+							m_pWeenie->SendText(csprintf("You cast %s on %s, surpassing %s", spell_name, target->GetName().c_str(), existing_spell_name.c_str()), LTT_MAGIC);
+							if (m_pWeenie != topLevelOwner)
+								topLevelOwner->SendText(csprintf("%s cast %s on %s, surpassing %s", m_pWeenie->GetName().c_str(), spell_name, target == topLevelOwner ? "you" : target->GetName().c_str(), existing_spell_name.c_str()), LTT_MAGIC);
+
 						}
 					}
 
