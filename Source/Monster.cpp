@@ -1726,6 +1726,8 @@ CCorpseWeenie *CMonsterWeenie::CreateCorpse(bool visible)
 	pCorpse->SetInitialPosition(m_Position);
 	pCorpse->SetName(csprintf("Corpse of %s", GetName().c_str()));
 	pCorpse->InitPhysicsObj();
+	//set velocity so that corpses are affected by gravity.
+	pCorpse->set_velocity(_phys_obj->m_velocityVector, 0);
 
 	pCorpse->m_bDontClear = false;
 
