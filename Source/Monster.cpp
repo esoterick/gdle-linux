@@ -862,11 +862,12 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 			serial |= ((DWORD)GetEnchantmentSerialByteForMask(sourceItem->InqIntQuality(LOCATIONS_INT, 0, TRUE)) << (DWORD)0);
 			serial |= ((DWORD)GetEnchantmentSerialByteForMask(sourceItem->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE)) << (DWORD)8);
 
-			DWORD spellid = sourceItem->InqDIDQuality(PROC_SPELL_DID, 0);
+			DWORD procspellid = sourceItem->InqDIDQuality(PROC_SPELL_DID, 0);
+			DWORD spellid = sourceItem->InqDIDQuality(SPELL_DID, 0);
 			for (auto &spellPage : sourceItem->m_Qualities._spell_book->_spellbook)
 			{
-				//ignore the spell and don't cast if it's the Proc_spell_DID
-				if (spellid != spellPage.first)
+				//ignore the spell and don't cast if it's the Proc_spell_DID or the spell_DID
+				if (spellid != spellPage.first && procspellid != spellPage.first)
 					sourceItem->MakeSpellcastingManager()->CastSpellEquipped(GetID(), spellPage.first, (WORD)serial);
 
 			}
