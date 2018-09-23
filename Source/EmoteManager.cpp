@@ -1455,6 +1455,10 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 									player->m_Qualities.SetSkill(skillToAlter, skill);
 									player->NotifySkillStatUpdated(skillToAlter);
 
+									numSkillCredits += pSkillBase->_specialized_cost - pSkillBase->_trained_cost;
+									player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
+									player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
+
 									if (xpToAward > 0)
 									{
 										player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0) + xpToAward);
