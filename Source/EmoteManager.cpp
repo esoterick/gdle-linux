@@ -1303,10 +1303,10 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 
 	case SetQuestCompletions_EmoteType:
-
+	{
 		if (!_weenie->m_Qualities._emote_table)
 			break;
-	{
+	
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
 
 		if (target)
