@@ -1313,9 +1313,9 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		{
 			target->SetQuestCompletions(emote.msg.c_str(), emote.amount);
 		}
-
+		break;
 	}
-	break;
+	
 
 	case Generate_EmoteType: //type:72 adds from generator table attached to creature weenie. Sets init value of generator table and calls weenie factory to begin generation. Can use same emote with value of 0 in amount field to disable generator.
 	{
@@ -1636,6 +1636,37 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
+	case DeleteSelf_EmoteType:
+	{
+		_weenie->MarkForDestroy();
+		break;
+	}
+
+	case KillSelf_EmoteType:
+	{
+		CMonsterWeenie *monster = _weenie->AsMonster();
+		if (monster && !monster->IsDead() && !monster->IsInPortalSpace() && !monster->IsBusyOrInAction())
+		{
+			monster->SetHealth(0, true);
+			monster->OnDeath(monster->GetID());
+		}
+
+		break;
+
+	}
+
+	case SetBoolStat_EmoteType:
+	{
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		if (target)
+		{
+			target->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
+			target->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
+		}
+
+		break;
+	}
+
 	}
 	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
@@ -1656,12 +1687,16 @@ void EmoteManager::Tick()
 			break;
 
 		ExecuteEmote(i->_data, i->_target_id);
+
+		//Check if emote queue is empty due to KillSelf_emoteType
+		if (_emoteQueue.empty())
+			return;
+
 		i = _emoteQueue.erase(i);
 		if (i != _emoteQueue.end())
 			i->_executeTime = Timer::cur_time + i->_data.delay;
 	}
 }
-
 void EmoteManager::Cancel()
 {
 	_emoteQueue.clear();
