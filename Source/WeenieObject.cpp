@@ -6158,9 +6158,13 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 				{
 					DWORD endurance = 0;
 					m_Qualities.InqAttribute(ENDURANCE_ATTRIBUTE, endurance, true);
-					float noStaminaUseChance = ((float)endurance - 100.0) / 400.0; //made up formula: 75% reduction at 400 endurance.
-					noStaminaUseChance = min(max(noStaminaUseChance, 0.0), 0.75);
-					if (Random::RollDice(0.0, 1.0) > noStaminaUseChance)
+					float noStamUseChance = 0;
+					if (endurance >= 50)
+					{
+						noStamUseChance = ((float)(endurance * endurance) * 0.000005) + ((float)endurance * 0.00124) - 0.07; // Better curve and caps at 300 End vs 400 End
+					}
+					noStamUseChance = min(noStamUseChance, 0.75);
+					if (Random::RollDice(0.0, 1.0) > noStamUseChance)
 						AdjustStamina(-1); // failed the roll, use stamina.
 				}
 				else
