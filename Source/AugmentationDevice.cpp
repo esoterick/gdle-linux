@@ -681,7 +681,7 @@ int CAugmentationDeviceWeenie::Use(CPlayerWeenie *player)
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_CRITICAL_DEFENSE_INT);
 				player->EmitEffect(159, 1.0f);
-				player->SendText("Congratulations! You have succeeded in acquiring the Eye of the Remorseless augmentation.", LTT_DEFAULT);
+				player->SendText("Congratulations! You have succeeded in acquiring the Critical Protection augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
 				{
