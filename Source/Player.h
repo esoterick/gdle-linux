@@ -78,7 +78,7 @@ public:
 
 	void SetLoginPlayerQualities();
 	void LoadSquelches();
-
+	std::list<CharacterSquelch_t> GetSquelches();
 
 	void HandleItemManaRequest(DWORD itemId);
 

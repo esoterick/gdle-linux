@@ -2547,7 +2547,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			// Read: bool add, DWORD characterID, string characterName, ChatMessageType msgType
 			//		0 = unsquelch, 1 = squelch, ChatMessageType = enum LogTextType
 
-			bool squelchSet =  pReader->Read<DWORD>() > 1;
+			bool squelchSet =  pReader->Read<DWORD>() > 0;
 			if (pReader->GetLastError()) break;
 			DWORD squelchPlayer = pReader->Read<DWORD>();
 			if (pReader->GetLastError()) break;
@@ -2556,7 +2556,8 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			BYTE squelchChatType = pReader->ReadByte();
 			if (pReader->GetLastError()) break;
 
-			if (!g_pWorld->FindPlayer(squelchName.c_str()))
+			CPlayerWeenie* target = g_pWorld->FindPlayer(squelchName.c_str());
+			if (!target)
 			{
 				m_pPlayer->SendText("Player not found.", LTT_DEFAULT);
 				break;

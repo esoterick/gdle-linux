@@ -3303,6 +3303,11 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	}
 }
 
+std::list<CharacterSquelch_t> CPlayerWeenie::GetSquelches()
+{
+	return squelches;
+}
+
 void CPlayerWeenie::LoadSquelches()
 {
 	squelches = g_pDBIO->GetCharacterSquelch(GetID());
