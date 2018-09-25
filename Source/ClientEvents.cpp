@@ -2203,6 +2203,8 @@ void CClientEvents::SetCharacterSquelchSetting(bool squelchSet, DWORD squelchPla
 // This is it!
 void CClientEvents::ProcessEvent(BinaryReader *pReader)
 {
+	if (!m_pPlayer)
+		return;
 	DWORD dwSequence = pReader->ReadDWORD();
 	DWORD dwEvent = pReader->ReadDWORD();
 	if (pReader->GetLastError()) return;
@@ -2438,6 +2440,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		case ALLEGIANCE_LOCK_ACTION:
 		{
 			// Read: AllegianceLockAction action - LockedOff 1, LockedOn 2, ToggleLocked 3, CheckLocked 4, DisplayBypass 5, ClearBypass 6
+			MAllegianceLockAction_003F msg(m_pPlayer);
+			msg.Parse(pReader);
+
 			break;
 		}
 		case ALLEGIANCE_APPROVED_VASSAL:
