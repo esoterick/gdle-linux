@@ -3334,36 +3334,36 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseAddOrRemoveAllegianceToStorageList(newSetting > 0);
 			break;
 		}
-		case CHESS_JOIN:
+		case CHESS_JOIN:  // Disabling until dev returns to update
 		{
-			auto const guid = pReader->Read<uint32_t>();
-			pReader->Read<uint32_t>(); // teamId, not used
+			//auto const guid = pReader->Read<uint32_t>();
+			//pReader->Read<uint32_t>(); // teamId, not used
 
-			CWeenieObject* object = g_pWorld->FindObject(guid);
-			if (!object)
-				break;
+			//CWeenieObject* object = g_pWorld->FindObject(guid);
+			//if (!object)
+			//	break;
 
-			sChessManager->Join(m_pPlayer, object);
+			//sChessManager->Join(m_pPlayer, object);
 			break;
 		}
-		case CHESS_QUIT:
-			sChessManager->Quit(m_pPlayer);
+		case CHESS_QUIT:  // Disabling until dev returns to update
+			//sChessManager->Quit(m_pPlayer);
 			break;
-		case CHESS_MOVE:
+		case CHESS_MOVE:  // Disabling until dev returns to update
 		{
-			GDLE::Chess::ChessPieceCoord from, to;
-			from.UnPack(pReader);
-			to.UnPack(pReader);
-			sChessManager->Move(m_pPlayer, from, to);
+			//GDLE::Chess::ChessPieceCoord from, to;
+			//from.UnPack(pReader);
+			//to.UnPack(pReader);
+			//sChessManager->Move(m_pPlayer, from, to);
 			break;
 		}
-		case CHESS_PASS:
-			sChessManager->MovePass(m_pPlayer);
+		case CHESS_PASS:  // Disabling until dev returns to update
+			//sChessManager->MovePass(m_pPlayer);
 			break;
-		case CHESS_STALEMATE:
+		case CHESS_STALEMATE:  // Disabling until dev returns to update
 		{
-			auto const on = pReader->Read<uint32_t>();
-			sChessManager->Stalemate(m_pPlayer, on);
+			//auto const on = pReader->Read<uint32_t>();
+			//sChessManager->Stalemate(m_pPlayer, on);
 			break;
 		}
 		case HOUSE_LIST_AVAILABLE:
