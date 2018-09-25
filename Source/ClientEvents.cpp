@@ -577,45 +577,39 @@ void CClientEvents::SendTell(const char* szText, const char* targetName, const D
 {
 	CPlayerWeenie *pTarget;
 
-	if (targetId > 0)
+	if (targetId > 0) // From SendTellByGuid
 	{
 		if (!(pTarget = g_pWorld->FindPlayer(targetId)))
+		{
+			CWeenieObject *target = g_pWorld->FindObject(targetId);
+
+			if (!target->m_Qualities._emote_table->_emote_table.empty())
+				target->MakeEmoteManager()->ChanceExecuteEmoteSet(ReceiveTalkDirect_EmoteCategory, szText, m_pPlayer->GetID());
+
 			return;
+		}
 	}
-
-	CPlayerWeenie *pTarget;
-
-	if (!(pTarget = g_pWorld->FindPlayer(dwGUID)))
-	{	
-		CWeenieObject *target = g_pWorld->FindObject(dwGUID);
-
-		if (target && !target->m_Qualities._emote_table->_emote_table.empty())
-			target->MakeEmoteManager()->ChanceExecuteEmoteSet(ReceiveTalkDirect_EmoteCategory, szText, m_pPlayer->GetID());
-
-		return;
-	}
-
-	if (pTarget->GetID() != m_pPlayer->GetID())
+	else
 	{
-		if (!(pTarget = g_pWorld->FindPlayer(targetName)))
+		if(!(pTarget = g_pWorld->FindPlayer(targetName)))
 			return;
 	}
 
+	if (strlen(szText) > 300)
+		return;
+
+	if (pTarget->GetID() == m_pPlayer->GetID())
+			return;
 
 	if (!CheckForChatSpam())
 		return;
 	
-	if (pTarget && !pTarget->IsPlayerSquelched(m_pPlayer->GetID(), true))
+	if (!pTarget->IsPlayerSquelched(m_pPlayer->GetID(), true))
 	{
 		std::string filteredText = FilterBadChatCharacters(szText);
-
-		if (pTarget->GetID() != m_pPlayer->GetID())
-		{
-			char szResponse[300];
-			_snprintf(szResponse, 300, "You tell %s, \"%s\"", pTarget->GetName().c_str(), szText);
-			m_pPlayer->SendNetMessage(ServerText(szResponse, 4), PRIVATE_MSG, FALSE, TRUE);
-		}
-
+		char szResponse[300];
+		_snprintf(szResponse, 300, "You tell %s, \"%s\"", pTarget->GetName().c_str(), szText);
+		m_pPlayer->SendNetMessage(ServerText(szResponse, 4), PRIVATE_MSG, FALSE, TRUE);
 		pTarget->SendNetMessage(DirectChat(szText, m_pPlayer->GetName().c_str(), m_pPlayer->GetID(), pTarget->GetID(), 3), PRIVATE_MSG, TRUE);
 	}
 }
