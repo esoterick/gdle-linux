@@ -1524,11 +1524,6 @@ void CWorld::EnumerateDungeonsFromCellData()
 		}
 	}
 
-	/*
-	if (dropsFile)
-	fclose(dropsFile);
-	*/
-
 #endif
 }
 
@@ -1570,34 +1565,37 @@ void CWorld::BroadcastChatChannel(DWORD channel_id, CPlayerWeenie *sender, const
 	{
 		CPlayerWeenie *player = entry.second;
 
-		BOOL bShouldHear = FALSE;
-
-		switch (channel_id)
+		if (player && !player->IsPlayerSquelched(sender->GetID(), true))
 		{
-		case General_ChatChannel:
-			bShouldHear = (player->GetCharacterOptions2() & HearGeneralChat_CharacterOptions2);
-			break;
-		case Trade_ChatChannel:
-			bShouldHear = (player->GetCharacterOptions2() & HearTradeChat_CharacterOptions2);
-			break;
-		case LFG_ChatChannel:
-			bShouldHear = (player->GetCharacterOptions2() & HearLFGChat_CharacterOptions2);
-			break;
-		case Roleplay_ChatChannel:
-			bShouldHear = (player->GetCharacterOptions2() & HearRoleplayChat_CharacterOptions2);
-			break;
-		case Allegiance_ChatChannel:
-			if (player->GetCharacterOptions() & HearAllegianceChat_CharacterOption)
+			BOOL bShouldHear = FALSE;
+
+			switch (channel_id)
 			{
-				if (sender_monarch_id && sender_monarch_id == player->InqIIDQuality(MONARCH_IID, 0))
-					bShouldHear = TRUE;
+			case General_ChatChannel:
+				bShouldHear = (player->GetCharacterOptions2() & HearGeneralChat_CharacterOptions2);
+				break;
+			case Trade_ChatChannel:
+				bShouldHear = (player->GetCharacterOptions2() & HearTradeChat_CharacterOptions2);
+				break;
+			case LFG_ChatChannel:
+				bShouldHear = (player->GetCharacterOptions2() & HearLFGChat_CharacterOptions2);
+				break;
+			case Roleplay_ChatChannel:
+				bShouldHear = (player->GetCharacterOptions2() & HearRoleplayChat_CharacterOptions2);
+				break;
+			case Allegiance_ChatChannel:
+				if (player->GetCharacterOptions() & HearAllegianceChat_CharacterOption)
+				{
+					if (sender_monarch_id && sender_monarch_id == player->InqIIDQuality(MONARCH_IID, 0))
+						bShouldHear = TRUE;
+				}
+				break;
 			}
-			break;
-		}
 
-		if (bShouldHear)
-		{
-			player->SendNetMessage(&chatPackage, 4, FALSE, FALSE);
+			if (bShouldHear)
+			{
+				player->SendNetMessage(&chatPackage, 4, FALSE, FALSE);
+			}
 		}
 	}
 }

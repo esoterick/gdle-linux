@@ -602,102 +602,105 @@ AllegianceProfile *AllegianceManager::CreateAllegianceProfile(DWORD char_id, uns
 
 const unsigned int MAX_DIRECT_VASSALS = 11;
 
-void AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject *target)
+void AllegianceManager::TrySwearAllegiance(CWeenieObject *vassal, CWeenieObject *patron)
 {
-	if (source->IsBusyOrInAction())
+	if (vassal->IsBusyOrInAction())
 	{
-		source->NotifyWeenieError(WERROR_ACTIONS_LOCKED);
+		vassal->NotifyWeenieError(WERROR_ACTIONS_LOCKED);
 		return;
 	}
-	if (target->IsBusyOrInAction())
+	if (patron->IsBusyOrInAction())
 	{
-		source->NotifyWeenieError(WERROR_ALLEGIANCE_PATRON_BUSY);
+		vassal->NotifyWeenieError(WERROR_ALLEGIANCE_PATRON_BUSY);
 		return;
 	}
-	if (source->DistanceTo(target) >= 4.0)
+	if (vassal->DistanceTo(patron) >= 4.0)
 	{
-		source->NotifyWeenieError(WERROR_MISSILE_OUT_OF_RANGE);
+		vassal->NotifyWeenieError(WERROR_MISSILE_OUT_OF_RANGE);
 		return;
 	}
-	if (source->GetID() == target->GetID())
+	if (vassal->GetID() == patron->GetID())
 		return;
 
-	if (CPlayerWeenie *player = target->AsPlayer())
+	if (CPlayerWeenie *player = patron->AsPlayer())
 	{
 		if (player->GetCharacterOptions() & IgnoreAllegianceRequests_CharacterOption)
 		{
-			source->NotifyWeenieError(WERROR_ALLEGIANCE_IGNORING_REQUESTS);
+			vassal->NotifyWeenieError(WERROR_ALLEGIANCE_IGNORING_REQUESTS);
 			return;
 		}
 	}
 
-	AllegianceTreeNode *selfTreeNode = g_pAllegianceManager->GetTreeNode(source->GetID());
-	if (selfTreeNode && selfTreeNode->_patronID)
+	AllegianceTreeNode *vassalTreeNode = g_pAllegianceManager->GetTreeNode(vassal->GetID());
+	if (vassalTreeNode && vassalTreeNode->_patronID)
 	{
 		// already sworn to someone
-		source->NotifyWeenieError(WERROR_ALLEGIANCE_PATRON_EXISTS);
-		if (selfTreeNode->_patronID == target->GetID())
+		vassal->NotifyWeenieError(WERROR_ALLEGIANCE_PATRON_EXISTS);
+		if (vassalTreeNode->_patronID == patron->GetID())
 		{
-			target->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_ADD_HIERARCHY_FAILURE, source->GetName().c_str());
+			patron->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_ADD_HIERARCHY_FAILURE, vassal->GetName().c_str());
 		}
 		return;
 	}
 
-	AllegianceTreeNode *targetTreeNode = GetTreeNode(target->GetID());
-	if (targetTreeNode)
+	AllegianceTreeNode *patronTreeNode = GetTreeNode(patron->GetID());
+	if (patronTreeNode)
 	{
-		if (IsBanned(source->GetID(), targetTreeNode->_monarchID))
+		if (IsBanned(vassal->GetID(), patronTreeNode->_monarchID))
 		{
-			source->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_YOU_ARE_BANNED, target->GetName().c_str());
-			target->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_BANNED, source->GetName().c_str());
+			vassal->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_YOU_ARE_BANNED, patron->GetName().c_str());
+			patron->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_BANNED, vassal->GetName().c_str());
 			return;
 		}
-		AllegianceInfo* ai = GetInfo(targetTreeNode->_monarchID);
-		if (ai && ai->_info.m_isLocked && (source->GetID() != ai->_info.m_ApprovedVassal)) // bypass the lock if it's the approved vassal
+		AllegianceInfo* ai = GetInfo(patronTreeNode->_monarchID);
+		if (!IsOfficerWithLevel(patronTreeNode, Castellan_AllegianceOfficerLevel)) // If a player swears allegiance to a monarch or Castellan-level officer in a locked allegiance, the action proceeds as normal.
 		{
-			source->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_PREVENTS_VASSAL, target->GetName().c_str());
-			target->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_PREVENTS_PATRON, source->GetName().c_str());
-			return;
+			if (ai && ai->_info.m_isLocked && (vassal->GetID() != ai->_info.m_ApprovedVassal)) // bypass the lock if it's the approved vassal
+			{
+				vassal->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_PREVENTS_VASSAL, patron->GetName().c_str());
+				patron->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_LOCK_PREVENTS_PATRON, vassal->GetName().c_str());
+				return;
+			}
 		}
 
-		if (selfTreeNode && selfTreeNode->_charID == targetTreeNode->_monarchID)
+		if (vassalTreeNode && vassalTreeNode->_charID == patronTreeNode->_monarchID)
 		{
 			// Clearly he doesn't have updated data.
-			SendAllegianceProfile(source);
+			SendAllegianceProfile(vassal);
 
 			return;
 		}
 
-		if (targetTreeNode->_vassals.size() >= MAX_DIRECT_VASSALS)
+		if (patronTreeNode->_vassals.size() >= MAX_DIRECT_VASSALS)
 		{
 			// too many vassals
-			target->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_MAX_VASSALS, "You");
-			source->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_MAX_VASSALS, target->GetName().c_str());
+			patron->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_MAX_VASSALS, "You");
+			vassal->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_MAX_VASSALS, patron->GetName().c_str());
 			return;
 		}
 	}
 
-	if (!targetTreeNode)
+	if (!patronTreeNode)
 	{
 		// target wasn't in an allegiance already
 
 		// make one...
-		targetTreeNode = new AllegianceTreeNode();
-		targetTreeNode->_monarchID = target->GetID();
-		_directNodes[target->GetID()] = targetTreeNode;
-		_monarchs[target->GetID()] = targetTreeNode;
+		patronTreeNode = new AllegianceTreeNode();
+		patronTreeNode->_monarchID = patron->GetID();
+		_directNodes[patron->GetID()] = patronTreeNode;
+		_monarchs[patron->GetID()] = patronTreeNode;
 
 		AllegianceInfo *info = new AllegianceInfo();
-		_allegInfos[target->GetID()] = info;
+		_allegInfos[patron->GetID()] = info;
 	}
-	targetTreeNode->UpdateWithWeenie(target);
+	patronTreeNode->UpdateWithWeenie(patron);
 
-	if (selfTreeNode)
+	if (vassalTreeNode)
 	{
 		// must be a current monarch
-		_monarchs.erase(source->GetID());
+		_monarchs.erase(vassal->GetID());
 
-		auto i = _allegInfos.find(source->GetID());
+		auto i = _allegInfos.find(vassal->GetID());
 		if (i != _allegInfos.end())
 		{
 			delete i->second;
@@ -706,36 +709,36 @@ void AllegianceManager::TrySwearAllegiance(CWeenieObject *source, CWeenieObject 
 	}
 	else
 	{
-		selfTreeNode = new AllegianceTreeNode();
-		_directNodes[source->GetID()] = selfTreeNode;
+		vassalTreeNode = new AllegianceTreeNode();
+		_directNodes[vassal->GetID()] = vassalTreeNode;
 	}
 
-	selfTreeNode->UpdateWithWeenie(source);
-	selfTreeNode->_rank = 1;
-	selfTreeNode->_numFollowers = 0;
-	selfTreeNode->_patronID = targetTreeNode->_charID;
-	selfTreeNode->_monarchID = targetTreeNode->_monarchID;
-	selfTreeNode->_unixTimeSwornAt = time(0);
-	selfTreeNode->_ingameSecondsSworn = 1;
+	vassalTreeNode->UpdateWithWeenie(vassal);
+	vassalTreeNode->_rank = 1;
+	vassalTreeNode->_numFollowers = 0;
+	vassalTreeNode->_patronID = patronTreeNode->_charID;
+	vassalTreeNode->_monarchID = patronTreeNode->_monarchID;
+	vassalTreeNode->_unixTimeSwornAt = time(0);
+	vassalTreeNode->_ingameSecondsSworn = 1;
 
-	if (selfTreeNode->_level <= targetTreeNode->_level)
-		source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
+	if (vassalTreeNode->_level <= patronTreeNode->_level)
+		vassal->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, true);
 	else
-		source->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false);
+		vassal->m_Qualities.SetBool(EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL, false);
 
-	targetTreeNode->_vassals[selfTreeNode->_charID] = selfTreeNode;
+	patronTreeNode->_vassals[vassalTreeNode->_charID] = vassalTreeNode;
 
 	// not efficient, can revise later
-	RELEASE_ASSERT(_monarchs.find(targetTreeNode->_monarchID) != _monarchs.end());
+	RELEASE_ASSERT(_monarchs.find(patronTreeNode->_monarchID) != _monarchs.end());
 
-	AllegianceTreeNode *monarchTreeNode = _monarchs[targetTreeNode->_monarchID];
+	AllegianceTreeNode *monarchTreeNode = _monarchs[patronTreeNode->_monarchID];
 	CacheDataRecursively(monarchTreeNode, NULL);
 	NotifyTreeRefreshRecursively(monarchTreeNode);
 
-	source->SendText(csprintf("%s has accepted your oath of Allegiance!", target->GetName().c_str()), LTT_DEFAULT);
-	target->SendText(csprintf("%s has sworn Allegiance to you.", source->GetName().c_str()), LTT_DEFAULT);
+	vassal->SendText(csprintf("%s has accepted your oath of Allegiance!", patron->GetName().c_str()), LTT_DEFAULT);
+	patron->SendText(csprintf("%s has sworn Allegiance to you.", vassal->GetName().c_str()), LTT_DEFAULT);
 
-	source->DoForcedMotion(Motion_Kneel);
+	vassal->DoForcedMotion(Motion_Kneel);
 
 	Save();
 }
@@ -1729,10 +1732,10 @@ void AllegianceManager::ListOfficers(CPlayerWeenie * player)
 	if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID))
 	{
 		player->SendText("Allegiance Officers:", LTT_DEFAULT);
-		player->SendText(csprintf("%s (Monarch)", g_pDBIO->GetPlayerCharacterName(playerNode->_monarchID)), LTT_DEFAULT);
+		player->SendText(csprintf("%s (Monarch)", g_pDBIO->GetPlayerCharacterName(playerNode->_monarchID).c_str()), LTT_DEFAULT);
 		for (auto officer : ai->_info.m_officerList)
 		{
-			player->SendText(csprintf("%s (%s)", g_pDBIO->GetPlayerCharacterName(officer.first), GetOfficerTitle(officer.first).c_str()), LTT_DEFAULT);
+			player->SendText(csprintf("%s (%s)", g_pDBIO->GetPlayerCharacterName(officer.first).c_str(), GetOfficerTitle(officer.first).c_str()), LTT_DEFAULT);
 		}
 	}
 }
@@ -1938,17 +1941,17 @@ void AllegianceManager::ApproveVassal(CPlayerWeenie * player, std::string vassal
 	DWORD playerID = player->GetID();
 	AllegianceTreeNode* playerNode = GetTreeNode(playerID);
 
-	if (playerNode && IsOfficerWithLevel(playerNode, Seneschal_AllegianceOfficerLevel)) // either a monarch or a level 2 or 3 officer
+	if (playerNode && IsOfficerWithLevel(playerNode, Castellan_AllegianceOfficerLevel)) // either a monarch or a level 3 officer
 	{
 		if (IsBanned(approvedVassalID, playerNode->_monarchID)) // check potential approved vassal's account isn't banned from the allegiance
 		{
 			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_BANNED, vassal_name.c_str());
 			return;
 		}
-		if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID)) {
+		if (AllegianceInfo* ai = GetInfo(playerNode->_monarchID)) 
+		{
 			ai->_info.m_ApprovedVassal = approvedVassalID;
 			player->NotifyWeenieErrorWithString(WERROR_ALLEGIANCE_APPROVED_SET, vassal_name.c_str());
-			Save();
 		}
 	}
 	else

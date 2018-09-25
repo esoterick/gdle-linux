@@ -2659,6 +2659,7 @@ SetPositionError CPhysicsObj::SetPosition(const SetPositionStruct &sps)
 		}
 		else
 		{
+			static CSphere dummy_sphere(Vector(0, 0, 0.1f), 0.1f);
 			transit->init_sphere(1, &dummy_sphere, 1.0f);
 		}
 

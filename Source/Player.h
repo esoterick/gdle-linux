@@ -5,6 +5,7 @@
 #include "Monster.h"
 #include "Packable.h"
 #include "TradeManager.h"
+#include "DatabaseIO.h"
 
 class CClient;
 class BinaryWriter;
@@ -67,15 +68,17 @@ public:
 	virtual bool CheckUseRequirements(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget);
 	virtual void PerformUseModifications(int index, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem);
 	virtual void PerformUseModificationScript(DWORD scriptId, CCraftOperation *op, CWeenieObject *pTool, CWeenieObject *pTarget, CWeenieObject *pCreatedItem);
-	virtual int CPlayerWeenie::GetMaterialMod(int material);
+	virtual int GetMaterialMod(int material);
 
 	void PerformSalvaging(DWORD toolId, PackableList<DWORD> items);
-	int CPlayerWeenie::CalculateSalvageAmount(int salvagingSkill, int dWorkmanship, int numAugs);
+	int CalculateSalvageAmount(int salvagingSkill, int dWorkmanship, int numAugs);
 
 	DWORD MaterialToSalvageBagId(MaterialType material);
 	bool SpawnSalvageBagInContainer(MaterialType material, int amount, int workmanship, int value, int numItems);
 
 	void SetLoginPlayerQualities();
+	void LoadSquelches();
+	std::list<CharacterSquelch_t> GetSquelches();
 
 	void HandleItemManaRequest(DWORD itemId);
 
@@ -196,6 +199,7 @@ public:
 
 	virtual bool IsBusy() override;
 	virtual void OnTeleported() override;
+	bool IsPlayerSquelched(const DWORD dwGUID, bool checkAccount = TRUE);
 
 	CCorpseWeenie *_pendingCorpse = NULL;
 	DWORD GetAccountHouseId();
@@ -228,7 +232,7 @@ public:
 
 protected:
 	CClient *m_pClient;
-
+	std::list<CharacterSquelch_t> squelches;
 	DWORD m_LastHealthRequest;
 
 	double m_fNextMakeAwareCacheFlush = 0.0;
