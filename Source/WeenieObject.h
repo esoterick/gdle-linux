@@ -220,6 +220,7 @@ public:
 	virtual bool IsSentinel() { return false; }
 	virtual bool IsAdmin() { return false; }
 	bool IsLocked();
+	bool InUse = false;
 
 	void SetLocked(BOOL locked);
 	virtual void ResetToInitialState() { }
@@ -440,6 +441,8 @@ public:
 
 	virtual DWORD RecalculateCoinAmount(int currencyid) { return 0; };
 	virtual DWORD ConsumeCoin(int amountToConsume, int currencyid) { return 0; };
+	virtual DWORD GetItemCount(int itemid) { return 0; };
+	virtual DWORD ConsumeItem(int amountToConsume, int itemid) { return 0; };
 
 	void SetValue(DWORD amount);
 	DWORD GetValue();

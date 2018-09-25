@@ -1562,3 +1562,72 @@ void CContainerWeenie::AdjustToNewCombatMode()
 
 	ChangeCombatMode(newCombatMode, false);
 }
+
+DWORD CContainerWeenie::GetItemCount(int itemid)
+{
+	int itemAmount = 0;
+	for (auto item : m_Items)
+	{
+		if (item->m_Qualities.id == itemid)
+			itemAmount += item->InqIntQuality(STACK_SIZE_INT, 1, true);
+	}
+
+	for (auto pack : m_Packs)
+		itemAmount += pack->GetItemCount(itemid);
+
+	return itemAmount;
+}
+
+DWORD CContainerWeenie::ConsumeItem(int amountToConsume, int itemid)
+{
+	if (amountToConsume < 1)
+		return 0;
+
+	if (AsPlayer()) //we don't need to recalculate this if we're a subcontainer
+	{
+		if (GetItemCount(itemid) < amountToConsume) //force recalculate our coin amount and check so we don't even try to consume if we don't have enough.
+			return 0;
+	}
+
+	std::list<CWeenieObject *> removeList;
+
+	DWORD amountConsumed = 0;
+	for (auto item : m_Items)
+	{
+		if (item->m_Qualities.id == itemid)
+		{
+			int stackSize = item->InqIntQuality(STACK_SIZE_INT, 1, true);
+			if (stackSize <= amountToConsume)
+			{
+				removeList.push_back(item);
+				amountToConsume -= stackSize;
+				amountConsumed += stackSize;
+			}
+			else
+			{
+				item->SetStackSize(stackSize - amountToConsume);
+				//amountToConsume -= stackSize;
+				amountConsumed += amountToConsume;
+				break;
+			}
+		}
+	}
+
+	for (auto item : removeList)
+		item->Remove();
+
+	if (amountToConsume > 0)
+	{
+		for (auto pack : m_Packs)
+		{
+			DWORD amountFromPack = pack->ConsumeItem(amountToConsume, itemid);
+			amountToConsume -= amountFromPack;
+			amountConsumed += amountFromPack;
+
+			if (amountToConsume <= 0)
+				break;
+		}
+	}
+
+	return amountConsumed;
+}

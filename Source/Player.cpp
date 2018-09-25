@@ -24,6 +24,7 @@
 #include "Util.h"
 #include "ChessManager.h"
 
+
 #include <chrono>
 #include <algorithm>
 #include <functional>
@@ -1322,6 +1323,9 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			if (op->_SkillCheckFormulaType == 2) // imbue
 			{
 				successChance /= 3;
+				
+				if (m_Qualities.GetInt(AUGMENTATION_BONUS_IMBUE_CHANCE_INT, 0))
+					successChance += 0.05;
 			}
 
 			switch (pTool->m_Qualities.id)
@@ -3325,6 +3329,28 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		if (houseData->_ownerId != GetID())
 			m_Qualities.SetDataID(HOUSEID_DID, 0);
 	}
+}
+
+std::list<CharacterSquelch_t> CPlayerWeenie::GetSquelches()
+{
+	return squelches;
+}
+
+void CPlayerWeenie::LoadSquelches()
+{
+	squelches = g_pDBIO->GetCharacterSquelch(GetID());
+}
+
+bool CPlayerWeenie::IsPlayerSquelched(const DWORD dwGUID, bool checkAccount)
+{
+	for (auto sq : squelches)
+	{
+		if (sq.squelched_id == dwGUID)
+			return TRUE;
+		if (g_pDBIO->GetPlayerAccountId(dwGUID) == sq.account_id)
+			return TRUE;
+	}
+	return FALSE;
 }
 
 void CPlayerWeenie::HandleItemManaRequest(DWORD itemId)
