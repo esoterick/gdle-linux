@@ -238,12 +238,6 @@ void CClient::SendNetMessage(void *data, DWORD length, WORD group, BOOL game_eve
 	if (!data || !length)
 		return;
 
-	if (g_bDebugToggle)
-	{
-		DEBUG_DATA << "Sending response(group" << group << "to" << (GetEvents() && GetEvents()->GetPlayer()) ? GetEvents()->GetPlayer()->GetName().c_str() : "[unknown]";
-		LOG_BYTES(Network, Normal, data, length);
-	}
-
 	m_pPC->QueueNetMessage(data, length, group, game_event ? GetEvents()->GetPlayerID() : 0);
 }
 
@@ -1566,20 +1560,24 @@ void CClient::ProcessMessage(BYTE *data, DWORD length, WORD group)
 				}
 				else
 				{
-					switch (listening_channel)
+					if (!m_pEvents->GetPlayer()->IsPlayerSquelched(playerGUID))
 					{
-					case General_ChatChannel:
-					case Trade_ChatChannel:
-					case LFG_ChatChannel:
-					case Roleplay_ChatChannel:
-					case Allegiance_ChatChannel:
-					// case Olthoi_ChatChannel:
-					// case Society_ChatChannel:
-						if (listening_channel > 1 && !g_pConfig->AllowGeneralChat())
-							break;
 
-						g_pWorld->BroadcastChatChannel(listening_channel, m_pEvents->GetPlayer(), filteredText);
-						break;
+						switch (listening_channel)
+						{
+						case General_ChatChannel:
+						case Trade_ChatChannel:
+						case LFG_ChatChannel:
+						case Roleplay_ChatChannel:
+						case Allegiance_ChatChannel:
+							// case Olthoi_ChatChannel:
+							// case Society_ChatChannel:
+							if (listening_channel > 1 && !g_pConfig->AllowGeneralChat())
+								break;
+
+							g_pWorld->BroadcastChatChannel(listening_channel, m_pEvents->GetPlayer(), filteredText);
+							break;
+						}
 					}
 				}
 			}

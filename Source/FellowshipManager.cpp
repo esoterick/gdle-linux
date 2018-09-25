@@ -173,7 +173,7 @@ unsigned int Fellowship::CalculateExperienceProportionSum()
 	unsigned int sum = 0;
 
 	for (auto &entry : _fellowship_table)
-		sum += FellowshipManager::GetExperienceProportion(entry.second._level);
+		sum += entry.second._level;
 
 	return sum;
 }

@@ -64,6 +64,9 @@ public:
 	void TryInscribeItem(DWORD object_id, const std::string &text);
 	void UseItemEx(DWORD dwSourceID, DWORD dwDestID);
 	void UseObject(DWORD dwEID);
+	void SendTellByGUID(const char* szText, const CPlayerWeenie *pTarget);
+	void SendTell(const char* szText, const char* targetName, const DWORD targetId = 0);
+
 
 	void ProcessEvent(BinaryReader *);
 
@@ -76,6 +79,8 @@ public:
 	void TryFellowshipAssignNewLeader(DWORD target);
 	void TryFellowshipChangeOpenness(int open);
 	void SendFellowshipUpdate();
+	void SetCharacterSquelchSetting(bool squelchSet, DWORD squelchPlayer, std::string squelchName, BYTE squelchChatType, bool account);
+	void SendSquelchDB();
 
 	// Allegiance functionality
 	void TrySwearAllegiance(DWORD target);

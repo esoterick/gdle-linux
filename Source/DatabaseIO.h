@@ -19,6 +19,30 @@ struct CharacterDesc_t
 	unsigned short instance_ts;
 };
 
+struct CharacterSquelch_t
+{
+	unsigned int squelched_id = 0;
+	unsigned int account_id = 0;
+	bool isIp = false;
+	bool isSpeech = false;
+	bool isTell = false;
+	bool isCombat = false;
+	bool isMagic = false;
+	bool isEmote = false;
+	bool isAdvancement = false;
+	bool isAppraisal = false;
+	bool isSpellcasting = false;
+	bool isAllegiance = false;
+	bool isFellowship = false;
+	bool isCombatEnemy = false;
+	bool isRecall = false;
+	bool isCrafting = false;
+
+public:
+	
+
+};
+
 enum DBIOError
 {
 	DBIO_ERROR_NONE = 0,
@@ -56,6 +80,9 @@ public:
 
 	std::list<CharacterDesc_t> GetCharacterList(unsigned int accountid);
 	CharacterDesc_t GetCharacterInfo(unsigned int weenie_id);
+	std::list<CharacterSquelch_t> GetCharacterSquelch(unsigned int character_id);
+	bool SaveCharacterSquelch(unsigned int character_id, CharacterSquelch_t data);
+	bool RemoveCharacterSquelch(unsigned int character_id, CharacterSquelch_t data);
 	bool CreateCharacter(unsigned int account_id, unsigned int weenie_id, const char *name);
 	bool DeleteCharacter(unsigned int weenie_id);
 	bool SetCharacterInstanceTS(unsigned int weenie_id, unsigned int instance_ts);
@@ -71,7 +98,8 @@ public:
 	bool IsPlayerCharacter(unsigned int weenie_id);
 	DWORD GetPlayerCharacterId(const char *name);
 	std::string GetPlayerCharacterName(DWORD weenie_id);
-	DWORD GeAccountHouseId(unsigned int accountid);
+	DWORD GetAccountHouseId(unsigned int accountid);
+	DWORD GetPlayerAccountId(unsigned int character_id);
 
 	bool CreateOrUpdateWeenie(unsigned int weenie_id, unsigned int top_level_object_id, unsigned int block_id, void *data, unsigned int data_length);
 	bool GetWeenie(unsigned int weenie_id, unsigned int *top_level_object_id, unsigned int *block_id, void **data, unsigned long *data_length);
