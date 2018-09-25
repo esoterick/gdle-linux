@@ -150,6 +150,8 @@ void CCorpseWeenie::LoadEx(class CWeenieSave &save)
 	m_bDontClear = true;
 
 	InitPhysicsObj();
+	//set velocity so that corpses are affected by gravity after server restarts.
+	_phys_obj->set_velocity(Vector(0, 0, 1.0f), 0);
 	MakeMovementManager(TRUE);
 	MovementParameters params;
 	params.autonomous = 0;

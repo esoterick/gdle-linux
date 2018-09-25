@@ -56,6 +56,8 @@ MonsterAIManager::MonsterAIManager(CMonsterWeenie *pWeenie, const Position &Home
 	if (pWeenie->m_Qualities._emote_table && pWeenie->m_Qualities._emote_table->_emote_table.lookup(Taunt_EmoteCategory))
 		_nextTaunt = Timer::cur_time + Random::GenUInt(10, 30); //We have taunts so schedule them.
 
+	pWeenie->transient_state |= CONTACT_TS;
+
 	// List of qualities that could be used to affect the AI behavior:
 	// AI_CP_THRESHOLD_INT
 	// AI_PP_THRESHOLD_INT

@@ -71,14 +71,26 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 							for (PackableHashTableWithJson<STypeSkill, Skill>::iterator i = player->m_Qualities._skillStatsTable->begin(); i != player->m_Qualities._skillStatsTable->end(); i++)
 							{
 								if (i->second._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
-								{
-									speccCount += (pSkillTable->GetSkillBase(i->first)->_specialized_cost);
+								{	
+									//Arcane technically costs 4 credits to train even though you can't unspec it. Should only count as 2 toward number of spec credits.
+									if (i->first != ARCANE_LORE_SKILL)
+										speccCount += (pSkillTable->GetSkillBase(i->first)->_specialized_cost);
+									else
+										speccCount += (pSkillTable->GetSkillBase(i->first)->_specialized_cost - pSkillTable->GetSkillBase(i->first)->_trained_cost);
 								}
 							}
 							if (speccCount + pSkillBase->_specialized_cost > 70)
 							{
-								player->SendText("Unable to specialize this skill.", LTT_DEFAULT);
-								break;
+								if (skillToAlter != ARCANE_LORE_SKILL)
+								{
+									player->SendText("Unable to specialize this skill.", LTT_DEFAULT);
+									break;
+								}
+								else if (speccCount + (pSkillBase->_specialized_cost - pSkillBase->_trained_cost) > 70)
+								{
+									player->SendText("Unable to specialize this skill.", LTT_DEFAULT);
+									break;
+								}
 							}
 
 							numSkillCredits -= pSkillBase->_specialized_cost;
