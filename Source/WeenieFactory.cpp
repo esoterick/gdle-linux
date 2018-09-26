@@ -398,6 +398,7 @@ void CWeenieFactory::LoadLocalStorage(bool refresh)
 				}
 				else
 				{
+					WINLOG(Data, Warning, "Failed to parse json: \"%s\"\n", path.string().c_str());
 					delete pDefaults;
 				}
 
