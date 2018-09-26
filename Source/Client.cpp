@@ -773,7 +773,7 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 
 	//weenie->m_Qualities.SetInt(COIN_VALUE_INT, GetAccessLevel() >= ADMIN_ACCESS ? 500000000 : 10000);
 	weenie->SpawnInContainer(W_COINSTACK_CLASS, 500);
-	weenie->SpawnInContainer(W_TUTORIALBOOK_CLASS, 1);
+	//weenie->SpawnInContainer(W_TUTORIALBOOK_CLASS, 1); Temporary Removal
 	weenie->SpawnInContainer(W_TINKERINGTOOL_CLASS, 1);
 
 

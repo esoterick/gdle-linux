@@ -143,6 +143,7 @@ CMYSQLConnection *CMYSQLConnection::Create(const char *host, unsigned int port, 
 			{
 				// Only show warning if not the first connection attempt
 				SERVER_WARN << "mysql_real_connect() failed:" << mysql_error(sqlobject);
+				WINLOG(Data, Warning, "Failed to establish connection to database.\n");
 			}
 
 			mysql_close(sqlobject);
