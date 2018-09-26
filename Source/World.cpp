@@ -1732,3 +1732,26 @@ void CWorld::NotifyEventStopped(const char *eventName)
 		}
 	}
 }
+
+void CWorld::AddToUsedMergedItems(DWORD item)
+{
+	_stackableOnGround._Try_emplace(item, false);
+}
+
+bool CWorld::IsItemInUse(DWORD item)
+{
+	std::map<DWORD, bool>::const_iterator it = _stackableOnGround.find(item);
+	if (it == _stackableOnGround.end())
+		return false;
+	if (it->second == true)
+		return true;
+	_stackableOnGround[item] = true;
+	return false;
+}
+
+void CWorld::RemoveMergedItem(DWORD item)
+{
+	_stackableOnGround.erase(item);
+}
+
+

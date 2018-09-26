@@ -889,7 +889,7 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	}
 
 	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
-	if (!sourceItem || sourceItem->InUse)
+	if (!sourceItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
 		return false;
@@ -904,6 +904,12 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 
 	if (!animationDone && (!FindContainedItem(sourceItemId) || !FindContainedItem(targetItemId)))
 	{
+		if (g_pWorld->IsItemInUse(sourceItemId))
+		{
+			NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
+			return false;
+		}
+
 		//from ground or other container or to ground or other container.
 		CStackMergeInventoryUseEvent *mergeEvent = new CStackMergeInventoryUseEvent();
 		if(sourceItem->IsContained() || sourceItem->IsWielded())
@@ -918,7 +924,6 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	else
 	{
 		//Set the item to InUse while merging to prevent others from interacting with the item.
-		sourceItem->InUse = true;
 
 		//check if the items is still in range.
 		if (FindValidNearbyItem(sourceItemId, 5.0) == NULL || FindValidNearbyItem(targetItemId, 5.0) == NULL)
@@ -1123,6 +1128,7 @@ bool CMonsterWeenie::SplitItemto3D(DWORD sourceItemId, DWORD amountToTransfer, b
 		}
 		newStackItem->SetStackSize(amountToTransfer);
 		newStackItem->SetID(g_pWorld->GenerateGUID(eDynamicGUID));
+		g_pWorld->AddToUsedMergedItems(newStackItem->GetID());
 
 		if (!g_pWorld->CreateEntity(newStackItem))
 		{
