@@ -371,6 +371,7 @@ INT_PTR CALLBACK MainProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 						SetWindowText(hWndConsole, "");
 						SERVER_INFO << "Console cleared.";
+						WINLOG(Data, Warning, "Console cleared.\n");
 					}
 				}
 				break;

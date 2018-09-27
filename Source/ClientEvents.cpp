@@ -2525,13 +2525,22 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		case STACKABLE_MERGE: // Evt_Inventory__StackableMerge
 		{
 			DWORD merge_from_id = pReader->Read<DWORD>();
+			if (pReader->GetLastError()) break;
 			DWORD merge_to_id = pReader->Read<DWORD>();
+			if (pReader->GetLastError()) break; 
 			DWORD amount = pReader->Read<DWORD>();
+			if (pReader->GetLastError()) break;
 
-			if (pReader->GetLastError())
-				break;
+			if (!g_pWorld->IsItemInUse(merge_from_id))
+			{
+				m_pPlayer->MergeItem(merge_from_id, merge_to_id, amount);
+				g_pWorld->RemoveMergedItem(merge_from_id);
+			}
+			else
+			{
+				m_pPlayer->NotifyInventoryFailedEvent(merge_from_id, WERROR_OBJECT_GONE);
+			}
 
-			m_pPlayer->MergeItem(merge_from_id, merge_to_id, amount);
 			break;
 		}
 		case STACKABLE_SPLIT_TO_CONTAINER: // Evt_Inventory__StackableSplitToContainer
@@ -2550,10 +2559,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		case STACKABLE_SPLIT_TO_3D: // Evt_Inventory__StackableSplitTo3D
 		{
 			DWORD stack_id = pReader->Read<DWORD>();
+			if (pReader->GetLastError()) break;
 			DWORD amount = pReader->Read<DWORD>();
-
-			if (pReader->GetLastError())
-				break;
+			if (pReader->GetLastError()) break;
 
 			m_pPlayer->SplitItemto3D(stack_id, amount);
 			break;

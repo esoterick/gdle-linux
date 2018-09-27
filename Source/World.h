@@ -126,6 +126,11 @@ public:
 	void NotifyEventStarted(const char *eventName);
 	void NotifyEventStopped(const char *eventName);
 
+	void AddToUsedMergedItems(DWORD item);
+	bool IsItemInUse(DWORD item);
+	void RemoveMergedItem(DWORD item);
+
+
 private:
 	void LoadDungeonsFile();
 	void SaveDungeonsFile();
@@ -156,6 +161,9 @@ private:
 	double m_fNextDebugValidate = 0.0;
 
 	std::unordered_multimap<std::string, DWORD> _eventWeenies;
+
+	std::list<DWORD> _usedMergedItems;
+	std::map<DWORD, bool> _stackableOnGround;
 };
 
 
