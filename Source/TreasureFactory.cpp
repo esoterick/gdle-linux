@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "TreasureFactory.h"
 #include "WeenieObject.h"
@@ -1865,7 +1864,8 @@ void CTreasureFactory::MutateMissileWeapon(CWeenieObject *newItem, CWieldTier *w
 				elementalType = (eElements)getRandomNumber(4, 7);
 			newItem->m_Qualities.SetInt(ELEMENTAL_DAMAGE_BONUS_INT, elementalDamage);
 
-			switch (elementalType)
+            // Removed as it is no longer needed once Elemental Missile Weapons are added into the loot.
+			/*switch (elementalType)
 			{
 			case acid:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, ACID_DAMAGE_TYPE);
@@ -1902,7 +1902,7 @@ void CTreasureFactory::MutateMissileWeapon(CWeenieObject *newItem, CWieldTier *w
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_SLASHING);
 				newItem->m_Qualities.SetString(NAME_STRING, "Slashing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
-			}
+			}*/
 		}
 	}
 }
@@ -1965,7 +1965,8 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 				elementalType = (eElements)getRandomNumber(1, 3);
 			newItem->m_Qualities.SetFloat(ELEMENTAL_DAMAGE_MOD_FLOAT, elementalDamageMod);
 
-			switch (elementalType)
+            // Removed as it is no longer needed once Elemental Casters are added into the loot.
+			/*switch (elementalType)
 			{
 			case acid:
 				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, ACID_DAMAGE_TYPE);
@@ -2002,10 +2003,10 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_SLASHING);
 				newItem->m_Qualities.SetString(NAME_STRING, "Slashing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
 				break;
-			}
+			}*/
 		}
 	}
-	else 
+	//else// 
 	{
 		double manaConversionnowield = round(getRandomDouble(0, 0.10), 2);
 		if (manaConversionnowield > 0)
