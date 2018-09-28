@@ -4943,6 +4943,36 @@ CLIENT_COMMAND(challengeai, "", "Challenge an AI to a game of Chess.", BASIC_ACC
 	return false;
 }
 
+CLIENT_COMMAND(sethealth, "[value]", "Set my health to value must be below max health", ADMIN_ACCESS)
+{
+	DWORD amount = 0;
+
+	if (argc >= 1)
+	{
+		amount = strtoul(argv[0], NULL, 10);
+	}
+	else
+		return false;
+
+	pPlayer->SetHealth(amount, true);
+	return true;
+}
+
+CLIENT_COMMAND(setstamina, "[value]", "Set my staminahealth to value must be below max health", ADMIN_ACCESS)
+{
+	DWORD amount = 0;
+
+	if (argc >= 1)
+	{
+		amount = strtoul(argv[0], NULL, 10);
+	}
+	else
+		return false;
+
+	pPlayer->SetStamina(amount, true);
+	return true;
+}
+
 
 const char* CommandBase::Info(CommandEntry* pCommand)
 {
