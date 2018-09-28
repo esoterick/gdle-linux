@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "TreasureFactory.h"
 #include "WeenieObject.h"
@@ -11,6 +10,8 @@
 #include "Monster.h"
 #include "Player.h"
 #include "easylogging++.h"
+#include "ClientCommands.h"
+#include <chrono>
 
 double round(double value, int decimalPlaces)
 {
@@ -1137,38 +1138,90 @@ int CTreasureFactory::GenerateRareItem(CWeenieObject *parent, CWeenieObject *kil
 	int amountCreated = 0;
 	DWORD rareWcid = 0;
 	bool rareDropped = false;
-	int roll = getRandomDouble(1.0);
-	int tier = 0;
+	bool realTimeRare = false;
+	double roll = getRandomDouble(1.0);
 
-	//standard rare drop rate is 1 in 2,500 kills. There is also a timer based on last Rare picked up. After 2 months, this value should be 100% Needs new curve.
-	if (roll < (0.0004 * g_pConfig->RareDropMultiplier()) || roll <= 1 - (1 / (1 + exp(0.0001 * ((Timer::cur_time - killer->AsPlayer()->CheckRareTimer()) - 86400) + 3))))
+	int tier = 1;
+	int tierInt = 0;
+
+	time_t t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+	// Standard rare drop rate is 1 in 2,500 kills. This is for a second Real Time Rare drop system. You would get a dramatically increased rare drop chance (90%?) after a hitting a random number of seconds (up to 2 months) since last rare drop. 
+	// https://asheron.wikia.com/wiki/Announcements_-_2010/04_-_Shedding_Skin
+	// Q: Were there any changes to the real time rare system?
+	// A: Real Time Rares work the same as they always have. It rolls a number between 1 second and 2 months worth of seconds. When that number is up you get an additional chance of finding a rare on any valid rare kill. That additional chance is very high. 
+	// You can still only find one rare on any given kill but it's possible to find a normal rare when your Real Time Rare timer is up but you haven't found one yet.
+
+	if (g_pConfig->RealTimeRares() && killer->m_Qualities.GetInt(RARES_LOGIN_TIMESTAMP_INT, 0) <= t)
+	{
+		if (roll < 0.9)
+		{
+			int seconds = getRandomNumber(5184000);
+			t += seconds;
+
+			realTimeRare = true;
+			rareDropped = true;
+			killer->m_Qualities.SetInt(RARES_LOGIN_TIMESTAMP_INT, t);
+		}
+	}
+
+	if (!realTimeRare && roll < (0.0004 * g_pConfig->RareDropMultiplier())) 
 		rareDropped = true;
 
 	if (rareDropped)
 	{
-		roll = getRandomNumber(1, 100000);
+		int tierRoll = getRandomNumber(1, 100000);
 
-		if (roll <= 28)
-			tier = 6;
-		else if (roll <= 33)
-			tier = 5;
-		else if (roll <= 80)
-			tier = 4;
-		else if (roll <= 1000)
-			tier = 3;
-		else if (roll <= 10000)
-			tier = 2;
-		else
+		if (tierRoll > 10000)
 			tier = 1;
+		else if (tierRoll > 1000)
+			tier = 2;
+		else if (tierRoll > 80)
+			tier = 3;
+		else if (tierRoll > 33)
+			tier = 4;
+		else if (tierRoll > 28)
+			tier = 5;
+		else if (tierRoll > 0)
+			tier = 6;
+
+		if (!realTimeRare)
+		{
+			switch (tier)
+			{
+			case 6:
+				tierInt = RARES_TIER_SIX_INT;
+			case 7:
+				tierInt = RARES_TIER_SEVEN_INT; // We currently only have 6 tiers but apparently Turbine had plans for a 7th
+			default:
+				tierInt = RARES_TIER_ONE_INT + (tier - 1);
+			}
+		}
+		else
+		{
+			switch (tier)
+			{
+			case 6:
+				tierInt = RARES_TIER_SIX_LOGIN_INT;
+			case 7:
+				tierInt = RARES_TIER_SEVEN_LOGIN_INT; // We currently only have 6 tiers but apparently Turbine had plans for a 7th
+			default:
+				tierInt = RARES_TIER_ONE_LOGIN_INT + (tier - 1);
+			}
+
+		}
+
+		int rareCount = killer->m_Qualities.GetInt((STypeInt)tierInt, 0);
+		killer->m_Qualities.SetInt((STypeInt)tierInt, rareCount);
+				
 
 		if (CWeenieObject *newItem = GenerateRandomRareByTier(tier))
 		{
 			g_pWeenieFactory->AddWeenieToDestination(newItem, parent, Treasure_DestinationType, false);
 			amountCreated++;
 			g_pWorld->BroadcastLocal(killer->GetLandcell(), csprintf("%s has discovered the %s!", killer->GetName().c_str(), newItem->GetName().c_str()), LTT_SYSTEM_EVENT);
-			parent->EmitSound(149, 1.0, false); //To Do, fix this so bell sound plays on rare found.
-
-			killer->AsPlayer()->UpdateRareTimer();
+			parent->m_Qualities.SetBool(CORPSE_GENERATED_RARE_BOOL, 1);
+			parent->EmitSound(149, 1.0, false);
 		}
 	}
 

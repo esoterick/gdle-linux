@@ -26,7 +26,7 @@ class CPlayerWeenie : public CMonsterWeenie
 {
 public:
 	CPlayerWeenie(CClient *, DWORD dwGUID, WORD instance_ts);
-	~CPlayerWeenie();
+	virtual ~CPlayerWeenie();
 
 	virtual void Tick() override;
 	
@@ -214,8 +214,6 @@ public:
 	void UpdatePKActivity();
 	bool CheckPKActivity() { return m_iPKActivity > Timer::cur_time; }
 	void ClearPKActivity() { m_iPKActivity = Timer::cur_time; }
-	void UpdateRareTimer() { m_iRareDropped = Timer::cur_time; }
-	int CheckRareTimer() { return m_iRareDropped; }
 
 	void AddCorpsePermission(CPlayerWeenie * target);
 	void RemoveCorpsePermission(CPlayerWeenie * target);
@@ -253,7 +251,6 @@ protected:
 
 private:
 	int m_iPKActivity = 0;
-	int m_iRareDropped = 0;
 };
 
 class CWandSpellUseEvent : public CUseEventData

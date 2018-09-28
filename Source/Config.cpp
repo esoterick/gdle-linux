@@ -173,6 +173,7 @@ void CPhatACServerConfig::PostLoad()
 	m_bAllowGeneralChat = atoi(GetValue("allow_general_chat", "1")) != 0;
 
 	m_fRareDropMultiplier = max(0.0, atof(GetValue("rare_drop_multiplier", "1.0")));
+	m_bRealTimeRares = atoi(GetValue("real_time_rare_drops", "0")) != 0;
 }
 
 double CPhatACServerConfig::GetMultiplierForQuestTime(int questTime)
