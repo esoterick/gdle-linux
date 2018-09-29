@@ -638,7 +638,7 @@ CWeenieObject *CWorld::FindObject(DWORD object_id, bool allowLandblockActivation
 	if (result->second->m_Qualities.GetBool(MERGE_LOCKED, false))
 		return NULL;
 
-	if (lockObject)
+	if (lockObject && result->second->m_Qualities.GetInt(MAX_STACK_SIZE_INT, 0) > 1)
 		result->second->m_Qualities.SetBool(MERGE_LOCKED, true);
 
 	

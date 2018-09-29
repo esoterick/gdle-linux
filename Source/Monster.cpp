@@ -1152,7 +1152,6 @@ bool CMonsterWeenie::SplitItemto3D(DWORD sourceItemId, DWORD amountToTransfer, b
 		}
 		newStackItem->SetStackSize(amountToTransfer);
 		newStackItem->SetID(g_pWorld->GenerateGUID(eDynamicGUID));
-		g_pWorld->AddToUsedMergedItems(newStackItem->GetID());
 
 		if (!g_pWorld->CreateEntity(newStackItem))
 		{
@@ -1166,7 +1165,8 @@ bool CMonsterWeenie::SplitItemto3D(DWORD sourceItemId, DWORD amountToTransfer, b
 
 		// set original item amount to what remains.
 		sourceItem->SetStackSize(totalAmount - amountToTransfer);
-
+		if(newStackItem->m_Qualities.GetInt(MAX_STACK_SIZE_INT, 0) > 1)
+			newStackItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
 		// and now move on to dropping it
 		CDropInventoryUseEvent *dropEvent = new CDropInventoryUseEvent();
 		dropEvent->_target_id = newStackItem->GetID();
