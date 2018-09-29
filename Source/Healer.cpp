@@ -154,13 +154,13 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 
 						if (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
 						{
-							heal_min = 0.1;
-							heal_max = 0.3;
+							heal_min = 0.09;
+							heal_max = 0.28;
 						}
 						else
 						{
-							heal_min = 0.075;
-							heal_max = 0.25;
+							heal_min = 0.07;
+							heal_max = 0.235;
 						}
 
 						double healedVariance = Random::GenFloat(heal_min, heal_max);
