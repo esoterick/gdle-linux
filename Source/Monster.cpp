@@ -898,10 +898,7 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	DWORD owner = 0;
 	if (!sourceItem->m_Qualities.InqInstanceID(OWNER_IID, owner))
 	{
-		if (!owner)
-		{
-			sourceItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
-		}
+		sourceItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
 	}
 	else
 	{
@@ -964,6 +961,21 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 			NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_NONE);
 			return false;
 		}
+
+		DWORD owner = 0;
+		if (!sourceItem->m_Qualities.InqInstanceID(OWNER_IID, owner))
+		{
+			sourceItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
+		}
+		else
+		{
+			if (owner != GetID())
+			{
+				NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
+				return false;
+			}
+		}
+
 
 		if (maxTransferAmount < amountToTransfer)
 			amountToTransfer = maxTransferAmount;
