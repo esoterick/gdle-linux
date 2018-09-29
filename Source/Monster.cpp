@@ -895,6 +895,24 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 		return false;
 	}
 
+	DWORD owner = 0;
+	if (!sourceItem->m_Qualities.InqInstanceID(OWNER_IID, owner))
+	{
+		if (!owner)
+		{
+			sourceItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
+		}
+	}
+	else
+	{
+		if (owner != GetID())
+		{
+			NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
+			return false;
+		}
+	}
+
+
 	CWeenieObject *targetItem = FindValidNearbyItem(targetItemId, USEDISTANCE_FAR);
 	if (!targetItem)
 	{
@@ -904,12 +922,6 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 
 	if (!animationDone && (!FindContainedItem(sourceItemId) || !FindContainedItem(targetItemId)))
 	{
-		if (g_pWorld->IsItemInUse(sourceItemId))
-		{
-			NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
-			return false;
-		}
-
 		//from ground or other container or to ground or other container.
 		CStackMergeInventoryUseEvent *mergeEvent = new CStackMergeInventoryUseEvent();
 		if(sourceItem->IsContained() || sourceItem->IsWielded())
@@ -923,8 +935,6 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	}
 	else
 	{
-		//Set the item to InUse while merging to prevent others from interacting with the item.
-
 		//check if the items is still in range.
 		if (FindValidNearbyItem(sourceItemId, 5.0) == NULL || FindValidNearbyItem(targetItemId, 5.0) == NULL)
 		{
@@ -972,7 +982,9 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 			sourceItem->SetStackSize(sourceItemNewStackSize);
 		}
 		else //full stack movement
+		{
 			sourceItem->Remove();
+		}
 
 		if (wasSourceItemWielded)
 			EmitSound(Sound_UnwieldObject, 1.0f);
