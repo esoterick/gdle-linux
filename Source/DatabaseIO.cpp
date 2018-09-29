@@ -315,11 +315,14 @@ CharacterDesc_t CDatabaseIO::GetCharacterInfo(unsigned int weenie_id)
 		if (pQueryResult)
 		{
 			SQLResultRow_t Row = pQueryResult->FetchRow();
-			result.account_id = strtoul(Row[0], NULL, 10);
-			result.weenie_id = strtoul(Row[1], NULL, 10);
-			result.name = Row[2];
-			result.date_created = strtoul(Row[3], NULL, 10);
-			result.instance_ts = (WORD)strtoul(Row[4], NULL, 10);
+			if (Row)
+			{
+				result.account_id = strtoul(Row[0], NULL, 10);
+				result.weenie_id = strtoul(Row[1], NULL, 10);
+				result.name = Row[2];
+				result.date_created = strtoul(Row[3], NULL, 10);
+				result.instance_ts = (WORD)strtoul(Row[4], NULL, 10);
+			}
 
 			delete pQueryResult;
 		}
