@@ -90,7 +90,7 @@ public:
 
 	void JuggleEntity(WORD, CWeenieObject* pEntity);
 
-	CWeenieObject *FindObject(DWORD object_id, bool allowLandblockActivation = false);
+	CWeenieObject *FindObject(DWORD object_id, bool allowLandblockActivation = false, bool lockObject = false);
 	bool FindObjectName(DWORD, std::string &name);
 	PlayerWeenieMap *GetPlayers();
 	DWORD GetNumPlayers();

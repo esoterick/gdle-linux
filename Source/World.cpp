@@ -591,7 +591,7 @@ DWORD CWorld::GetNumPlayers()
 	return (DWORD)m_mAllPlayers.size();
 }
 
-CWeenieObject *CWorld::FindObject(DWORD object_id, bool allowLandblockActivation)
+CWeenieObject *CWorld::FindObject(DWORD object_id, bool allowLandblockActivation, bool lockObject)
 {
 	if (!object_id)
 		return NULL;
@@ -634,6 +634,14 @@ CWeenieObject *CWorld::FindObject(DWORD object_id, bool allowLandblockActivation
 	
 	if(result == m_mAllObjects.end())
 		return NULL;
+
+	if (result->second->m_Qualities.GetBool(MERGE_LOCKED, false))
+		return NULL;
+
+	if (lockObject)
+		result->second->m_Qualities.SetBool(MERGE_LOCKED, true);
+
+	
 	return result->second;
 }
 

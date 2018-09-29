@@ -178,7 +178,7 @@ CWeenieObject *CMonsterWeenie::FindValidNearbyItem(DWORD itemId, float maxDistan
 		if (!item)
 		{
 			// maybe it's on the ground
-			item = g_pWorld->FindObject(itemId);
+			item = g_pWorld->FindObject(itemId, false, true);
 
 			if (!item || item->HasOwner() || !item->InValidCell())
 			{
