@@ -149,8 +149,8 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 					success = Random::RollDice(0.0, 1.0) <= GetSkillChance(healing_skill, difficulty);
 					if (success)
 					{
-						float heal_min = 0;
-						float heal_max = 0;
+						double heal_min = 0;
+						double heal_max = 0;
 
 						if (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
 						{
@@ -163,7 +163,7 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 							heal_max = 0.25;
 						}
 
-						float healedVariance = Random::GenFloat(heal_min, heal_max);
+						double healedVariance = Random::GenFloat(heal_min, heal_max);
 					
 						amountHealed = (int)(base_skill * healedVariance * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0));
 						
