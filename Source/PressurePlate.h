@@ -19,6 +19,8 @@ public:
 
 	virtual int Activate(DWORD activator_id) override;
 
+	double next_activation_time = 0.0f;
+
 protected:
 };
 
