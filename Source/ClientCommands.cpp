@@ -3288,6 +3288,9 @@ CLIENT_COMMAND(myquests, "", "", BASIC_ACCESS)
 		pPlayer->SendText(text.c_str(), LTT_DEFAULT);
 	}
 
+	if (pPlayer->_questTable._quest_table.empty())
+		pPlayer->SendText("Quest list is empty.", LTT_DEFAULT);
+
 	return false;
 }
 
@@ -3296,9 +3299,21 @@ CLIENT_COMMAND(erasequest, "<name>", "", SENTINEL_ACCESS)
 	if (argc < 1)
 		return true;
 
+
 	pPlayer->_questTable.RemoveQuest(argv[0]);
+
+	pPlayer->SendText(csprintf("%s erased.",argv[0]), LTT_DEFAULT);
 	return false;
 }
+
+CLIENT_COMMAND(clearquests, "", "", SENTINEL_ACCESS)
+{
+	pPlayer->_questTable.PurgeQuests();
+
+	pPlayer->SendText(csprintf("Quests cleared."), LTT_DEFAULT);
+	return false;
+}
+
 
 CLIENT_COMMAND(stampquest, "<name>", "", SENTINEL_ACCESS)
 {
@@ -3306,6 +3321,8 @@ CLIENT_COMMAND(stampquest, "<name>", "", SENTINEL_ACCESS)
 		return true;
 
 	pPlayer->_questTable.StampQuest(argv[0]);
+
+	pPlayer->SendText(csprintf("%s stamped.", argv[0]), LTT_DEFAULT);
 	return false;
 }
 
@@ -3315,6 +3332,8 @@ CLIENT_COMMAND(incquest, "<name>", "", SENTINEL_ACCESS)
 		return true;
 
 	pPlayer->_questTable.IncrementQuest(argv[0]);
+
+	pPlayer->SendText(csprintf("%s incremented.", argv[0]), LTT_DEFAULT);
 	return false;
 }
 
@@ -3324,6 +3343,8 @@ CLIENT_COMMAND(decquest, "<name>", "", SENTINEL_ACCESS)
 		return true;
 
 	pPlayer->_questTable.DecrementQuest(argv[0]);
+
+	pPlayer->SendText(csprintf("%s decremented.", argv[0]), LTT_DEFAULT);
 	return false;
 }
 #endif
@@ -4920,6 +4941,36 @@ CLIENT_COMMAND(challengeai, "", "Challenge an AI to a game of Chess.", BASIC_ACC
 {
 	sChessManager->ChallengeAi(pPlayer);
 	return false;
+}
+
+CLIENT_COMMAND(sethealth, "[value]", "Set my health to value must be below max health", ADMIN_ACCESS)
+{
+	DWORD amount = 0;
+
+	if (argc >= 1)
+	{
+		amount = strtoul(argv[0], NULL, 10);
+	}
+	else
+		return false;
+
+	pPlayer->SetHealth(amount, true);
+	return true;
+}
+
+CLIENT_COMMAND(setstamina, "[value]", "Set my staminahealth to value must be below max health", ADMIN_ACCESS)
+{
+	DWORD amount = 0;
+
+	if (argc >= 1)
+	{
+		amount = strtoul(argv[0], NULL, 10);
+	}
+	else
+		return false;
+
+	pPlayer->SetStamina(amount, true);
+	return true;
 }
 
 

@@ -538,7 +538,7 @@ void CWeenieObject::OnDeath(DWORD killer_id)
 
 	ChanceExecuteEmoteSet(killer_id, Death_EmoteCategory);
 
-	if (m_Qualities._enchantment_reg)
+	if (m_Qualities._enchantment_reg && !m_Qualities.GetInt(AUGMENTATION_SPELLS_REMAIN_PAST_DEATH_INT, 0))
 	{
 		PackableList<DWORD> removed;
 
@@ -2492,9 +2492,18 @@ void CWeenieObject::SendUseMessage(CWeenieObject *other, unsigned int channel)
 
 void CWeenieObject::ExecuteUseEvent(CUseEventData *useEvent)
 {
+	CWeenieObject *target = g_pWorld->FindObject(useEvent->_target_id);
+
 	if (m_UseManager && m_UseManager->IsUsing())
 	{
 		NotifyWeenieError(WERROR_ACTIONS_LOCKED);
+		return;
+	}
+
+	if (target && target->m_EmoteManager && target->m_EmoteManager->HasQueue())
+	{
+		SendText(csprintf("%s is busy.", target->GetName().c_str()), LTT_DEFAULT);
+		NotifyUseDone(WERROR_NONE);
 		return;
 	}
 
@@ -3016,6 +3025,10 @@ void CWeenieObject::CheckRegeneration(double rate, STypeAttribute2nd currentAttr
 					break;
 				case Motion_Sleeping:
 					rate *= 3;
+
+					if (m_Qualities.GetInt(AUGMENTATION_FASTER_REGEN_INT, 0))
+						rate *= 2;
+					
 					break;
 				}
 			}
@@ -6154,9 +6167,13 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 				{
 					DWORD endurance = 0;
 					m_Qualities.InqAttribute(ENDURANCE_ATTRIBUTE, endurance, true);
-					float noStaminaUseChance = ((float)endurance - 100.0) / 400.0; //made up formula: 75% reduction at 400 endurance.
-					noStaminaUseChance = min(max(noStaminaUseChance, 0.0), 0.75);
-					if (Random::RollDice(0.0, 1.0) > noStaminaUseChance)
+					float noStamUseChance = 0;
+					if (endurance >= 50)
+					{
+						noStamUseChance = ((float)(endurance * endurance) * 0.000005) + ((float)endurance * 0.00124) - 0.07; // Better curve and caps at 300 End vs 400 End
+					}
+					noStamUseChance = min(noStamUseChance, 0.75);
+					if (Random::RollDice(0.0, 1.0) > noStamUseChance)
 						AdjustStamina(-1); // failed the roll, use stamina.
 				}
 				else

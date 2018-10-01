@@ -211,7 +211,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	m_pPlayer->SetLoginPlayerQualities(); // overrides
 	m_pPlayer->RecalculateEncumbrance();
 	m_pPlayer->LoginCharacter();
-
+	m_pPlayer->LoadSquelches();
 	last_age_update = chrono::system_clock::to_time_t(chrono::system_clock::now());
 
 	// give characters created before creation timestamp was being set a timestamp and DOB from their DB date_created
@@ -390,6 +390,8 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 
 	g_pWorld->CreateEntity(m_pPlayer);
 
+	SendSquelchDB();
+
 	//temporarily add all enchantments back from the character's wielded items
 	if (g_pConfig->SpellPurgeOnLogin())
 	{
@@ -489,7 +491,45 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	}
 	m_pPlayer->DebugValidate();
 
+
+
 	return;
+}
+
+void CClientEvents::SendSquelchDB()
+{
+
+	BinaryWriter setSquelchDB;
+	setSquelchDB.Write<DWORD>(0x01F4u);
+	setSquelchDB.Write<WORD>(0); // Number of accounts squelched - NYI
+	setSquelchDB.Write<WORD>(0); // Size of ints for above
+
+	std::list<CharacterSquelch_t> squelches = m_pPlayer->GetSquelches();
+
+	setSquelchDB.Write<WORD>(squelches.size());
+	setSquelchDB.Write<WORD>(32); // Size of ints for above
+
+	for (std::list<CharacterSquelch_t>::iterator it = squelches.begin(); it != squelches.end(); ++it)
+	{
+		setSquelchDB.Write<DWORD>(it->squelched_id);
+		if (it->account_id > 0)
+		{
+			setSquelchDB.Write<DWORD>(4);
+			setSquelchDB.Write<DWORD>(SquelchMasks::AllChannels_Mask);
+			setSquelchDB.Write<DWORD>(SquelchMasks::AllChannels_Mask);
+			setSquelchDB.Write<DWORD>(SquelchMasks::AllChannels_Mask);
+			setSquelchDB.Write<DWORD>(SquelchMasks::AllChannels_Mask);
+		}
+		setSquelchDB.WriteString(g_pWorld->GetPlayerName(it->squelched_id, true));
+		setSquelchDB.Write<DWORD>(1);
+	}
+	
+	setSquelchDB.Write<WORD>(0); // Number of global squelches - NYI
+	setSquelchDB.Write<WORD>(0); // Size of ints for above
+	setSquelchDB.Write<DWORD>(0); // Number of globals squelched  - NYI
+	setSquelchDB.Write<DWORD>(0); // Number of accounts squelched - NYI
+	   
+	m_pClient->SendNetMessage(&setSquelchDB, PRIVATE_MSG, TRUE, FALSE);
 }
 
 void CClientEvents::SendText(const char *szText, long lColor)
@@ -532,77 +572,48 @@ void CClientEvents::MissileAttack(DWORD target, DWORD height, float power)
 	m_pPlayer->TryMissileAttack(target, (ATTACK_HEIGHT)height, power);
 }
 
-void CClientEvents::SendTellByGUID(const char* szText, DWORD dwGUID)
+
+void CClientEvents::SendTell(const char* szText, const char* targetName, const DWORD targetId)
 {
+	CPlayerWeenie *pTarget;
+
+	if (targetId > 0) // From SendTellByGuid
+	{
+		if (!(pTarget = g_pWorld->FindPlayer(targetId)))
+		{
+			CWeenieObject *target = g_pWorld->FindObject(targetId);
+
+			if (target->m_Qualities._emote_table && !target->m_Qualities._emote_table->_emote_table.empty())
+				target->MakeEmoteManager()->ChanceExecuteEmoteSet(ReceiveTalkDirect_EmoteCategory, szText, m_pPlayer->GetID());
+
+			return;
+		}
+	}
+	else
+	{
+		if(!(pTarget = g_pWorld->FindPlayer(targetName)))
+			return;
+	}
+
 	if (strlen(szText) > 300)
 		return;
 
-	//should really check for invalid characters and such ;]
+	if (pTarget->GetID() == m_pPlayer->GetID())
+			return;
 
-	while (szText[0] == ' ') //Skip leading spaces.
-		szText++;
-	if (szText[0] == '\0') //Make sure the text isn't blank
+	if (!CheckForChatSpam())
 		return;
-
-	/*
-	if (dwGUID == m_pPlayer->GetID())
+	
+	if (!pTarget->IsPlayerSquelched(m_pPlayer->GetID(), true))
 	{
-		m_pPlayer->SendNetMessage(ServerText("You really need some new friends..", 1), PRIVATE_MSG, FALSE);
-		return;
-	}
-	*/
-
-	CPlayerWeenie *pTarget;
-
-	if (!(pTarget = g_pWorld->FindPlayer(dwGUID)))
-	{	
-		CWeenieObject *target = g_pWorld->FindObject(dwGUID);
-
-		if (target && !target->m_Qualities._emote_table->_emote_table.empty())
-			target->MakeEmoteManager()->ChanceExecuteEmoteSet(ReceiveTalkDirect_EmoteCategory, szText, m_pPlayer->GetID());
-
-		return;
-	}
-
-	if (pTarget->GetID() != m_pPlayer->GetID())
-	{
+		std::string filteredText = FilterBadChatCharacters(szText);
 		char szResponse[300];
 		_snprintf(szResponse, 300, "You tell %s, \"%s\"", pTarget->GetName().c_str(), szText);
 		m_pPlayer->SendNetMessage(ServerText(szResponse, 4), PRIVATE_MSG, FALSE, TRUE);
+		pTarget->SendNetMessage(DirectChat(szText, m_pPlayer->GetName().c_str(), m_pPlayer->GetID(), pTarget->GetID(), 3), PRIVATE_MSG, TRUE);
 	}
-
-	pTarget->SendNetMessage(DirectChat(szText, m_pPlayer->GetName().c_str(), m_pPlayer->GetID(), pTarget->GetID(), 3), PRIVATE_MSG, TRUE);
-
 }
 
-void CClientEvents::SendTellByName(const char* szText, const char* szName)
-{
-	if (strlen(szName) > 300)
-		return;
-	if (strlen(szText) > 300)
-		return;
-
-	//should really check for invalid characters and such ;]
-
-	while (szText[0] == ' ') //Skip leading spaces.
-		szText++;
-	if (szText[0] == '\0') //Make sure the text isn't blank
-		return;
-
-	CPlayerWeenie *pTarget;
-
-	if (!(pTarget = g_pWorld->FindPlayer(szName)))
-		return;
-
-	if (pTarget->GetID() != m_pPlayer->GetID())
-	{
-		char szResponse[300];
-		_snprintf(szResponse, 300, "You tell %s, \"%s\"", pTarget->GetName().c_str(), szText);
-		m_pPlayer->SendNetMessage(ServerText(szResponse, 4), PRIVATE_MSG, FALSE, TRUE);
-	}
-
-	pTarget->SendNetMessage(DirectChat(szText, m_pPlayer->GetName().c_str(), m_pPlayer->GetID(), pTarget->GetID(), 3), PRIVATE_MSG, TRUE);
-}
 
 void CClientEvents::ClientText(const char *szText)
 {
@@ -1046,7 +1057,6 @@ void CClientEvents::TryBuyItems(DWORD vendor_id, std::list<class ItemProfile *> 
 
 	ActionComplete(error);
 }
-
 
 void CClientEvents::TrySellItems(DWORD vendor_id, std::list<class ItemProfile *> &items)
 {
@@ -2088,9 +2098,113 @@ bool CClientEvents::CheckForChatSpam()
 	return true;
 }
 
+void CClientEvents::SetCharacterSquelchSetting(bool squelchSet, DWORD squelchPlayer, std::string squelchName, BYTE squelchChatType, bool account)
+{
+	if (squelchPlayer == 0 && squelchName.size() == 0)
+		return;
+
+	CharacterSquelch_t squelchSettings;
+	if (squelchPlayer == 0)
+	{
+		DWORD playerId = g_pWorld->GetPlayerId(squelchName.c_str(), true);
+		squelchSettings.squelched_id = playerId;
+		squelchSettings.account_id = g_pDBIO->GetPlayerAccountId(playerId);
+	}
+	else
+	{
+		squelchSettings.squelched_id = squelchPlayer;
+		squelchSettings.account_id = g_pDBIO->GetPlayerAccountId(squelchPlayer);
+	}
+
+	if (squelchSettings.squelched_id == 0)
+		return;
+
+	switch (squelchChatType)
+	{
+	case SquelchTypes::Speech_Squelch:
+		squelchSettings.isSpeech = squelchSet;
+		break;
+	case 0x03:
+		squelchSettings.isTell = squelchSet;
+		break;
+	case 0x06:
+		squelchSettings.isCombat = squelchSet;
+		break;
+	case 0x07:
+		squelchSettings.isMagic = squelchSet;
+		break;
+	case 0x0C:
+		squelchSettings.isEmote = squelchSet;
+		break;
+	case 0x0D:
+		squelchSettings.isAdvancement = squelchSet;
+		break;
+	case 0x10:
+		squelchSettings.isAppraisal = squelchSet;
+		break;
+	case 0x11:
+		squelchSettings.isSpellcasting = squelchSet;
+		break;
+	case 0x12:
+		squelchSettings.isAllegiance = squelchSet;
+		break;
+	case 0x13:
+		squelchSettings.isFellowship = squelchSet;
+		break;
+	case 0x15:
+		squelchSettings.isCombatEnemy = squelchSet;
+		break;
+	case 0x17:
+		squelchSettings.isRecall = squelchSet;
+		break;
+	case 0x18:
+		squelchSettings.isCrafting = squelchSet;
+		break;
+	default:
+		break;
+	}
+
+	if (squelchChatType == SquelchTypes::AllChannels_Squelch)
+	{
+		squelchSettings.isSpeech = true;
+		squelchSettings.isTell = true;
+		squelchSettings.isCombat = true;
+		squelchSettings.isMagic = true;
+		squelchSettings.isEmote = true;
+		squelchSettings.isAdvancement = true;
+		squelchSettings.isAppraisal = true;
+		squelchSettings.isSpellcasting = true;
+		squelchSettings.isAllegiance = true;
+		squelchSettings.isFellowship = true;
+		squelchSettings.isCombatEnemy = true;
+		squelchSettings.isRecall = true;
+		squelchSettings.isCrafting = true;
+	}
+
+	if (squelchSet)
+	{
+		if (!g_pDBIO->SaveCharacterSquelch(m_pPlayer->GetID(), squelchSettings))
+		{
+			DEBUG_DATA << "Failed to save squelch data";
+		}
+	}
+	else
+	{
+		if (!g_pDBIO->RemoveCharacterSquelch(m_pPlayer->GetID(), squelchSettings))
+		{
+			DEBUG_DATA << "Failed to remove squelch data";
+		}
+	}
+
+	m_pPlayer->LoadSquelches();
+	SendSquelchDB();
+}
+
 // This is it!
 void CClientEvents::ProcessEvent(BinaryReader *pReader)
 {
+	if (!m_pPlayer)
+		return;
 	DWORD dwSequence = pReader->ReadDWORD();
 	DWORD dwEvent = pReader->ReadDWORD();
 	if (pReader->GetLastError()) return;
@@ -2277,22 +2391,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			msg.Parse(pReader);
 			break;
 		}
-		case SEND_TELL_BY_GUID: //Send Tell by GUID
-		{
-			char *text = pReader->ReadString();
-			DWORD GUID = pReader->ReadDWORD();
 
-					if (pReader->GetLastError())
-						break;
-
-					if (CheckForChatSpam())
-					{
-						std::string filteredText = FilterBadChatCharacters(text);
-						SendTellByGUID(filteredText.c_str(), GUID);
-					}
-
-			break;
-		}
 		case ALLEGIANCE_SET_NAME:
 		{
 			MAllegianceNameSet_0033 msg(m_pPlayer);
@@ -2341,6 +2440,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		case ALLEGIANCE_LOCK_ACTION:
 		{
 			// Read: AllegianceLockAction action - LockedOff 1, LockedOn 2, ToggleLocked 3, CheckLocked 4, DisplayBypass 5, ClearBypass 6
+			MAllegianceLockAction_003F msg(m_pPlayer);
+			msg.Parse(pReader);
+
 			break;
 		}
 		case ALLEGIANCE_APPROVED_VASSAL:
@@ -2423,13 +2525,22 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		case STACKABLE_MERGE: // Evt_Inventory__StackableMerge
 		{
 			DWORD merge_from_id = pReader->Read<DWORD>();
+			if (pReader->GetLastError()) break;
 			DWORD merge_to_id = pReader->Read<DWORD>();
+			if (pReader->GetLastError()) break; 
 			DWORD amount = pReader->Read<DWORD>();
+			if (pReader->GetLastError()) break;
 
-			if (pReader->GetLastError())
-				break;
+			if (!g_pWorld->IsItemInUse(merge_from_id))
+			{
+				m_pPlayer->MergeItem(merge_from_id, merge_to_id, amount);
+				g_pWorld->RemoveMergedItem(merge_from_id);
+			}
+			else
+			{
+				m_pPlayer->NotifyInventoryFailedEvent(merge_from_id, WERROR_OBJECT_GONE);
+			}
 
-			m_pPlayer->MergeItem(merge_from_id, merge_to_id, amount);
 			break;
 		}
 		case STACKABLE_SPLIT_TO_CONTAINER: // Evt_Inventory__StackableSplitToContainer
@@ -2448,10 +2559,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		case STACKABLE_SPLIT_TO_3D: // Evt_Inventory__StackableSplitTo3D
 		{
 			DWORD stack_id = pReader->Read<DWORD>();
+			if (pReader->GetLastError()) break;
 			DWORD amount = pReader->Read<DWORD>();
-
-			if (pReader->GetLastError())
-				break;
+			if (pReader->GetLastError()) break;
 
 			m_pPlayer->SplitItemto3D(stack_id, amount);
 			break;
@@ -2472,29 +2582,66 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		{
 			// Read: bool add, DWORD characterID, string characterName, ChatMessageType msgType
 			//		0 = unsquelch, 1 = squelch, ChatMessageType = enum LogTextType
+
+			bool squelchSet =  pReader->Read<DWORD>() > 0;
+			if (pReader->GetLastError()) break;
+			DWORD squelchPlayer = pReader->Read<DWORD>();
+			if (pReader->GetLastError()) break;
+			std::string squelchName = pReader->ReadString();
+			if (pReader->GetLastError()) break;
+			BYTE squelchChatType = pReader->ReadByte();
+			if (pReader->GetLastError()) break;
+
+			CPlayerWeenie* target = g_pWorld->FindPlayer(squelchName.c_str());
+			if (!target)
+			{
+				m_pPlayer->SendText("Player not found.", LTT_DEFAULT);
+				break;
+			}
+
+			SetCharacterSquelchSetting(squelchSet, squelchPlayer, squelchName, squelchChatType, TRUE);
+
 			break;
 		}
 		case SQUELCH_ACCOUNT_MODIFY:
 		{
 			// Read: bool add, string characterName
+
+			bool squelchSet = pReader->Read<DWORD>() > 0;
+			if (pReader->GetLastError()) break;
+			std::string squelchName = pReader->ReadString();
+			if (pReader->GetLastError()) break;
+
+			SetCharacterSquelchSetting(squelchSet, 0, squelchName, 0, TRUE);
+
 			break;
 		}
 		case SQUELCH_GLOBAL_MODIFY:
 		{
 			// Read: bool add, ChatMessageType msgType
+
 			break;
 		}
 		case SEND_TELL_BY_NAME: //Send Tell by Name
 		{
 			char* szText = pReader->ReadString();
+			if (pReader->GetLastError()) break;
 			char* szName = pReader->ReadString();
 			if (pReader->GetLastError()) break;
 
-			if (CheckForChatSpam())
-			{
-				std::string filteredText = FilterBadChatCharacters(szText);
-				SendTellByName(filteredText.c_str(), szName);
-			}
+			SendTell(szText, szName, 0);
+
+			break;
+		}
+		case SEND_TELL_BY_GUID: //Send Tell by GUID
+		{
+			char *text = pReader->ReadString();
+			if (pReader->GetLastError()) break;
+			DWORD GUID = pReader->ReadDWORD();
+			if (pReader->GetLastError()) break;
+
+			SendTell(text, NULL, GUID);
+
 			break;
 		}
 		case BUY_FROM_VENDOR: // Buy from Vendor
@@ -3195,36 +3342,36 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			HouseAddOrRemoveAllegianceToStorageList(newSetting > 0);
 			break;
 		}
-		case CHESS_JOIN:
+		case CHESS_JOIN:  // Disabling until dev returns to update
 		{
-			auto const guid = pReader->Read<uint32_t>();
-			pReader->Read<uint32_t>(); // teamId, not used
+			//auto const guid = pReader->Read<uint32_t>();
+			//pReader->Read<uint32_t>(); // teamId, not used
 
-			CWeenieObject* object = g_pWorld->FindObject(guid);
-			if (!object)
-				break;
+			//CWeenieObject* object = g_pWorld->FindObject(guid);
+			//if (!object)
+			//	break;
 
-			sChessManager->Join(m_pPlayer, object);
+			//sChessManager->Join(m_pPlayer, object);
 			break;
 		}
-		case CHESS_QUIT:
-			sChessManager->Quit(m_pPlayer);
+		case CHESS_QUIT:  // Disabling until dev returns to update
+			//sChessManager->Quit(m_pPlayer);
 			break;
-		case CHESS_MOVE:
+		case CHESS_MOVE:  // Disabling until dev returns to update
 		{
-			GDLE::Chess::ChessPieceCoord from, to;
-			from.UnPack(pReader);
-			to.UnPack(pReader);
-			sChessManager->Move(m_pPlayer, from, to);
+			//GDLE::Chess::ChessPieceCoord from, to;
+			//from.UnPack(pReader);
+			//to.UnPack(pReader);
+			//sChessManager->Move(m_pPlayer, from, to);
 			break;
 		}
-		case CHESS_PASS:
-			sChessManager->MovePass(m_pPlayer);
+		case CHESS_PASS:  // Disabling until dev returns to update
+			//sChessManager->MovePass(m_pPlayer);
 			break;
-		case CHESS_STALEMATE:
+		case CHESS_STALEMATE:  // Disabling until dev returns to update
 		{
-			auto const on = pReader->Read<uint32_t>();
-			sChessManager->Stalemate(m_pPlayer, on);
+			//auto const on = pReader->Read<uint32_t>();
+			//sChessManager->Stalemate(m_pPlayer, on);
 			break;
 		}
 		case HOUSE_LIST_AVAILABLE:

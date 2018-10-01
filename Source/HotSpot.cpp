@@ -26,6 +26,9 @@ void CHotSpotWeenie::SetNextCycleTime()
 {
 	double cycleTime = m_Qualities.GetFloat(HOTSPOT_CYCLE_TIME_FLOAT, 5.0);
 	double cycleTimeVariance = m_Qualities.GetFloat(HOTSPOT_CYCLE_TIME_VARIANCE_FLOAT, 0.0);
+	
+	if (cycleTime == 0.0)
+		cycleTime = 0.1;
 
 	m_fNextCycleTime = Timer::cur_time + (cycleTime * (1.0 - cycleTimeVariance));
 }

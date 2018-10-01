@@ -10,8 +10,9 @@ MAllegianceOfficerSet_003B::MAllegianceOfficerSet_003B(CPlayerWeenie * player)
 void MAllegianceOfficerSet_003B::Parse(BinaryReader * reader)
 {
 	m_szOfficerName = reader->ReadString();
+	if (reader->GetLastError()) return;
 	m_dwOfficerLevel = reader->ReadDWORD();
-
+	
 	if (reader->GetLastError())
 	{
 		SERVER_ERROR << "Error parsing a set allegiance officer message (0x003B) from the client.";
