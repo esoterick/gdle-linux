@@ -1305,10 +1305,8 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	case SetQuestCompletions_EmoteType:
 	{
 		if (!_weenie->m_Qualities._emote_table)
-		{
 			break;
-		}
-
+	
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
 
 		if (target)
@@ -1317,6 +1315,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
+	
 
 	case Generate_EmoteType: //type:72 adds from generator table attached to creature weenie. Sets init value of generator table and calls weenie factory to begin generation. Can use same emote with value of 0 in amount field to disable generator.
 	{
@@ -1637,7 +1636,6 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
-
 	case DeleteSelf_EmoteType:
 	{
 		_weenie->MarkForDestroy();
@@ -1704,7 +1702,6 @@ void EmoteManager::Tick()
 			i->_executeTime = Timer::cur_time + i->_data.delay;
 	}
 }
-
 void EmoteManager::Cancel()
 {
 	_emoteQueue.clear();
