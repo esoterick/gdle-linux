@@ -1667,11 +1667,20 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!_weenie->m_Qualities._emote_table)
 			break;
 
-		CWeenieObject *target = g_pWorld->FindObject(target_id);
-		if (target)
+		if (emote.extent == 2) //if extent is 2 then set bool on self.
 		{
-			target->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
-			target->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
+			_weenie->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
+			_weenie->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
+		}
+
+		else
+		{
+			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			if (target)
+			{
+				target->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
+				target->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
+			}
 		}
 
 		break;
