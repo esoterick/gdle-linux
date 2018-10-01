@@ -1636,13 +1636,18 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
-	}
-	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
+		}
+			_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
 
 bool EmoteManager::IsExecutingAlready()
 {
 	return _weenie->m_Qualities.GetBool(EXECUTING_EMOTE, false);
+}
+
+bool EmoteManager::HasQueue()
+{
+	return !_emoteQueue.empty();
 }
 
 void EmoteManager::Tick()
@@ -1658,7 +1663,7 @@ void EmoteManager::Tick()
 		ExecuteEmote(i->_data, i->_target_id);
 		i = _emoteQueue.erase(i);
 		if (i != _emoteQueue.end())
-			i->_executeTime = Timer::cur_time + i->_data.delay;
+			i->_executeTime = Timer::cur_time + i->_data.delay;		
 	}
 }
 
@@ -1743,5 +1748,5 @@ void EmoteManager::killTaskSub(std::string &mobName, std::string &kCountName, CW
 
 void EmoteManager::ConfirmationResponse(bool accepted, DWORD target_id)
 {
-	ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, accepted ? "Yes_Response" : "No_Response", target_id);
+		ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, accepted ? "Yes_Response" : "No_Response", target_id);
 }

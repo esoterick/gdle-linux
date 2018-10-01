@@ -2492,9 +2492,18 @@ void CWeenieObject::SendUseMessage(CWeenieObject *other, unsigned int channel)
 
 void CWeenieObject::ExecuteUseEvent(CUseEventData *useEvent)
 {
+	CWeenieObject *target = g_pWorld->FindObject(useEvent->_target_id);
+
 	if (m_UseManager && m_UseManager->IsUsing())
 	{
 		NotifyWeenieError(WERROR_ACTIONS_LOCKED);
+		return;
+	}
+
+	if (target && target->m_EmoteManager && target->m_EmoteManager->HasQueue())
+	{
+		SendText(csprintf("%s is busy.", target->GetName().c_str()), LTT_DEFAULT);
+		NotifyUseDone(WERROR_NONE);
 		return;
 	}
 

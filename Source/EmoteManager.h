@@ -26,7 +26,8 @@ public:
 
 	void Cancel();
 	void OnDeath(DWORD killer_id);
-	bool IsExecutingAlready();
+	bool IsExecutingAlready(); 
+	bool HasQueue();
 
 protected:
 	class CWeenieObject *_weenie = NULL;
