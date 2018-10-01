@@ -1636,14 +1636,21 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
+
 	case DeleteSelf_EmoteType:
 	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
 		_weenie->MarkForDestroy();
 		break;
 	}
 
 	case KillSelf_EmoteType:
 	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
 		CMonsterWeenie *monster = _weenie->AsMonster();
 		if (monster && !monster->IsDead() && !monster->IsInPortalSpace() && !monster->IsBusyOrInAction())
 		{
@@ -1657,6 +1664,9 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 	case SetBoolStat_EmoteType:
 	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
 		if (target)
 		{
