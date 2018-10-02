@@ -42,6 +42,7 @@
 #include "easylogging++.h"
 #include "ObjectMsgs.h"
 #include "EnumUtil.h"
+#include "ChessManager.h"
 #include "AllegianceManager.h"
 
 // Most of these commands are just for experimenting and never meant to be used in a real game
@@ -222,6 +223,56 @@ CLIENT_COMMAND(spawndoor, "", "Spawns a door at your location.", ADMIN_ACCESS)
 	return false;
 }
 #endif
+
+CLIENT_COMMAND(allegdump, "", "Prints out the allegiance hierarchy info on the last target you assessed.", ADMIN_ACCESS)
+{
+	if (argc < 1)
+		return true;
+
+	if (pPlayer->m_LastAssessed)
+	{
+		CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+		if (target)
+		{
+			AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(target->GetID());
+			if (node)
+			{
+				AllegianceInfo *info = g_pAllegianceManager->GetInfo(node->_monarchID);
+				if (info)
+				{
+					AllegianceTreeNode *monarch = g_pAllegianceManager->GetTreeNode(node->_monarchID);
+					// Monarch name
+					pPlayer->SendText(csprintf("Monarch: %s", monarch->_charName), LTT_DEFAULT);
+					
+					AllegianceTreeNode *patron = g_pAllegianceManager->GetTreeNode(node->_patronID);
+					if (patron)
+					{
+						// Patron name
+						pPlayer->SendText(csprintf("Patron: %s", patron->_charName), LTT_DEFAULT);
+					}
+					else
+						pPlayer->SendText("Is Monarch", LTT_DEFAULT);
+
+					// Allegiance name
+					pPlayer->SendText(csprintf("Allegiance Name: %s", info->_info.m_AllegianceName), LTT_DEFAULT);
+					// Number in allegiance
+					pPlayer->SendText(csprintf("Number in Allegiance: %i", monarch->_numFollowers), LTT_DEFAULT);
+					// Number of Vassels
+					pPlayer->SendText(csprintf("Number in Vassels: %i", node->_numFollowers), LTT_DEFAULT);
+					// Bind point
+					Vector *f = info->_info.m_BindPoint.get_origin();
+					float heading = info->_info.m_BindPoint.heading(info->_info.m_BindPoint);
+					pPlayer->SendText(csprintf("Allegiance Hometown: 0x%08x [ X:%.2f Y:%.2f Z:%.2f ] w:%.2f x:0.0 y:0.0 z:0.0", info->_info.m_BindPoint.objcell_id, 
+						f->x, f->y, f->z, heading), LTT_DEFAULT);
+				}
+			}
+			
+			
+		}
+	}
+
+	return false;
+}
 
 CLIENT_COMMAND(global, "<text> [color=1]", "Displays text globally.", ADMIN_ACCESS)
 {
@@ -1884,6 +1935,8 @@ CLIENT_COMMAND(fixbusy, "", "Makes you unbusy if you are stuck.", BASIC_ACCESS)
 {
 	pPlayer->NotifyAttackDone();
 	pPlayer->NotifyInventoryFailedEvent(0, 0);
+	if (pPlayer->m_UseManager)
+		pPlayer->m_UseManager->Cancel();
 	pPlayer->NotifyUseDone(0);
 	pPlayer->NotifyWeenieError(0);
 
@@ -3235,6 +3288,9 @@ CLIENT_COMMAND(myquests, "", "", BASIC_ACCESS)
 		pPlayer->SendText(text.c_str(), LTT_DEFAULT);
 	}
 
+	if (pPlayer->_questTable._quest_table.empty())
+		pPlayer->SendText("Quest list is empty.", LTT_DEFAULT);
+
 	return false;
 }
 
@@ -3243,9 +3299,21 @@ CLIENT_COMMAND(erasequest, "<name>", "", SENTINEL_ACCESS)
 	if (argc < 1)
 		return true;
 
+
 	pPlayer->_questTable.RemoveQuest(argv[0]);
+
+	pPlayer->SendText(csprintf("%s erased.",argv[0]), LTT_DEFAULT);
 	return false;
 }
+
+CLIENT_COMMAND(clearquests, "", "", SENTINEL_ACCESS)
+{
+	pPlayer->_questTable.PurgeQuests();
+
+	pPlayer->SendText(csprintf("Quests cleared."), LTT_DEFAULT);
+	return false;
+}
+
 
 CLIENT_COMMAND(stampquest, "<name>", "", SENTINEL_ACCESS)
 {
@@ -3253,6 +3321,8 @@ CLIENT_COMMAND(stampquest, "<name>", "", SENTINEL_ACCESS)
 		return true;
 
 	pPlayer->_questTable.StampQuest(argv[0]);
+
+	pPlayer->SendText(csprintf("%s stamped.", argv[0]), LTT_DEFAULT);
 	return false;
 }
 
@@ -3262,6 +3332,8 @@ CLIENT_COMMAND(incquest, "<name>", "", SENTINEL_ACCESS)
 		return true;
 
 	pPlayer->_questTable.IncrementQuest(argv[0]);
+
+	pPlayer->SendText(csprintf("%s incremented.", argv[0]), LTT_DEFAULT);
 	return false;
 }
 
@@ -3271,6 +3343,8 @@ CLIENT_COMMAND(decquest, "<name>", "", SENTINEL_ACCESS)
 		return true;
 
 	pPlayer->_questTable.DecrementQuest(argv[0]);
+
+	pPlayer->SendText(csprintf("%s decremented.", argv[0]), LTT_DEFAULT);
 	return false;
 }
 #endif
@@ -4861,6 +4935,42 @@ CLIENT_COMMAND(movetome, "", "Brings an object to you.", ADMIN_ACCESS)
 	}
 
 	return false;
+}
+
+CLIENT_COMMAND(challengeai, "", "Challenge an AI to a game of Chess.", BASIC_ACCESS)
+{
+	sChessManager->ChallengeAi(pPlayer);
+	return false;
+}
+
+CLIENT_COMMAND(sethealth, "[value]", "Set my health to value must be below max health", ADMIN_ACCESS)
+{
+	DWORD amount = 0;
+
+	if (argc >= 1)
+	{
+		amount = strtoul(argv[0], NULL, 10);
+	}
+	else
+		return false;
+
+	pPlayer->SetHealth(amount, true);
+	return true;
+}
+
+CLIENT_COMMAND(setstamina, "[value]", "Set my staminahealth to value must be below max health", ADMIN_ACCESS)
+{
+	DWORD amount = 0;
+
+	if (argc >= 1)
+	{
+		amount = strtoul(argv[0], NULL, 10);
+	}
+	else
+		return false;
+
+	pPlayer->SetStamina(amount, true);
+	return true;
 }
 
 

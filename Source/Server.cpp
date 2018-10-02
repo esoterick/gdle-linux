@@ -24,6 +24,7 @@
 #include "GameEventManager.h"
 #include "House.h"
 #include "easylogging++.h"
+#include "ChessManager.h"
 #include "..\RecipeFactory.h"
 
 // should all be encapsulated realistically, but we aren't going to multi-instance the server...
@@ -82,12 +83,13 @@ DWORD CPhatServer::InternalThreadProc()
 	{
 		m_running = true;
 
-		DWORD sleepTime = g_pConfig->FastTick() ? 0 : 1;
-
 		while (m_running)
 		{
 			Tick();
-			std::this_thread::yield();
+			if (g_pConfig->FastTick())
+				std::this_thread::yield();
+			else
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
 	}
 
@@ -308,9 +310,10 @@ void CPhatServer::Shutdown()
 #endif
 		g_pNetwork->CompleteLogoutAll();
 		g_pNetwork->Think();
+
 		SafeDelete(g_pNetwork);
 	}
-
+	g_pAllegianceManager->Save();
 	SafeDelete(g_pWorld);
 	SafeDelete(g_pGameEventManager);
 	SafeDelete(g_pFellowshipManager);
@@ -442,6 +445,8 @@ void CPhatServer::Tick(void)
 	g_pFellowshipManager->Tick();
 	g_pAllegianceManager->Tick();
 	g_pDB2->Tick();
+
+	sChessManager->Update();
 
 	m_Stats.EndServerFrame();
 }

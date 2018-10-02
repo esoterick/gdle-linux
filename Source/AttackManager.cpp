@@ -68,7 +68,7 @@ void CAttackEventData::Begin()
 		return;
 	}
 
-	if (!target->IsAttackable())
+	if (!target->IsAttackable() && !_weenie->CanTarget(target))
 	{
 		Cancel();
 		return;
@@ -252,7 +252,7 @@ bool CAttackEventData::IsValidTarget()
 {
 	CWeenieObject *target = GetTarget();
 
-	if (!target || !target->IsAttackable() || target->IsDead() || target->IsInPortalSpace() || target->ImmuneToDamage(_weenie))
+	if (!target || (!target->IsAttackable() && !_weenie->CanTarget(target)) || target->IsDead() || target->IsInPortalSpace() || target->ImmuneToDamage(_weenie))
 	{
 		return false;
 	}
@@ -497,43 +497,45 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 	CWeenieObject *shield = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_SHIELD);
 
-	int burden = 0;
+	int weaponBurden = 0;
+	int shieldBurden = 0;
 	if (weapon != NULL && weapon != _weenie)
-		burden += weapon->InqIntQuality(ENCUMB_VAL_INT, 0);
+		weaponBurden = weapon->InqIntQuality(ENCUMB_VAL_INT, 0);
 
-	if (shield != NULL)
-		burden += shield->InqIntQuality(ENCUMB_VAL_INT, 0);
+	if (shield != NULL) // TODO: Test if this will work once Dual Wield in
+		shieldBurden = shield->InqIntQuality(ENCUMB_VAL_INT, 0);
 
-	int necessaryStamina;
-	if (_attack_power < 0.33)
-		necessaryStamina = max(round(burden / 900.0f), 1.0f);
-	else if (_attack_power < 0.66)
-		necessaryStamina = max(round(burden / 600.0f), 1.0f);
-	else
-		necessaryStamina = max(round(burden / 300.0f), 1.0f);
+	float powerStamMod = 0.25 + _attack_power * 0.75;
+	powerStamMod = powerStamMod > 1.0 ? 1.0 : powerStamMod;
+
+	float equipStamCost = 2.0 + (weaponBurden / 450.0 + shieldBurden / 680.0);
+	int necessaryStam = min(1, (int)(equipStamCost * powerStamMod + 0.5));
 
 	if (_weenie->AsPlayer())
 	{
-		//the higher a player's Endurance, the less stamina one uses while attacking. 
-		//This benefit is tied to Endurance only, and it caps out at around 50% less stamina used per attack. 
-		//The minimum stamina used per attack remains one. 
+		// this lowers the max endurance needed for getting top bonus to 300 vs 400
 		DWORD endurance = 0;
+		float necStamMod = 1.0;
 		_weenie->m_Qualities.InqAttribute(ENDURANCE_ATTRIBUTE, endurance, true);
-		float necessaryStaminaMod = 1.0 - ((float)endurance - 100.0) / 600.0; //made up formula: 50% reduction at 400 endurance.
-		necessaryStaminaMod = min(max(necessaryStaminaMod, 0.5f), 1.0f);
-		necessaryStamina = round((float)necessaryStamina * necessaryStaminaMod);
+
+		if (endurance >= 50)
+		{
+			necStamMod = ((float)(endurance * endurance) * -0.000003175) - ((float)endurance * 0.0008889) + 1.052;
+			necStamMod = min(max(necStamMod, 0.5f), 1.0f);
+			necessaryStam = (int)(necessaryStam * necStamMod + Random::RollDice(0.0, 1.0)); // little sprinkle of luck 
+		}
 	}
-	necessaryStamina = max(necessaryStamina, 1);
+	necessaryStam = max(necessaryStam, 1);
 
 	bool hadEnoughStamina = true;
-	if (_weenie->GetStamina() < necessaryStamina)
+	if (_weenie->GetStamina() < necessaryStam)
 	{
 		hadEnoughStamina = false;
 		_attack_power = 0.00f;
+		_weenie->SetStamina(0, true); // you lose all current stam
 	}
-
-
-	_weenie->AdjustStamina(-necessaryStamina);
+	else
+		_weenie->AdjustStamina(-necessaryStam);
 
 	DWORD weaponSkillLevel = 0;
 	if (_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE))
@@ -542,10 +544,6 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 		if (!hadEnoughStamina)
 		{
-			if (weaponSkillLevel > 50)
-				weaponSkillLevel -= 50;
-			else if (weaponSkillLevel <= 50)
-				weaponSkillLevel *= 0.0;
 			if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
 			{
 				pPlayer->SendText("You're exhausted!", LTT_ERROR);
@@ -662,6 +660,8 @@ void CMeleeAttackEvent::HandlePerformAttack(CWeenieObject *target, DamageEventDa
 		hitQuadrant = (DAMAGE_QUADRANT)(hitQuadrant | DAMAGE_QUADRANT::DQ_LEFT);
 	else
 		hitQuadrant = (DAMAGE_QUADRANT)(hitQuadrant | DAMAGE_QUADRANT::DQ_FRONT);
+
+	dmgEvent.hit_quadrant = hitQuadrant;
 
 	dmgEvent.target = target;
 

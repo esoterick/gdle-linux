@@ -56,6 +56,8 @@ MonsterAIManager::MonsterAIManager(CMonsterWeenie *pWeenie, const Position &Home
 	if (pWeenie->m_Qualities._emote_table && pWeenie->m_Qualities._emote_table->_emote_table.lookup(Taunt_EmoteCategory))
 		_nextTaunt = Timer::cur_time + Random::GenUInt(10, 30); //We have taunts so schedule them.
 
+	pWeenie->transient_state |= CONTACT_TS;
+
 	// List of qualities that could be used to affect the AI behavior:
 	// AI_CP_THRESHOLD_INT
 	// AI_PP_THRESHOLD_INT
@@ -249,7 +251,7 @@ bool MonsterAIManager::SeekTarget()
 			if (!weenie->_IsPlayer() && !monster_brawl) // only attack players
 				continue;
 
-			if (!weenie->IsAttackable())
+			if (!weenie->IsAttackable() && !m_pWeenie->CanTarget(weenie))
 				continue;
 
 			if (weenie->ImmuneToDamage(m_pWeenie)) // only attackable players (not dead, not in portal space, etc.
@@ -776,7 +778,7 @@ void MonsterAIManager::UpdateMeleeModeAttack()
 	// dont chase any new target, even if attacked, outside home range
 
 	CWeenieObject *pTarget = GetTargetWeenie();
-	if (!pTarget || pTarget->IsDead() || !pTarget->IsAttackable() || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
+	if (!pTarget || pTarget->IsDead() || (!pTarget->IsAttackable() && !m_pWeenie->CanTarget(pTarget)) || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
 	{
 		if (ShouldSeekNewTarget())
 		{
@@ -897,7 +899,7 @@ void MonsterAIManager::UpdateMissileModeAttack()
 	// dont chase any new target, even if attacked, outside home range
 
 	CWeenieObject *pTarget = GetTargetWeenie();
-	if (!pTarget || pTarget->IsDead() || !pTarget->IsAttackable() || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
+	if (!pTarget || pTarget->IsDead() || (!pTarget->IsAttackable() && !m_pWeenie->CanTarget(pTarget)) || pTarget->ImmuneToDamage(m_pWeenie) || m_pWeenie->DistanceTo(pTarget) >= m_fChaseRange)
 	{
 		if (ShouldSeekNewTarget())
 		{

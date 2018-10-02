@@ -254,7 +254,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;comctl32.lib;Lib\zlib\zlibstatDebug.lib;Lib\mysql\libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;comctl32.lib;Lib\zlib\zlibstatDebug.lib;Lib\mysql\lib\libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
@@ -458,11 +458,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\ChessManager.cpp" />
+    <ClCompile Include="Source\ChessMatch.cpp" />
     <ClCompile Include="RecipeFactory.cpp" />
     <ClCompile Include="Source\AugmentationDevice.cpp" />
     <ClCompile Include="Source\BindStone.cpp" />
     <ClCompile Include="Source\easylogging++.cpp" />
     <ClCompile Include="Source\EnumUtil.cpp" />
+    <ClCompile Include="Source\Game.cpp" />
+    <ClCompile Include="Source\GamePiece.cpp" />
     <ClCompile Include="Source\ManaStone.cpp" />
     <ClCompile Include="Source\Messages\Client to Server\AllegianceApprovedVassalSet_0040.cpp" />
     <ClCompile Include="Source\Messages\Client to Server\AllegianceBanAdd_02A1.cpp" />
@@ -677,11 +681,16 @@
     <ClCompile Include="Source\TradeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\ChessDefines.h" />
+    <ClInclude Include="Source\ChessManager.h" />
+    <ClInclude Include="Source\ChessMatch.h" />
     <ClInclude Include="RecipeFactory.h" />
     <ClInclude Include="Source\EnumUtil.h" />
     <ClInclude Include="Source\AugmentationDevice.h" />
     <ClInclude Include="Source\BindStone.h" />
     <ClInclude Include="Source\easylogging++.h" />
+    <ClInclude Include="Source\Game.h" />
+    <ClInclude Include="Source\GamePiece.h" />
     <ClInclude Include="Source\ManaStone.h" />
     <ClInclude Include="Source\Messages.h" />
     <ClInclude Include="Source\Messages\Client to Server\AllegianceApprovedVassalSet_0040.h" />

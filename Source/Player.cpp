@@ -22,6 +22,9 @@
 #include "House.h"
 #include "easylogging++.h"
 #include "Util.h"
+#include "ChessManager.h"
+
+
 #include <chrono>
 #include <algorithm>
 #include <functional>
@@ -161,6 +164,8 @@ void CPlayerWeenie::BeginLogout()
 		m_pTradeManager->CloseTrade(this);
 		m_pTradeManager = NULL;
 	}
+
+	sChessManager->Quit(this);
 	
 	StopCompletely(0);
 }
@@ -1313,6 +1318,9 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			if (op->_SkillCheckFormulaType == 2) // imbue
 			{
 				successChance /= 3;
+				
+				if (m_Qualities.GetInt(AUGMENTATION_BONUS_IMBUE_CHANCE_INT, 0))
+					successChance += 0.05;
 			}
 			break;
 		}
@@ -3298,6 +3306,28 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	}
 }
 
+std::list<CharacterSquelch_t> CPlayerWeenie::GetSquelches()
+{
+	return squelches;
+}
+
+void CPlayerWeenie::LoadSquelches()
+{
+	squelches = g_pDBIO->GetCharacterSquelch(GetID());
+}
+
+bool CPlayerWeenie::IsPlayerSquelched(const DWORD dwGUID, bool checkAccount)
+{
+	for (auto sq : squelches)
+	{
+		if (sq.squelched_id == dwGUID)
+			return TRUE;
+		if (g_pDBIO->GetPlayerAccountId(dwGUID) == sq.account_id)
+			return TRUE;
+	}
+	return FALSE;
+}
+
 void CPlayerWeenie::HandleItemManaRequest(DWORD itemId)
 {
 	if (!itemId)
@@ -3313,11 +3343,18 @@ void CPlayerWeenie::HandleItemManaRequest(DWORD itemId)
 
 void CPlayerWeenie::UpdateModuleFromClient(PlayerModule &module)
 {
-	if (&_playerModule && &module) // feels hacky
-	{
-		_playerModule = module;
-		UpdateModel();
-	}
+	_playerModule.options_ = module.options_;
+	_playerModule.options2_ = module.options2_;
+	_playerModule.spell_filters_ = module.spell_filters_;
+
+	for (DWORD i = 0; i < 8; i++)
+		_playerModule.favorite_spells_[i] = module.favorite_spells_[i];
+
+	CloneMemberPointerData<ShortCutManager>(_playerModule.shortcuts_, module.shortcuts_);
+	CloneMemberPointerData<PackableHashTable<DWORD, long>>(_playerModule.desired_comps_, module.desired_comps_);
+	CloneMemberPointerData<GenericQualitiesData>(_playerModule.m_pPlayerOptionsData, module.m_pPlayerOptionsData);
+
+	UpdateModel();
 }
 
 void CPlayerWeenie::LoadEx(CWeenieSave &save)
@@ -3828,3 +3865,4 @@ void CPlayerWeenie::UpdatePKActivity()
 	//Set LAST_PK_ATTACK_TIMESTAMP_FLOAT for use in CACQualities::JumpStaminaCost as m_iPKActivity is not available.
 	m_Qualities.SetFloat(LAST_PK_ATTACK_TIMESTAMP_FLOAT, (double) m_iPKActivity);
 }
+

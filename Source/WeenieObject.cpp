@@ -538,7 +538,7 @@ void CWeenieObject::OnDeath(DWORD killer_id)
 
 	ChanceExecuteEmoteSet(killer_id, Death_EmoteCategory);
 
-	if (m_Qualities._enchantment_reg)
+	if (m_Qualities._enchantment_reg && !m_Qualities.GetInt(AUGMENTATION_SPELLS_REMAIN_PAST_DEATH_INT, 0))
 	{
 		PackableList<DWORD> removed;
 
@@ -1915,6 +1915,12 @@ void CWeenieObject::GiveSharedXP(long long amount, bool showText)
 	if (amount <= 0)
 		return;
 
+	EnchantedQualityDetails buffDetails;
+	GetFloatEnchantmentDetails(GLOBAL_XP_MOD_FLOAT, 0.0, &buffDetails);
+
+	if (buffDetails.enchantedValue > 0.0)
+		amount *= buffDetails.valueIncreasingMultiplier;
+
 	Fellowship *f = GetFellowship();
 
 	if (f)
@@ -1960,6 +1966,9 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 
 	if (bLeveled)
 	{
+		AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(GetID());
+		if(node)
+			node->_level = currentLevel;
 		m_Qualities.SetInt(LEVEL_INT, currentLevel);
 		NotifyIntStatUpdated(LEVEL_INT);
 
@@ -2483,9 +2492,18 @@ void CWeenieObject::SendUseMessage(CWeenieObject *other, unsigned int channel)
 
 void CWeenieObject::ExecuteUseEvent(CUseEventData *useEvent)
 {
+	CWeenieObject *target = g_pWorld->FindObject(useEvent->_target_id);
+
 	if (m_UseManager && m_UseManager->IsUsing())
 	{
 		NotifyWeenieError(WERROR_ACTIONS_LOCKED);
+		return;
+	}
+
+	if (target && target->m_EmoteManager && target->m_EmoteManager->HasQueue())
+	{
+		SendText(csprintf("%s is busy.", target->GetName().c_str()), LTT_DEFAULT);
+		NotifyUseDone(WERROR_NONE);
 		return;
 	}
 
@@ -3007,6 +3025,10 @@ void CWeenieObject::CheckRegeneration(double rate, STypeAttribute2nd currentAttr
 					break;
 				case Motion_Sleeping:
 					rate *= 3;
+
+					if (m_Qualities.GetInt(AUGMENTATION_FASTER_REGEN_INT, 0))
+						rate *= 2;
+					
 					break;
 				}
 			}
@@ -4251,7 +4273,10 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 	if (damageData.damageAfterMitigation > 0 || damageData.damage_type == HEALTH_DAMAGE_TYPE || damageData.damage_type == STAMINA_DAMAGE_TYPE || damageData.damage_type == MANA_DAMAGE_TYPE)
 	{
 		if (!AsPlayer() || damageData.ignoreMagicResist)
-			damageData.damageAfterMitigation *= resistanceRegular;
+		{
+			if (resistanceRegular != 0.f)
+				damageData.damageAfterMitigation *= resistanceRegular;
+		}
 		else //only players have natural resistances.
 		{
 			//Some combination of strength and endurance allows one to have a level of "natural resistances" to the 7 damage types.This caps out at a 50 % resistance(the equivalent to level 5 life prots) to these damage types.This resistance is not additive to life protections : higher level life protections will overwrite these natural resistances, although life vulns will take these natural resistances into account, if the player does not have a higher level life protection cast upon them.
@@ -4314,6 +4339,11 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 				if (reduction > 0.25)
 					reduction = 0.25;
 
+				bool isPvP = damageData.source->AsPlayer() && damageData.target->AsPlayer();
+
+				if (isPvP)
+					reduction *= 0.72;
+				
 				damageData.damageAfterMitigation *= 1.0 - reduction;
 			}
 		}
@@ -4330,7 +4360,7 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 			unsigned long shieldSkill;
 			damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
 
-			float capPercent = (shieldSkill / 433) * cap * st;
+			float capPercent = (static_cast<float>(shieldSkill) / 433.0) * cap * st;
 			float reduction = 0;
 			
 			if (cap > 0.0 && shieldSkill >= 100)
@@ -4853,6 +4883,9 @@ bool CWeenieObject::Load()
 		if (save.UnPack(&reader) && !reader.GetLastError())
 		{
 			LoadEx(save);
+			AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(GetID());
+			if (node)
+				node->_level = m_Qualities.GetInt(LEVEL_INT, 1);
 
 #ifndef PUBLIC_BUILD
 			double elapsed = watch.GetElapsed();
@@ -5107,7 +5140,6 @@ bool CWeenieObject::HasEmoteForID(EmoteCategory emoteCategory, DWORD item_id)
 			}
 		}
 	}
-	
 	return FALSE;
 }
 
@@ -5577,7 +5609,7 @@ int CWeenieObject::SimulateGiveObject(CContainerWeenie *target_container, CWeeni
 			else
 			{
 				// check emote Refusal here to avoid the extra "%s gives you %s." text on Refuse Emotes.
-				if (m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->id))
+				if (m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->m_Qualities.id))
 				{
 					SendText(csprintf("You allow %s to examine your %s.", target_container->GetName().c_str(), object_weenie->GetName().c_str()), LTT_DEFAULT);
 				}
@@ -5926,39 +5958,35 @@ void CWeenieObject::AddImbueEffect(ImbuedEffectType effect)
 		return; //it's already present.
 
 	imbueEffects |= effect;
-	m_Qualities.SetInt(IMBUED_EFFECT_INT, (int)effect);
 
-	//imbue effects 2 to 5 are not used by our dataset.
-	//if (!InqIntQuality(IMBUED_EFFECT_INT, 0, FALSE))
-	//	m_Qualities.SetInt(IMBUED_EFFECT_INT, (int)effect);
-	//else if (!InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE))
-	//	m_Qualities.SetInt(IMBUED_EFFECT_2_INT, (int)effect);
-	//else if (!InqIntQuality(IMBUED_EFFECT_3_INT, 0, FALSE))
-	//	m_Qualities.SetInt(IMBUED_EFFECT_3_INT, (int)effect);
-	//else if (!InqIntQuality(IMBUED_EFFECT_4_INT, 0, FALSE))
-	//	m_Qualities.SetInt(IMBUED_EFFECT_4_INT, (int)effect);
-	//else if (!InqIntQuality(IMBUED_EFFECT_5_INT, 0, FALSE))
-	//	m_Qualities.SetInt(IMBUED_EFFECT_5_INT, (int)effect);
-	//else
-	//	return false;
-	//return true;
+	if (!InqIntQuality(IMBUED_EFFECT_INT, 0, FALSE))
+		m_Qualities.SetInt(IMBUED_EFFECT_INT, (int)effect);
+	else if (!InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE))
+		m_Qualities.SetInt(IMBUED_EFFECT_2_INT, (int)effect);
+	else if (!InqIntQuality(IMBUED_EFFECT_3_INT, 0, FALSE))
+		m_Qualities.SetInt(IMBUED_EFFECT_3_INT, (int)effect);
+	else if (!InqIntQuality(IMBUED_EFFECT_4_INT, 0, FALSE))
+		m_Qualities.SetInt(IMBUED_EFFECT_4_INT, (int)effect);
+	else if (!InqIntQuality(IMBUED_EFFECT_5_INT, 0, FALSE))
+		m_Qualities.SetInt(IMBUED_EFFECT_5_INT, (int)effect);
+	else
+		return;
+	return;
 }
+
 
 DWORD CWeenieObject::GetImbueEffects()
 {
-	return InqIntQuality(IMBUED_EFFECT_INT, 0, FALSE);
+	DWORD imbuedEffect = 0;
 
-	//imbue effects 2 to 5 are not used by our dataset.
-	//DWORD imbuedEffect = 0;
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_INT, 0, FALSE);
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE);
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE);
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_3_INT, 0, FALSE);
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_4_INT, 0, FALSE);
+	imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_5_INT, 0, FALSE);
 
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_INT, 0, FALSE);
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE);
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_2_INT, 0, FALSE);
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_3_INT, 0, FALSE);
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_4_INT, 0, FALSE);
-	//imbuedEffect |= (DWORD) InqIntQuality(IMBUED_EFFECT_5_INT, 0, FALSE);
-
-	//return imbuedEffect;
+	return imbuedEffect;
 }
 
 double CWeenieObject::GetManaConversionMod()
@@ -6139,9 +6167,14 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 				{
 					DWORD endurance = 0;
 					m_Qualities.InqAttribute(ENDURANCE_ATTRIBUTE, endurance, true);
-					float noStaminaUseChance = ((float)endurance - 100.0) / 400.0; //made up formula: 75% reduction at 400 endurance.
-					noStaminaUseChance = min(max(noStaminaUseChance, 0.0f), 0.75f);
-					if (Random::RollDice(0.0, 1.0) > noStaminaUseChance)
+
+					float noStamUseChance = 0;
+					if (endurance >= 50)
+					{
+						noStamUseChance = ((float)(endurance * endurance) * 0.000005) + ((float)endurance * 0.00124) - 0.07; // Better curve and caps at 300 End vs 400 End
+					}
+					noStamUseChance = min(noStamUseChance, 0.75f);
+					if (Random::RollDice(0.0, 1.0) > noStamUseChance)
 						AdjustStamina(-1); // failed the roll, use stamina.
 				}
 				else
@@ -6445,8 +6478,9 @@ void CWeenieObject::SetStackSize(DWORD stackSize)
 	if (CWeenieObject *owner = GetWorldTopLevelOwner())
 	{
 		owner->RecalculateEncumbrance();
-		if (owner->AsPlayer() && IsCurrency(m_Qualities.id))
-			owner->RecalculateCoinAmount(m_Qualities.id);
+		//ToDo: figure out a method to allow this to work while not interfering with pyreal count when buying MMDs.
+		if (owner->AsPlayer() && m_Qualities.id == W_COINSTACK_CLASS)
+			owner->RecalculateCoinAmount(W_COINSTACK_CLASS);
 	}
 }
 

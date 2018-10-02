@@ -141,7 +141,7 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(CWeenieObject *item, bool deleteItem
 		return NULL;
 	}
 
-	item->SetID(g_pWorld->GenerateGUID(eEphemeral));
+	item->SetID(g_pWorld->GenerateGUID(m_Qualities.GetInt(HERITAGE_GROUP_INT,0) == 0 ? eEphemeral : eDynamicGUID));
 
 	if (!g_pWorld->CreateEntity(item, false))
 	{
@@ -178,7 +178,7 @@ CWeenieObject *CMonsterWeenie::FindValidNearbyItem(DWORD itemId, float maxDistan
 		if (!item)
 		{
 			// maybe it's on the ground
-			item = g_pWorld->FindObject(itemId);
+			item = g_pWorld->FindObject(itemId, false, true);
 
 			if (!item || item->HasOwner() || !item->InValidCell())
 			{
@@ -708,6 +708,12 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		return false;
 	}
 
+	if (sourceItem->InqIIDQuality(ALLOWED_WIELDER_IID, 0) && sourceItem->InqIIDQuality(ALLOWED_WIELDER_IID, 0) != GetID())
+	{
+		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_ATTUNED_ITEM);
+		return false;
+	}
+
 	if (sourceItem->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && sourceItem->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
 	{
 		sourceItem->m_Qualities.SetInt(SHIELD_VALUE_INT, sourceItem->InqIntQuality(ARMOR_LEVEL_INT, 0));
@@ -856,11 +862,12 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 			serial |= ((DWORD)GetEnchantmentSerialByteForMask(sourceItem->InqIntQuality(LOCATIONS_INT, 0, TRUE)) << (DWORD)0);
 			serial |= ((DWORD)GetEnchantmentSerialByteForMask(sourceItem->InqIntQuality(CLOTHING_PRIORITY_INT, 0, TRUE)) << (DWORD)8);
 
-			DWORD spellid = sourceItem->InqDIDQuality(PROC_SPELL_DID, 0);
+			DWORD procspellid = sourceItem->InqDIDQuality(PROC_SPELL_DID, 0);
+			DWORD spellid = sourceItem->InqDIDQuality(SPELL_DID, 0);
 			for (auto &spellPage : sourceItem->m_Qualities._spell_book->_spellbook)
 			{
-				//ignore the spell and don't cast if it's the Proc_spell_DID
-				if (spellid != spellPage.first)
+				//ignore the spell and don't cast if it's the Proc_spell_DID or the spell_DID
+				if (spellid != spellPage.first && procspellid != spellPage.first)
 					sourceItem->MakeSpellcastingManager()->CastSpellEquipped(GetID(), spellPage.first, (WORD)serial);
 
 			}
@@ -882,11 +889,26 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	}
 
 	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
-	if (!sourceItem)
+	if (!sourceItem || sourceItem->InUse)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
 		return false;
 	}
+
+	DWORD owner = 0;
+	if (!sourceItem->m_Qualities.InqInstanceID(OWNER_IID, owner))
+	{
+		sourceItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
+	}
+	else
+	{
+		if (owner != GetID())
+		{
+			NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
+			return false;
+		}
+	}
+
 
 	CWeenieObject *targetItem = FindValidNearbyItem(targetItemId, USEDISTANCE_FAR);
 	if (!targetItem)
@@ -905,11 +927,14 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 			mergeEvent->_target_id = sourceItemId;
 		mergeEvent->_sourceItemId = sourceItemId;
 		mergeEvent->_targetItemId = targetItemId;
-		mergeEvent->_amountToTransfer = amountToTransfer;
+		mergeEvent->_amountToTransfer = amountToTransfer;		
 		ExecuteUseEvent(mergeEvent);
 	}
 	else
 	{
+		//Set the item to InUse while merging to prevent others from interacting with the item.
+		sourceItem->InUse = true;
+
 		//check if the items is still in range.
 		if (FindValidNearbyItem(sourceItemId, 5.0) == NULL || FindValidNearbyItem(targetItemId, 5.0) == NULL)
 		{
@@ -940,6 +965,21 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 			return false;
 		}
 
+		DWORD owner = 0;
+		if (!sourceItem->m_Qualities.InqInstanceID(OWNER_IID, owner))
+		{
+			sourceItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
+		}
+		else
+		{
+			if (owner != GetID())
+			{
+				NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
+				return false;
+			}
+		}
+
+
 		if (maxTransferAmount < amountToTransfer)
 			amountToTransfer = maxTransferAmount;
 		targetItem->SetStackSize(targetCurrentAmount + amountToTransfer);
@@ -957,7 +997,9 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 			sourceItem->SetStackSize(sourceItemNewStackSize);
 		}
 		else //full stack movement
+		{
 			sourceItem->Remove();
+		}
 
 		if (wasSourceItemWielded)
 			EmitSound(Sound_UnwieldObject, 1.0f);
@@ -1126,7 +1168,8 @@ bool CMonsterWeenie::SplitItemto3D(DWORD sourceItemId, DWORD amountToTransfer, b
 
 		// set original item amount to what remains.
 		sourceItem->SetStackSize(totalAmount - amountToTransfer);
-
+		if(newStackItem->m_Qualities.GetInt(MAX_STACK_SIZE_INT, 0) > 1)
+			newStackItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
 		// and now move on to dropping it
 		CDropInventoryUseEvent *dropEvent = new CDropInventoryUseEvent();
 		dropEvent->_target_id = newStackItem->GetID();
@@ -1384,15 +1427,14 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 				RecalculateCoinAmount(newStackItem->m_Qualities.id);
 
 			topLevelOwner->OnReceiveInventoryItem(this, newStackItem, 0);
-			topLevelOwner->DebugValidate();
+			//topLevelOwner->DebugValidate();
 		}
 	}
 
 	//DebugValidate();
-
-	RecalculateEncumbrance();
+	if (AsPlayer())
+		RecalculateEncumbrance();
 }
-
 void CMonsterWeenie::Tick()
 {
 	CContainerWeenie::Tick();
@@ -1717,6 +1759,8 @@ CCorpseWeenie *CMonsterWeenie::CreateCorpse(bool visible)
 	pCorpse->SetInitialPosition(m_Position);
 	pCorpse->SetName(csprintf("Corpse of %s", GetName().c_str()));
 	pCorpse->InitPhysicsObj();
+	//set velocity so that corpses are affected by gravity.
+	pCorpse->set_velocity(_phys_obj->m_velocityVector, 0);
 
 	pCorpse->m_bDontClear = false;
 
@@ -1825,6 +1869,10 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 
 			if (pSource)
 			{
+				if (pSource->m_Qualities.GetInt(AUGMENTATION_BONUS_XP_INT, 0))
+				{
+					xpForKill *= 1.05;
+				}
 				pSource->GiveSharedXP(dPercentage * xpForKill, false);
 			}
 		}
@@ -2532,4 +2580,16 @@ int CMonsterWeenie::AdjustHealth(int amount)
 	}
 
 	return adjustedAmount;
+}
+
+bool CMonsterWeenie::CanTarget(CWeenieObject* target)
+{
+	TargetingTaticType const targetingTatic = static_cast<TargetingTaticType>(m_Qualities.GetInt(TARGETING_TACTIC_INT, TargetingTaticNone));
+	switch (targetingTatic)
+	{
+		case TargetingTaticGamePiece:
+			return target->IsGamePiece();
+		default:
+			return false;
+	}
 }

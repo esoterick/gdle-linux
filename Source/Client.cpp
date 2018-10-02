@@ -238,12 +238,6 @@ void CClient::SendNetMessage(void *data, DWORD length, WORD group, BOOL game_eve
 	if (!data || !length)
 		return;
 
-	if (g_bDebugToggle)
-	{
-		DEBUG_DATA << "Sending response(group" << group << "to" << (GetEvents() && GetEvents()->GetPlayer()) ? GetEvents()->GetPlayer()->GetName().c_str() : "[unknown]";
-		LOG_BYTES(Network, Normal, data, length);
-	}
-
 	m_pPC->QueueNetMessage(data, length, group, game_event ? GetEvents()->GetPlayerID() : 0);
 }
 
@@ -779,7 +773,7 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 
 	//weenie->m_Qualities.SetInt(COIN_VALUE_INT, GetAccessLevel() >= ADMIN_ACCESS ? 500000000 : 10000);
 	weenie->SpawnInContainer(W_COINSTACK_CLASS, 500);
-	weenie->SpawnInContainer(W_TUTORIALBOOK_CLASS, 1);
+	//weenie->SpawnInContainer(W_TUTORIALBOOK_CLASS, 1); Temporary Removal
 	weenie->SpawnInContainer(W_TINKERINGTOOL_CLASS, 1);
 
 
@@ -1566,20 +1560,24 @@ void CClient::ProcessMessage(BYTE *data, DWORD length, WORD group)
 				}
 				else
 				{
-					switch (listening_channel)
+					if (!m_pEvents->GetPlayer()->IsPlayerSquelched(playerGUID))
 					{
-					case General_ChatChannel:
-					case Trade_ChatChannel:
-					case LFG_ChatChannel:
-					case Roleplay_ChatChannel:
-					case Allegiance_ChatChannel:
-					// case Olthoi_ChatChannel:
-					// case Society_ChatChannel:
-						if (listening_channel > 1 && !g_pConfig->AllowGeneralChat())
-							break;
 
-						g_pWorld->BroadcastChatChannel(listening_channel, m_pEvents->GetPlayer(), filteredText);
-						break;
+						switch (listening_channel)
+						{
+						case General_ChatChannel:
+						case Trade_ChatChannel:
+						case LFG_ChatChannel:
+						case Roleplay_ChatChannel:
+						case Allegiance_ChatChannel:
+							// case Olthoi_ChatChannel:
+							// case Society_ChatChannel:
+							if (listening_channel > 1 && !g_pConfig->AllowGeneralChat())
+								break;
+
+							g_pWorld->BroadcastChatChannel(listening_channel, m_pEvents->GetPlayer(), filteredText);
+							break;
+						}
 					}
 				}
 			}

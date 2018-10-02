@@ -782,6 +782,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			case SPELL_DID:
 			case SPELL_COMPONENT_DID:
 			case DEATH_SPELL_DID:
+			case PROC_SPELL_DID:
 				i++;
 				continue;
 			}

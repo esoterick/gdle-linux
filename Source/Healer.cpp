@@ -87,11 +87,12 @@ void CHealerUseEvent::OnReadyToUse()
 
 	if (_target_id == _weenie->GetID())
 	{
+		_weenie->DoForcedStopCompletely();
 		ExecuteUseAnimation(Motion_SkillHealSelf);
 	}
 	else
 	{
-		// TODO find the right animation for healing another player - using Woah animation now, seems right.
+		_weenie->DoForcedStopCompletely();
 		ExecuteUseAnimation(Motion_Woah);
 	}
 }
@@ -132,37 +133,61 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 					target->m_Qualities.InqAttribute2nd(maxStatType, maxStatValue, FALSE);
 
 					int missingVital = max(0, (int)maxStatValue - (int)statValue);
-					int difficulty = max(0, (missingVital * 2) - tool->InqIntQuality(BOOST_VALUE_INT, 0));
+					double combat_mod = _weenie->IsInPeaceMode() ? 1.0 : 1.1;
+					int difficulty = max(0, (missingVital * 2) * combat_mod);
 
+					Skill skill;
 					DWORD healing_skill = 0;
 					_weenie->InqSkill(HEALING_SKILL, healing_skill, FALSE);
+					_weenie->m_Qualities.InqSkill(HEALING_SKILL, skill);
+					DWORD base_skill = healing_skill;
 
-					// this is wrong, but whatever we'll fake it
-					DWORD heal_min = (int)(healing_skill * 0.2) * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0);
-					DWORD heal_max = (int)(healing_skill * 0.5) * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0);
+					double sac_mod = skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS ? 1.5 : 1.1;
 
-					amountHealed = Random::GenInt(heal_min, heal_max);
-					if (amountHealed > missingVital)
-						amountHealed = missingVital;
-
-					int staminaNecessary = amountHealed / 5; //1 point of stamina used for every 5 health healed.
-
-					if (_weenie->GetStamina() < staminaNecessary)
-					{
-						staminaNecessary = _weenie->GetStamina();
-						amountHealed = staminaNecessary * 5;
-						if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
-						{
-							pPlayer->SendText("You're exhausted!", LTT_ERROR);
-						}
-					}
-					_weenie->AdjustStamina(-staminaNecessary);
+					healing_skill = (healing_skill + boost_value) * sac_mod;
 					
 					success = Random::RollDice(0.0, 1.0) <= GetSkillChance(healing_skill, difficulty);
 					if (success)
 					{
-						if (amountHealed > (int)(heal_max * 0.8))
+						double heal_min = 0;
+						double heal_max = 0;
+
+						if (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+						{
+							heal_min = 0.09;
+							heal_max = 0.28;
+						}
+						else
+						{
+							heal_min = 0.07;
+							heal_max = 0.235;
+						}
+
+						double healedVariance = Random::GenFloat(heal_min, heal_max);
+					
+						amountHealed = (int)(base_skill * healedVariance * tool->InqFloatQuality(HEALKIT_MOD_FLOAT, 1.0));
+						
+						if (Random::RollDice(0.0, 1.0) <= 0.15)
+						{
 							prefix = "expertly ";
+							amountHealed *= difficulty / 2;
+						}
+
+						if (amountHealed > missingVital)
+							amountHealed = missingVital;
+
+						int staminaNecessary = amountHealed / 5; //1 point of stamina used for every 5 health healed.
+
+						if (_weenie->GetStamina() < staminaNecessary)
+						{
+							staminaNecessary = _weenie->GetStamina();
+							amountHealed = staminaNecessary * 5;
+							if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
+							{
+								pPlayer->SendText("You're exhausted!", LTT_ERROR);
+							}
+						}
+						_weenie->AdjustStamina(-staminaNecessary);
 
 						DWORD newStatValue = min(statValue + amountHealed, maxStatValue);
 

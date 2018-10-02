@@ -15,5 +15,5 @@ void MAllegianceOfficersList_02A6::Parse(BinaryReader * reader)
 
 void MAllegianceOfficersList_02A6::Process()
 {
-//	g_pAllegianceManager->ListOfficers(m_pPlayer);
+	g_pAllegianceManager->ListOfficers(m_pPlayer);
 }

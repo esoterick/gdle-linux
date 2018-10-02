@@ -311,8 +311,23 @@ void CSpellcastingManager::BeginNextMotion()
 
 		if (m_PendingMotions.empty())
 		{
-			int error = LaunchSpellEffect(false);
-			EndCast(error);
+			int bitfield = m_pWeenie->m_SpellcastingManager->m_SpellCastData.spell->_bitfield;
+			if ((bitfield & Resistable_SpellIndex) && (bitfield & PKSensitive_SpellIndex) && (bitfield & FastCast_SpellIndex)) //streaks
+			{
+				if (m_pWeenie->m_Qualities.GetFloat(NEXT_SPELLCAST_TIMESTAMP_FLOAT, 0.0) <= Timer::cur_time)
+				{
+					int error = LaunchSpellEffect(false);
+					EndCast(error);
+					m_pWeenie->m_Qualities.SetFloat(NEXT_SPELLCAST_TIMESTAMP_FLOAT, Timer::cur_time + 2.0);
+				}
+				else
+					EndCast(WERROR_ACTIONS_LOCKED);
+			}
+			else //everything else
+			{
+				int error = LaunchSpellEffect(false);
+				EndCast(error);
+			}
 		}
 		else
 		{
@@ -3174,6 +3189,7 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 			case ITEM_ENCHANTMENT_SKILL: foci = FindFociInContainer(caster, W_PACKITEMESSENCE_CLASS) || caster->InqIntQuality(AUGMENTATION_INFUSED_ITEM_MAGIC_INT, 0); break;
 			case LIFE_MAGIC_SKILL: foci = FindFociInContainer(caster, W_PACKLIFEESSENCE_CLASS) || caster->InqIntQuality(AUGMENTATION_INFUSED_LIFE_MAGIC_INT, 0); break;
 			case WAR_MAGIC_SKILL: foci = FindFociInContainer(caster, W_PACKWARESSENCE_CLASS) || caster->InqIntQuality(AUGMENTATION_INFUSED_WAR_MAGIC_INT, 0); break;
+			case VOID_MAGIC_SKILL: foci = FindFociInContainer(caster, W_FOCIOFSHADOW_CLASS) || caster->InqIntQuality(AUGMENTATION_INFUSED_VOID_MAGIC_INT, 0); break;
 			}
 		}
 

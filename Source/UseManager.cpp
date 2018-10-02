@@ -344,6 +344,7 @@ void CActivationUseEvent::OnReadyToUse()
 	if (target)
 	{
 		target->Activate(_weenie->GetID());
+		target->DoUseEmote(_weenie);
 	}
 
 	Done();
@@ -595,14 +596,25 @@ void CStackMergeInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 		target->m_Qualities.SetString(QUEST_STRING, "");
 	}
 
-	bool success = _weenie->AsPlayer()->MergeItem(_sourceItemId, _targetItemId, _amountToTransfer, true);
 
-	_weenie->DoForcedStopCompletely();
-
-	if (!success)
+	DWORD owner = 0;
+	if (target->m_Qualities.InqInstanceID(OWNER_IID, owner) && owner != _weenie->GetID())
+	{
+		_weenie->NotifyInventoryFailedEvent(_sourceItemId, WERROR_OBJECT_GONE);
+		_weenie->DoForcedStopCompletely();
 		Cancel();
+	}
 	else
-		Done();
+	{
+		bool success = _weenie->AsPlayer()->MergeItem(_sourceItemId, _targetItemId, _amountToTransfer, true);
+
+		_weenie->DoForcedStopCompletely();
+
+		if (!success)
+			Cancel();
+		else
+			Done();
+	}
 }
 
 //-------------------------------------------------------------------------------------

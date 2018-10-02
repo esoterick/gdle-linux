@@ -23,5 +23,5 @@ void MAllegianceNameSet_0033::Parse(BinaryReader * reader)
 
 void MAllegianceNameSet_0033::Process()
 {
-	//g_pAllegianceManager->SetAllegianceName(m_pPlayer, m_szNewName);
+	g_pAllegianceManager->SetAllegianceName(m_pPlayer, m_szNewName);
 }

@@ -233,21 +233,96 @@ std::list<CharacterDesc_t> CDatabaseIO::GetCharacterList(unsigned int account_id
 	return results;
 }
 
-CharacterDesc_t CDatabaseIO::GetCharacterInfo(unsigned int weenie_id)
+std::list<CharacterSquelch_t> CDatabaseIO::GetCharacterSquelch(unsigned int character_id)
 {
-	CharacterDesc_t result = { 0,0,"",0,0 };
+	std::list<CharacterSquelch_t> results;
 
-	if (g_pDB2->Query("SELECT account_id, weenie_id, name, date_created, instance_ts FROM characters WHERE weenie_id = %u", weenie_id))
+	if (g_pDB2->Query("SELECT squelched_id, account_id, isip, isspeech, istell, iscombat, ismagic, isemote, isadvancement, isappraisal, isspellcasting, isallegiance, isfellowhip, iscombatenemy, isrecall, iscrafting FROM character_squelch WHERE character_id = %u", character_id))
+	{
+		CSQLResult *pQueryResult = g_pDB2->GetResult();
+		if (pQueryResult)
+		{
+			while (SQLResultRow_t Row = pQueryResult->FetchRow())
+			{
+				CharacterSquelch_t entry;
+				entry.squelched_id = strtoul(Row[0], NULL, 10);
+				entry.account_id = strtoul(Row[1], NULL, 10);
+				entry.isIp = Row[2];
+				entry.isSpeech = Row[3];
+				entry.isTell = Row[4];
+				entry.isCombat = Row[5];
+				entry.isMagic = Row[6];
+				entry.isEmote = Row[7];
+				entry.isAdvancement = Row[8];
+				entry.isAppraisal = Row[9];
+				entry.isSpellcasting = Row[10];
+				entry.isAllegiance = Row[11];
+				entry.isFellowship = Row[12];
+				entry.isCombatEnemy = Row[13];
+				entry.isRecall = Row[14];
+				entry.isCrafting = Row[15];
+				results.push_back(entry);
+			}
+			delete pQueryResult;
+		}
+	}
+
+	return results;
+}
+
+bool CDatabaseIO::SaveCharacterSquelch(unsigned int character_id, CharacterSquelch_t data)
+{
+	return g_pDB2->Query("INSERT INTO character_squelch(character_id, squelched_id, account_id, isip, isspeech, istell, iscombat, ismagic, isemote, isadvancement, isappraisal, isspellcasting, isallegiance, isfellowhip, iscombatenemy, isrecall, iscrafting) VALUES"
+		"(%u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u) ON DUPLICATE KEY UPDATE "
+		"isip = %u, isspeech = %u, istell = %u, iscombat = %u, ismagic = %u, isemote = %u, isadvancement = %u, isappraisal = %u, isspellcasting = %u, isallegiance = %u, isfellowhip = %u, iscombatenemy = %u, isrecall = %u, iscrafting = %u;",
+		character_id, data.squelched_id, data.account_id, data.isIp, data.isSpeech, data.isTell, data.isCombat, data.isMagic, data.isEmote, data.isAdvancement,
+		data.isAppraisal, data.isSpellcasting, data.isAllegiance, data.isFellowship, data.isCombatEnemy, data.isRecall, data.isCrafting, 
+		data.isIp, data.isSpeech, data.isTell, data.isCombat, data.isMagic, data.isEmote, data.isAdvancement,
+		data.isAppraisal, data.isSpellcasting, data.isAllegiance, data.isFellowship, data.isCombatEnemy, data.isRecall, data.isCrafting);
+}
+
+bool CDatabaseIO::RemoveCharacterSquelch(unsigned int character_id, CharacterSquelch_t data)
+{
+	return g_pDB2->Query("DELETE FROM character_squelch WHERE character_id = %u AND squelched_id = %u;", character_id, data.squelched_id);
+}
+
+DWORD CDatabaseIO::GetPlayerAccountId(unsigned int character_id)
+{
+	DWORD accountToSquelch = 0;
+
+	if (g_pDB2->Query("SELECT account_id FROM characters WHERE weenie_id = %u;", character_id))
 	{
 		CSQLResult *pQueryResult = g_pDB2->GetResult();
 		if (pQueryResult)
 		{
 			SQLResultRow_t Row = pQueryResult->FetchRow();
-			result.account_id = strtoul(Row[0], NULL, 10);
-			result.weenie_id = strtoul(Row[1], NULL, 10);
-			result.name = Row[2];
-			result.date_created = strtoul(Row[3], NULL, 10);
-			result.instance_ts = (WORD)strtoul(Row[4], NULL, 10);
+			accountToSquelch = strtoul(Row[0], NULL, 10);
+			delete pQueryResult;
+		}
+	}
+
+	return accountToSquelch;
+}
+
+
+CharacterDesc_t CDatabaseIO::GetCharacterInfo(unsigned int weenie_id)
+{
+	CharacterDesc_t result = { 0,0,"",0,0 };
+
+	if (g_pDB2->Query("SELECT account_id, weenie_id, name, date_created, instance_ts FROM characters WHERE weenie_id = %u;", weenie_id))
+	{
+		CSQLResult *pQueryResult = g_pDB2->GetResult();
+		if (pQueryResult)
+		{
+			SQLResultRow_t Row = pQueryResult->FetchRow();
+			if (Row)
+			{
+				result.account_id = strtoul(Row[0], NULL, 10);
+				result.weenie_id = strtoul(Row[1], NULL, 10);
+				result.name = Row[2];
+				result.date_created = strtoul(Row[3], NULL, 10);
+				result.instance_ts = (WORD)strtoul(Row[4], NULL, 10);
+			}
 
 			delete pQueryResult;
 		}
@@ -405,7 +480,7 @@ bool CDatabaseIO::IsPlayerCharacter(unsigned int weenie_id)
 
 DWORD CDatabaseIO::GetPlayerCharacterId(const char *name)
 {
-	DWORD result;
+	DWORD result = 0;
 	if (g_pDB2->Query("SELECT weenie_id FROM characters WHERE name='%s'", g_pDB2->EscapeString(name).c_str()))
 	{
 		CSQLResult *pQueryResult = g_pDB2->GetResult();

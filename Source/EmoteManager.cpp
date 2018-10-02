@@ -116,7 +116,37 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 	if (result.find("%tqt") != std::string::npos)
 	{
-		while (ReplaceString(result, "%tqt", "some amount of time"));
+		std::string targetName;
+		if (!g_pWorld->FindObjectName(target_id, targetName))
+			return ""; // Couldn't resolve name, don't display this message.
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		std::string questString = target->Ktref(result.c_str()); //trims the @%tqt off of the quest name and returns the questflag to validate the quest timer against.
+
+		if (target->InqQuest(questString.c_str()))
+		{
+			int timeTilOkay = target->InqTimeUntilOkayToComplete(questString.c_str());
+
+			if (timeTilOkay > 0)
+			{
+				int secs = timeTilOkay % 60;					
+				timeTilOkay /= 60;
+
+				int mins = timeTilOkay % 60;
+				timeTilOkay /= 60;
+
+				int hours = timeTilOkay % 24;
+				timeTilOkay /= 24;
+
+				int days = timeTilOkay;
+
+				result = csprintf("You must wait %dd %dh %dm %ds to complete this quest again.", days, hours, mins, secs);
+			}
+			else
+			{
+				return ""; //Quest timer has expired so return blank cooldown message.
+			}
+		}
 	}
 
 	return result;
@@ -1300,13 +1330,324 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		break;
 	}
 
+	case PopUp_EmoteType: //type: 68 causes a popup message to appear with a with the text from emote.msg and an OK dialog button.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		if (target)
+		{
+
+			BinaryWriter popupMessage;
+			popupMessage.Write<DWORD>(0x4);
+			popupMessage.WriteString(emote.msg);
+
+			target->SendNetMessage(&popupMessage, PRIVATE_MSG, TRUE, FALSE);
+
+		}
+		break;
 	}
-	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
+
+	case InqYesNo_EmoteType: //type: 75 causes a popup message to appear with a with the text from emote.msg and Yes/No dialog buttons.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		if (target)
+		{
+			BinaryWriter yesnoMessage;
+			yesnoMessage.Write<DWORD>(0x274);	// Message Type
+			yesnoMessage.Write<DWORD>(0x07);		// Confirm type (Yes/No)
+			yesnoMessage.Write<int>(_weenie->id);			// Sequence number ?? context id
+			yesnoMessage.WriteString(emote.teststring);
+
+			target->SendNetMessage(&yesnoMessage, PRIVATE_MSG, TRUE, FALSE);
+
+		}
+		break;
+	}
+
+	case InqOwnsItems_EmoteType: //type: 76 checks to see if a particular item and count exists in pack.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		DWORD itemWCID = emote.cprof.wcid;
+		int itemAmount = emote.cprof.stack_size;
+		bool success = false;
+
+		if (target)
+		{
+			if (target->GetItemCount(itemWCID) >= itemAmount)
+				success = true;
+
+			ChanceExecuteEmoteSet(success ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, emote.msg, target_id);
+		}
+		break;
+	}
+
+	case TakeItems_EmoteType: //type: 74 removes items from pack.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		DWORD itemWCID = emote.cprof.wcid;
+		int itemAmount = emote.cprof.stack_size;
+
+		if (target)
+		{
+			if (target->GetItemCount(itemWCID) >= itemAmount)
+				target->ConsumeItem(itemAmount, itemWCID);
+		}
+		break;
+	}	
+	case UntrainSkill_EmoteType: //type: 110 changes skill to untrained and returns the approriate number of skill credits. Acts like a skill lowering gem with minor tweaks.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *player = g_pWorld->FindObject(target_id)->AsPlayer();
+		STypeSkill skillToAlter = (STypeSkill)emote.stat;
+
+		if (player)
+		{
+			Skill skill;
+			if (!player->m_Qualities.InqSkill(skillToAlter, skill))
+			{
+				break;
+			}
+
+			int numSkillCredits = player->InqIntQuality(AVAILABLE_SKILL_CREDITS_INT, 0, TRUE);
+			
+			switch (skill._sac)
+			{
+			default:
+				break;
+
+			case SPECIALIZED_SKILL_ADVANCEMENT_CLASS:
+				{
+					SkillTable *pSkillTable = SkillSystem::GetSkillTable();
+					const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skillToAlter);
+					if (pSkillBase != NULL)
+					{
+
+						HeritageGroup_CG *heritageGroup = CachedCharGenData->mHeritageGroupList.lookup(player->InqIntQuality(HERITAGE_GROUP_INT, 0, true));
+						if (heritageGroup)
+						{
+							//first we check our heritage specific skills as we cannot untrain those.
+							for (DWORD i = 0; i < heritageGroup->mSkillList.num_used; i++)
+							{
+								if (heritageGroup->mSkillList.array_data[i].skillNum == skillToAlter)
+								{
+									DWORD64 xpToAward = skill._pp;
+									skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
+									skill._pp = 0;
+									skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+									skill._init_level = 5;
+									player->m_Qualities.SetSkill(skillToAlter, skill);
+									player->NotifySkillStatUpdated(skillToAlter);
+
+									numSkillCredits += pSkillBase->_specialized_cost - pSkillBase->_trained_cost;
+									player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
+									player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
+
+									if (xpToAward > 0)
+									{
+										player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0) + xpToAward);
+										player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+									}
+
+									player->SendText(csprintf("Your %s skill has been reset.  All the experience that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
+									break;
+								}
+							}
+
+							// break here on Arcane as the _trained_cost is actually 4 but should be treated as if it was 0.
+							if (skillToAlter == ARCANE_LORE_SKILL)
+								break;
+
+						}
+						if (pSkillBase->_trained_cost > 0)
+						{
+							bool isTinker = (skillToAlter == SALVAGING_SKILL ||
+								skillToAlter == WEAPON_APPRAISAL_SKILL ||
+								skillToAlter == ARMOR_APPRAISAL_SKILL ||
+								skillToAlter == MAGIC_ITEM_APPRAISAL_SKILL ||
+								skillToAlter == ITEM_APPRAISAL_SKILL);
+
+							if (isTinker)
+							{
+								switch (skillToAlter)
+								{
+								case WEAPON_APPRAISAL_SKILL: player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT, 0); break;
+								case ARMOR_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT, 0); break;
+								case ITEM_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT, 0); break;
+								case MAGIC_ITEM_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT, 0); break;
+								case SALVAGING_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_SALVAGING_INT, 0); break;
+								}
+							}
+							else
+							{
+								numSkillCredits += pSkillBase->_specialized_cost;
+								player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
+								player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
+							}
+
+							DWORD64 xpToAward = 0;
+
+							xpToAward = skill._pp;
+							skill._sac = UNTRAINED_SKILL_ADVANCEMENT_CLASS;
+							skill._pp = 0;
+							skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+							skill._init_level = 0;
+
+							player->m_Qualities.SetSkill(skillToAlter, skill);
+							player->NotifySkillStatUpdated(skillToAlter);
+
+							if (xpToAward > 0)
+							{
+								player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0) + xpToAward);
+								player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+							}
+
+							player->SendText(csprintf("Your specialized %s skill has been removed. All the experience and skill credits that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
+						}
+						else
+						{
+							DWORD64 xpToAward = skill._pp;
+							skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
+							skill._pp = 0;
+							skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+							skill._init_level = 5;
+							player->m_Qualities.SetSkill(skillToAlter, skill);
+							player->NotifySkillStatUpdated(skillToAlter);
+
+							if (xpToAward > 0)
+							{
+								player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0) + xpToAward);
+								player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+							}
+
+							player->SendText(csprintf("Your %s skill has been reset.  All the experience that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
+
+						}
+					}
+				
+
+					break;
+				}
+
+			case TRAINED_SKILL_ADVANCEMENT_CLASS:
+				{
+					SkillTable *pSkillTable = SkillSystem::GetSkillTable();
+					const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skillToAlter);
+
+					if (pSkillBase != NULL)
+					{
+
+						HeritageGroup_CG *heritageGroup = CachedCharGenData->mHeritageGroupList.lookup(player->InqIntQuality(HERITAGE_GROUP_INT, 0, true));
+						if (heritageGroup)
+						{
+							//first we check our heritage specific skills as we cannot untrain those.
+							for (DWORD i = 0; i < heritageGroup->mSkillList.num_used; i++)
+							{
+								if (heritageGroup->mSkillList.array_data[i].skillNum == skillToAlter)
+								{
+									DWORD64 xpToAward = skill._pp;
+									skill._pp = 0;
+									skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+									skill._init_level = 5;
+									player->m_Qualities.SetSkill(skillToAlter, skill);
+									player->NotifySkillStatUpdated(skillToAlter);
+
+									if (xpToAward > 0)
+									{
+										player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0) + xpToAward);
+										player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+									}
+
+									player->SendText(csprintf("Your %s skill has been reset.  All the experience that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
+									break;
+								}
+							}
+							
+							if (skillToAlter == ARCANE_LORE_SKILL)
+								break;
+
+						}
+
+						if (pSkillBase->_trained_cost > 0)
+						{
+							numSkillCredits += pSkillBase->_trained_cost;
+							player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
+							player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
+
+							DWORD64 xpToAward = skill._pp;
+							skill._pp = 0;
+
+							skill._sac = UNTRAINED_SKILL_ADVANCEMENT_CLASS;
+							skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+							skill._init_level = 0;
+							player->m_Qualities.SetSkill(skillToAlter, skill);
+							player->NotifySkillStatUpdated(skillToAlter);
+
+							if (xpToAward > 0)
+							{
+								player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0) + xpToAward);
+								player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+							}
+
+							player->SendText(csprintf("Your trained %s skill has been removed. All the experience and skill credits that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
+
+						}
+						else
+						{
+							DWORD64 xpToAward = skill._pp;
+							skill._pp = 0;
+							skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
+							skill._init_level = 5;
+							player->m_Qualities.SetSkill(skillToAlter, skill);
+							player->NotifySkillStatUpdated(skillToAlter);
+
+							if (xpToAward > 0)
+							{
+								player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0) + xpToAward);
+								player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+							}
+
+							player->SendText(csprintf("Your %s skill has been reset.  All the experience that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
+
+						}
+					}
+
+					break;
+				}
+			}
+
+
+		}
+		break;
+	}
+		}
+			_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
 
 bool EmoteManager::IsExecutingAlready()
 {
 	return _weenie->m_Qualities.GetBool(EXECUTING_EMOTE, false);
+}
+
+bool EmoteManager::HasQueue()
+{
+	return !_emoteQueue.empty();
 }
 
 void EmoteManager::Tick()
@@ -1322,7 +1663,7 @@ void EmoteManager::Tick()
 		ExecuteEmote(i->_data, i->_target_id);
 		i = _emoteQueue.erase(i);
 		if (i != _emoteQueue.end())
-			i->_executeTime = Timer::cur_time + i->_data.delay;
+			i->_executeTime = Timer::cur_time + i->_data.delay;		
 	}
 }
 
@@ -1403,4 +1744,9 @@ void EmoteManager::killTaskSub(std::string &mobName, std::string &kCountName, CW
 	{
 		targormember->SendNetMessage(ServerText(text.c_str(), LTT_DEFAULT), PRIVATE_MSG, TRUE);
 	}
+}
+
+void EmoteManager::ConfirmationResponse(bool accepted, DWORD target_id)
+{
+		ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, accepted ? "Yes_Response" : "No_Response", target_id);
 }

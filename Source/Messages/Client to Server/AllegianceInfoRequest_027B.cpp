@@ -22,5 +22,5 @@ void MAllegianceInfoRequest_027B::Parse(BinaryReader * reader)
 
 void MAllegianceInfoRequest_027B::Process()
 {
-//	g_pAllegianceManager->AllegianceInfoRequest(m_pPlayer, m_szTargetPlayer);
+	g_pAllegianceManager->AllegianceInfoRequest(m_pPlayer, m_szTargetPlayer);
 }

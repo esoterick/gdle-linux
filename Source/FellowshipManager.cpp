@@ -173,7 +173,7 @@ unsigned int Fellowship::CalculateExperienceProportionSum()
 	unsigned int sum = 0;
 
 	for (auto &entry : _fellowship_table)
-		sum += FellowshipManager::GetExperienceProportion(entry.second._level);
+		sum += entry.second._level;
 
 	return sum;
 }
@@ -455,16 +455,17 @@ void Fellowship::Chat(DWORD sender_id, const char *text)
 	CWeenieObject *sender_weenie = g_pWorld->FindPlayer(sender_id);
 	if (sender_weenie)
 	{
-		sender_weenie->SendNetMessage(ServerText(csprintf("You say, \"%s\"", text), LTT_FELLOWSHIP_CHANNEL), PRIVATE_MSG, FALSE, TRUE);
-
 		std::string sender_name = sender_weenie->GetName();
+
+		sender_weenie->SendNetMessage(ChannelChat(Fellow_ChannelID, NULL, text), PRIVATE_MSG, FALSE, TRUE);
+
 		for (auto &entry : _fellowship_table)
 		{
 			if (entry.first != sender_id)
 			{
 				CPlayerWeenie *player = g_pWorld->FindPlayer(entry.first);
 				if (player)
-					player->SendNetMessage(ServerText(csprintf("%s says, \"%s\"", sender_name.c_str(), text), LTT_FELLOWSHIP_CHANNEL), PRIVATE_MSG, FALSE, TRUE);
+					player->SendNetMessage(ChannelChat(Fellow_ChannelID, sender_name.c_str(), text), PRIVATE_MSG, FALSE, TRUE);
 			}
 		}
 	}

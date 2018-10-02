@@ -13,5 +13,5 @@ void MAllegianceNameClear_0031::Parse(BinaryReader * reader)
 
 void MAllegianceNameClear_0031::Process()
 {
-//	g_pAllegianceManager->ClearAllegianceName(m_pPlayer);
+	g_pAllegianceManager->ClearAllegianceName(m_pPlayer);
 }
