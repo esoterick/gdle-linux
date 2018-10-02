@@ -889,7 +889,7 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	}
 
 	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
-	if (!sourceItem)
+	if (!sourceItem || sourceItem->InUse)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
 		return false;
@@ -932,6 +932,9 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	}
 	else
 	{
+		//Set the item to InUse while merging to prevent others from interacting with the item.
+		sourceItem->InUse = true;
+
 		//check if the items is still in range.
 		if (FindValidNearbyItem(sourceItemId, 5.0) == NULL || FindValidNearbyItem(targetItemId, 5.0) == NULL)
 		{
