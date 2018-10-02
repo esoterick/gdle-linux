@@ -21,11 +21,13 @@ public:
 	bool ChanceExecuteEmoteSet(EmoteCategory category, DWORD target_id);
 	void ExecuteEmoteSet(const EmoteSet &emoteSet, DWORD target_id);
 	void ExecuteEmote(const Emote &emote, DWORD target_id);
+	void ConfirmationResponse(bool accepted, DWORD target_id);
 	void Tick();
 
 	void Cancel();
 	void OnDeath(DWORD killer_id);
-	bool IsExecutingAlready();
+	bool IsExecutingAlready(); 
+	bool HasQueue();
 
 protected:
 	class CWeenieObject *_weenie = NULL;

@@ -4364,4 +4364,46 @@ enum ConfirmationTypes
 	YesNoConfirm
 };
 
+enum TargetingTaticType
+{
+	TargetingTaticNone      = 0,
+	TargetingTaticGamePiece = 6
+};
+
+enum SquelchTypes {
+	AllChannels_Squelch = 1,
+	Speech_Squelch = 2,
+	SpeechDirect_Squelch = 3, // @tell
+	Combat_Squelch = 6,
+	Magic_Squelch = 7,
+	Emote_Squelch = 12,
+	AppraisalChannel_Squelch = 16,
+	MagicCastingChannel_Squelch = 17,
+	AllegienceChannel_Squelch = 18,
+	FellowshipChannel_Squelch = 19,
+	CombatEnemy_Squelch = 21,
+	CombatSelf_Squelch = 22,
+	Recall_Squelch = 23,
+	Craft_Squelch = 24,
+	Salvaging_Squelch = 25
+};
+
+enum SquelchMasks {
+	Speech_Mask = 0x00000004,
+	SpeechDirect_Mask = 0x00000008, // @tell
+	Combat_Mask = 0x00000040,
+	Magic_Mask = 0x00000080,
+	Emote_Mask = 0x00001000,
+	AppraisalChannel_Mask = 0x00010000,
+	MagicCastingChannel_Mask = 0x00020000,
+	AllegienceChannel_Mask = 0x00040000,
+	FellowshipChannel_Mask = 0x00080000,
+	CombatEnemy_Mask = 0x00200000,
+	CombatSelf_Mask = 0x00400000,
+	Recall_Mask = 0x00800000,
+	Craft_Mask = 0x01000000,
+	Salvaging_Mask = 0x02000000,
+	AllChannels_Mask = 0xFFFFFFFF
+};
+
 #include "GameStatEnums.h"

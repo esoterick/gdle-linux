@@ -158,9 +158,9 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 					// 50% medium, 30% low, 20% high
 					DAMAGE_QUADRANT hitQuadrant = DAMAGE_QUADRANT::DQ_UNDEF;
 					double roll = Random::RollDice(0.0, 1.0);
-					if(roll < 50.0)
+					if(roll < 0.5)
 						hitQuadrant = DQ_MEDIUM;
-					else if (roll < 80.0)
+					else if (roll < 0.8)
 						hitQuadrant = DQ_LOW;
 					else
 						hitQuadrant = DQ_HIGH;
