@@ -15,7 +15,7 @@ CLogFile::~CLogFile()
 
 bool CLogFile::Open(const char *filepath)
 {
-	scope_lock();
+	SCOPE_LOCK
 
 	Close();
 	m_File = fopen(filepath, "wt");
@@ -25,7 +25,7 @@ bool CLogFile::Open(const char *filepath)
 
 void CLogFile::Close()
 {
-	scope_lock();
+	SCOPE_LOCK
 
 	if (m_File)
 	{
@@ -36,7 +36,7 @@ void CLogFile::Close()
 
 void CLogFile::Write(const char *text)
 {
-	scope_lock();
+	SCOPE_LOCK
 
 	if (m_File)
 	{
