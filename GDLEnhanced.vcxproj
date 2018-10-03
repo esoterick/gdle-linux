@@ -413,6 +413,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>/Zm250</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;comctl32.lib;Lib\zlib\zlibstat.lib;Lib\mysql\lib\libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
