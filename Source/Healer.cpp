@@ -87,12 +87,12 @@ void CHealerUseEvent::OnReadyToUse()
 
 	if (_target_id == _weenie->GetID())
 	{
-		_weenie->DoForcedMotion(Motion_SkillHealSelf);
-		OnUseAnimSuccess(Motion_SkillHealSelf);
+		_weenie->DoForcedStopCompletely();
+		ExecuteUseAnimation(Motion_SkillHealSelf);
 	}
 	else
 	{
-		// Using Woah animation, seems to be correct.
+		_weenie->DoForcedStopCompletely();
 		ExecuteUseAnimation(Motion_Woah);
 	}
 }

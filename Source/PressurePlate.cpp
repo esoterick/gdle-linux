@@ -28,9 +28,10 @@ void CPressurePlateWeenie::Tick()
 
 int CPressurePlateWeenie::DoCollision(const class ObjCollisionProfile &prof)
 {
-	if (prof._bitfield & Player_OCPB)
+	if (prof._bitfield & Player_OCPB && next_activation_time <= Timer::cur_time)
 	{
 		Activate(prof.id);
+		next_activation_time = Timer::cur_time + 1.0;
 	}
 
 	return 1;
@@ -38,7 +39,7 @@ int CPressurePlateWeenie::DoCollision(const class ObjCollisionProfile &prof)
 
 int CPressurePlateWeenie::Activate(DWORD activator_id)
 {
-	CWeenieObject::Activate(activator_id);
+	//CWeenieObject::Activate(activator_id);
 
 	CWeenieObject *activator_weenie = g_pWorld->FindObject(activator_id);
 	if (activator_weenie && activator_weenie->_IsPlayer())
