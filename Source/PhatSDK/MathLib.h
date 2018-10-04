@@ -184,6 +184,19 @@ public:
 		return mag_squared();
 	}
 
+	float dot_product(const Vector& v) const
+	{
+		return _mm_cvtss_f32(_mm_dp_ps(vec, v.vec, 0x71));
+	}
+
+	Vector& normalize()
+	{
+		__m128 norm = _mm_sqrt_ps(_mm_dp_ps(vec, vec, 0x7F));
+		vec = _mm_div_ps(vec, norm);
+
+		return *this;
+	}
+
 #else
 	inline Vector() {
 		x = 0;
@@ -293,6 +306,22 @@ public:
 		return ((x * x) + (y * y) + (z * z));
 	}
 
+	float dot_product(const Vector& v) const
+	{
+		return((x * v.x) + (y * v.y) + (z * v.z));
+	}
+
+	Vector& normalize()
+	{
+		float nfactor = 1 / magnitude();
+
+		x *= nfactor;
+		y *= nfactor;
+		z *= nfactor;
+
+		return *this;
+	}
+
 #endif
 
 	//inline operator const float *() const {
@@ -348,8 +377,7 @@ public:
 	}
 
 	BOOL IsValid() const;
-	float dot_product(const Vector& v) const;
-	Vector& normalize();
+
 	BOOL normalize_check_small();
 	BOOL is_zero() const;
 	float get_heading();

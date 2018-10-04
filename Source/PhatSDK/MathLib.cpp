@@ -193,11 +193,6 @@ float Vector::get_heading()
 	return fmod(450 - RAD2DEG(atan2(heading.y, heading.x)), 360);
 }
 
-float Vector::dot_product(const Vector& v) const
-{
-	return((x * v.x) + (y * v.y) + (z * v.z));
-}
-
 BOOL Vector::normalize_check_small()
 {
 	float nfactor = magnitude();
@@ -212,17 +207,6 @@ BOOL Vector::normalize_check_small()
 	z *= nfactor;
 
 	return FALSE;
-}
-
-Vector& Vector::normalize()
-{
-	float nfactor = 1 / magnitude();
-
-	x *= nfactor;
-	y *= nfactor;
-	z *= nfactor;
-
-	return *this;
 }
 
 BOOL Vector::IsValid() const
