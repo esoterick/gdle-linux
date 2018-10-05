@@ -367,7 +367,7 @@ void CMeleeAttackEvent::Setup()
 	attackTime = max(0, min(120, attackTime));
 
 	_attack_speed = 2.25f - (attackTime * (1.0 / 70.0));
-	_attack_speed = max(min(_attack_speed, 2.25), 0.8);
+	_attack_speed = max(min(_attack_speed, 2.25f), 0.8f);
 
 	//old formula:
 	//int attackTime = max(0, min(120, _weenie->GetAttackTimeUsingWielded()));
@@ -521,7 +521,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 		if (endurance >= 50)
 		{
 			necStamMod = ((float)(endurance * endurance) * -0.000003175) - ((float)endurance * 0.0008889) + 1.052;
-			necStamMod = min(max(necStamMod, 0.5), 1.0);
+			necStamMod = min(max(necStamMod, 0.5f), 1.0f);
 			necessaryStam = (int)(necessaryStam * necStamMod + Random::RollDice(0.0, 1.0)); // little sprinkle of luck 
 		}
 	}
@@ -744,7 +744,7 @@ void CMissileAttackEvent::Setup()
 	attackTime = max(0, min(120, attackTime));
 
 	_attack_speed = 2.5f - (attackTime * (1.0 / 70.0));
-	_attack_speed = max(min(_attack_speed, 2.5), 0.8);
+	_attack_speed = max(min(_attack_speed, 2.5f), 0.8f);
 
 	CAttackEventData::Setup();
 
@@ -850,11 +850,11 @@ void CMissileAttackEvent::CalculateAttackMotion()
 
 	if (fVertAngle > 7.5)
 	{
-		iMotionIndex = min(floor((fVertAngle + 7.55) / 15), 6);
+		iMotionIndex = min((int)floor((fVertAngle + 7.55f) / 15.0f), 6);
 	}
 	else if (fVertAngle < -7.5)
 	{
-		iMotionIndex = -min(ceil((fVertAngle - 7.55) / 15), 6) + 6;
+		iMotionIndex = -min((int)ceil((fVertAngle - 7.55f) / 15.0f), 6) + 6;
 	}
 
 	_do_attack_animation = motions[min(max(0, iMotionIndex), 12)];
@@ -1107,11 +1107,11 @@ void CMissileAttackEvent::FireMissile()
 
 	int necessaryStamina;
 	if (_attack_power < 0.33)
-		necessaryStamina = max(round(burden / 900.0f), 1);
+		necessaryStamina = max((int)round(burden / 900.0f), 1);
 	else if (_attack_power < 0.66)
-		necessaryStamina = max(round(burden / 600.0f), 1);
+		necessaryStamina = max((int)round(burden / 600.0f), 1);
 	else
-		necessaryStamina = max(round(burden / 300.0f), 1);
+		necessaryStamina = max((int)round(burden / 300.0f), 1);
 
 	if (_weenie->AsPlayer())
 	{
@@ -1122,7 +1122,7 @@ void CMissileAttackEvent::FireMissile()
 		DWORD endurance = 0;
 		_weenie->m_Qualities.InqAttribute(ENDURANCE_ATTRIBUTE, endurance, true);
 		float necessaryStaminaMod = 1.0 - ((float)endurance - 100.0) / 600.0; //made up formula: 50% reduction at 400 endurance.
-		necessaryStaminaMod = min(max(necessaryStaminaMod, 0.5), 1.0);
+		necessaryStaminaMod = min(max(necessaryStaminaMod, 0.5f), 1.0f);
 		necessaryStamina = round((float)necessaryStamina * necessaryStaminaMod);
 	}
 	necessaryStamina = max(necessaryStamina, 1);

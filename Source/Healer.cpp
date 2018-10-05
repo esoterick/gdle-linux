@@ -134,7 +134,7 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 
 					int missingVital = max(0, (int)maxStatValue - (int)statValue);
 					double combat_mod = _weenie->IsInPeaceMode() ? 1.0 : 1.1;
-					int difficulty = max(0, (missingVital * 2) * combat_mod);
+					int difficulty = max(0, (int)((missingVital * 2) * combat_mod));
 
 					Skill skill;
 					DWORD healing_skill = 0;

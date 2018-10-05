@@ -318,9 +318,9 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 		DWORD64 xp_to_give = (DWORD64)round((long double)xp_to_next_level * emote.percent);
 		if (emote.min > 0)
-			xp_to_give = max(xp_to_give, emote.min);
+			xp_to_give = max(xp_to_give, emote.min64);
 		if (emote.max > 0)
-			xp_to_give = min(xp_to_give, emote.max);
+			xp_to_give = min(xp_to_give, emote.max64);
 
 		target->GiveSkillXP((STypeSkill)emote.stat, xp_to_give, false);
 		break;

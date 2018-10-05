@@ -1147,7 +1147,7 @@ BinaryWriter *ItemManaUpdate(CWeenieObject *item)
 		manaFraction = (float)currentMana / (float)maxMana;
 	}
 
-	manaFraction = min(max(manaFraction, 0), 1);
+	manaFraction = min(max(manaFraction, 0.0f), 1.0f);
 	ItemManaUpdate->Write<DWORD>(0x0264);
 	ItemManaUpdate->Write<DWORD>(item->GetID());
 	ItemManaUpdate->Write<float>(manaFraction);

@@ -344,7 +344,7 @@ struct EnchantedQualityDetails
 		enchantedValue *= valueDecreasingMultiplier;
 		enchantedValue += valueIncreasingAdditive;
 		enchantedValue += valueDecreasingAdditive;
-		enchantedValue = max(enchantedValue, 0.0);
+		enchantedValue = std::max(enchantedValue, 0.0L);
 
 		CalculateIncreasingEnchantedValue();
 		CalculateDecreasingEnchantedValue();
@@ -355,7 +355,7 @@ struct EnchantedQualityDetails
 		enchantedValue_DecreasingOnly = rawValue;
 		enchantedValue_DecreasingOnly *= valueDecreasingMultiplier;
 		enchantedValue_DecreasingOnly += valueDecreasingAdditive;
-		enchantedValue_DecreasingOnly = max(enchantedValue_DecreasingOnly, 0.0);
+		enchantedValue_DecreasingOnly = std::max(enchantedValue_DecreasingOnly, 0.0L);
 	}
 
 	void CalculateIncreasingEnchantedValue()
@@ -363,7 +363,7 @@ struct EnchantedQualityDetails
 		enchantedValue_IncreasingOnly = rawValue;
 		enchantedValue_IncreasingOnly *= valueIncreasingMultiplier;
 		enchantedValue_IncreasingOnly += valueIncreasingAdditive;
-		enchantedValue_IncreasingOnly = max(enchantedValue_IncreasingOnly, 0.0);
+		enchantedValue_IncreasingOnly = std::max(enchantedValue_IncreasingOnly, 0.0L);
 	}
 };
 

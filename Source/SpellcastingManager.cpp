@@ -2576,7 +2576,7 @@ bool CSpellcastingManager::DoTransferSpell(CWeenieObject *other, const TransferS
 			else
 				resistanceNatural = 1.0f - (((0.1666667 * strAndEnd) - 23.33333) / 100.f);
 
-			resistanceNatural = max(resistanceNatural, 0.5);
+			resistanceNatural = max(resistanceNatural, 0.5f);
 
 			if (resistanceNatural < drainResistMod)
 				drainResistMod = resistanceNatural;
