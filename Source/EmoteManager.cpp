@@ -122,6 +122,9 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
 
+		if (!target)
+			return ""; // Couldn't find target, don't display this message.
+
 		std::string questString = target->Ktref(result.c_str()); //trims the "@TEXTSUFFIX" off of the quest name and returns the questflag to validate the quest timer against. 
 
 		if (target->InqQuest(questString.c_str()))
