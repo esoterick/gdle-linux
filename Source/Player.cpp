@@ -1174,16 +1174,22 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 		CCraftOperation *op = g_pPortalDataEx->GetCraftOperation(pTool->m_Qualities.id, pTarget->m_Qualities.id);
 		if (!op)
 		{
-			//Try inversing the combination.
-			op = g_pPortalDataEx->GetCraftOperation(pTarget->m_Qualities.id, pTool->m_Qualities.id);
+			//Try using our get alternative operation function for Rare Dyes, Infinite Leather, etc.
+			op = TryGetAlternativeOperation(pTarget, pTool, op);
 
 			if (!op)
-				return WERROR_NONE;
+			{
+				//Try inversing the combination.
+				op = g_pPortalDataEx->GetCraftOperation(pTarget->m_Qualities.id, pTool->m_Qualities.id);
+					
+				if (!op)
+					return WERROR_NONE;
 
-			//swap things around
-			CWeenieObject *swapHelper = pTool;
-			pTool = pTarget;
-			pTarget = swapHelper;
+				//swap things around
+				CWeenieObject *swapHelper = pTool;
+				pTool = pTarget;
+				pTarget = swapHelper;
+			}
 		}
 
 		if (pTool->IsWielded() || pTarget->IsWielded())
@@ -1284,8 +1290,7 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 		{
 			double toolWorkmanship = pTool->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
 			double itemWorkmanship = pTarget->InqIntQuality(ITEM_WORKMANSHIP_INT, 0);
-			if (pTool->InqIntQuality(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
-				toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
+			toolWorkmanship /= (double)pTool->InqIntQuality(NUM_ITEMS_IN_MATERIAL_INT, 1);
 			int amountOfTimesTinkered = pTarget->InqIntQuality(NUM_TIMES_TINKERED_INT, 0);
 
 			if (amountOfTimesTinkered > 9)  // Don't allow 10 tinked items to have any more tinkers/imbues (Ivory & Leather don't use this case)
@@ -1322,6 +1327,26 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 				if (m_Qualities.GetInt(AUGMENTATION_BONUS_IMBUE_CHANCE_INT, 0))
 					successChance += 0.05;
 			}
+
+			switch (pTool->m_Qualities.id)
+			{
+			case W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS:
+			case W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS:
+			case W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS:
+			case W_MATERIALRAREFOOLPROOFEMERALD_CLASS:
+			case W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS:
+			case W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS:
+			case W_MATERIALRAREFOOLPROOFJET_CLASS:
+			case W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
+			case W_MATERIALRAREFOOLPROOFREDGARNET_CLASS:
+			case W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS:
+			case W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
+			case W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
+			case W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
+				successChance = 1.0;
+			}
+
+
 			break;
 		}
 		default:
@@ -3866,3 +3891,118 @@ void CPlayerWeenie::UpdatePKActivity()
 	m_Qualities.SetFloat(LAST_PK_ATTACK_TIMESTAMP_FLOAT, (double) m_iPKActivity);
 }
 
+CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target, CWeenieObject *tool, CCraftOperation *op)
+{
+	switch (tool->m_Qualities.id)
+	{
+	case W_DYERAREETERNALFOOLPROOFBLUE_CLASS:
+	case W_DYERAREETERNALFOOLPROOFBLACK_CLASS:
+	case W_DYERAREETERNALFOOLPROOFBOTCHED_CLASS:
+	case W_DYERAREETERNALFOOLPROOFDARKGREEN_CLASS:
+	case W_DYERAREETERNALFOOLPROOFDARKRED_CLASS:
+	case W_DYERAREETERNALFOOLPROOFDARKYELLOW_CLASS:
+	case W_DYERAREETERNALFOOLPROOFLIGHTBLUE_CLASS:
+	case W_DYERAREETERNALFOOLPROOFLIGHTGREEN_CLASS:
+	case W_DYERAREETERNALFOOLPROOFPURPLE_CLASS:
+	case W_DYERAREETERNALFOOLPROOFSILVER_CLASS:
+	{
+		//Get base dye recipe, set fail to false, etc.
+
+		//Check if the item is armor/clothing and is Dyeable.
+		if (target->m_Qualities.m_WeenieType != 2 || !target->m_Qualities.GetBool(DYABLE_BOOL, 0))
+			return NULL;
+
+		//Grab dye recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3844);
+		op->_difficulty = 0;
+		op->_failAmount = 0;
+		op->_failureConsumeToolAmount = 0;
+		op->_failureConsumeToolChance = 0;
+		op->_successAmount = 0;
+		op->_successConsumeToolAmount = 0;
+		op->_successConsumeToolChance = 0;
+		op->_successWcid = 0;
+		op->_failWcid = 0;
+
+		break;
+	}
+	case W_MATERIALRAREETERNALIVORY_CLASS:
+	{
+		//Ivory Stuff here, grab ivory recipe, set fail to false, etc.
+
+		//Check if the item is Ivoryable
+		if (!target->m_Qualities.GetBool(IVORYABLE_BOOL, 0))
+			return NULL;
+
+		//Grab ivory recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3977);
+		op->_difficulty = 0;
+		op->_failAmount = 0;
+		op->_failureConsumeToolAmount = 0;
+		op->_failureConsumeToolChance = 0;
+		op->_successAmount = 0;
+		op->_successConsumeToolAmount = 0;
+		op->_successConsumeToolChance = 0;
+		op->_successWcid = 0;
+		op->_failWcid = 0;
+
+		break;
+	}
+	case W_MATERIALRAREETERNALLEATHER_CLASS:
+	{
+		//Leather here, grab leather recipe, set fail to false, etc.
+
+		//Check if the item is already retained or if it is not sellable.
+		if (target->m_Qualities.GetBool(RETAINED_BOOL, 0) || !target->m_Qualities.GetBool(IS_SELLABLE_BOOL, 1))
+			return NULL;
+
+		//Grab leather recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4426);
+
+		op->_difficulty = 0;
+		op->_failAmount = 0;
+		op->_failureConsumeToolAmount = 0;
+		op->_failureConsumeToolChance = 0;
+		op->_successAmount = 0;
+		op->_successConsumeToolAmount = 0;
+		op->_successConsumeToolChance = 0;
+		op->_successWcid = 0;
+		op->_failWcid = 0;
+
+		break;
+	}
+	//Foolproof tinks, use wcid to grab the operation. 100% chance is handled in Imbue code.
+		case W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4436); break;
+		case W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4449); break;
+		case W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3863); break;
+		case W_MATERIALRAREFOOLPROOFEMERALD_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4450); break;
+		case W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3864); break;
+		case W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4454); break;
+		case W_MATERIALRAREFOOLPROOFJET_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4451); break;
+		case W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4435); break;
+		case W_MATERIALRAREFOOLPROOFREDGARNET_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4452); break;
+		case W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3865); break;
+		case W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4453); break;
+		case W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4434); break;
+		case W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4433); break;
+
+		default:
+			return NULL;
+	}
+
+
+	return op;
+}

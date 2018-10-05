@@ -572,6 +572,11 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		//[NUM_ITEMS_IN_MATERIAL_INT(170)] == Correct one to keep for SHOWING bags' workmanship
 		//[STRUCTURE_INT (92)] == Number of Uses on Salvage ID...actually Double SalvageWorkmanship (SHOWN)
 		//----not sure where to change msg prepended to it.
+		if (pEntity->m_Qualities.GetInt(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
+		{
+			profile._intStatsTable->remove(STRUCTURE_INT);
+			profile._intStatsTable->remove(MAX_STRUCTURE_INT);
+		}
 
 
 		if (bIsPlayer)
