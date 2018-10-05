@@ -218,7 +218,7 @@ void CPlayerWeenie::Tick()
 	if (m_fNextMakeAwareCacheFlush <= Timer::cur_time)
 	{
 		FlushMadeAwareof();
-		m_fNextMakeAwareCacheFlush = Timer::cur_time + 60.0;
+		m_fNextMakeAwareCacheFlush = Timer::cur_time + 25.0;
 	}
 
 	if (IsLoggingOut() && _beginLogoutTime <= Timer::cur_time)
@@ -276,7 +276,7 @@ bool CPlayerWeenie::IsBusy()
 	return false;
 }
 
-const double AWARENESS_TIMEOUT = 20.0;
+const double AWARENESS_TIMEOUT = 25.0;
 
 bool CPlayerWeenie::AlreadyMadeAwareOf(DWORD object_id)
 {
