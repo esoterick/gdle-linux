@@ -114,14 +114,15 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 		while (ReplaceString(result, "%mn", sourceName));
 	}
 
-	if (result.find("%tqt") != std::string::npos)
+	if (result.find("%CDtime") != std::string::npos || result.find("%tqt") != std::string::npos)
 	{
 		std::string targetName;
 		if (!g_pWorld->FindObjectName(target_id, targetName))
 			return ""; // Couldn't resolve name, don't display this message.
 
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
-		std::string questString = target->Ktref(result.c_str()); //trims the @%tqt off of the quest name and returns the questflag to validate the quest timer against.
+
+		std::string questString = target->Ktref(result.c_str()); //trims the "@TEXTSUFFIX" off of the quest name and returns the questflag to validate the quest timer against. 
 
 		if (target->InqQuest(questString.c_str()))
 		{
@@ -129,22 +130,24 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 			if (timeTilOkay > 0)
 			{
-				int secs = timeTilOkay % 60;					
-				timeTilOkay /= 60;
+				std::string cdTime = TimeToString(timeTilOkay); //Converts time to string.
 
-				int mins = timeTilOkay % 60;
-				timeTilOkay /= 60;
+				if (result.find("%tqt") != std::string::npos)
+				{
+					result = "You must wait " + cdTime + " to complete this quest again.";//standard uncustomized msg returned when using wild card %tqt somewhere in the string. Should follow format "QuestStampToCheck@%tqt"
+				}
 
-				int hours = timeTilOkay % 24;
-				timeTilOkay /= 24;
-
-				int days = timeTilOkay;
-
-				result = csprintf("You must wait %dd %dh %dm %ds to complete this quest again.", days, hours, mins, secs);
+				else
+				{	
+					std::size_t prefixPos = result.find("@") + 1;
+					std::string questText = result.substr(prefixPos); //Trims queststamp prefix from message string.
+					while (ReplaceString(questText, "%CDtime", cdTime)); //Should follow format "QuestStampToCheck@Your message %CDtime more of your message." NOTE: Text message portion of string can be any sequence but must contain at least one instance of %CDtime.
+					result = questText;
+				}
 			}
 			else
 			{
-				return ""; //Quest timer has expired so return blank cooldown message.
+				return ""; //Quest timer has expired so return blank cooldown message OR no timer has been tracked in quests.json! Could set this to return a quest cooldown has expired message in the future.
 			}
 		}
 	}
