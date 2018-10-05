@@ -116,10 +116,6 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 	if (result.find("%CDtime") != std::string::npos || result.find("%tqt") != std::string::npos)
 	{
-		std::string targetName;
-		if (!g_pWorld->FindObjectName(target_id, targetName))
-			return ""; // Couldn't resolve name, don't display this message.
-
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
 
 		if (!target)
