@@ -29,6 +29,8 @@ public:
 	bool IsExecutingAlready(); 
 	bool HasQueue();
 
+	std::map<DWORD, std::string> _confirmMsgList;
+
 protected:
 	class CWeenieObject *_weenie = NULL;
 

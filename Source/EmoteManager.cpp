@@ -1303,19 +1303,19 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 
 	case SetQuestCompletions_EmoteType:
-	{
+
 		if (!_weenie->m_Qualities._emote_table)
 			break;
-	
+	{
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
 
 		if (target)
 		{
 			target->SetQuestCompletions(emote.msg.c_str(), emote.amount);
 		}
-		break;
+
 	}
-	
+	break;
 
 	case Generate_EmoteType: //type:72 adds from generator table attached to creature weenie. Sets init value of generator table and calls weenie factory to begin generation. Can use same emote with value of 0 in amount field to disable generator.
 	{
@@ -1367,6 +1367,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 			target->SendNetMessage(&yesnoMessage, PRIVATE_MSG, TRUE, FALSE);
 
+			_confirmMsgList[target_id] = emote.msg;
 		}
 		break;
 	}
@@ -1636,58 +1637,38 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
-
-	case DeleteSelf_EmoteType:
+	case SpendLuminance_EmoteType: //type: 112 spends luminance.
 	{
 		if (!_weenie->m_Qualities._emote_table)
 			break;
 
-		_weenie->MarkForDestroy();
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		long long amount = emote.heroxp64;
+		long long lum = target->m_Qualities.GetInt64(AVAILABLE_LUMINANCE_INT64, 0);
+
+		if (target)
+		{
+			if ( lum < amount)
+				break;
+			
+			target->m_Qualities.SetInt64(AVAILABLE_LUMINANCE_INT64, lum - amount);
+			target->NotifyInt64StatUpdated(AVAILABLE_LUMINANCE_INT64, false);
+		}
 		break;
 	}
-
-	case KillSelf_EmoteType:
+	case SetInt64Stat_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
-			break;
-
-		CMonsterWeenie *monster = _weenie->AsMonster();
-		if (monster && !monster->IsDead() && !monster->IsInPortalSpace() && !monster->IsBusyOrInAction())
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		if (target)
 		{
-			monster->SetHealth(0, true);
-			monster->OnDeath(monster->GetID());
+			target->m_Qualities.SetInt64((STypeInt64)emote.stat, emote.amount);
+			target->NotifyInt64StatUpdated((STypeInt64)emote.stat, FALSE);
 		}
-
-		break;
-
-	}
-
-	case SetBoolStat_EmoteType:
-	{
-		if (!_weenie->m_Qualities._emote_table)
-			break;
-
-		if (emote.extent == 2) //if extent is 2 then set bool on self.
-		{
-			_weenie->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
-			_weenie->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
-		}
-
-		else
-		{
-			CWeenieObject *target = g_pWorld->FindObject(target_id);
-			if (target)
-			{
-				target->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
-				target->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
-			}
-		}
-
 		break;
 	}
-
 	}
-			_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
+	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
 
 bool EmoteManager::IsExecutingAlready()
@@ -1711,16 +1692,12 @@ void EmoteManager::Tick()
 			break;
 
 		ExecuteEmote(i->_data, i->_target_id);
-
-		//Check if emote queue is empty due to KillSelf_emoteType
-		if (_emoteQueue.empty())
-			return;
-
 		i = _emoteQueue.erase(i);
 		if (i != _emoteQueue.end())
-			i->_executeTime = Timer::cur_time + i->_data.delay;
+			i->_executeTime = Timer::cur_time + i->_data.delay;		
 	}
 }
+
 void EmoteManager::Cancel()
 {
 	_emoteQueue.clear();
@@ -1802,5 +1779,12 @@ void EmoteManager::killTaskSub(std::string &mobName, std::string &kCountName, CW
 
 void EmoteManager::ConfirmationResponse(bool accepted, DWORD target_id)
 {
-		ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, accepted ? "Yes_Response" : "No_Response", target_id);
+	if (!_confirmMsgList.empty())
+	{
+		if (_confirmMsgList.find(target_id) != _confirmMsgList.end())
+		{
+			ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, _confirmMsgList[target_id], target_id);
+			_confirmMsgList.erase(target_id);
+		}
+	}
 }

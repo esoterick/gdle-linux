@@ -583,7 +583,7 @@ void CClientEvents::SendTell(const char* szText, const char* targetName, const D
 		{
 			CWeenieObject *target = g_pWorld->FindObject(targetId);
 
-			if (target->m_Qualities._emote_table && !target->m_Qualities._emote_table->_emote_table.empty())
+			if (target && target->m_Qualities._emote_table && !target->m_Qualities._emote_table->_emote_table.empty())
 				target->MakeEmoteManager()->ChanceExecuteEmoteSet(ReceiveTalkDirect_EmoteCategory, szText, m_pPlayer->GetID());
 
 			return;
@@ -3458,20 +3458,20 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		}
 		case ALLEGIANCE_ADD_PLAYER_BAN:
 		{
-			MAllegianceBanAdd_02A1 msg(m_pPlayer);
-			msg.Parse(pReader);
+			//MAllegianceBanAdd_02A1 msg(m_pPlayer);
+			//msg.Parse(pReader);
 			break;
 		}
 		case ALLEGIANCE_REMOVE_PLAYER_BAN:
 		{
-			MAllegianceBanRemove_02A2 msg(m_pPlayer);
-			msg.Parse(pReader);
+			//MAllegianceBanRemove_02A2 msg(m_pPlayer);
+			//msg.Parse(pReader);
 			break;
 		}
 		case ALLEGIANCE_LIST_BANS:
 		{
-			MAllegianceBanList_02A3 msg(m_pPlayer);
-			msg.Parse(pReader);
+			//MAllegianceBanList_02A3 msg(m_pPlayer);
+			//msg.Parse(pReader);
 			break;
 		}
 		case ALLEGIANCE_REMOVE_OFFICER:

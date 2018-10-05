@@ -296,7 +296,10 @@ DWORD CDatabaseIO::GetPlayerAccountId(unsigned int character_id)
 		if (pQueryResult)
 		{
 			SQLResultRow_t Row = pQueryResult->FetchRow();
-			accountToSquelch = strtoul(Row[0], NULL, 10);
+			if (Row)
+			{
+				accountToSquelch = strtoul(Row[0], NULL, 10);
+			}
 			delete pQueryResult;
 		}
 	}
