@@ -1317,15 +1317,13 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 	break;
 
-	case Generate_EmoteType: //type:72 adds from generator table attached to creature weenie. Sets init value of generator table and calls weenie factory to begin generation. Can use same emote with value of 0 in amount field to disable generator.
+	case Generate_EmoteType: //type:72 adds from generator table attached to weenie. Sets init value of generator table and calls weenie factory to begin generation. Can use same emote with value of 0 in amount field to disable generator.
 	{
-		CMonsterWeenie *monster = _weenie->AsMonster();
-		if (monster)
-			_weenie->m_Qualities.SetInt((STypeInt)82, emote.amount);
-		{
-			if ((emote.amount) != 0)
-				_weenie->InitCreateGeneratorOnDeath();
-		}
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		_weenie->m_Qualities.SetInt((STypeInt)82, emote.amount);
+		_weenie->GenerateOnDemand(emote.amount);
 
 		break;
 	}
