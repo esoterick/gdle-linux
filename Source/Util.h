@@ -67,6 +67,8 @@ public:
 	}
 };
 
+//#define SCOPE_LOCK std::scoped_lock lock##__COUNTER__(this->mutex);
+#define SCOPE_LOCK std::scoped_lock<std::recursive_mutex>& scope_lock();
 class CLockable
 {
 public:
@@ -83,7 +85,7 @@ public:
 		mutex.unlock();
 	}
 
-	inline std::scoped_lock<std::recursive_mutex>& scope_lock()
+	__forceinline std::scoped_lock<std::recursive_mutex>& scope_lock()
 	{
 		return std::scoped_lock(mutex);
 	}

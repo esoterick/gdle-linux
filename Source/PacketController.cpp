@@ -861,7 +861,7 @@ void CPacketController::FlushFragments()
 		m_out._fragQueue.Unlock();
 		return;
 	}
-	m_out._fragQueue.size();
+	//m_out._fragQueue.size();
 
 	BlobPacket_s *blob = (BlobPacket_s *)new BYTE[MAX_BLOB_LEN];
 	blob->header.wSize = 0;

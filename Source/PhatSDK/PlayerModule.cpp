@@ -683,9 +683,9 @@ PlayerModule &PlayerModule::operator=(const PlayerModule &other)
 		CloneMemberPointerData<ShortCutManager>(shortcuts_, other.shortcuts_);
 		CloneMemberPointerData<PackableHashTable<DWORD, long>>(desired_comps_, other.desired_comps_);
 		CloneMemberPointerData<GenericQualitiesData>(m_pPlayerOptionsData, other.m_pPlayerOptionsData);
-
-		return *this;
 	}
+
+	return *this;
 }
 
 void PlayerModule::SetPackHeader(DWORD *bitfield)
