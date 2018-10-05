@@ -1367,6 +1367,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 			target->SendNetMessage(&yesnoMessage, PRIVATE_MSG, TRUE, FALSE);
 
+			_confirmMsgList[target_id] = emote.msg;
 		}
 		break;
 	}
@@ -1636,8 +1637,38 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
+	case SpendLuminance_EmoteType: //type: 112 spends luminance.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		long long amount = emote.heroxp64;
+		long long lum = target->m_Qualities.GetInt64(AVAILABLE_LUMINANCE_INT64, 0);
+
+		if (target)
+		{
+			if ( lum < amount)
+				break;
+			
+			target->m_Qualities.SetInt64(AVAILABLE_LUMINANCE_INT64, lum - amount);
+			target->NotifyInt64StatUpdated(AVAILABLE_LUMINANCE_INT64, false);
 		}
-			_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
+		break;
+	}
+	case SetInt64Stat_EmoteType:
+	{
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		if (target)
+		{
+			target->m_Qualities.SetInt64((STypeInt64)emote.stat, emote.amount);
+			target->NotifyInt64StatUpdated((STypeInt64)emote.stat, FALSE);
+		}
+		break;
+	}
+	}
+	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
 
 bool EmoteManager::IsExecutingAlready()
@@ -1748,5 +1779,12 @@ void EmoteManager::killTaskSub(std::string &mobName, std::string &kCountName, CW
 
 void EmoteManager::ConfirmationResponse(bool accepted, DWORD target_id)
 {
-		ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, accepted ? "Yes_Response" : "No_Response", target_id);
+	if (!_confirmMsgList.empty())
+	{
+		if (_confirmMsgList.find(target_id) != _confirmMsgList.end())
+		{
+			ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, _confirmMsgList[target_id], target_id);
+			_confirmMsgList.erase(target_id);
+		}
+	}
 }
