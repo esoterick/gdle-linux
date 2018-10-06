@@ -20,7 +20,7 @@ HWND g_hWndMain = 0;
 
 UINT64 framerecord = 0;
 
-std::string g_configFile = "debug_server.cfg";
+std::string g_configFile = DEFAULT_CONFIG_FILE;
 bool g_autoStart;
 
 void ToggleServerState(HWND hDlg);
