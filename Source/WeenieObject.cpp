@@ -2862,45 +2862,51 @@ void CWeenieObject::Tick()
 
 	if (_nextRegen >= 0 && _nextRegen <= Timer::cur_time)
 	{
-		if (m_Qualities._generator_queue)
+		int numSpawned = m_Qualities._generator_registry ? (DWORD)m_Qualities._generator_registry->_registry.size() : 0;
+
+		if (numSpawned < InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
 		{
-			PackableList<GeneratorQueueNode> &queue = m_Qualities._generator_queue->_queue;
-			for (auto entry = queue.begin(); entry != queue.end();)
+
+			if (m_Qualities._generator_queue)
 			{
-				if (entry->when <= Timer::cur_time)
+
+				PackableList<GeneratorQueueNode> &queue = m_Qualities._generator_queue->_queue;
+				for (auto entry = queue.begin(); entry != queue.end();)
 				{
-					double regenInterval = 0.0;
-					if (m_Qualities.InqFloat(REGENERATION_INTERVAL_FLOAT, regenInterval) && regenInterval > 0.0)
+					if (entry->when <= Timer::cur_time)
 					{
-						if (m_Qualities._generator_table)
+						double regenInterval = 0.0;
+						if (m_Qualities.InqFloat(REGENERATION_INTERVAL_FLOAT, regenInterval) && regenInterval > 0.0)
 						{
-							for (auto &profile : m_Qualities._generator_table->_profile_list)
+							if (m_Qualities._generator_table)
 							{
-								if (profile.slot == entry->slot)
+								for (auto &profile : m_Qualities._generator_table->_profile_list)
 								{
-									g_pWeenieFactory->GenerateFromTypeOrWcid(this, &profile);
-									break;
+									if (profile.slot == entry->slot)
+									{
+										g_pWeenieFactory->GenerateFromTypeOrWcid(this, &profile);
+										break;
+									}
 								}
 							}
 						}
+
+						//ChanceCreateGeneratorSlot(entry->slot);
+						entry = queue.erase(entry);
+						continue;
 					}
 
-					//ChanceCreateGeneratorSlot(entry->slot);
-					entry = queue.erase(entry);
-					continue;
+					entry++;
 				}
-
-				entry++;
 			}
+
+			g_pWeenieFactory->AddFromGeneratorTable(this, false);
+
+			if ((!m_Qualities._generator_queue || m_Qualities._generator_queue->_queue.empty()) || numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
+				_nextRegen = -1.0;
+			else
+				_nextRegen = Timer::cur_time + (InqFloatQuality(REGENERATION_INTERVAL_FLOAT, -1.0, TRUE) * g_pConfig->RespawnTimeMultiplier());
 		}
-
-		g_pWeenieFactory->AddFromGeneratorTable(this, false);
-
-		int numSpawned = m_Qualities._generator_registry ? (DWORD)m_Qualities._generator_registry->_registry.size() : 0;
-		if ((!m_Qualities._generator_queue || m_Qualities._generator_queue->_queue.empty()) && numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
-			_nextRegen = -1.0;
-		else
-			_nextRegen = Timer::cur_time + (InqFloatQuality(REGENERATION_INTERVAL_FLOAT, -1.0, TRUE) * g_pConfig->RespawnTimeMultiplier());
 	}
 
 	if (_nextHeartBeat != -1.0 && _nextHeartBeat <= Timer::cur_time)
