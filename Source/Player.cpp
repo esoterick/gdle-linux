@@ -3983,37 +3983,55 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 
 		break;
 	}
-	//Foolproof tinks, use wcid to grab the operation. 100% chance is handled in Imbue code.
-		case W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4436); break;
-		case W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4449); break;
-		case W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(3863); break;
-		case W_MATERIALRAREFOOLPROOFEMERALD_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4450); break;
-		case W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(3864); break;
-		case W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4454); break;
-		case W_MATERIALRAREFOOLPROOFJET_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4451); break;
-		case W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4435); break;
-		case W_MATERIALRAREFOOLPROOFREDGARNET_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4452); break;
-		case W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(3865); break;
-		case W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4453); break;
-		case W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4434); break;
-		case W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4433); break;
-
-		default:
+	case W_POTDYEDARKGREEN_CLASS:
+	case W_POTDYEDARKRED_CLASS:
+	case W_POTDYEDARKYELLOW_CLASS:
+	case W_POTDYEWINTERBLUE_CLASS:
+	case W_POTDYEWINTERGREEN_CLASS:
+	case W_POTDYEWINTERSILVER_CLASS:
+	case W_POTDYESPRINGBLACK_CLASS:
+	case W_POTDYESPRINGBLUE_CLASS:
+	case W_POTDYESPRINGPURPLE_CLASS:
+	{
+		//Check if the item is armor/clothing and is Dyeable.
+		if (target->m_Qualities.m_WeenieType != 2 || !target->m_Qualities.GetBool(DYABLE_BOOL, 0))
 			return NULL;
+
+		//Grab dye recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3844);
+		break;
 	}
+	//Foolproof tinks, use wcid to grab the operation. 100% chance is handled in Imbue code.
+	case W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4436); break;
+	case W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4449); break;
+	case W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3863); break;
+	case W_MATERIALRAREFOOLPROOFEMERALD_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4450); break;
+	case W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3864); break;
+	case W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4454); break;
+	case W_MATERIALRAREFOOLPROOFJET_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4451); break;
+	case W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4435); break;
+	case W_MATERIALRAREFOOLPROOFREDGARNET_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4452); break;
+	case W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3865); break;
+	case W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4453); break;
+	case W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4434); break;
+	case W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4433); break;
+	default:
+		return NULL;
+	}
+
 
 
 	return op;
