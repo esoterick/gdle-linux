@@ -183,6 +183,7 @@ public:
 	std::unordered_map<DWORD, double> _objMadeAwareOf;
 
 	double _nextTryFixBrokenPosition = 0.0;
+	double _nextRareUse = 0.0;
 
 	virtual void OnGivenXP(long long amount, bool allegianceXP) override;
 
