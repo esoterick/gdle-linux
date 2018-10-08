@@ -72,12 +72,12 @@ public:
 	float x, y;
 };
 
-class Vector
+class alignas(16) Vector
 {
 public:
 
-#if (defined(_MSC_VER) && (defined(__AVX__) || defined(__AVX2__)))
-#pragma message ("Trying to use vectorized... Vector3")
+#if (defined(_MSC_VER) && defined(__AVX__))
+
 	inline Vector() {
 		vec = _mm_setzero_ps();
 	}
@@ -90,43 +90,38 @@ public:
 		vec = _mm_set_ps(_x, _y, _z, 0.0f);
 	}
 
-	inline Vector operator*(const float amount) const {
-		__m128 scalar = _mm_set1_ps(amount);
+private:
+	inline Vector(__m128 v) : vec(v) {
+	}
 
-		Vector v;
-		v.vec = _mm_mul_ps(vec, scalar);
+public:
+	inline Vector operator*(const float amount) const {
+		Vector v(_mm_mul_ps(vec, _mm_set1_ps(amount)));
 		return v;
 	}
 	
 	inline Vector operator*(const Vector& quant) const {
-		Vector v;
-		v.vec = _mm_mul_ps(vec, quant.vec);
+		Vector v(_mm_mul_ps(vec, quant.vec));
 		return v;
 	}
 	
 	inline Vector operator/(const float amount) const {
-		__m128 scalar = _mm_set1_ps(amount);
-
-		Vector v;
-		v.vec = _mm_div_ps(vec, scalar);
+		Vector v(_mm_div_ps(vec, _mm_set1_ps(amount)));
 		return v;
 	}
 	
 	inline Vector operator-(const Vector& quant) const {
-		Vector v;
-		v.vec = _mm_sub_ps(vec, quant.vec);
+		Vector v(_mm_sub_ps(vec, quant.vec));
 		return v;
 	}
 	
 	inline Vector operator+(const Vector& quant) const {
-		Vector v;
-		v.vec = _mm_add_ps(vec, quant.vec);
+		Vector v(_mm_add_ps(vec, quant.vec));
 		return v;
 	}
 
 	inline Vector& operator*=(const float amount) {
-		__m128 scalar = _mm_set1_ps(amount);
-		vec = _mm_mul_ps(vec, scalar);
+		vec = _mm_mul_ps(vec, _mm_set1_ps(amount));
 		return *this;
 	}
 	inline Vector& operator*=(const Vector& quant) {
@@ -154,19 +149,13 @@ public:
 		return *this;
 	}
 
-	inline static Vector fma(const Vector& a, const Vector& b, const Vector& c)
-	{
-		Vector v;
-		v.vec = _mm_fmadd_ps(a.vec, b.vec, c.vec);
+	inline static Vector fma(const Vector& a, const Vector& b, const Vector& c) {
+		Vector v(_mm_fmadd_ps(a.vec, b.vec, c.vec));
 		return v;
 	}
 
-	inline static Vector fma(const Vector& a, const Vector& b, float c)
-	{
-		__m128 scalar = _mm_set1_ps(c);
-
-		Vector v;
-		v.vec = _mm_fmadd_ps(a.vec, b.vec, scalar);
+	inline static Vector fma(const Vector& a, const Vector& b, float c) {
+		Vector v(_mm_fmadd_ps(a.vec, b.vec, _mm_set1_ps(c)));
 		return v;
 	}
 
@@ -184,17 +173,54 @@ public:
 		return mag_squared();
 	}
 
-	float dot_product(const Vector& v) const
-	{
+	float dot_product(const Vector& v) const {
 		return _mm_cvtss_f32(_mm_dp_ps(vec, v.vec, 0x71));
 	}
 
-	Vector& normalize()
-	{
-		__m128 norm = _mm_sqrt_ps(_mm_dp_ps(vec, vec, 0x7F));
-		vec = _mm_div_ps(vec, norm);
+	Vector& normalize() {
+		__m128 v1 = _mm_set1_ps(1);
+		__m128 vx1 = _mm_set_ps(1, 0, 0, 0);
+		__m128 vy1 = _mm_set_ps(0, 1, 0, 0);
+		__m128 vz1 = _mm_set_ps(0, 0, 1, 0);
 
+		__m128 vxx = _mm_dp_ps(v1, vx1, 0x8F);
+		__m128 vxy = _mm_dp_ps(v1, vx1, 0x4F);
+		__m128 vxz = _mm_dp_ps(v1, vx1, 0x2F);
+
+		__m128 n = _mm_dp_ps(vec, vec, 0x71);
+
+		if (_mm_cvtss_f32(n) > 1.0f)
+		{
+			vec = _mm_mul_ps(vec, _mm_rsqrt_ps(n));
+		}
+
+		//__m128 n = _mm_sqrt_ps(_mm_dp_ps(vec, vec, 0xEE));
+		//vec = _mm_div_ps(vec, n);
+		
 		return *this;
+	}
+
+	Vector cross(const Vector& v) const {
+		// SHUFFLE
+		// x >> 3
+		// y >> 2
+		// z >> 1
+		// w >> 0
+
+		Vector r(
+			_mm_sub_ps(
+				// = y * v.z, z * v.x, x * v.y
+				_mm_mul_ps(
+					_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(2, 1, 3, 0)),
+					_mm_shuffle_ps(v.vec, v.vec, _MM_SHUFFLE(1, 3, 2, 0))
+				),
+				// = z * v.y, x * v.z, y * v.x
+				_mm_mul_ps(
+					_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(1, 3, 2, 0)),
+					_mm_shuffle_ps(v.vec, v.vec, _MM_SHUFFLE(2, 1, 3, 0))
+				)
+			));
+		return r;
 	}
 
 #else
@@ -322,6 +348,15 @@ public:
 		return *this;
 	}
 
+	Vector& cross(const Vector& v) const {
+		Vector r(
+			y * v.z - z * v.y,
+			z * v.x - x * v.z,
+			x * v.y - y * v.x);
+
+		return r;
+	}
+
 #endif
 
 	//inline operator const float *() const {
@@ -401,12 +436,11 @@ public:
 
 	union
 	{
-		__m128 vec;
-		float arr[4];
 		struct
 		{
 			float w, z, y, x;
 		};
+		__m128 vec;
 	};
 	
 };
