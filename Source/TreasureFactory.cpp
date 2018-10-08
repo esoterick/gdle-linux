@@ -1222,6 +1222,8 @@ int CTreasureFactory::GenerateRareItem(CWeenieObject *parent, CWeenieObject *kil
 			g_pWorld->BroadcastLocal(killer->GetLandcell(), csprintf("%s has discovered the %s!", killer->GetName().c_str(), newItem->GetName().c_str()), LTT_SYSTEM_EVENT);
 			parent->m_Qualities.SetBool(CORPSE_GENERATED_RARE_BOOL, 1);
 			parent->EmitSound(149, 1.0, false);
+
+			RARE_LOG << killer->InqStringQuality(NAME_STRING, "") << "found" << newItem->GetName().c_str() << "they have found" << rareCount + 1 << "tier" << tier << "rares.";
 		}
 	}
 
