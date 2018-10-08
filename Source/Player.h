@@ -26,7 +26,7 @@ class CPlayerWeenie : public CMonsterWeenie
 {
 public:
 	CPlayerWeenie(CClient *, DWORD dwGUID, WORD instance_ts);
-	~CPlayerWeenie();
+	virtual ~CPlayerWeenie();
 
 	virtual void Tick() override;
 	
@@ -253,7 +253,6 @@ protected:
 
 private:
 	int m_iPKActivity = 0;
-	
 };
 
 class CWandSpellUseEvent : public CUseEventData

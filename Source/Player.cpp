@@ -23,6 +23,7 @@
 #include "easylogging++.h"
 #include "Util.h"
 #include "ChessManager.h"
+#include "RandomRange.h"
 
 
 #include <chrono>
@@ -61,7 +62,7 @@ CPlayerWeenie::CPlayerWeenie(CClient *pClient, DWORD dwGUID, WORD instance_ts)
 	//if (pClient && pClient->GetAccessLevel() >= SENTINEL_ACCESS)
 	//	SetRadarBlipColor(Sentinel_RadarBlipEnum);
 
-	SetLoginPlayerQualities();
+	//SetLoginPlayerQualities();
 
 	m_Qualities.SetInt(PHYSICS_STATE_INT, PhysicsState::HIDDEN_PS | PhysicsState::IGNORE_COLLISIONS_PS | PhysicsState::EDGE_SLIDE_PS | PhysicsState::GRAVITY_PS);
 
@@ -3220,6 +3221,17 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 
 	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Empyrean_HeritageGroup)
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+
+	// Generate a random number of seconds between 1 second and 2 months of seconds and write int for the Real Time Rare drop system.
+	if (g_pConfig->RealTimeRares() && !m_Qualities.GetInt(RARES_LOGIN_TIMESTAMP_INT, 0))
+	{
+		int seconds = getRandomNumber(5184000);
+
+		time_t t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+		t += seconds;
+
+		m_Qualities.SetInt(RARES_LOGIN_TIMESTAMP_INT, t);
+	}
 
 	//End of temporary code
 
