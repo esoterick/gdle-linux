@@ -1212,7 +1212,7 @@ int CTreasureFactory::GenerateRareItem(CWeenieObject *parent, CWeenieObject *kil
 		}
 
 		int rareCount = killer->m_Qualities.GetInt((STypeInt)tierInt, 0);
-		killer->m_Qualities.SetInt((STypeInt)tierInt, rareCount);
+		killer->m_Qualities.SetInt((STypeInt)tierInt, rareCount + 1);
 				
 
 		if (CWeenieObject *newItem = GenerateRandomRareByTier(tier))
