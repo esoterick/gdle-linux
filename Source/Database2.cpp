@@ -432,10 +432,9 @@ bool CMYSQLSaveWeenieQuery::PerformQuery(MYSQL *c)
 		return false;
 	}
 
-	char query_string[512];
-	sprintf(query_string, "CALL blob_update_weenie(%u, %u, %u, ?)", _weenie_id, _top_level_object_id, _block_id);
+	std::string query_string = "CALL blob_update_weenie(?, ?, ?, ?)";
 
-	if (mysql_stmt_prepare(statement, query_string, (unsigned long)strlen(query_string)))
+	if (mysql_stmt_prepare(statement, query_string.c_str(), query_string.length()))
 	{
 		mysql_stmt_close(statement);
 
@@ -443,12 +442,26 @@ bool CMYSQLSaveWeenieQuery::PerformQuery(MYSQL *c)
 		return false;
 	}
 
-	MYSQL_BIND data_param;
-	memset(&data_param, 0, sizeof(data_param));
-	data_param.buffer = _data;
-	data_param.buffer_length = _data_length;
-	data_param.buffer_type = MYSQL_TYPE_BLOB;
-	if (mysql_stmt_bind_param(statement, &data_param))
+	MYSQL_BIND data_param[4] = { 0 };
+	//memset(&data_param, 0, sizeof(data_param));
+
+	data_param[0].buffer = &_weenie_id;
+	data_param[0].buffer_type = MYSQL_TYPE_LONG;
+	data_param[0].is_unsigned = true;
+
+	data_param[1].buffer = &_top_level_object_id;
+	data_param[1].buffer_type = MYSQL_TYPE_LONG;
+	data_param[1].is_unsigned = true;
+
+	data_param[2].buffer = &_block_id;
+	data_param[2].buffer_type = MYSQL_TYPE_LONG;
+	data_param[2].is_unsigned = true;
+
+	data_param[3].buffer = _data;
+	data_param[3].buffer_length = _data_length;
+	data_param[3].buffer_type = MYSQL_TYPE_BLOB;
+
+	if (mysql_stmt_bind_param(statement, data_param))
 	{
 		mysql_stmt_close(statement);
 
@@ -508,10 +521,9 @@ bool CMYSQLSaveHouseQuery::PerformQuery(MYSQL *c)
 		return false;
 	}
 
-	char query_string[512];
-	sprintf(query_string, "CALL blob_update_house(%u, ?)", _house_id);
+	std::string query_string = "CALL blob_update_house(?, ?)";
 
-	if (mysql_stmt_prepare(statement, query_string, (unsigned long)strlen(query_string)))
+	if (mysql_stmt_prepare(statement, query_string.c_str(), query_string.length()))
 	{
 		mysql_stmt_close(statement);
 
@@ -519,12 +531,16 @@ bool CMYSQLSaveHouseQuery::PerformQuery(MYSQL *c)
 		return false;
 	}
 
-	MYSQL_BIND data_param;
-	memset(&data_param, 0, sizeof(data_param));
-	data_param.buffer = _data;
-	data_param.buffer_length = _data_length;
-	data_param.buffer_type = MYSQL_TYPE_BLOB;
-	if (mysql_stmt_bind_param(statement, &data_param))
+	MYSQL_BIND data_param[2] = { 0 };
+
+	data_param[0].buffer = &_house_id;
+	data_param[0].buffer_type = MYSQL_TYPE_LONG;
+
+	data_param[1].buffer = _data;
+	data_param[1].buffer_length = _data_length;
+	data_param[1].buffer_type = MYSQL_TYPE_BLOB;
+
+	if (mysql_stmt_bind_param(statement, data_param))
 	{
 		mysql_stmt_close(statement);
 

@@ -4,7 +4,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `blob_update_house`(
 )
 BEGIN
 
-INSERT INTO globals (house_id, DATA)
+INSERT INTO houses (house_id, DATA)
     VALUES (houseId, houseData)
     ON DUPLICATE KEY UPDATE
         DATA=houseData;
