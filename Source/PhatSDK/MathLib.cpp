@@ -6,14 +6,12 @@
 
 float FindVectorZ(const Vector& p1, const Vector& p2, const Vector& p3, float x, float y)
 {
-	Vector v1 = p3 - p1;
-	Vector v2 = p2 - p1;
-	//Vector normal = CrossProduct(v1, v2).normalize();
+	Vector v1 = p1 - p2;
+	Vector v2 = p1 - p3;
 
-	Vector normal = v1.cross(v2).normalize();
-
-	float poo = -((normal.x * p1.x) + (normal.y * p1.y) + (normal.z * p1.z));
-	float z = (-((normal.x * x) + (normal.y * y) + poo)) / normal.z;
+	Vector n = v1.cross(v2);
+	float k = p1.dot_product(n);
+	float z = (k - (n.x * x) - (n.y * y)) / n.z;
 
 	return z;
 }
