@@ -572,6 +572,11 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		//[NUM_ITEMS_IN_MATERIAL_INT(170)] == Correct one to keep for SHOWING bags' workmanship
 		//[STRUCTURE_INT (92)] == Number of Uses on Salvage ID...actually Double SalvageWorkmanship (SHOWN)
 		//----not sure where to change msg prepended to it.
+		if (pEntity->m_Qualities.GetInt(ITEM_TYPE_INT, 0) == ITEM_TYPE::TYPE_TINKERING_MATERIAL)
+		{
+			profile._intStatsTable->remove(STRUCTURE_INT);
+			profile._intStatsTable->remove(MAX_STRUCTURE_INT);
+		}
 
 
 		if (bIsPlayer)
@@ -645,6 +650,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		profile._boolStatsTable->remove(STUCK_BOOL);
 		profile._boolStatsTable->remove(VISIBILITY_BOOL);
 		profile._boolStatsTable->remove(LIGHTS_STATUS_BOOL);
+		profile._boolStatsTable->remove(CORPSE_GENERATED_RARE_BOOL);
 	}
 
 	if (pEntity->m_Qualities.m_FloatStats)
@@ -724,6 +730,18 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		{
 			if (!(characterOptions2 & DisplayDateOfBirth_CharacterOptions2))
 				profile._strStatsTable->remove(DATE_OF_BIRTH_STRING);
+		}
+
+		if (pEntity->m_Qualities.GetBool(CORPSE_GENERATED_RARE_BOOL, 0))
+		{
+			std::string longDesc = pEntity->m_Qualities.GetString(LONG_DESC_STRING, "");
+
+			if (longDesc.find(" This corpse generated a rare item!") == std::string::npos)
+			{
+
+				longDesc = longDesc + " This corpse generated a rare item!";
+				pEntity->m_Qualities.SetString(LONG_DESC_STRING, longDesc);
+			}
 		}
 
 		profile._strStatsTable->remove(KEY_CODE_STRING);
@@ -1147,7 +1165,7 @@ BinaryWriter *ItemManaUpdate(CWeenieObject *item)
 		manaFraction = (float)currentMana / (float)maxMana;
 	}
 
-	manaFraction = min(max(manaFraction, 0), 1);
+	manaFraction = min(max(manaFraction, 0.0f), 1.0f);
 	ItemManaUpdate->Write<DWORD>(0x0264);
 	ItemManaUpdate->Write<DWORD>(item->GetID());
 	ItemManaUpdate->Write<float>(manaFraction);

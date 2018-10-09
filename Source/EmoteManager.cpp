@@ -114,14 +114,14 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 		while (ReplaceString(result, "%mn", sourceName));
 	}
 
-	if (result.find("%tqt") != std::string::npos)
+	if (result.find("%CDtime") != std::string::npos || result.find("%tqt") != std::string::npos)
 	{
-		std::string targetName;
-		if (!g_pWorld->FindObjectName(target_id, targetName))
-			return ""; // Couldn't resolve name, don't display this message.
-
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
-		std::string questString = target->Ktref(result.c_str()); //trims the @%tqt off of the quest name and returns the questflag to validate the quest timer against.
+
+		if (!target)
+			return ""; // Couldn't find target, don't display this message.
+
+		std::string questString = target->Ktref(result.c_str()); //trims the "@TEXTSUFFIX" off of the quest name and returns the questflag to validate the quest timer against. 
 
 		if (target->InqQuest(questString.c_str()))
 		{
@@ -129,22 +129,24 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 			if (timeTilOkay > 0)
 			{
-				int secs = timeTilOkay % 60;					
-				timeTilOkay /= 60;
+				std::string cdTime = TimeToString(timeTilOkay); //Converts time to string.
 
-				int mins = timeTilOkay % 60;
-				timeTilOkay /= 60;
+				if (result.find("%tqt") != std::string::npos)
+				{
+					result = "You must wait " + cdTime + " to complete this quest again.";//standard uncustomized msg returned when using wild card %tqt somewhere in the string. Should follow format "QuestStampToCheck@%tqt"
+				}
 
-				int hours = timeTilOkay % 24;
-				timeTilOkay /= 24;
-
-				int days = timeTilOkay;
-
-				result = csprintf("You must wait %dd %dh %dm %ds to complete this quest again.", days, hours, mins, secs);
+				else
+				{	
+					std::size_t prefixPos = result.find("@") + 1;
+					std::string questText = result.substr(prefixPos); //Trims queststamp prefix from message string.
+					while (ReplaceString(questText, "%CDtime", cdTime)); //Should follow format "QuestStampToCheck@Your message %CDtime more of your message." NOTE: Text message portion of string can be any sequence but must contain at least one instance of %CDtime.
+					result = questText;
+				}
 			}
 			else
 			{
-				return ""; //Quest timer has expired so return blank cooldown message.
+				return ""; //Quest timer has expired so return blank cooldown message OR no timer has been tracked in quests.json! Could set this to return a quest cooldown has expired message in the future.
 			}
 		}
 	}
@@ -318,9 +320,9 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 		DWORD64 xp_to_give = (DWORD64)round((long double)xp_to_next_level * emote.percent);
 		if (emote.min > 0)
-			xp_to_give = max(xp_to_give, emote.min);
+			xp_to_give = max(xp_to_give, emote.min64);
 		if (emote.max > 0)
-			xp_to_give = min(xp_to_give, emote.max);
+			xp_to_give = min(xp_to_give, emote.max64);
 
 		target->GiveSkillXP((STypeSkill)emote.stat, xp_to_give, false);
 		break;
@@ -1303,29 +1305,26 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 
 	case SetQuestCompletions_EmoteType:
-
+	{
 		if (!_weenie->m_Qualities._emote_table)
 			break;
-	{
+
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
 
 		if (target)
 		{
 			target->SetQuestCompletions(emote.msg.c_str(), emote.amount);
 		}
-
+		break;
 	}
-	break;
 
-	case Generate_EmoteType: //type:72 adds from generator table attached to creature weenie. Sets init value of generator table and calls weenie factory to begin generation. Can use same emote with value of 0 in amount field to disable generator.
+	case Generate_EmoteType: //type:72 adds from generator table attached to weenie. Sets init value of generator table and calls weenie factory to begin generation. Can use same emote with value of 0 in amount field to disable generator.
 	{
-		CMonsterWeenie *monster = _weenie->AsMonster();
-		if (monster)
-			_weenie->m_Qualities.SetInt((STypeInt)82, emote.amount);
-		{
-			if ((emote.amount) != 0)
-				_weenie->InitCreateGeneratorOnDeath();
-		}
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		_weenie->m_Qualities.SetInt((STypeInt)82, emote.amount);
+		_weenie->GenerateOnDemand(emote.amount);
 
 		break;
 	}
@@ -1367,6 +1366,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 			target->SendNetMessage(&yesnoMessage, PRIVATE_MSG, TRUE, FALSE);
 
+			_confirmMsgList[target_id] = emote.msg;
 		}
 		break;
 	}
@@ -1636,9 +1636,90 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
+	case SpendLuminance_EmoteType: //type: 112 spends luminance.
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+
+		long long amount = emote.heroxp64;
+		long long lum = target->m_Qualities.GetInt64(AVAILABLE_LUMINANCE_INT64, 0);
+
+		if (target)
+		{
+			if ( lum < amount)
+				break;
+			
+			target->m_Qualities.SetInt64(AVAILABLE_LUMINANCE_INT64, lum - amount);
+			target->NotifyInt64StatUpdated(AVAILABLE_LUMINANCE_INT64, false);
 		}
-			_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
+		break;
+	}
+	case SetInt64Stat_EmoteType:
+	{
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		if (target)
+		{
+			target->m_Qualities.SetInt64((STypeInt64)emote.stat, emote.amount);
+			target->NotifyInt64StatUpdated((STypeInt64)emote.stat, FALSE);
+		}
+		break;
+	}
+
+	case DeleteSelf_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		_weenie->MarkForDestroy();
+		break;
+	}
+
+	case KillSelf_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CMonsterWeenie *monster = _weenie->AsMonster();
+		if (monster && !monster->IsDead() && !monster->IsInPortalSpace() && !monster->IsBusyOrInAction())
+		{
+			monster->SetHealth(0, true);
+			monster->OnDeath(monster->GetID());
+		}
+
+		break;
+
+	}
+
+	case SetBoolStat_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		if (emote.extent == 2) //if extent is 2 then set bool on self.
+		{
+			_weenie->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
+			_weenie->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
+		}
+
+		else
+		{
+			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			if (target)
+			{
+				target->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
+				target->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
+			}
+		}
+
+		break;
+	}
+
+	}
+	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
+
 
 bool EmoteManager::IsExecutingAlready()
 {
@@ -1661,9 +1742,14 @@ void EmoteManager::Tick()
 			break;
 
 		ExecuteEmote(i->_data, i->_target_id);
+
+		//Check if emote queue is empty due to KillSelf_emoteType
+		if (_emoteQueue.empty())
+			return;
+
 		i = _emoteQueue.erase(i);
 		if (i != _emoteQueue.end())
-			i->_executeTime = Timer::cur_time + i->_data.delay;		
+			i->_executeTime = Timer::cur_time + i->_data.delay;
 	}
 }
 
@@ -1748,5 +1834,12 @@ void EmoteManager::killTaskSub(std::string &mobName, std::string &kCountName, CW
 
 void EmoteManager::ConfirmationResponse(bool accepted, DWORD target_id)
 {
-		ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, accepted ? "Yes_Response" : "No_Response", target_id);
+	if (!_confirmMsgList.empty())
+	{
+		if (_confirmMsgList.find(target_id) != _confirmMsgList.end())
+		{
+			ChanceExecuteEmoteSet(accepted ? TestSuccess_EmoteCategory : TestFailure_EmoteCategory, _confirmMsgList[target_id], target_id);
+			_confirmMsgList.erase(target_id);
+		}
+	}
 }

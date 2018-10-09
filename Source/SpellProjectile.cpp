@@ -24,7 +24,7 @@ CSpellProjectile::CSpellProjectile(const SpellCastData &scd, DWORD target_id)//,
 	m_DefaultScript = 0x5A;
 	m_DefaultScriptIntensity = 1.0f;
 
-	m_fEffectMod = max(0, min(1.0, ((scd.power_level_of_power_component - 1.0) / 7.0)));
+	m_fEffectMod = max(0.0, min(1.0, ((scd.power_level_of_power_component - 1.0) / 7.0)));
 
 	SetItemType(ITEM_TYPE::TYPE_SELF);
 	

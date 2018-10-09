@@ -73,7 +73,7 @@ CREATE TABLE `characters` (
 CREATE TABLE `globals` (
   `id` int(11) NOT NULL,
   `data` longblob NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -84,7 +84,7 @@ CREATE TABLE `globals` (
 CREATE TABLE `houses` (
   `house_id` int(11) NOT NULL,
   `data` longblob NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
