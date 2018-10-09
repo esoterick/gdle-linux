@@ -2864,12 +2864,9 @@ void CWeenieObject::Tick()
 	{
 		int numSpawned = m_Qualities._generator_registry ? (DWORD)m_Qualities._generator_registry->_registry.size() : 0;
 
-		if (numSpawned < InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
+		//check if the number spawned is higher than the max_generated_objects. Linkable generators have a max of 0, so check if there is an existing _generator_queue instead.
+		if (numSpawned < InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) || InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) == 0 && m_Qualities._generator_queue)
 		{
-
-			if (m_Qualities._generator_queue)
-			{
-
 				PackableList<GeneratorQueueNode> &queue = m_Qualities._generator_queue->_queue;
 				for (auto entry = queue.begin(); entry != queue.end();)
 				{
@@ -2898,11 +2895,13 @@ void CWeenieObject::Tick()
 
 					entry++;
 				}
-			}
 
 			g_pWeenieFactory->AddFromGeneratorTable(this, false);
 
-			if ((!m_Qualities._generator_queue || m_Qualities._generator_queue->_queue.empty()) || numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
+			//Linkable generators do not have a _nextRegen time when the generator_queue is empty and they have spawns in the world. Regular generators should not have a _nextRegen time if they have more spawns than MAX_GENERATED_OBJECTS_INT.
+			if ((!m_Qualities._generator_queue || m_Qualities._generator_queue->_queue.empty()) && numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
+				_nextRegen = -1.0;
+			else if (InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0 , TRUE) > 0 && numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
 				_nextRegen = -1.0;
 			else
 				_nextRegen = Timer::cur_time + (InqFloatQuality(REGENERATION_INTERVAL_FLOAT, -1.0, TRUE) * g_pConfig->RespawnTimeMultiplier());
