@@ -4,11 +4,6 @@
 #include "MathLib.h"
 #include "Frame.h"
 
-inline Vector CrossProduct(const Vector& a, const Vector& b)
-{
-	return Vector(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
-}
-
 float FindVectorZ(const Vector& p1, const Vector& p2, const Vector& p3, float x, float y)
 {
 	Vector v1 = p3 - p1;

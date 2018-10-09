@@ -252,7 +252,6 @@
       <AdditionalOptions>/Zm250</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;comctl32.lib;Lib\zlib\zlibstatDebug.lib;Lib\mysql\lib\libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>

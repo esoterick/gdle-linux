@@ -162,36 +162,27 @@ public:
 	inline float magnitude() const {
 		// here be magic.
 		// explanation at http://fastcpp.blogspot.com/2012/02/calculating-length-of-3d-vector-using.html
-		return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(vec, vec, 0x71)));
+		return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(vec, vec, 0xE1)));
 	}
 
 	inline float mag_squared() const {
-		return _mm_cvtss_f32(_mm_dp_ps(vec, vec, 0x71));
+		return _mm_cvtss_f32(_mm_dp_ps(vec, vec, 0xE1));
 	}
 
 	inline float sum_of_square() const {
 		return mag_squared();
 	}
 
-	float dot_product(const Vector& v) const {
-		return _mm_cvtss_f32(_mm_dp_ps(vec, v.vec, 0x71));
+	inline float dot_product(const Vector& v) const {
+		return _mm_cvtss_f32(_mm_dp_ps(vec, v.vec, 0xE1));
 	}
 
-	Vector& normalize() {
-		__m128 v1 = _mm_set1_ps(1);
-		__m128 vx1 = _mm_set_ps(1, 0, 0, 0);
-		__m128 vy1 = _mm_set_ps(0, 1, 0, 0);
-		__m128 vz1 = _mm_set_ps(0, 0, 1, 0);
-
-		__m128 vxx = _mm_dp_ps(v1, vx1, 0x8F);
-		__m128 vxy = _mm_dp_ps(v1, vx1, 0x4F);
-		__m128 vxz = _mm_dp_ps(v1, vx1, 0x2F);
-
-		__m128 n = _mm_dp_ps(vec, vec, 0x71);
+	inline Vector& normalize() {
+		__m128 n = _mm_dp_ps(vec, vec, 0xE1);
 
 		if (_mm_cvtss_f32(n) > 1.0f)
 		{
-			vec = _mm_mul_ps(vec, _mm_rsqrt_ps(n));
+			vec = _mm_mul_ps(vec, _mm_rsqrt_ps(_mm_dp_ps(vec, vec, 0xEE)));
 		}
 
 		//__m128 n = _mm_sqrt_ps(_mm_dp_ps(vec, vec, 0xEE));
@@ -200,7 +191,7 @@ public:
 		return *this;
 	}
 
-	Vector cross(const Vector& v) const {
+	inline Vector cross(const Vector& v) const {
 		// SHUFFLE
 		// x >> 3
 		// y >> 2
@@ -332,12 +323,12 @@ public:
 		return ((x * x) + (y * y) + (z * z));
 	}
 
-	float dot_product(const Vector& v) const
+	inline float dot_product(const Vector& v) const
 	{
 		return((x * v.x) + (y * v.y) + (z * v.z));
 	}
 
-	Vector& normalize()
+	inline Vector& normalize()
 	{
 		float nfactor = 1 / magnitude();
 
@@ -348,7 +339,7 @@ public:
 		return *this;
 	}
 
-	Vector& cross(const Vector& v) const {
+	inline Vector cross(const Vector& v) const {
 		Vector r(
 			y * v.z - z * v.y,
 			z * v.x - x * v.z,
@@ -359,17 +350,9 @@ public:
 
 #endif
 
-	//inline operator const float *() const {
-	//	return &x;
-	//}
-	//inline operator float *() {
-	//	return &x;
-	//}
-
 	inline ULONG pack_size() {
 		return(sizeof(float) * 3);
 	}
-
 
 	inline ULONG Pack(BYTE** ppData, ULONG iSize) { // For legacy purposes
 		PACK(float, x);
@@ -377,6 +360,7 @@ public:
 		PACK(float, z);
 		return pack_size();
 	}
+
 	inline BOOL UnPack(BYTE** ppData, ULONG iSize) { // For legacy purposes
 		if (iSize < pack_size())
 			return FALSE;
@@ -404,6 +388,7 @@ public:
 		writer["y"] = y;
 		writer["z"] = z;
 	}
+
 	inline bool UnPackJson(const json& reader) {
 		x = reader["x"];
 		y = reader["y"];
@@ -430,9 +415,6 @@ public:
 
 	bool operator==(const Vector& v) { return is_equal(v) ? true : false; }
 	bool operator!=(const Vector& v) { return !(*this == v); }
-
-	//static bool operator==(const Vector& l, const Vector& r) { return l.is_equal(r); }
-	//static bool operator!=(const Vector& l, const Vector& r) { return !l.is_equal(r); }
 
 	union
 	{
