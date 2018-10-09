@@ -2867,6 +2867,8 @@ void CWeenieObject::Tick()
 		//check if the number spawned is higher than the max_generated_objects. Linkable generators have a max of 0, so check if there is an existing _generator_queue instead.
 		if (numSpawned < InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) || InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) == 0 && m_Qualities._generator_queue)
 		{
+			if (m_Qualities._generator_queue)
+			{
 				PackableList<GeneratorQueueNode> &queue = m_Qualities._generator_queue->_queue;
 				for (auto entry = queue.begin(); entry != queue.end();)
 				{
@@ -2895,6 +2897,7 @@ void CWeenieObject::Tick()
 
 					entry++;
 				}
+			}
 
 			g_pWeenieFactory->AddFromGeneratorTable(this, false);
 
