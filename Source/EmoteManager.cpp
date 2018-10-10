@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "EmoteManager.h"
 #include "WeenieObject.h"
@@ -1405,7 +1404,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		std::string dummyname = "";
 		std::string substring = "";
 
-		if (target)
+		if (target && dummyitem)
 		{
 			if (target->GetItemCount(itemWCID) >= itemAmount)
 			{
@@ -1426,8 +1425,10 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 			}
 		}
-
-		dummyitem->Destroy();
+        
+        if (dummyitem)
+		    dummyitem->Destroy();
+		    
 		break;
 	}	
 	case UntrainSkill_EmoteType: //type: 110 changes skill to untrained and returns the approriate number of skill credits. Acts like a skill lowering gem with minor tweaks.
