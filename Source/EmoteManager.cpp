@@ -1401,12 +1401,33 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 		DWORD itemWCID = emote.cprof.wcid;
 		int itemAmount = emote.cprof.stack_size;
+		CWeenieObject *dummyitem = g_pWeenieFactory->CreateWeenieByClassID(itemWCID, NULL, false);
+		std::string dummyname = "";
+		std::string substring = "";
 
 		if (target)
 		{
 			if (target->GetItemCount(itemWCID) >= itemAmount)
+			{
 				target->ConsumeItem(itemAmount, itemWCID);
+
+				if (itemAmount > 1)
+				{
+					dummyname = dummyitem->GetPluralName();
+					substring = csprintf("%d of your", itemAmount);
+				}
+				else
+				{
+					dummyname = dummyitem->GetName();
+					substring = "a";
+				}
+
+				target->SendText(csprintf("You hand over %s %s.", substring.c_str(), dummyname.c_str()), LTT_DEFAULT);
+
+			}
 		}
+
+		dummyitem->Destroy();
 		break;
 	}	
 	case UntrainSkill_EmoteType: //type: 110 changes skill to untrained and returns the approriate number of skill credits. Acts like a skill lowering gem with minor tweaks.
