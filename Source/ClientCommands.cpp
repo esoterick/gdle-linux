@@ -4990,7 +4990,7 @@ CLIENT_COMMAND(givelum, "[value]", "Gives you some Luminance for testing.", BASI
 	}
 
 	amount = min(amount, (DWORD)1000000);
-	pPlayer->m_Qualities.SetInt64(AVAILABLE_LUMINANCE_INT64, amount + total);
+	pPlayer->m_Qualities.SetInt64(AVAILABLE_LUMINANCE_INT64, min(amount + total, (DWORD)1000000));
 	pPlayer->NotifyInt64StatUpdated(AVAILABLE_LUMINANCE_INT64, false);
 
 	if (!pPlayer->m_Qualities.GetInt64(MAXIMUM_LUMINANCE_INT64, 0))
