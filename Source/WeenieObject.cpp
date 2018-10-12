@@ -2872,6 +2872,9 @@ void CWeenieObject::Tick()
 				PackableList<GeneratorQueueNode> &queue = m_Qualities._generator_queue->_queue;
 				for (auto entry = queue.begin(); entry != queue.end();)
 				{
+					if (numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
+						break;
+
 					if (entry->when <= Timer::cur_time)
 					{
 						double regenInterval = 0.0;
@@ -2884,6 +2887,7 @@ void CWeenieObject::Tick()
 									if (profile.slot == entry->slot)
 									{
 										g_pWeenieFactory->GenerateFromTypeOrWcid(this, &profile);
+										numSpawned++;
 										break;
 									}
 								}
