@@ -2871,8 +2871,9 @@ void CWeenieObject::Tick()
 			{
 				PackableList<GeneratorQueueNode> &queue = m_Qualities._generator_queue->_queue;
 				for (auto entry = queue.begin(); entry != queue.end();)
-				{
-					if (numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
+				{	
+					// don't spawn from generator queue if numSpawned is greater than or equal to the max generated. Does not apply for linked generators with max of 0.
+					if (numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) && InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) != 0)
 						break;
 
 					if (entry->when <= Timer::cur_time)
