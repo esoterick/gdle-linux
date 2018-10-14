@@ -507,34 +507,43 @@ void CraftMods::PackJson(json & writer)
 
 bool CraftMods::UnPackJson(const json & reader)
 {
-	if (reader.find("IntRequirements") != reader.end())
+	json::const_iterator itr = reader.end();
+	json::const_iterator end = reader.end();
+
+	itr = reader.find("IntRequirements");
+	if (itr != end)
 	{
-		_intMod.UnPackJson(reader);
+		_intMod.UnPackJson(*itr);
 	}
 
-	if (reader.find("DIDRequirements") != reader.end())
+	itr = reader.find("DIDRequirements");
+	if (itr != end)
 	{
-		_didMod.UnPackJson(reader);
+		_didMod.UnPackJson(*itr);
 	}
 
-	if (reader.find("IIDRequirements") != reader.end())
+	itr = reader.find("IIDRequirements");
+	if (itr != end)
 	{
-		_iidMod.UnPackJson(reader);
+		_iidMod.UnPackJson(*itr);
 	}
 
-	if (reader.find("FloatRequirements") != reader.end())
+	itr = reader.find("FloatRequirements");
+	if (itr != end)
 	{
-		_floatMod.UnPackJson(reader);
+		_floatMod.UnPackJson(*itr);
 	}
 
-	if (reader.find("StringRequirements") != reader.end())
+	itr = reader.find("StringRequirements");
+	if (itr != end)
 	{
-		_stringMod.UnPackJson(reader);
+		_stringMod.UnPackJson(*itr);
 	}
 
-	if (reader.find("BoolRequirements") != reader.end())
+	itr = reader.find("BoolRequirements");
+	if (itr != end)
 	{
-		_boolMod.UnPackJson(reader);
+		_boolMod.UnPackJson(*itr);
 	}
 
 	_ModifyHealth = reader["ModifyHealth"];
