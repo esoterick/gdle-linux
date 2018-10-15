@@ -2442,8 +2442,11 @@ CLIENT_COMMAND(exportrecipe, "<recipeid>", "Export recipe number", ADMIN_ACCESS)
 		return true;
 	}
 
+	JsonCraftOperation jcraft(*craft, recipeId);
+
 	json recipeData;
-	craft->PackJson(recipeData);
+	//craft->PackJson(recipeData);
+	jcraft.PackJson(recipeData);
 
 	string dataFile = std::to_string(recipeId) + ".json";
 

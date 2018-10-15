@@ -5,7 +5,7 @@
 #include "PackableJson.h"
 
 
-DEFINE_UNPACK_JSON(CCraftOperation)
+DEFINE_UNPACK_JSON(CraftOperationData)
 {
 	_unk = reader["Unknown"];
 	_skill = (STypeSkill)reader["Skill"];
@@ -58,6 +58,72 @@ DEFINE_UNPACK_JSON(CCraftOperation)
 	return true;
 }
 
+DEFINE_PACK_JSON(CraftOperationData)
+{
+	writer["Unknown"] = _unk;
+	writer["Skill"] = _skill;
+	writer["Difficulty"] = _difficulty;
+	writer["SkillCheckFormulaType"] = _SkillCheckFormulaType;
+	writer["SuccessWcid"] = _successWcid;
+	writer["SuccessAmount"] = _successAmount;
+	writer["SuccessMessage"] = _successMessage;
+	writer["FailWcid"] = _failWcid;
+	writer["FailAmount"] = _failAmount;
+	writer["FailMessage"] = _failMessage;
+	
+	writer["SuccessConsumeTargetChance"] = _successConsumeTargetChance;
+	writer["SuccessConsumeTargetAmount"] = _successConsumeTargetAmount;
+	writer["SuccessConsumeTargetMessage"] = _successConsumeTargetMessage;
+	
+	writer["SuccessConsumeToolChance"] = _successConsumeToolChance;
+	writer["SuccessConsumeToolAmount"] = _successConsumeToolAmount;
+	writer["SuccessConsumeToolMessage"] = _successConsumeToolMessage;
+	
+	writer["FailureConsumeTargetChance"] = _failureConsumeTargetChance;
+	writer["FailureConsumeTargetAmount"] = _failureConsumeTargetAmount;
+	writer["FailureConsumeTargetMessage"] = _failureConsumeTargetMessage;
+	
+	writer["FailureConsumeToolChance"] = _failureConsumeToolChance;
+	writer["FailureConsumeToolAmount"] = _failureConsumeToolAmount;
+	writer["FailureConsumeToolMessage"] = _failureConsumeToolMessage;
+
+	json requirements;
+
+	for (DWORD i = 0; i < 3; i++)
+	{
+		json req;
+		_requirements[i].PackJson(req);
+		requirements.push_back(req);
+	}
+
+	writer["Requirements"] = requirements;
+
+	json mods;
+
+	for (DWORD i = 0; i < 8; i++)
+	{
+		json mod;
+		_mods[i].PackJson(mod);
+		mods.push_back(mod);
+	}
+
+	writer["Mods"] = mods;
+
+	writer["DataID"] = _dataID;
+}
+
+DEFINE_UNPACK_JSON(JsonCraftOperation)
+{
+	_recipeID = reader["RecipeID"];
+	return CraftOperationData::UnPackJson(reader);
+}
+
+DEFINE_PACK_JSON(JsonCraftOperation)
+{
+	writer["RecipeID"] = _recipeID;
+	CraftOperationData::PackJson(writer);
+}
+
 DEFINE_PACK(CCraftOperation)
 {
 	UNFINISHED();
@@ -100,55 +166,6 @@ DEFINE_UNPACK(CCraftOperation)
 
 	_dataID = pReader->Read<DWORD>();
 	return true;
-}
-
-DEFINE_PACK_JSON(CCraftOperation)
-{
-	writer["Unknown"] = _unk;
-	writer["Skill"] = _skill;
-	writer["Difficulty"] = _difficulty;
-	writer["SkillCheckFormulaType"] = _SkillCheckFormulaType;
-	writer["SuccessWcid"] = _successWcid;
-	writer["SuccessAmount"] = _successAmount;
-	writer["SuccessMessage"] = _successMessage;
-	writer["FailWcid"] = _failWcid;
-	writer["FailAmount"] = _failAmount;
-	writer["FailMessage"] = _failMessage;
-	writer["SuccessConsumeTargetChance"] = _successConsumeTargetChance;
-	writer["SuccessConsumeTargetAmount"] = _successConsumeTargetAmount;
-	writer["SuccessConsumeTargetMessage"] = _successConsumeTargetMessage;
-	writer["SuccessConsumeToolChance"] = _successConsumeToolChance;
-	writer["SuccessConsumeToolAmount"] = _successConsumeToolAmount;
-	writer["SuccessConsumeToolMessage"] = _successConsumeToolMessage;
-	writer["FailureConsumeTargetChance"] = _failureConsumeTargetChance;
-	writer["FailureConsumeTargetAmount"] = _failureConsumeTargetAmount;
-	writer["FailureConsumeTargetMessage"] = _failureConsumeTargetMessage;
-	writer["FailureConsumeToolAmount"] = _failureConsumeToolAmount;
-	writer["FailureConsumeToolMessage"] = _failureConsumeToolMessage;
-
-	json requirements;
-
-	for (DWORD i = 0; i < 3; i++)
-	{
-		json req;
-		_requirements[i].PackJson(req);
-		requirements.push_back(req);
-	}
-
-	writer["Requirements"] = requirements;
-
-	json mods;
-
-	for (DWORD i = 0; i < 8; i++)
-	{
-		json mod;
-		_mods[i].PackJson(mod);
-		mods.push_back(mod);
-	}
-
-	writer["Mods"] = mods;
-
-	writer["DataID"] = _dataID;
 }
 
 CCraftTable::CCraftTable()
@@ -316,65 +333,6 @@ DEFINE_PACK_JSON(CraftPrecursor)
 	writer["Tool"] = Tool;
 	writer["Target"] = Target;
 	writer["RecipeID"] = RecipeID;
-}
-
-DEFINE_UNPACK_JSON(JsonCraftOperation)
-{
-	_recipeID = reader["RecipeID"];
-	_unk = reader["Unknown"];
-	_skill = (STypeSkill)reader["Skill"];
-	_difficulty = reader["Difficulty"];
-	_SkillCheckFormulaType = reader["SkillCheckFormulaType"];
-	_successWcid = reader["SuccessWcid"];
-	_successAmount = reader["SuccessAmount"];
-	_successMessage = reader["SuccessMessage"];
-	_failWcid = reader["FailWcid"];
-	_failAmount = reader["FailAmount"];
-	_failMessage = reader["FailMessage"];
-
-	_successConsumeTargetChance = reader["SuccessConsumeTargetChance"];
-	_successConsumeTargetAmount = reader["SuccessConsumeTargetAmount"];
-	_successConsumeTargetMessage = reader["SuccessConsumeTargetMessage"];
-
-	_successConsumeToolChance = reader["SuccessConsumeToolChance"];
-	_successConsumeToolAmount = reader["SuccessConsumeToolAmount"];
-	_successConsumeToolMessage = reader["SuccessConsumeToolMessage"];
-
-	_failureConsumeTargetChance = reader["FailureConsumeTargetChance"];
-	_failureConsumeTargetAmount = reader["FailureConsumeTargetAmount"];
-	_failureConsumeTargetMessage = reader["FailureConsumeTargetMessage"];
-
-	_failureConsumeToolChance = reader["FailureConsumeToolChance"];
-	_failureConsumeToolAmount = reader["FailureConsumeToolAmount"];
-	_failureConsumeToolMessage = reader["FailureConsumeToolMessage"];
-
-	const json &reqs = reader["Requirements"];
-	if (reqs.is_array())
-	{
-		// must have 3, null is valid
-		for (int i = 0; i < 3; i++)
-		{
-			_requirements[i].UnPackJson(reqs[i]);
-		}
-	}
-
-	const json &mods = reader["Mods"];
-	if (mods.is_array())
-	{
-		// must have 8, null is valid
-		for (int i = 0; i < 8; i++)
-		{
-			_mods[i].UnPackJson(mods[i]);
-		}
-	}
-
-	_dataID = reader["DataID"];
-	return true;
-}
-
-DEFINE_PACK_JSON(JsonCraftOperation)
-{
-
 }
 
 template<typename TStatType, typename TDataType>
