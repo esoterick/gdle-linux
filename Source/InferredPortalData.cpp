@@ -25,13 +25,33 @@ void CInferredPortalData::Init()
 	{
 		_regionData.Destroy();
 
-		BYTE *data = NULL;
-		DWORD length = 0;
-		if (LoadDataFromPhatDataBin(1, &data, &length, 0xe8b00434, 0x82092270)) // rded.bin
+		std::ifstream fileStream("data/json/region.json");
+
+		if (fileStream.is_open())
 		{
-			BinaryReader reader(data, length);
-			_regionData.UnPack(&reader);
-			delete[] data;
+		}
+		else
+		{
+
+			BYTE *data = NULL;
+			DWORD length = 0;
+			if (LoadDataFromPhatDataBin(1, &data, &length, 0xe8b00434, 0x82092270)) // rded.bin
+			{
+				BinaryReader reader(data, length);
+				_regionData.UnPack(&reader);
+				delete[] data;
+			}
+
+			json test;
+			_regionData.PackJson(test);
+			std::string testString = test.dump(4);
+
+			FILE *fp = fopen("data/json/region.json", "wt");
+			if (fp)
+			{
+			fprintf(fp, "%s\n", testString.c_str());
+			fclose(fp);
+			}
 		}
 	}
 
@@ -321,13 +341,36 @@ void CInferredPortalData::Init()
 	}
 
 	{
-		BYTE *data = NULL;
-		DWORD length = 0;
-		if (LoadDataFromPhatDataBin(5, &data, &length, 0x887aef9c, 0xa92ec9ac)) // hpd.bin
+		std::ifstream fileStream("data/json/housePortalDestinations.json");
+
+		if (fileStream.is_open())
 		{
-			BinaryReader reader(data, length);
-			_housePortalDests.UnPack(&reader);
-			delete[] data;
+			json data;
+			fileStream >> data;
+			_housePortalDests.UnPackJson(data);
+		}
+		else
+		{
+			BYTE *data = NULL;
+			DWORD length = 0;
+			if (LoadDataFromPhatDataBin(5, &data, &length, 0x887aef9c, 0xa92ec9ac)) // hpd.bin
+			{
+				BinaryReader reader(data, length);
+				_housePortalDests.UnPack(&reader);
+				delete[] data;
+			}
+
+			/*
+			json test;
+			_housePortalDests.PackJson(test);
+			std::string testString = test.dump(4);
+
+			FILE *fp = fopen("data/json/housePortalDestinations.json", "wt");
+			if (fp)
+			{
+				fprintf(fp, "%s\n", testString.c_str());
+				fclose(fp);
+			}*/
 		}
 	}
 
@@ -471,7 +514,7 @@ CCraftOperation *CInferredPortalData::GetCraftOperation(DWORD source_wcid, DWORD
 
 Position *CInferredPortalData::GetHousePortalDest(DWORD house_id, DWORD ignore_cell_id)
 {
-	PackableList<Position> *dests = _housePortalDests.lookup(house_id);
+	house_portal_table_t::mapped_type *dests = _housePortalDests.lookup(house_id);
 
 	if (dests)
 	{
@@ -487,7 +530,7 @@ Position *CInferredPortalData::GetHousePortalDest(DWORD house_id, DWORD ignore_c
 
 CMutationFilter *CInferredPortalData::GetMutationFilter(DWORD id)
 {
-	std::unordered_map<DWORD, CMutationFilter *>::iterator entry = _mutationFilters.find(id & 0xFFFFFF);
+	mutation_table_t::iterator entry = _mutationFilters.find(id & 0xFFFFFF);
 	
 	if (entry != _mutationFilters.end())
 	{
