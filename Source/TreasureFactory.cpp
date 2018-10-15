@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "TreasureFactory.h"
 #include "WeenieObject.h"
@@ -9,7 +8,10 @@
 #include "Container.h"
 #include "Config.h"
 #include "Monster.h"
+#include "Player.h"
 #include "easylogging++.h"
+#include "ClientCommands.h"
+#include <chrono>
 
 double round(double value, int decimalPlaces)
 {
@@ -365,6 +367,12 @@ void from_json(const nlohmann::json &reader, CTreasureType &output)
 	output.qualityModifier = reader.value("qualityModifier", 0.0f);
 }
 
+void from_json(const nlohmann::json &reader, CRareTier &output)
+{
+	if (HasField(reader, "rareTierWcids"))
+		output.rareTierWcids = reader.at("rareTierWcids").get<std::vector<int>>();
+}
+
 DEFINE_UNPACK_JSON(CTreasureProfile)
 {
 	if (HasField(reader, "options"))
@@ -478,6 +486,16 @@ DEFINE_UNPACK_JSON(CTreasureProfile)
 
 		for (auto iter = tempTreasureTypeOverrides.begin(); iter != tempTreasureTypeOverrides.end(); ++iter)
 			treasureTypeOverrides.emplace(atoi(iter->first.c_str()), iter->second);
+	}
+
+	if (HasField(reader, "rareTiers"))
+	{
+		// nlohmann::json doesn't like int keys in maps, so we read as string and convert to int.
+		std::map<std::string, CRareTier> tempRareTiers;
+		tempRareTiers = reader.at("rareTiers").get<std::map<std::string, CRareTier>>();
+
+		for (auto iter = tempRareTiers.begin(); iter != tempRareTiers.end(); ++iter)
+			rareTiers.emplace(atoi(iter->first.c_str()), iter->second);
 	}
 	return true;
 }
@@ -1115,6 +1133,103 @@ int CTreasureFactory::GenerateFromTypeOrWcid(CWeenieObject *parent, int destinat
 	return amountCreated;
 }
 
+int CTreasureFactory::GenerateRareItem(CWeenieObject *parent, CWeenieObject *killer)
+{
+	int amountCreated = 0;
+	DWORD rareWcid = 0;
+	bool rareDropped = false;
+	bool realTimeRare = false;
+	double roll = getRandomDouble(1.0);
+
+	int tier = 1;
+	int tierInt = 0;
+
+	time_t t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+	// Standard rare drop rate is 1 in 2,500 kills. This is for a second Real Time Rare drop system. You would get a dramatically increased rare drop chance (90%?) after a hitting a random number of seconds (up to 2 months) since last rare drop. 
+	// https://asheron.wikia.com/wiki/Announcements_-_2010/04_-_Shedding_Skin
+	// Q: Were there any changes to the real time rare system?
+	// A: Real Time Rares work the same as they always have. It rolls a number between 1 second and 2 months worth of seconds. When that number is up you get an additional chance of finding a rare on any valid rare kill. That additional chance is very high. 
+	// You can still only find one rare on any given kill but it's possible to find a normal rare when your Real Time Rare timer is up but you haven't found one yet.
+
+	if (g_pConfig->RealTimeRares() && killer->m_Qualities.GetInt(RARES_LOGIN_TIMESTAMP_INT, 0) <= t)
+	{
+		if (roll < 0.9)
+		{
+			int seconds = getRandomNumber(5184000);
+			t += seconds;
+
+			realTimeRare = true;
+			rareDropped = true;
+			killer->m_Qualities.SetInt(RARES_LOGIN_TIMESTAMP_INT, t);
+		}
+	}
+
+	if (!realTimeRare && roll < (0.0004 * g_pConfig->RareDropMultiplier())) 
+		rareDropped = true;
+
+	if (rareDropped)
+	{
+		int tierRoll = getRandomNumber(1, 100000);
+
+		if (tierRoll > 10000)
+			tier = 1;
+		else if (tierRoll > 1000)
+			tier = 2;
+		else if (tierRoll > 80)
+			tier = 3;
+		else if (tierRoll > 33)
+			tier = 4;
+		else if (tierRoll > 28)
+			tier = 5;
+		else if (tierRoll > 0)
+			tier = 6;
+
+		if (!realTimeRare)
+		{
+			switch (tier)
+			{
+			case 6:
+				tierInt = RARES_TIER_SIX_INT;
+			case 7:
+				tierInt = RARES_TIER_SEVEN_INT; // We currently only have 6 tiers but apparently Turbine had plans for a 7th
+			default:
+				tierInt = RARES_TIER_ONE_INT + (tier - 1);
+			}
+		}
+		else
+		{
+			switch (tier)
+			{
+			case 6:
+				tierInt = RARES_TIER_SIX_LOGIN_INT;
+			case 7:
+				tierInt = RARES_TIER_SEVEN_LOGIN_INT; // We currently only have 6 tiers but apparently Turbine had plans for a 7th
+			default:
+				tierInt = RARES_TIER_ONE_LOGIN_INT + (tier - 1);
+			}
+
+		}
+
+		int rareCount = killer->m_Qualities.GetInt((STypeInt)tierInt, 0);
+		killer->m_Qualities.SetInt((STypeInt)tierInt, rareCount + 1);
+				
+
+		if (CWeenieObject *newItem = GenerateRandomRareByTier(tier))
+		{
+			g_pWeenieFactory->AddWeenieToDestination(newItem, parent, Treasure_DestinationType, false);
+			amountCreated++;
+			g_pWorld->BroadcastLocal(killer->GetLandcell(), csprintf("%s has discovered the %s!", killer->GetName().c_str(), newItem->GetName().c_str()), LTT_SYSTEM_EVENT);
+			parent->m_Qualities.SetBool(CORPSE_GENERATED_RARE_BOOL, 1);
+			parent->EmitSound(149, 1.0, false);
+
+			RARE_LOG << killer->InqStringQuality(NAME_STRING, "") << "found" << newItem->GetName().c_str() << "they have found" << rareCount + 1 << "tier" << tier << "rares.";
+		}
+	}
+
+	return amountCreated;
+}
+
 int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * parent, int destinationType, bool isRegenLocationType, DWORD treasureTypeOrWcid, unsigned int ptid, float shade, const GeneratorProfile * profile)
 {
 	int amountCreated = 0;
@@ -1237,6 +1352,26 @@ int CTreasureFactory::GenerateFromType(CTreasureType *type, CWeenieObject * pare
 		}
 	}
 	return amountCreated;
+}
+
+CWeenieObject *CTreasureFactory::GenerateRandomRareByTier(int rareTier)
+{
+	int rareWcid = 0;
+	if (_TreasureProfile->rareTiers.empty())
+		return NULL;
+
+	for each (auto entry in _TreasureProfile->rareTiers)
+	{
+		if (entry.first == rareTier)
+		{
+				rareWcid = entry.second.rareTierWcids[getRandomNumberExclusive((int)entry.second.rareTierWcids.size())];
+				break;
+		}
+	}
+
+	if (rareWcid)
+		return g_pWeenieFactory->CreateWeenieByClassID(rareWcid);
+	return NULL;
 }
 
 CWeenieObject *CTreasureFactory::GenerateMundaneItem(CTreasureTier *tier)
@@ -1574,9 +1709,9 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 			{
 				newItem->m_Qualities.SetInt(PALETTE_TEMPLATE_INT, ptid);
 				newItem->m_Qualities.SetFloat(SHADE_FLOAT, getRandomDouble(1.0));
-				newItem->m_Qualities.SetFloat(SHADE2_FLOAT, getRandomDouble(1.0));
+				/*newItem->m_Qualities.SetFloat(SHADE2_FLOAT, getRandomDouble(1.0));
 				newItem->m_Qualities.SetFloat(SHADE3_FLOAT, getRandomDouble(1.0));
-				newItem->m_Qualities.SetFloat(SHADE4_FLOAT, getRandomDouble(1.0));
+				newItem->m_Qualities.SetFloat(SHADE4_FLOAT, getRandomDouble(1.0));*/
 			}
 		}
 

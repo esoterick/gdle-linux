@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "EmoteManager.h"
 #include "WeenieObject.h"
@@ -116,10 +115,6 @@ std::string EmoteManager::ReplaceEmoteText(const std::string &text, DWORD target
 
 	if (result.find("%CDtime") != std::string::npos || result.find("%tqt") != std::string::npos)
 	{
-		std::string targetName;
-		if (!g_pWorld->FindObjectName(target_id, targetName))
-			return ""; // Couldn't resolve name, don't display this message.
-
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
 
 		if (!target)
@@ -1309,19 +1304,18 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	}
 
 	case SetQuestCompletions_EmoteType:
-
+	{
 		if (!_weenie->m_Qualities._emote_table)
 			break;
-	{
+
 		CWeenieObject *target = g_pWorld->FindObject(target_id);
 
 		if (target)
 		{
 			target->SetQuestCompletions(emote.msg.c_str(), emote.amount);
 		}
-
+		break;
 	}
-	break;
 
 	case Generate_EmoteType: //type:72 adds from generator table attached to weenie. Sets init value of generator table and calls weenie factory to begin generation. Can use same emote with value of 0 in amount field to disable generator.
 	{
@@ -1406,12 +1400,35 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 		DWORD itemWCID = emote.cprof.wcid;
 		int itemAmount = emote.cprof.stack_size;
+		CWeenieObject *dummyitem = g_pWeenieFactory->CreateWeenieByClassID(itemWCID, NULL, false);
+		std::string dummyname = "";
+		std::string substring = "";
 
-		if (target)
+		if (target && dummyitem)
 		{
 			if (target->GetItemCount(itemWCID) >= itemAmount)
+			{
 				target->ConsumeItem(itemAmount, itemWCID);
+
+				if (itemAmount > 1)
+				{
+					dummyname = dummyitem->GetPluralName();
+					substring = csprintf("%d of your", itemAmount);
+				}
+				else
+				{
+					dummyname = dummyitem->GetName();
+					substring = "a";
+				}
+
+				target->SendText(csprintf("You hand over %s %s.", substring.c_str(), dummyname.c_str()), LTT_DEFAULT);
+
+			}
 		}
+        
+        if (dummyitem)
+		    dummyitem->Destroy();
+		    
 		break;
 	}	
 	case UntrainSkill_EmoteType: //type: 110 changes skill to untrained and returns the approriate number of skill credits. Acts like a skill lowering gem with minor tweaks.
@@ -1671,9 +1688,60 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
+
+	case DeleteSelf_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		_weenie->MarkForDestroy();
+		break;
+	}
+
+	case KillSelf_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CMonsterWeenie *monster = _weenie->AsMonster();
+		if (monster && !monster->IsDead() && !monster->IsInPortalSpace() && !monster->IsBusyOrInAction())
+		{
+			monster->SetHealth(0, true);
+			monster->OnDeath(monster->GetID());
+		}
+
+		break;
+
+	}
+
+	case SetBoolStat_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		if (emote.extent == 2) //if extent is 2 then set bool on self.
+		{
+			_weenie->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
+			_weenie->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
+		}
+
+		else
+		{
+			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			if (target)
+			{
+				target->m_Qualities.SetBool((STypeBool)emote.stat, emote.amount);
+				target->NotifyBoolStatUpdated((STypeBool)emote.stat, FALSE);
+			}
+		}
+
+		break;
+	}
+
 	}
 	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
+
 
 bool EmoteManager::IsExecutingAlready()
 {
@@ -1696,9 +1764,14 @@ void EmoteManager::Tick()
 			break;
 
 		ExecuteEmote(i->_data, i->_target_id);
+
+		//Check if emote queue is empty due to KillSelf_emoteType
+		if (_emoteQueue.empty())
+			return;
+
 		i = _emoteQueue.erase(i);
 		if (i != _emoteQueue.end())
-			i->_executeTime = Timer::cur_time + i->_data.delay;		
+			i->_executeTime = Timer::cur_time + i->_data.delay;
 	}
 }
 

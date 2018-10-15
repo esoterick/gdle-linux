@@ -90,7 +90,9 @@ public:
 
 
 	virtual bool AllowGeneralChat() { return m_bAllowGeneralChat; }
-	
+
+	virtual double RareDropMultiplier() { return m_fRareDropMultiplier; }
+	virtual bool RealTimeRares() { return m_bRealTimeRares; }
 
 protected:
 	virtual void PostLoad() override;
@@ -173,6 +175,8 @@ protected:
 	bool m_bUpdateAllegianceData = false;
 
 	bool m_bAllowGeneralChat = 1;
+	bool m_bRealTimeRares = 0;
+	double m_fRareDropMultiplier = 0.0;
 };
 
 extern CPhatACServerConfig *g_pConfig;

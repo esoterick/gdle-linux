@@ -140,7 +140,7 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(CWeenieObject *item, bool deleteItem
 
 		return NULL;
 	}
-
+	
 	item->SetID(g_pWorld->GenerateGUID(m_Qualities.GetInt(HERITAGE_GROUP_INT,0) == 0 ? eEphemeral : eDynamicGUID));
 
 	if (!g_pWorld->CreateEntity(item, false))
@@ -1401,7 +1401,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 
 	//DebugValidate();
 	if (AsPlayer())
-		RecalculateEncumbrance();
+	RecalculateEncumbrance();
 }
 void CMonsterWeenie::Tick()
 {
@@ -1790,6 +1790,8 @@ void CMonsterWeenie::OnDeathAnimComplete()
 
 	m_bWaitingForDeathToFinish = false;
 
+	CWeenieObject *killer = g_pWorld->FindObject(m_DeathKillerIDForCorpse, false);
+
 	if (!_IsPlayer())
 	{
 		MarkForDestroy();
@@ -1803,6 +1805,12 @@ void CMonsterWeenie::OnDeathAnimComplete()
 
 		if (pCorpse)
 			GenerateDeathLoot(pCorpse);
+
+		if (pCorpse && m_bIsRareEligible && !g_pTreasureFactory->_TreasureProfile->rareTiers.empty() && g_pConfig->RareDropMultiplier() > 0.0)
+		{			
+			if (killer && killer->_IsPlayer())
+				g_pWeenieFactory->GenerateRareItem(pCorpse, killer);
+		}
 	}
 
 }
@@ -1815,6 +1823,8 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 	{
 		m_highestDamageSource = killer_id;
 	}
+
+	CheckRareEligible(g_pWorld->FindObject(m_highestDamageSource, false));
 
 	int level = InqIntQuality(LEVEL_INT, 0);
 
@@ -2555,9 +2565,27 @@ bool CMonsterWeenie::CanTarget(CWeenieObject* target)
 	TargetingTaticType const targetingTatic = static_cast<TargetingTaticType>(m_Qualities.GetInt(TARGETING_TACTIC_INT, TargetingTaticNone));
 	switch (targetingTatic)
 	{
-		case TargetingTaticGamePiece:
-			return target->IsGamePiece();
-		default:
-			return false;
+	case TargetingTaticGamePiece:
+		return target->IsGamePiece();
+	default:
+		return false;
 	}
+}
+
+bool CMonsterWeenie::CheckRareEligible(CWeenieObject *highestDamageDealer)
+{ 
+	if (!highestDamageDealer)
+		return false;
+
+	if (highestDamageDealer)
+	{
+		if (highestDamageDealer->_IsPlayer() && (m_Qualities.GetInt(LEVEL_INT, 0) >= highestDamageDealer->m_Qualities.GetInt(LEVEL_INT, 0)) || (m_Qualities.GetInt(LEVEL_INT, 0) >= 100))
+			if (m_Qualities.GetDID(DEATH_TREASURE_TYPE_DID, 0))
+			{
+				m_bIsRareEligible = true;
+				return true;
+			}
+	}
+
+	return false;
 }

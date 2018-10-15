@@ -26,7 +26,7 @@ class CPlayerWeenie : public CMonsterWeenie
 {
 public:
 	CPlayerWeenie(CClient *, DWORD dwGUID, WORD instance_ts);
-	~CPlayerWeenie();
+	virtual ~CPlayerWeenie();
 
 	virtual void Tick() override;
 	
@@ -183,6 +183,7 @@ public:
 	std::unordered_map<DWORD, double> _objMadeAwareOf;
 
 	double _nextTryFixBrokenPosition = 0.0;
+	double _nextRareUse = 0.0;
 
 	virtual void OnGivenXP(long long amount, bool allegianceXP) override;
 
@@ -253,7 +254,6 @@ protected:
 
 private:
 	int m_iPKActivity = 0;
-	
 };
 
 class CWandSpellUseEvent : public CUseEventData

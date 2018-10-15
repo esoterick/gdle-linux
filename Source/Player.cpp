@@ -23,6 +23,7 @@
 #include "easylogging++.h"
 #include "Util.h"
 #include "ChessManager.h"
+#include "RandomRange.h"
 
 
 #include <chrono>
@@ -61,7 +62,7 @@ CPlayerWeenie::CPlayerWeenie(CClient *pClient, DWORD dwGUID, WORD instance_ts)
 	//if (pClient && pClient->GetAccessLevel() >= SENTINEL_ACCESS)
 	//	SetRadarBlipColor(Sentinel_RadarBlipEnum);
 
-	SetLoginPlayerQualities();
+	//SetLoginPlayerQualities();
 
 	m_Qualities.SetInt(PHYSICS_STATE_INT, PhysicsState::HIDDEN_PS | PhysicsState::IGNORE_COLLISIONS_PS | PhysicsState::EDGE_SLIDE_PS | PhysicsState::GRAVITY_PS);
 
@@ -218,7 +219,7 @@ void CPlayerWeenie::Tick()
 	if (m_fNextMakeAwareCacheFlush <= Timer::cur_time)
 	{
 		FlushMadeAwareof();
-		m_fNextMakeAwareCacheFlush = Timer::cur_time + 60.0;
+		m_fNextMakeAwareCacheFlush = Timer::cur_time + 25.0;
 	}
 
 	if (IsLoggingOut() && _beginLogoutTime <= Timer::cur_time)
@@ -276,7 +277,7 @@ bool CPlayerWeenie::IsBusy()
 	return false;
 }
 
-const double AWARENESS_TIMEOUT = 20.0;
+const double AWARENESS_TIMEOUT = 25.0;
 
 bool CPlayerWeenie::AlreadyMadeAwareOf(DWORD object_id)
 {
@@ -3221,6 +3222,17 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Empyrean_HeritageGroup)
 		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
 
+	// Generate a random number of seconds between 1 second and 2 months of seconds and write int for the Real Time Rare drop system.
+	if (g_pConfig->RealTimeRares() && !m_Qualities.GetInt(RARES_LOGIN_TIMESTAMP_INT, 0))
+	{
+		int seconds = getRandomNumber(5184000);
+
+		time_t t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+		t += seconds;
+
+		m_Qualities.SetInt(RARES_LOGIN_TIMESTAMP_INT, t);
+	}
+
 	//End of temporary code
 
 	g_pAllegianceManager->SetWeenieAllegianceQualities(this);
@@ -3971,37 +3983,55 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 
 		break;
 	}
-	//Foolproof tinks, use wcid to grab the operation. 100% chance is handled in Imbue code.
-		case W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4436); break;
-		case W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4449); break;
-		case W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(3863); break;
-		case W_MATERIALRAREFOOLPROOFEMERALD_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4450); break;
-		case W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(3864); break;
-		case W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4454); break;
-		case W_MATERIALRAREFOOLPROOFJET_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4451); break;
-		case W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4435); break;
-		case W_MATERIALRAREFOOLPROOFREDGARNET_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4452); break;
-		case W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(3865); break;
-		case W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4453); break;
-		case W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4434); break;
-		case W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
-			op = g_pPortalDataEx->_craftTableData._operations.lookup(4433); break;
-
-		default:
+	case W_POTDYEDARKGREEN_CLASS:
+	case W_POTDYEDARKRED_CLASS:
+	case W_POTDYEDARKYELLOW_CLASS:
+	case W_POTDYEWINTERBLUE_CLASS:
+	case W_POTDYEWINTERGREEN_CLASS:
+	case W_POTDYEWINTERSILVER_CLASS:
+	case W_POTDYESPRINGBLACK_CLASS:
+	case W_POTDYESPRINGBLUE_CLASS:
+	case W_POTDYESPRINGPURPLE_CLASS:
+	{
+		//Check if the item is armor/clothing and is Dyeable.
+		if (target->m_Qualities.m_WeenieType != 2 || !target->m_Qualities.GetBool(DYABLE_BOOL, 0))
 			return NULL;
+
+		//Grab dye recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3844);
+		break;
 	}
+	//Foolproof tinks, use wcid to grab the operation. 100% chance is handled in Imbue code.
+	case W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4436); break;
+	case W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4449); break;
+	case W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3863); break;
+	case W_MATERIALRAREFOOLPROOFEMERALD_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4450); break;
+	case W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3864); break;
+	case W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4454); break;
+	case W_MATERIALRAREFOOLPROOFJET_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4451); break;
+	case W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4435); break;
+	case W_MATERIALRAREFOOLPROOFREDGARNET_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4452); break;
+	case W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3865); break;
+	case W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4453); break;
+	case W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4434); break;
+	case W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4433); break;
+	default:
+		return NULL;
+	}
+
 
 
 	return op;

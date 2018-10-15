@@ -670,7 +670,7 @@ void CSlumLordWeenie::BuyHouse(CPlayerWeenie *player, const PackableList<DWORD> 
 			}
 		}
 
-		for (HousePayment &payment : prof._buy)
+		/*for (HousePayment &payment : prof._buy)
 		{
 			if (payment.wcid == W_COINSTACK_CLASS)
 			{
@@ -759,7 +759,7 @@ void CSlumLordWeenie::BuyHouse(CPlayerWeenie *player, const PackableList<DWORD> 
 				}
 				break;
 			}
-		}
+		}*/
 
 		int timeStamp = g_pPhatSDK->GetCurrTimeStamp();
 		player->SendText("Congratulations!  You now own this dwelling.", LTT_DEFAULT);
@@ -957,7 +957,7 @@ void CSlumLordWeenie::RentHouse(CPlayerWeenie *player, const PackableList<DWORD>
 			}
 		}
 
-		for (HousePayment &payment : houseData->_rent)
+		/*for (HousePayment &payment : houseData->_rent)
 		{
 			if (payment.wcid == W_COINSTACK_CLASS)
 			{
@@ -1046,7 +1046,7 @@ void CSlumLordWeenie::RentHouse(CPlayerWeenie *player, const PackableList<DWORD>
 				}
 				break;
 			}
-		}
+		}*/
 		DoUseResponse(player);
 		player->RecalculateCoinAmount(W_COINSTACK_CLASS);
 		player->Save();
