@@ -889,26 +889,11 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	}
 
 	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
-	if (!sourceItem || sourceItem->InUse)
+	if (!sourceItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
 		return false;
 	}
-
-	DWORD owner = 0;
-	if (!sourceItem->m_Qualities.InqInstanceID(OWNER_IID, owner))
-	{
-		sourceItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
-	}
-	else
-	{
-		if (owner != GetID())
-		{
-			NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
-			return false;
-		}
-	}
-
 
 	CWeenieObject *targetItem = FindValidNearbyItem(targetItemId, USEDISTANCE_FAR);
 	if (!targetItem)
@@ -932,9 +917,6 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	}
 	else
 	{
-		//Set the item to InUse while merging to prevent others from interacting with the item.
-		sourceItem->InUse = true;
-
 		//check if the items is still in range.
 		if (FindValidNearbyItem(sourceItemId, 5.0) == NULL || FindValidNearbyItem(targetItemId, 5.0) == NULL)
 		{
@@ -963,20 +945,6 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 		{
 			NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_NONE);
 			return false;
-		}
-
-		DWORD owner = 0;
-		if (!sourceItem->m_Qualities.InqInstanceID(OWNER_IID, owner))
-		{
-			sourceItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
-		}
-		else
-		{
-			if (owner != GetID())
-			{
-				NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
-				return false;
-			}
 		}
 
 
