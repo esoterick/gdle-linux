@@ -103,26 +103,14 @@ DEFINE_PACK_JSON(CRegionDescExtendedDataTable)
 			if (table[0] != 0xffffffff)
 			{
 				json entry;
-				json value;
-
-				// TODO: Can this be done w/o a loop?
-				for (int j = 0; j < table.size(); j++)
-					value[j] = table[j];
-
 				entry["key"] = i;
-				entry["value"] = value;
+				entry["value"] = table;
 
 				tableWriter.push_back(entry);
 			}
 		}
 		writer["encounters"] = tableWriter;
-
-		json encounterMap;
-		// TODO: Can this be done w/o a loop?
-		for (int j = 0; j < _encounterMap.size(); j++)
-			encounterMap[j] = _encounterMap[j];
-
-		writer["encounterMap"] = encounterMap;
+		writer["encounterMap"] = _encounterMap;
 	}
 }
 
@@ -133,6 +121,8 @@ DEFINE_UNPACK_JSON(CRegionDescExtendedDataTable)
 
 	if (_encounterTableSize > 0)
 	{
+		_encounterTable.resize(_encounterTableSize);
+
 		json::const_iterator end = reader.end();
 		json::const_iterator itr = reader.find("encounters");
 		if (itr != end)
@@ -148,8 +138,7 @@ DEFINE_UNPACK_JSON(CRegionDescExtendedDataTable)
 				json value = entry["value"];
 
 				encounter_list_t &table = _encounterTable[i];
-				for (int i = 0; i < table.size(); i++)
-					table[i] = value[i];
+				table = value;
 			}
 		}
 
@@ -157,9 +146,7 @@ DEFINE_UNPACK_JSON(CRegionDescExtendedDataTable)
 		if (itr != end)
 		{
 			const json &encounterMap = *itr;
-			// TODO: Can this be done w/o a loop?
-			for (int j = 0; j < _encounterMap.size(); j++)
-				_encounterMap[j] = encounterMap[j];
+			_encounterMap = encounterMap;
 		}
 	}
 	return true;

@@ -22,13 +22,19 @@ void CInferredPortalData::Init()
 	SERVER_INFO << "Loading inferred portal data...";
 #endif
 
+	std::filesystem::path dataPath("data/json");
+
 	{
 		_regionData.Destroy();
 
-		std::ifstream fileStream("data/json/region.json");
+		std::ifstream fileStream(dataPath / "region.json");
 
 		if (fileStream.is_open())
 		{
+			json data;
+			fileStream >> data;
+			fileStream.close();
+			_regionData.UnPackJson(data);
 		}
 		else
 		{
@@ -42,16 +48,13 @@ void CInferredPortalData::Init()
 				delete[] data;
 			}
 
-			json test;
-			_regionData.PackJson(test);
-			std::string testString = test.dump(4);
+			//json test;
+			//_regionData.PackJson(test);
 
-			FILE *fp = fopen("data/json/region.json", "wt");
-			if (fp)
-			{
-			fprintf(fp, "%s\n", testString.c_str());
-			fclose(fp);
-			}
+			//std::ofstream out(dataPath / "region.json");
+			//out << std::setw(4) << test << std::endl;
+			//out.flush();
+			//out.close();
 		}
 	}
 
@@ -341,12 +344,13 @@ void CInferredPortalData::Init()
 	}
 
 	{
-		std::ifstream fileStream("data/json/housePortalDestinations.json");
+		std::ifstream fileStream(dataPath / "housePortalDestinations.json");
 
 		if (fileStream.is_open())
 		{
 			json data;
 			fileStream >> data;
+			fileStream.close();
 			_housePortalDests.UnPackJson(data);
 		}
 		else
@@ -360,17 +364,13 @@ void CInferredPortalData::Init()
 				delete[] data;
 			}
 
-			/*
-			json test;
-			_housePortalDests.PackJson(test);
-			std::string testString = test.dump(4);
+			//json test;
+			//_housePortalDests.PackJson(test);
 
-			FILE *fp = fopen("data/json/housePortalDestinations.json", "wt");
-			if (fp)
-			{
-				fprintf(fp, "%s\n", testString.c_str());
-				fclose(fp);
-			}*/
+			//std::ofstream out(dataPath / "housePortalDestinations.json");
+			//out << std::setw(4) << test << std::endl;
+			//out.flush();
+			//out.close();
 		}
 	}
 
