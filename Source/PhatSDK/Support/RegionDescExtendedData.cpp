@@ -73,13 +73,16 @@ DEFINE_UNPACK(CRegionDescExtendedDataTable)
 		//memset(_encounterTable, 0xFF, sizeof(DWORD) * _encounterTableSize * 16);
 
 		_encounterTable.resize(_encounterTableSize);
+		for (encounter_list_t &table : _encounterTable)
+		{
+			table.fill(0xffffffff);
+		}
 
 		_numTableEntries = pReader->Read<DWORD>();
 		for (DWORD i = 0; i < _numTableEntries; i++)
 		{
 			DWORD index = pReader->Read<DWORD>();
 			encounter_list_t &table = _encounterTable[index];
-			table.fill(0xffffffff);
 
 			memcpy(table.data(), pReader->ReadArray(sizeof(DWORD) * 16), sizeof(DWORD) * 16);
 		}
@@ -122,16 +125,15 @@ DEFINE_UNPACK_JSON(CRegionDescExtendedDataTable)
 	if (_encounterTableSize > 0)
 	{
 		_encounterTable.resize(_encounterTableSize);
+		for (encounter_list_t &table : _encounterTable)
+		{
+			table.fill(0xffffffff);
+		}
 
 		json::const_iterator end = reader.end();
 		json::const_iterator itr = reader.find("encounters");
 		if (itr != end)
 		{
-			for (encounter_list_t &table : _encounterTable)
-			{
-				table.fill(0xffffffff);
-			}
-
 			for (auto &entry : *itr)
 			{
 				int i = entry["key"];
