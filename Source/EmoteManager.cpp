@@ -1782,7 +1782,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 		if (emote.extent == 2) //if extent is 2 then set float on self.
 		{
-			_weenie->m_Qualities.SetFloat((STypeFloat)emote.stat, emote.amount);
+			_weenie->m_Qualities.SetFloat((STypeFloat)emote.stat, emote.percent);
 			_weenie->NotifyFloatStatUpdated((STypeFloat)emote.stat, FALSE);
 		}
 
@@ -1791,7 +1791,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			CWeenieObject *target = g_pWorld->FindObject(target_id);
 			if (target)
 			{
-				target->m_Qualities.SetFloat((STypeFloat)emote.stat, emote.amount);
+				target->m_Qualities.SetFloat((STypeFloat)emote.stat, emote.percent);
 				target->NotifyFloatStatUpdated((STypeFloat)emote.stat, FALSE);
 			}
 		}
