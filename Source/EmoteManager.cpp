@@ -1754,6 +1754,50 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 		break;
 	}
+	case TeleportTarget_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *target = g_pWorld->FindObject(target_id);
+		if (target)
+		{
+			target->Movement_Teleport(emote.mPosition, false);
+		}
+
+		break;
+	}
+	case TeleportSelf_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		_weenie->Movement_Teleport(emote.mPosition, false);
+		break;
+	}
+	case SetFloatStat_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		if (emote.extent == 2) //if extent is 2 then set float on self.
+		{
+			_weenie->m_Qualities.SetFloat((STypeFloat)emote.stat, emote.amount);
+			_weenie->NotifyFloatStatUpdated((STypeFloat)emote.stat, FALSE);
+		}
+
+		else
+		{
+			CWeenieObject *target = g_pWorld->FindObject(target_id);
+			if (target)
+			{
+				target->m_Qualities.SetFloat((STypeFloat)emote.stat, emote.amount);
+				target->NotifyFloatStatUpdated((STypeFloat)emote.stat, FALSE);
+			}
+		}
+
+		break;
+	}
 	}
 	_weenie->m_Qualities.SetBool(EXECUTING_EMOTE, false);
 }
