@@ -496,7 +496,7 @@ TeleTownList_s CWorld::GetTeleportLocation(std::string location)
 		//Lets waste a bunch of time with this.. Hey, if its the first one on the list its O(1)
 		std::string town = var.m_teleString;
 		std::transform(town.begin(), town.end(), town.begin(), ::tolower);
-		if (town.find(location) != std::string::npos) {
+		if (town[0] == location[0] && town.find(location) != std::string::npos) {
 			val = var;
 			break;
 		}
