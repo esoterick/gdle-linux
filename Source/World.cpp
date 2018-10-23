@@ -236,9 +236,18 @@ DungeonDesc_t* CWorld::GetDungeonDesc(const char* szDungeonName)
 	DungeonDescMap::iterator i = m_mDungeonDescs.begin();
 	DungeonDescMap::iterator iend = m_mDungeonDescs.end();
 
+	std::string dungeonName = "";
+	std::string searchName = szDungeonName;
+
 	while (i != iend)
 	{
-		if (!stricmp(szDungeonName, i->second.szDungeonName))
+		dungeonName = i->second.szDungeonName;
+
+		std::transform(dungeonName.begin(), dungeonName.end(), dungeonName.begin(), ::tolower);
+		std::transform(searchName.begin(), searchName.end(), searchName.begin(), ::tolower);
+
+
+		if (dungeonName.find(szDungeonName) != std::string::npos)
 			return &i->second;
 
 		i++;

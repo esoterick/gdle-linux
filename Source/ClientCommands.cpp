@@ -2575,7 +2575,7 @@ CLIENT_COMMAND(dungeon, "<command>", "Dungeon commands.", BASIC_ACCESS)
 		if (argc < 2)
 			return true;
 
-		if (strlen(argv[1]) < 6)
+		if (strlen(argv[1]) < 5)
 		{
 			//by ID
 			WORD wBlockID = (WORD)strtoul(argv[1], NULL, 16);
@@ -2645,8 +2645,8 @@ CLIENT_COMMAND(dungeon, "<command>", "Dungeon commands.", BASIC_ACCESS)
 			return false;
 		}
 
-		if (strlen(argv[1]) < 6) {
-			pPlayer->SendText("Please enter a name of at least 6 characters in length.", LTT_DEFAULT);
+		if (strlen(argv[1]) < 5) {
+			pPlayer->SendText("Please enter a name of at least 5 characters in length.", LTT_DEFAULT);
 			return false;
 		}
 		if (strlen(argv[1]) > 80) {
