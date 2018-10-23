@@ -247,7 +247,7 @@ DungeonDesc_t* CWorld::GetDungeonDesc(const char* szDungeonName)
 		std::transform(searchName.begin(), searchName.end(), searchName.begin(), ::tolower);
 
 
-		if (dungeonName.find(szDungeonName) != std::string::npos)
+		if (dungeonName.find(searchName) != std::string::npos)
 			return &i->second;
 
 		i++;
