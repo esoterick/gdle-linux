@@ -78,10 +78,9 @@ public:
 	DWORD _unknown10 = 0;
 };
 
-class CCraftOperation : public PackObj, public PackableJson
+class CraftOperationData : public PackableJson
 {
 public:
-	DECLARE_PACKABLE()
 	DECLARE_PACKABLE_JSON();
 
 	DWORD _unk = 0;
@@ -115,6 +114,31 @@ public:
 	CraftMods _mods[8];
 
 	DWORD _dataID = 0;
+};
+
+class CCraftOperation : public PackObj, public CraftOperationData
+{
+public:
+	DECLARE_PACKABLE()
+
+};
+
+class JsonCraftOperation : public CraftOperationData
+{
+public:
+	JsonCraftOperation() = default;
+	JsonCraftOperation(const CraftOperationData& other)
+		: CraftOperationData(other), _recipeID()
+	{
+	}
+	JsonCraftOperation(const CraftOperationData& other, DWORD id)
+		: CraftOperationData(other), _recipeID(id)
+	{
+	}
+
+	DECLARE_PACKABLE_JSON();
+
+	DWORD _recipeID = 0;
 };
 
 class CCraftTable : public PackObj, public PackableJson
@@ -141,44 +165,5 @@ public:
 	DWORD RecipeID = 0;
 	DWORD64 ToolTargetCombo = 0;
 
-};
-
-class JsonCraftOperation : public PackableJson
-{
-public:
-	DECLARE_PACKABLE_JSON();
-
-	DWORD _recipeID = 0;
-	DWORD _unk = 0;
-	STypeSkill _skill = STypeSkill::UNDEF_SKILL;
-	int _difficulty = 0;
-	DWORD _SkillCheckFormulaType = 0;
-	DWORD _successWcid = 0;
-	DWORD _successAmount = 0;
-	std::string _successMessage;
-	DWORD _failWcid = 0;
-	DWORD _failAmount = 0;
-	std::string _failMessage;
-
-	double _successConsumeTargetChance;
-	int _successConsumeTargetAmount;
-	std::string _successConsumeTargetMessage;
-
-	double _successConsumeToolChance;
-	int _successConsumeToolAmount;
-	std::string _successConsumeToolMessage;
-
-	double _failureConsumeTargetChance;
-	int _failureConsumeTargetAmount;
-	std::string _failureConsumeTargetMessage;
-
-	double _failureConsumeToolChance;
-	int _failureConsumeToolAmount;
-	std::string _failureConsumeToolMessage;
-
-	CraftRequirements _requirements[3];
-	CraftMods _mods[8];
-
-	DWORD _dataID = 0;
 };
 

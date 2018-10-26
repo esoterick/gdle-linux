@@ -236,9 +236,18 @@ DungeonDesc_t* CWorld::GetDungeonDesc(const char* szDungeonName)
 	DungeonDescMap::iterator i = m_mDungeonDescs.begin();
 	DungeonDescMap::iterator iend = m_mDungeonDescs.end();
 
+	std::string dungeonName = "";
+	std::string searchName = szDungeonName;
+
 	while (i != iend)
 	{
-		if (!stricmp(szDungeonName, i->second.szDungeonName))
+		dungeonName = i->second.szDungeonName;
+
+		std::transform(dungeonName.begin(), dungeonName.end(), dungeonName.begin(), ::tolower);
+		std::transform(searchName.begin(), searchName.end(), searchName.begin(), ::tolower);
+
+
+		if (dungeonName.find(searchName) != std::string::npos)
 			return &i->second;
 
 		i++;
@@ -496,7 +505,7 @@ TeleTownList_s CWorld::GetTeleportLocation(std::string location)
 		//Lets waste a bunch of time with this.. Hey, if its the first one on the list its O(1)
 		std::string town = var.m_teleString;
 		std::transform(town.begin(), town.end(), town.begin(), ::tolower);
-		if (town.find(location) != std::string::npos) {
+		if (town[0] == location[0] && town.find(location) != std::string::npos) {
 			val = var;
 			break;
 		}
