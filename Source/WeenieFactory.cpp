@@ -997,6 +997,7 @@ void CWeenieFactory::AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject
 
 			pos.frame.m_origin += Vector(random_x, random_y, 0.0f);
 			pos.frame.m_origin.z = CalcSurfaceZ(pos.objcell_id, pos.frame.m_origin.x, pos.frame.m_origin.y, true);
+			pos.frame.m_origin.z += 0.5f; // add a little fudge factor to ensure mobs don't spawn in ground.
 
 			if (pos.frame.m_origin.x < 0.5f)
 				pos.frame.m_origin.x = 0.5f;
@@ -1028,6 +1029,7 @@ void CWeenieFactory::AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject
 
 		if ((pos.objcell_id & 0xFFFF) < 0x100) //outdoors
 		pos.frame.m_origin.z = CalcSurfaceZ(pos.objcell_id, pos.frame.m_origin.x, pos.frame.m_origin.y, true);
+		pos.frame.m_origin.z += 0.5f; // add a little fudge factor to ensure mobs don't spawn in ground.
 
 		weenie->SetInitialPosition(pos);
 		if (!g_pWorld->CreateEntity(weenie))
