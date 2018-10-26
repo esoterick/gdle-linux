@@ -605,6 +605,9 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 	sourceItem->unset_parent();
 	sourceItem->enter_world(&m_Position);
 
+	if(!sourceItem->m_Qualities.m_PositionStats)
+		sourceItem->m_Qualities.SetPosition(LOCATION_POSITION, m_Position);
+
 	sourceItem->SetPlacementFrame(0x65, FALSE);
 
 	//if (!pItem->HasAnims())
