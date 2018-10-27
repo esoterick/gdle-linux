@@ -116,6 +116,7 @@ int getRandomNumber(int minInclusive, int maxInclusive, eRandomFormula formula, 
 {
 	int numbersAmount = maxInclusive - minInclusive;
 	double maxVal = (double)maxInclusive;
+	double minVal = (double)minInclusive;
 
 	switch (formula)
 	{
@@ -123,14 +124,14 @@ int getRandomNumber(int minInclusive, int maxInclusive, eRandomFormula formula, 
 	{
 		favorSpecificValue = favorSpecificValue + (numbersAmount * favorModifier);
 		favorSpecificValue = min(favorSpecificValue, maxVal);
-		favorSpecificValue = max(favorSpecificValue, maxVal);
+		favorSpecificValue = max(favorSpecificValue, minVal);
 		return getRandomNumberWithFavoredValue(minInclusive, maxInclusive, favorSpecificValue, favorStrength);
 	}
 	case eRandomFormula::favorLow:
 	{
 		favorSpecificValue = minInclusive + (numbersAmount * favorModifier);
 		favorSpecificValue = min(favorSpecificValue, maxVal);
-		favorSpecificValue = max(favorSpecificValue, maxVal);
+		favorSpecificValue = max(favorSpecificValue, minVal);
 		return getRandomNumberWithFavoredValue(minInclusive, maxInclusive, favorSpecificValue, favorStrength);
 	}
 	case eRandomFormula::favorMid:
@@ -138,14 +139,14 @@ int getRandomNumber(int minInclusive, int maxInclusive, eRandomFormula formula, 
 		int midValue = (int)round(((double)(maxInclusive - minInclusive) / 2)) + minInclusive;
 		favorSpecificValue = midValue + (numbersAmount * favorModifier);
 		favorSpecificValue = min(favorSpecificValue, maxVal);
-		favorSpecificValue = max(favorSpecificValue, maxVal);
+		favorSpecificValue = max(favorSpecificValue, minVal);
 		return getRandomNumberWithFavoredValue(minInclusive, maxInclusive, favorSpecificValue, favorStrength);
 	}
 	case eRandomFormula::favorHigh:
 	{
 		favorSpecificValue = maxInclusive - (numbersAmount * favorModifier);
 		favorSpecificValue = min(favorSpecificValue, maxVal);
-		favorSpecificValue = max(favorSpecificValue, maxVal);
+		favorSpecificValue = max(favorSpecificValue, minVal);
 		return getRandomNumberWithFavoredValue(minInclusive, maxInclusive, favorSpecificValue, favorStrength);
 	}
 	default:
