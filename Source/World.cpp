@@ -705,6 +705,9 @@ DWORD CWorld::GetPlayerId(const char *name, bool allowOffline)
 //==================================================
 CPlayerWeenie *CWorld::FindPlayer(const char *target_name)
 {
+	if (!target_name)
+		return NULL;
+	
 	if (*target_name == '+')
 		target_name++;
 
