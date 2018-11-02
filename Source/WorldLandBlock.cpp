@@ -1319,6 +1319,11 @@ void CWorldLandBlock::UnloadSpawnsUntilNextTick()
 	m_bSpawnOnNextTick = true;
 }
 
+CWeenieObject *CWorldLandBlock::RestrictedLandblocks()
+{
+	m_brestrictedlist = DWORD;
 
+	return m_brestrictedlist;
+}
 
 

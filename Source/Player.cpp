@@ -3262,6 +3262,12 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		SetInitialPosition(g_StartPosition);
 		m_Qualities.SetPosition(SANCTUARY_POSITION, g_StartPosition);
 	}
+	CWorldLandBlock *startBlock = GetBlock();
+	if (LOGIN_AT_LIFESTONE_BOOL || startBlock == RestrictedLandblocks.find(startBlock))
+	{
+		SetInitialPosition(SANCTUARY_POSITION);
+		m_Qualities.SetBool((STypeBool)LOGIN_AT_LIFESTONE_BOOL, 0);
+	}
 
 	// should never be in a fellowship when logging in, but let's be sure
 	m_Qualities.RemoveString(FELLOWSHIP_STRING);
