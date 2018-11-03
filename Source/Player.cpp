@@ -3264,13 +3264,23 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	}
 
 	std::set<DWORD> restrictedLandBlocks{ 2315386880, 458752 }; //facility hub, town network
-	WORD startBlock = BLOCK_WORD(INSTANTIATION_POSITION.objcell_id);
 
-	if (LOGIN_AT_LIFESTONE_BOOL || (restrictedLandBlocks.find(startBlock) != restrictedLandBlocks.end()))//startBlock == RestrictedLandblocks.find(startBlock))
+	Position m_initLocPosition;
+	if (m_Qualities.InqPosition(LOCATION_POSITION, m_initLocPosition) && m_initLocPosition.objcell_id);
 	{
-		SetInitialPosition(SANCTUARY_POSITION);
-		m_Qualities.SetBool((STypeBool)LOGIN_AT_LIFESTONE_BOOL, 0);
+		WORD startBlock = BLOCK_WORD(m_Position.objcell_id);
+
+		if (LOGIN_AT_LIFESTONE_BOOL || (restrictedLandBlocks.find(startBlock) != restrictedLandBlocks.end()))//startBlock == RestrictedLandblocks.find(startBlock))
+		{
+			Position m_StartPosition;
+			if (m_Qualities.InqPosition(SANCTUARY_POSITION, m_StartPosition) && m_StartPosition.objcell_id)
+			{
+				m_Qualities.SetPosition(LOCATION_POSITION, m_StartPosition);
+				m_Qualities.SetBool((STypeBool)LOGIN_AT_LIFESTONE_BOOL, 0);
+			}
+		}
 	}
+
 
 	// should never be in a fellowship when logging in, but let's be sure
 	m_Qualities.RemoveString(FELLOWSHIP_STRING);
