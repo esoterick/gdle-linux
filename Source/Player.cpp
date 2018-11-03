@@ -3262,8 +3262,11 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		SetInitialPosition(g_StartPosition);
 		m_Qualities.SetPosition(SANCTUARY_POSITION, g_StartPosition);
 	}
-	CWorldLandBlock *startBlock = GetBlock();
-	if (LOGIN_AT_LIFESTONE_BOOL || startBlock == RestrictedLandblocks.find(startBlock))
+
+	std::set<DWORD> restrictedLandBlocks{ 2315386880, 458752 }; //facility hub, town network
+	WORD startBlock = BLOCK_WORD(INSTANTIATION_POSITION.objcell_id);
+
+	if (LOGIN_AT_LIFESTONE_BOOL || (restrictedLandBlocks.find(startBlock) != restrictedLandBlocks.end()))//startBlock == RestrictedLandblocks.find(startBlock))
 	{
 		SetInitialPosition(SANCTUARY_POSITION);
 		m_Qualities.SetBool((STypeBool)LOGIN_AT_LIFESTONE_BOOL, 0);

@@ -45,7 +45,6 @@ public:
 
 	CPlayerWeenie* FindPlayer(DWORD dwGUID);
 	CWeenieObject* FindEntity(DWORD dwGUID);
-	CWeenieObject* RestrictedLandblocks();
 
 	void Broadcast(void *_data, DWORD _len, WORD _group, DWORD ignore_ent, BOOL _game_event);
 
