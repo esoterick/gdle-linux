@@ -3269,7 +3269,7 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	===========LIST==========
 	Viamontian Garrison, Augmentation Realm Main Level, Tanada House of Pancakes (Seasonal), Augmentation Realm Upper Level, Augmentation Realm Lower Level, Derethian Combat Arena, Derethian Combat Arena, Blighted Putrid Moarsman Tunnels, Jester's Prison, Mhoire Armory, Mountain Cavern, East Fork Dam Hive, Mount Elyrii Hive, Oubliette of Mhoire Castle, Tainted Grotto, Greater Battle Dungeon, Hoshino Tower, Thug Hideout, Night Club (Seasonal Anniversary), Frozen Wight Lair, Northwatch Castle Black Market, Aerfalle's Sanctum, Freebooter Keep Black Market
 	*/
-	std::set<DWORD> NoLogLandBlocks{ 131072, 5636096, 6225920, 7143424, 8192000, 11206656, 11272192, 12779520, 14090240, 15335424, 22872064, 41877504, 61276160, 1466171392, 1665925120, 1698955264, 1716584448, 2114191360, 2315517952, 2332295168, 2665807872, 3052404736, 4180606976 };
+	//std::set<DWORD> NoLogLandBlocks{ 131072, 5636096, 6225920, 7143424, 8192000, 11206656, 11272192, 12779520, 14090240, 15335424, 22872064, 41877504, 61276160, 1466171392, 1665925120, 1698955264, 1716584448, 2114191360, 2315517952, 2332295168, 2665807872, 3052404736, 4180606976 };
 
 	Position m_initLocPosition;
 	if (m_Qualities.InqPosition(LOCATION_POSITION, m_initLocPosition) && m_initLocPosition.objcell_id)
@@ -3283,6 +3283,7 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		else
 		{
 			DWORD LogoutLandBlock = (BLOCK_WORD(m_initLocPosition.objcell_id) * 65536);
+			auto NoLogLandBlocks = g_pConfig->NoLogLandBlocks();
 			if ((NoLogLandBlocks.find(LogoutLandBlock) != NoLogLandBlocks.end()) || g_pConfig->LoginAtLS())
 			{
 				SetSanctuaryAsLogin();

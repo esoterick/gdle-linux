@@ -69,6 +69,7 @@ bool CKeyValueConfig::Load()
 	f.close();
 	
 	PostLoad();
+
 	return true;
 }
 
@@ -238,3 +239,17 @@ double CPhatACServerConfig::RewardXPMultiplier(int level)
 		return m_fRewardXPMultiplierT6;
 }
 
+void CPhatACServerConfig::UnpackRestrictedLBs()
+{
+	json restrictedLBData;
+	std::ifstream rpcStream("data\\json\\restrictedlandblocks.json");
+	if (rpcStream.is_open())
+	{
+		rpcStream >> restrictedLBData;
+		rpcStream.close();
+	}
+
+	if (restrictedLBData.size() > 0)
+		_jsonrestrictedLBData.UnPackJson(restrictedLBData);
+	
+}
