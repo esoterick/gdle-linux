@@ -2646,7 +2646,10 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			DWORD GUID = pReader->ReadDWORD();
 			if (pReader->GetLastError()) break;
 
-			SendTell(text, NULL, GUID);
+			if (GUID > 0)
+				SendTell(text, NULL, GUID);
+			else
+				m_pPlayer->SendText("Player not found.", LTT_DEFAULT);
 
 			break;
 		}
@@ -3701,7 +3704,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 				{
 					m_pPlayer->SetPositionInternal(transit);
 				}
-				
+								
 			}
 
 			// m_pPlayer->m_Position = moveToState.position; // should interpolate to this, but oh well
