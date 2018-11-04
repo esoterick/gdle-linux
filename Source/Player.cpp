@@ -3263,20 +3263,27 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		m_Qualities.SetPosition(SANCTUARY_POSITION, g_StartPosition);
 	}
 
-	std::set<DWORD> restrictedLandBlocks{ 2315386880, 458752 }; //facility hub, town network
+	/*
+	Below are a list of landblocks restricted from login. If a player's location position matches the listed landblocks their login position will be changed (one time) to their sanctuary position.
+	THIS CODED LIST IS TEMPORARY - This should be moved to either a config loaded option or a JSON loaded format.
+	*/
+	std::set<DWORD> NoLogLandBlocks{ 7143424, 8192000, 5636096 }; //augmentation realm upper, augmentation realm lower, augmentation realm main
 
 	Position m_initLocPosition;
-	if (m_Qualities.InqPosition(LOCATION_POSITION, m_initLocPosition) && m_initLocPosition.objcell_id);
+	if (m_Qualities.InqPosition(LOCATION_POSITION, m_initLocPosition) && m_initLocPosition.objcell_id)
 	{
-		WORD startBlock = BLOCK_WORD(m_Position.objcell_id);
-
-		if (LOGIN_AT_LIFESTONE_BOOL || (restrictedLandBlocks.find(startBlock) != restrictedLandBlocks.end()))//startBlock == RestrictedLandblocks.find(startBlock))
+		if (InqBoolQuality(LOGIN_AT_LIFESTONE_BOOL, FALSE))
 		{
-			Position m_StartPosition;
-			if (m_Qualities.InqPosition(SANCTUARY_POSITION, m_StartPosition) && m_StartPosition.objcell_id)
+			SetSanctuaryAsLogin();
+			m_Qualities.SetBool((STypeBool)LOGIN_AT_LIFESTONE_BOOL, 0);
+		}
+
+		else
+		{
+			DWORD LogoutLandBlock = (BLOCK_WORD(m_initLocPosition.objcell_id) * 65536);
+			if ((NoLogLandBlocks.find(LogoutLandBlock) != NoLogLandBlocks.end()) || g_pConfig->LoginAtLS())
 			{
-				m_Qualities.SetPosition(LOCATION_POSITION, m_StartPosition);
-				m_Qualities.SetBool((STypeBool)LOGIN_AT_LIFESTONE_BOOL, 0);
+				SetSanctuaryAsLogin();
 			}
 		}
 	}
@@ -3365,6 +3372,15 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
 		if (houseData->_ownerId != GetID())
 			m_Qualities.SetDataID(HOUSEID_DID, 0);
+	}
+}
+
+void CPlayerWeenie::SetSanctuaryAsLogin()
+{
+	Position m_StartPosition;
+	if (m_Qualities.InqPosition(SANCTUARY_POSITION, m_StartPosition) && m_StartPosition.objcell_id)
+	{
+		m_Qualities.SetPosition(LOCATION_POSITION, m_StartPosition);
 	}
 }
 

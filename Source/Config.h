@@ -94,6 +94,8 @@ public:
 	virtual double RareDropMultiplier() { return m_fRareDropMultiplier; }
 	virtual bool RealTimeRares() { return m_bRealTimeRares; }
 
+	virtual bool LoginAtLS() { return m_bLoginAtLS; }
+
 protected:
 	virtual void PostLoad() override;
 
@@ -177,6 +179,8 @@ protected:
 	bool m_bAllowGeneralChat = 1;
 	bool m_bRealTimeRares = 0;
 	double m_fRareDropMultiplier = 0.0;
+
+	bool m_bLoginAtLS = 0;
 };
 
 extern CPhatACServerConfig *g_pConfig;

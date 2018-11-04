@@ -229,7 +229,7 @@ public:
 
 	CCraftOperation *TryGetAlternativeOperation(CWeenieObject *target, CWeenieObject *tool, CCraftOperation *op);
 
-
+	void SetSanctuaryAsLogin();
 
 protected:
 	CClient *m_pClient;
