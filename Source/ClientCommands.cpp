@@ -1049,8 +1049,8 @@ CLIENT_COMMAND(getinfo, "", "Get Info from targetted object.", BASIC_ACCESS)
 		return false;
 
 	std::string info;
-	info += csprintf("ID: %08X WCID: %u\nWClass: %s @ %08X",
-		target->GetID(),
+	info += csprintf("WCID: %u \nWClass: %s @ %08X",
+		
 		target->m_Qualities.id,
 		GetWCIDName(target->m_Qualities.id),
 		target->m_Position.objcell_id);
