@@ -1042,6 +1042,24 @@ CLIENT_COMMAND(debug, "<index>", "", ADMIN_ACCESS)
 	return false;
 }
 
+CLIENT_COMMAND(getinfo, "", "Get Info from targetted object.", BASIC_ACCESS)
+{
+	CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!target)
+		return false;
+
+	std::string info;
+	info += csprintf("ID: %08X WCID: %u\nWClass: %s @ %08X",
+		target->GetID(),
+		target->m_Qualities.id,
+		GetWCIDName(target->m_Qualities.id),
+		target->m_Position.objcell_id);
+
+	pPlayer->SendText(info.c_str(), LTT_DEFAULT);
+
+	return false;
+}
+
 CLIENT_COMMAND(monsterbrawl, "", "Toggle monsters fighting each other.", ADMIN_ACCESS)
 {
 	monster_brawl = !monster_brawl;
