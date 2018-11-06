@@ -443,6 +443,20 @@ void CInferredPortalData::Init()
 		}
 	}
 
+	{
+		std::ifstream fileStream("data\\json\\restrictedlandblocks.json");
+
+		if (fileStream.is_open())
+		{
+			json jsonrestricLBData;
+			fileStream >> jsonrestricLBData;
+			fileStream.close();
+			
+			if (jsonrestricLBData.size() > 0)
+				_restrictedLBData = jsonrestricLBData.at("restrictedlandblocks").get<std::set<DWORD>>();
+		}
+	}
+
 #ifndef PUBLIC_BUILD
 	SERVER_INFO << "Finished loading inferred cell data.";
 #endif
@@ -497,8 +511,14 @@ CMutationFilter *CInferredPortalData::GetMutationFilter(DWORD id)
 	return NULL;
 }
 
+ 
+
 std::vector<std::string> CInferredPortalData::GetBannedWords()
 {
 	return _bannedWords;
 }
 
+ std::set<DWORD> CInferredPortalData::GetRestrictedLandblocks()
+{
+	return _restrictedLBData;
+}

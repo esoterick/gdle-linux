@@ -15,6 +15,7 @@ public:
 	Position *GetHousePortalDest(DWORD house_id, DWORD ignore_cell_id);
 	CMutationFilter *GetMutationFilter(DWORD id);
 	std::vector<std::string> GetBannedWords();
+	std::set<DWORD> GetRestrictedLandblocks();
 
 	CRegionDescExtendedDataTable _regionData;
 	CSpellTableExtendedDataTable _spellTableData;
@@ -25,6 +26,7 @@ public:
 	std::unordered_map<DWORD, CMutationFilter *> _mutationFilters;
 	GameEventDefDB _gameEvents;
 	std::vector<std::string> _bannedWords;
+	std::set<DWORD> _restrictedLBData;
 };
 
 

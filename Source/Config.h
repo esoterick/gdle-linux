@@ -96,8 +96,6 @@ public:
 	virtual bool RealTimeRares() { return m_bRealTimeRares; }
 
 	virtual bool LoginAtLS() { return m_bLoginAtLS; }
-	virtual std::set<DWORD> NoLogLandBlocks() { return m_NoLogLandBlocks; }
-	void UnpackRestrictedLBs();
 
 protected:
 	virtual void PostLoad() override;
@@ -184,8 +182,6 @@ protected:
 	double m_fRareDropMultiplier = 0.0;
 
 	bool m_bLoginAtLS = 0;
-	std::set<DWORD> m_NoLogLandBlocks { 131072, 5636096, 6225920, 7143424, 8192000, 11206656, 11272192, 12779520, 14090240, 15335424, 22872064, 41877504, 61276160, 1466171392, 1665925120, 1698955264, 1716584448, 2114191360, 2315517952, 2332295168, 2665807872, 3052404736, 4180606976 };
-	PackableListWithJson<CPhatACServerConfig> _jsonrestrictedLBData;
 };
 
 extern CPhatACServerConfig *g_pConfig;
