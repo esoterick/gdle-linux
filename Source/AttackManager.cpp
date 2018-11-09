@@ -1052,6 +1052,7 @@ void CMissileAttackEvent::FireMissile()
 	{
 		_weenie->DoForcedStopCompletely();
 		_weenie->NotifyWeenieError(WERROR_COMBAT_MISFIRE);
+		SafeDelete(missileAsWeenieObject);
 		return;
 	}
 

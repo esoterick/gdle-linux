@@ -746,6 +746,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 		}
 
 	}
+	SafeDelete(cg.skillAdvancementClasses);
 	return;
 
 BadData:
