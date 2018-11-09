@@ -25,7 +25,7 @@ http://wampserver.aviatechno.net/files/mariadb/wampserver3_x64_addon_mariadb10.1
 
 5. Make sure WAMP is running, and go to http://localhost/phpmyadmin/ in your web browser. Login to PHPMYADMIN as root with no password.
 6. On the left side, click "New" and create a database named "GDLE".
-7. With the newly created "GDLE" database selected, click the "Import" tab on the right side, select the "gdle_db.sql" file located in the "sqldumps" folder and click "Go."
+7. With the newly created "GDLE" database selected, click the "Import" tab on the right side, select the "gdle_db.sql" file located in the "sqldumps" folder and click "Go." (also import the other "blob_update" stored procedure sql dumps.)
 8. Run the GDLE.exe program.
 9. Click Start.
 10. To play, click Launch, or use a launcher app such as ThwargLauncher to connect to the server.
@@ -35,7 +35,7 @@ Advanced Setup:
 1. Extract all files from the ZIP to a folder such as (e.g. "C:\GDLEServer")
 2. Copy FULL/COMPLETE client_portal.dat and client_cell_1.dat files to the "Data" folder.
 3. Install MariaDB (10.1 tested to work well.)
-4. Import the "gdle_db.sql" file located in the "sqldumps" folder.
+4. Import the "gdle_db.sql" file located in the "sqldumps" folder. (also import the other "blob_update" stored procedure sql dumps.)
 5. Open the server.cfg file and alter it how you wish.
 6. Optionally, copy your game files completely to the "Client" folder so the "Launch" button will work in the GDLE Server UI.
 7. Run the GDLE server and click Start.
