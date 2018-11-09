@@ -15,6 +15,7 @@ public:
 	Position *GetHousePortalDest(DWORD house_id, DWORD ignore_cell_id);
 	CMutationFilter *GetMutationFilter(DWORD id);
 	std::vector<std::string> GetBannedWords();
+	std::set<DWORD> GetRestrictedLandblocks();
 
 	using position_list_t = PackableListWithJson<Position>;
 	using house_portal_table_t = PackableHashTableWithJson<DWORD, position_list_t>;
@@ -30,6 +31,7 @@ public:
 	mutation_table_t _mutationFilters;
 	GameEventDefDB _gameEvents;
 	std::vector<std::string> _bannedWords;
+	std::set<DWORD> _restrictedLBData;
 };
 
 

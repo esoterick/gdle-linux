@@ -3263,6 +3263,27 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		m_Qualities.SetPosition(SANCTUARY_POSITION, g_StartPosition);
 	}
 
+	Position m_initLocPosition;
+	if (m_Qualities.InqPosition(LOCATION_POSITION, m_initLocPosition) && m_initLocPosition.objcell_id) //governs whether or not to log player in at lifestone. NOTE: In the absence of a "location position" a player is already logged in at sanc or instantiation position.
+	{
+		if (InqBoolQuality(LOGIN_AT_LIFESTONE_BOOL, FALSE))
+		{
+			SetSanctuaryAsLogin();
+			m_Qualities.SetBool((STypeBool)LOGIN_AT_LIFESTONE_BOOL, 0);
+		}
+
+		else //If a player's location position matches the listed landblocks in restrictedlandblocks.json or login at lifestone is configured to true their login position will be changed (one time) to their sanctuary position.
+		{
+			DWORD LogoutLandBlock = (BLOCK_WORD(m_initLocPosition.objcell_id) * 65536);
+			auto NoLogLandBlocks = g_pPortalDataEx->GetRestrictedLandblocks();
+			if ((NoLogLandBlocks.find(LogoutLandBlock) != NoLogLandBlocks.end()) || g_pConfig->LoginAtLS())
+			{
+				SetSanctuaryAsLogin();
+			}
+		}
+	}
+
+
 	// should never be in a fellowship when logging in, but let's be sure
 	m_Qualities.RemoveString(FELLOWSHIP_STRING);
 
@@ -3346,6 +3367,15 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
 		if (houseData->_ownerId != GetID())
 			m_Qualities.SetDataID(HOUSEID_DID, 0);
+	}
+}
+
+void CPlayerWeenie::SetSanctuaryAsLogin()
+{
+	Position m_StartPosition;
+	if (m_Qualities.InqPosition(SANCTUARY_POSITION, m_StartPosition) && m_StartPosition.objcell_id)
+	{
+		m_Qualities.SetPosition(LOCATION_POSITION, m_StartPosition);
 	}
 }
 

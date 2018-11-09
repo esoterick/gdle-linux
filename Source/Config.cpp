@@ -69,6 +69,7 @@ bool CKeyValueConfig::Load()
 	f.close();
 	
 	PostLoad();
+
 	return true;
 }
 
@@ -177,6 +178,8 @@ void CPhatACServerConfig::PostLoad()
 
 	m_fRareDropMultiplier = max(0.0, atof(GetValue("rare_drop_multiplier", "0.0")));
 	m_bRealTimeRares = atoi(GetValue("real_time_rare_drops", "0")) != 0;
+
+	m_bLoginAtLS = (atoi(GetValue("force_users_to_login_at_lifestone", "0"))) != 0;
 }
 
 double CPhatACServerConfig::GetMultiplierForQuestTime(int questTime)
@@ -238,4 +241,3 @@ double CPhatACServerConfig::RewardXPMultiplier(int level)
 	else
 		return m_fRewardXPMultiplierT6;
 }
-

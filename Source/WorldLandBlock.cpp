@@ -1318,7 +1318,3 @@ void CWorldLandBlock::UnloadSpawnsUntilNextTick()
 
 	m_bSpawnOnNextTick = true;
 }
-
-
-
-
