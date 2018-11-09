@@ -8,6 +8,24 @@
 #include "CombatFormulas.h"
 #include "combat/MeleeAttackEventData.h"
 
+// TODO: Move these up to AttackEventData?
+void CMeleeAttackEvent::CalculateAtt(CWeenieObject *weapon, STypeSkill& weaponSkill, DWORD& weaponSkillLevel)
+{
+	float offenseMod = weapon->GetOffenseMod();
+	weaponSkill = SkillTable::OldToNewSkill((STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
+	weaponSkillLevel = 0;
+
+	if (_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE))
+	{
+		weaponSkillLevel = (DWORD)(weaponSkillLevel * offenseMod);
+	}
+}
+
+int CMeleeAttackEvent::CalculateDef(CWeenieObject *weapon)
+{
+	return 0;
+}
+
 void CMeleeAttackEvent::Setup()
 {
 	DWORD attack_motion = 0;
@@ -144,10 +162,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	int preVarianceDamage;
 	float variance;
 
-	STypeSkill weaponSkill = STypeSkill::UNDEF_SKILL;
 	DAMAGE_TYPE damageType = DAMAGE_TYPE::UNDEF_DAMAGE_TYPE;
-
-	double offenseMod = 1.0;
 
 	bool isBodyPart = false;
 	CWeenieObject *weapon = _weenie->GetWieldedCombat(_combat_style);
@@ -187,8 +202,6 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 		variance = weapon->InqFloatQuality(DAMAGE_VARIANCE_FLOAT, 0.0f);
 		damageType = weapon->InqDamageType();
 	}
-	offenseMod = weapon->GetOffenseMod();
-	weaponSkill = SkillTable::OldToNewSkill((STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
 
 	//todo: maybe handle this differently as to integrate all possible damage type combos
 	if (damageType == (DAMAGE_TYPE::SLASH_DAMAGE_TYPE | DAMAGE_TYPE::PIERCE_DAMAGE_TYPE))
@@ -250,17 +263,15 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	else
 		_weenie->AdjustStamina(-necessaryStam);
 
+	STypeSkill weaponSkill = STypeSkill::UNDEF_SKILL;
 	DWORD weaponSkillLevel = 0;
-	if (_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE))
-	{
-		weaponSkillLevel = (DWORD)(weaponSkillLevel * offenseMod);
+	CalculateAtt(weapon, weaponSkill, weaponSkillLevel);
 
-		if (!hadEnoughStamina)
+	if (!hadEnoughStamina)
+	{
+		if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
 		{
-			if (CPlayerWeenie *pPlayer = _weenie->AsPlayer())
-			{
-				pPlayer->SendText("You're exhausted!", LTT_ERROR);
-			}
+			pPlayer->SendText("You're exhausted!", LTT_ERROR);
 		}
 	}
 

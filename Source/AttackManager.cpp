@@ -8,6 +8,7 @@
 #include "CombatFormulas.h"
 
 #include "combat/MeleeAttackEventData.h"
+#include "combat/DualWieldAttackEventData.h"
 #include "combat/MissileAttackEventData.h"
 
 // TODO fix memory leak with attack data
@@ -169,8 +170,8 @@ void AttackManager::BeginMeleeAttack(DWORD target_id, ATTACK_HEIGHT height, floa
 
 	if (_weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
 		attackEvent = new CTwoHandAttackEvent();
-	//else if (_weenie->GetWieldedCombat(COMBAT_USE_OFFHAND)
-	//	attackEvent = new CDualWieldAttackEvent();
+	else if (_weenie->GetWieldedCombat(COMBAT_USE_OFFHAND))
+		attackEvent = new CDualWieldAttackEvent();
 	else
 		attackEvent = new CMeleeAttackEvent();
 
