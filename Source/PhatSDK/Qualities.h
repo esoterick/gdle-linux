@@ -443,6 +443,8 @@ public:
 	void GetExpiredEnchantments(PackableListWithJson<Enchantment> *list, PackableListWithJson<DWORD> *expired); // custom
 	void GetExpiredEnchantments(PackableListWithJson<DWORD> *expired); // custom
 
+	Enchantment* GetHighestEnchantOfCategory(unsigned int category, unsigned int smod_type);
+
 	PackableListWithJson<Enchantment> *_mult_list = NULL;
 	PackableListWithJson<Enchantment> *_add_list = NULL;
 	PackableListWithJson<Enchantment> *_cooldown_list = NULL;
