@@ -6380,7 +6380,7 @@ void CWeenieObject::OnTeleported()
 	if (m_SpellcastingManager)
 		m_SpellcastingManager->Cancel();
 
-	if (m_EmoteManager)
+	if (m_EmoteManager && weenie_obj->_IsPlayer())
 		m_EmoteManager->Cancel();
 
 	if (m_AttackManager)
