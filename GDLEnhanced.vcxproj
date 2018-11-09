@@ -120,6 +120,10 @@
     <ClCompile Include="RecipeFactory.cpp" />
     <ClCompile Include="Source\AugmentationDevice.cpp" />
     <ClCompile Include="Source\BindStone.cpp" />
+    <ClCompile Include="Source\combat\AttackEventData.cpp" />
+    <ClCompile Include="Source\combat\DualWieldAttackEventData.cpp" />
+    <ClCompile Include="Source\combat\MeleeAttackEventData.cpp" />
+    <ClCompile Include="Source\combat\MissileAttackEventData.cpp" />
     <ClCompile Include="Source\easylogging++.cpp" />
     <ClCompile Include="Source\EnumUtil.cpp" />
     <ClCompile Include="Source\Game.cpp" />
@@ -339,6 +343,10 @@
     <ClInclude Include="Source\ChessManager.h" />
     <ClInclude Include="Source\ChessMatch.h" />
     <ClInclude Include="RecipeFactory.h" />
+    <ClInclude Include="Source\combat\AttackEventData.h" />
+    <ClInclude Include="Source\combat\DualWieldAttackEventData.h" />
+    <ClInclude Include="Source\combat\MeleeAttackEventData.h" />
+    <ClInclude Include="Source\combat\MissileAttackEventData.h" />
     <ClInclude Include="Source\EnumUtil.h" />
     <ClInclude Include="Source\AugmentationDevice.h" />
     <ClInclude Include="Source\BindStone.h" />

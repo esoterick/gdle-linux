@@ -58,6 +58,9 @@
     <Filter Include="Source Files\Messages\ClientToServer">
       <UniqueIdentifier>{aebfe921-cac6-4039-8649-37aea84ae258}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Object Capabilities\Combat">
+      <UniqueIdentifier>{00c5a251-396e-4e91-8a5e-33da1d3d1fd3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\PhatAC.cpp">
@@ -704,6 +707,18 @@
     </ClCompile>
     <ClCompile Include="Source\Messages\Client to Server\AllegianceUpdate_001F.cpp">
       <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\combat\AttackEventData.cpp">
+      <Filter>Source Files\Object Capabilities\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\combat\DualWieldAttackEventData.cpp">
+      <Filter>Source Files\Object Capabilities\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\combat\MeleeAttackEventData.cpp">
+      <Filter>Source Files\Object Capabilities\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\combat\MissileAttackEventData.cpp">
+      <Filter>Source Files\Object Capabilities\Combat</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1429,6 +1444,18 @@
     </ClInclude>
     <ClInclude Include="Source\Messages\Client to Server\AllegianceUpdate_001F.h">
       <Filter>Source Files\Messages\ClientToServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\combat\AttackEventData.h">
+      <Filter>Source Files\Object Capabilities\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\combat\DualWieldAttackEventData.h">
+      <Filter>Source Files\Object Capabilities\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\combat\MeleeAttackEventData.h">
+      <Filter>Source Files\Object Capabilities\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\combat\MissileAttackEventData.h">
+      <Filter>Source Files\Object Capabilities\Combat</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
