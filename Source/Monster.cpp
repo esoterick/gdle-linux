@@ -91,8 +91,8 @@ void CMonsterWeenie::PostSpawn()
 
 CWeenieObject *CMonsterWeenie::SpawnWielded(DWORD index, SmartArray<Style_CG> possibleStyles, DWORD color, SmartArray<DWORD> validColors, long double shade)
 {
-	index = max(min(index, possibleStyles.num_used - 1), 0);
-	shade = max(min(shade, 1), 0);
+	index = max(min(index, (DWORD)possibleStyles.num_used - 1), (DWORD)0);
+	shade = max(min(shade, 1.0l), 0.0l);
 
 	DWORD wcid = possibleStyles.array_data[index].weenieDefault;
 	DWORD clothingTable = possibleStyles.array_data[index].clothingTable;
@@ -140,7 +140,7 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(CWeenieObject *item, bool deleteItem
 
 		return NULL;
 	}
-
+	
 	item->SetID(g_pWorld->GenerateGUID(m_Qualities.GetInt(HERITAGE_GROUP_INT,0) == 0 ? eEphemeral : eDynamicGUID));
 
 	if (!g_pWorld->CreateEntity(item, false))
@@ -560,6 +560,13 @@ bool CMonsterWeenie::MoveItemTo3D(DWORD sourceItemId, bool animationDone)
 		return false;
 	}
 
+	// Temporarily disallow dropping stackable items.
+	if (sourceItem->m_Qualities.GetInt(MAX_STACK_SIZE_INT, 0) > 1)
+	{
+		NotifyInventoryFailedEvent(sourceItemId, WERROR_ATTUNED_ITEM);
+		return false;
+	}
+
 	if (!animationDone)
 	{
 		CDropInventoryUseEvent *dropEvent = new CDropInventoryUseEvent();
@@ -597,6 +604,9 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 	sourceItem->m_Qualities.SetInt(PARENT_LOCATION_INT, 0);
 	sourceItem->unset_parent();
 	sourceItem->enter_world(&m_Position);
+
+	if(!sourceItem->m_Qualities.m_PositionStats)
+		sourceItem->m_Qualities.SetPosition(LOCATION_POSITION, m_Position);
 
 	sourceItem->SetPlacementFrame(0x65, FALSE);
 
@@ -889,26 +899,11 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	}
 
 	CWeenieObject *sourceItem = FindValidNearbyItem(sourceItemId, USEDISTANCE_FAR);
-	if (!sourceItem || sourceItem->InUse)
+	if (!sourceItem)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
 		return false;
 	}
-
-	DWORD owner = 0;
-	if (!sourceItem->m_Qualities.InqInstanceID(OWNER_IID, owner))
-	{
-		sourceItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
-	}
-	else
-	{
-		if (owner != GetID())
-		{
-			NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
-			return false;
-		}
-	}
-
 
 	CWeenieObject *targetItem = FindValidNearbyItem(targetItemId, USEDISTANCE_FAR);
 	if (!targetItem)
@@ -932,9 +927,6 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	}
 	else
 	{
-		//Set the item to InUse while merging to prevent others from interacting with the item.
-		sourceItem->InUse = true;
-
 		//check if the items is still in range.
 		if (FindValidNearbyItem(sourceItemId, 5.0) == NULL || FindValidNearbyItem(targetItemId, 5.0) == NULL)
 		{
@@ -963,20 +955,6 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 		{
 			NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_NONE);
 			return false;
-		}
-
-		DWORD owner = 0;
-		if (!sourceItem->m_Qualities.InqInstanceID(OWNER_IID, owner))
-		{
-			sourceItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
-		}
-		else
-		{
-			if (owner != GetID())
-			{
-				NotifyInventoryFailedEvent(sourceItemId, WERROR_OBJECT_GONE);
-				return false;
-			}
 		}
 
 
@@ -1122,6 +1100,13 @@ bool CMonsterWeenie::SplitItemto3D(DWORD sourceItemId, DWORD amountToTransfer, b
 	}
 
 	if (sourceItem->IsAttunedOrContainsAttuned())
+	{
+		NotifyInventoryFailedEvent(sourceItemId, WERROR_ATTUNED_ITEM);
+		return false;
+	}
+
+	// Temporarily disallow dropping stackable items.
+	if (sourceItem->m_Qualities.GetInt(MAX_STACK_SIZE_INT,0) > 1)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_ATTUNED_ITEM);
 		return false;
@@ -1433,7 +1418,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 
 	//DebugValidate();
 	if (AsPlayer())
-		RecalculateEncumbrance();
+	RecalculateEncumbrance();
 }
 void CMonsterWeenie::Tick()
 {
@@ -1822,6 +1807,8 @@ void CMonsterWeenie::OnDeathAnimComplete()
 
 	m_bWaitingForDeathToFinish = false;
 
+	CWeenieObject *killer = g_pWorld->FindObject(m_DeathKillerIDForCorpse, false);
+
 	if (!_IsPlayer())
 	{
 		MarkForDestroy();
@@ -1835,6 +1822,12 @@ void CMonsterWeenie::OnDeathAnimComplete()
 
 		if (pCorpse)
 			GenerateDeathLoot(pCorpse);
+
+		if (pCorpse && m_bIsRareEligible && !g_pTreasureFactory->_TreasureProfile->rareTiers.empty() && g_pConfig->RareDropMultiplier() > 0.0)
+		{			
+			if (killer && killer->_IsPlayer())
+				g_pWeenieFactory->GenerateRareItem(pCorpse, killer);
+		}
 	}
 
 }
@@ -1847,6 +1840,8 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 	{
 		m_highestDamageSource = killer_id;
 	}
+
+	CheckRareEligible(g_pWorld->FindObject(m_highestDamageSource, false));
 
 	int level = InqIntQuality(LEVEL_INT, 0);
 
@@ -1882,7 +1877,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 	if (!g_pWorld->FindObjectName(m_highestDamageSource, m_DeathKillerNameForCorpse))
 		m_DeathKillerNameForCorpse = "fate";
 
-	if (m_Qualities._generator_registry)
+	if (m_Qualities._generator_registry && m_Qualities.GetInt(GENERATOR_DESTRUCTION_TYPE_INT,0) && m_Qualities.GetInt(GENERATOR_DESTRUCTION_TYPE_INT, 0) != 1)
 	{
 		for each(auto entry in m_Qualities._generator_registry->_registry)
 		{
@@ -2587,9 +2582,27 @@ bool CMonsterWeenie::CanTarget(CWeenieObject* target)
 	TargetingTaticType const targetingTatic = static_cast<TargetingTaticType>(m_Qualities.GetInt(TARGETING_TACTIC_INT, TargetingTaticNone));
 	switch (targetingTatic)
 	{
-		case TargetingTaticGamePiece:
-			return target->IsGamePiece();
-		default:
-			return false;
+	case TargetingTaticGamePiece:
+		return target->IsGamePiece();
+	default:
+		return false;
 	}
+}
+
+bool CMonsterWeenie::CheckRareEligible(CWeenieObject *highestDamageDealer)
+{ 
+	if (!highestDamageDealer)
+		return false;
+
+	if (highestDamageDealer)
+	{
+		if (highestDamageDealer->_IsPlayer() && (m_Qualities.GetInt(LEVEL_INT, 0) >= highestDamageDealer->m_Qualities.GetInt(LEVEL_INT, 0)) || (m_Qualities.GetInt(LEVEL_INT, 0) >= 100))
+			if (m_Qualities.GetDID(DEATH_TREASURE_TYPE_DID, 0))
+			{
+				m_bIsRareEligible = true;
+				return true;
+			}
+	}
+
+	return false;
 }

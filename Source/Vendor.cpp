@@ -5,6 +5,7 @@
 #include "World.h"
 #include "Player.h"
 #include "EmoteManager.h"
+#include "SpellcastingManager.h"
 
 CVendorItem::CVendorItem()
 {
@@ -156,7 +157,15 @@ int CVendor::TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<ItemProf
 	for (auto desiredItem : desiredItems)
 	{
 		CWeenieObject *originalWeenie = FindVendorItem(desiredItem->iid)->weenie;
-		buyer->SpawnCloneInContainer(originalWeenie, desiredItem->amount);
+
+		if (originalWeenie->m_Qualities.GetInt(ITEM_TYPE_INT, 0) == TYPE_SERVICE)
+		{
+			DoForcedMotion(Motion_CastSpell);
+			MakeSpellcastingManager()->CastSpellInstant(buyer->GetID(), originalWeenie->m_Qualities.GetDID(SPELL_DID, 0));
+			DoForcedMotion(Motion_Ready);
+		}
+		else
+			buyer->SpawnCloneInContainer(originalWeenie, desiredItem->amount);
 	}
 
 	DoVendorEmote(Buy_VendorTypeEmote, buyer->GetID());
@@ -210,7 +219,7 @@ int CVendor::TryBuyItemsFromPlayer(CPlayerWeenie *seller, const std::list<ItemPr
 	{
 		if (maxStackSize < 1)
 			maxStackSize = 1;
-		totalSlotsRequired = max(totalValue / maxStackSize, 1);
+		totalSlotsRequired = max((int)(totalValue / maxStackSize), 1);
 	}
 
 	//if (seller->Container_GetNumFreeMainPackSlots() < max(totalSlotsRequired - (int)desiredItems.size(), 1)) -- This doesn't take in to account that the items are coming out of side packs, causes error when attempting to spawn pyreals into pack. Eats all items.

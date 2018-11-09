@@ -757,14 +757,14 @@ float CalcSurfaceZ(DWORD dwCell, float xOffset, float yOffset, bool bUseLCell)
 
 	BlockData *pBlock = (BlockData*)pFile->GetData();
 
-	Vector P1(0, 24, pBlock->bHeight[minix][miniy + 1] * 2.0f);
+	Vector P1(0, 24, LandDefs::Land_Height_Table[pBlock->bHeight[minix][miniy + 1]] + 0.005f);
 	Vector P2;
-	Vector P3(24, 0, pBlock->bHeight[minix + 1][miniy] * 2.0f);
+	Vector P3(24, 0, LandDefs::Land_Height_Table[pBlock->bHeight[minix + 1][miniy]] + 0.005f);
 
 	if ((xOffset + yOffset) < 1.0f)
-		P2 = Vector(0, 0, pBlock->bHeight[minix][miniy] * 2.0f);
+		P2 = Vector(0, 0, LandDefs::Land_Height_Table[pBlock->bHeight[minix][miniy]] + 0.005f);
 	else
-		P2 = Vector(24, 24, pBlock->bHeight[minix + 1][miniy + 1] * 2.0f);
+		P2 = Vector(24, 24, LandDefs::Land_Height_Table[pBlock->bHeight[minix + 1][miniy + 1]] + 0.005f);
 
 	delete pFile;
 

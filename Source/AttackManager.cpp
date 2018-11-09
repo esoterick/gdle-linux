@@ -16,7 +16,7 @@ const double MAX_MISSILE_ATTACK_CONE_ANGLE = 3.0;
 #define MISSILE_SLOW_SPEED 0.9f
 #define MISSILE_FAST_SPEED 1.25f
 
-CAttackEventData::CAttackEventData()
+CAttackEventData::CAttackEventData() noexcept
 {
 }
 
@@ -367,7 +367,7 @@ void CMeleeAttackEvent::Setup()
 	attackTime = max(0, min(120, attackTime));
 
 	_attack_speed = 2.25f - (attackTime * (1.0 / 70.0));
-	_attack_speed = max(min(_attack_speed, 2.25), 0.8);
+	_attack_speed = max(min(_attack_speed, 2.25f), 0.8f);
 
 	//old formula:
 	//int attackTime = max(0, min(120, _weenie->GetAttackTimeUsingWielded()));
@@ -521,7 +521,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 		if (endurance >= 50)
 		{
 			necStamMod = ((float)(endurance * endurance) * -0.000003175) - ((float)endurance * 0.0008889) + 1.052;
-			necStamMod = min(max(necStamMod, 0.5), 1.0);
+			necStamMod = min(max(necStamMod, 0.5f), 1.0f);
 			necessaryStam = (int)(necessaryStam * necStamMod + Random::RollDice(0.0, 1.0)); // little sprinkle of luck 
 		}
 	}
@@ -744,7 +744,7 @@ void CMissileAttackEvent::Setup()
 	attackTime = max(0, min(120, attackTime));
 
 	_attack_speed = 2.5f - (attackTime * (1.0 / 70.0));
-	_attack_speed = max(min(_attack_speed, 2.5), 0.8);
+	_attack_speed = max(min(_attack_speed, 2.5f), 0.8f);
 
 	CAttackEventData::Setup();
 
@@ -850,11 +850,11 @@ void CMissileAttackEvent::CalculateAttackMotion()
 
 	if (fVertAngle > 7.5)
 	{
-		iMotionIndex = min(floor((fVertAngle + 7.55) / 15), 6);
+		iMotionIndex = min((int)floor((fVertAngle + 7.55f) / 15.0f), 6);
 	}
 	else if (fVertAngle < -7.5)
 	{
-		iMotionIndex = -min(ceil((fVertAngle - 7.55) / 15), 6) + 6;
+		iMotionIndex = -min((int)ceil((fVertAngle - 7.55f) / 15.0f), 6) + 6;
 	}
 
 	_do_attack_animation = motions[min(max(0, iMotionIndex), 12)];
@@ -935,16 +935,16 @@ bool CMissileAttackEvent::CalculateMissileVelocity(bool track, bool gravity, flo
 	}
 
 	Vector targetOffset = _missile_spawn_position.get_offset(_missile_target_position);
-	double targetDist = targetOffset.magnitude();
+	float targetDist = targetOffset.magnitude();
 
 	if (!track)
 	{
-		double t = targetDist / speed;
+		float t = targetDist / speed;
 		Vector v = targetOffset / t;
 
 		if (gravity)
 		{
-			v.z += (9.8*t) / 2.0f;
+			v.z += (9.8f * t) / 2.0f;
 		}
 		//Vector targetDir = v;
 		//targetDir.normalize();
@@ -966,12 +966,12 @@ bool CMissileAttackEvent::CalculateMissileVelocity(bool track, bool gravity, flo
 
 	float s1 = speed;
 
-	double a = (V0.x * V0.x) + (V0.y * V0.y) - (s1 * s1);
-	double b = 2 * ((P0.x * V0.x) + (P0.y * V0.y) - (P1.x * V0.x) - (P1.y * V0.y));
-	double c = (P0.x * P0.x) + (P0.y * P0.y) + (P1.x * P1.x) + (P1.y * P1.y) - (2 * P1.x * P0.x) - (2 * P1.y * P0.y);
+	float a = (V0.x * V0.x) + (V0.y * V0.y) - (s1 * s1);
+	float b = 2.0f * ((P0.x * V0.x) + (P0.y * V0.y) - (P1.x * V0.x) - (P1.y * V0.y));
+	float c = (P0.x * P0.x) + (P0.y * P0.y) + (P1.x * P1.x) + (P1.y * P1.y) - (2.0f * P1.x * P0.x) - (2.0f * P1.y * P0.y);
 
-	double t1 = (-b + sqrt((b * b) - (4 * a * c))) / (2 * a);
-	double t2 = (-b - sqrt((b * b) - (4 * a * c))) / (2 * a);
+	float t1 = (-b + sqrt((b * b) - (4.0f * a * c))) / (2.0f * a);
+	float t2 = (-b - sqrt((b * b) - (4.0f * a * c))) / (2.0f * a);
 
 	if (t1 < 0)
 	{
@@ -983,21 +983,24 @@ bool CMissileAttackEvent::CalculateMissileVelocity(bool track, bool gravity, flo
 		t2 = FLT_MAX;
 	}
 
-	double t = min(t1, t2);
+	float t = min(t1, t2);
 	if (t >= 100.0)
 	{
 		return CalculateMissileVelocity(false, true, speed);
 	}
 
-	Vector v;
-	v.x = (P0.x + (t * s0 * V0.x)) / (t); // * s1);
-	v.y = (P0.y + (t * s0 * V0.y)) / (t); // * s1);
-	v.z = (P0.z + (t * s0 * V0.z)) / (t); // * s1);
+	Vector ts0(t * s0);
+
+	Vector v = Vector::fma(ts0, V0, P0) / t;
+	
+	//v.x = (P0.x + (ts0 * V0.x)) / (t); // * s1);
+	//v.y = (P0.y + (ts0 * V0.y)) / (t); // * s1);
+	//v.z = (P0.z + (ts0 * V0.z)) / (t); // * s1);
 
 	if (gravity)
 	{
 		// add z to velocity for gravity
-		v.z += (9.8*t) / 2.0f;
+		v.z += (9.8f * t) / 2.0f;
 	}
 
 	_missile_velocity = v;
@@ -1107,11 +1110,11 @@ void CMissileAttackEvent::FireMissile()
 
 	int necessaryStamina;
 	if (_attack_power < 0.33)
-		necessaryStamina = max(round(burden / 900.0f), 1);
+		necessaryStamina = max((int)round(burden / 900.0f), 1);
 	else if (_attack_power < 0.66)
-		necessaryStamina = max(round(burden / 600.0f), 1);
+		necessaryStamina = max((int)round(burden / 600.0f), 1);
 	else
-		necessaryStamina = max(round(burden / 300.0f), 1);
+		necessaryStamina = max((int)round(burden / 300.0f), 1);
 
 	if (_weenie->AsPlayer())
 	{
@@ -1122,7 +1125,7 @@ void CMissileAttackEvent::FireMissile()
 		DWORD endurance = 0;
 		_weenie->m_Qualities.InqAttribute(ENDURANCE_ATTRIBUTE, endurance, true);
 		float necessaryStaminaMod = 1.0 - ((float)endurance - 100.0) / 600.0; //made up formula: 50% reduction at 400 endurance.
-		necessaryStaminaMod = min(max(necessaryStaminaMod, 0.5), 1.0);
+		necessaryStaminaMod = min(max(necessaryStaminaMod, 0.5f), 1.0f);
 		necessaryStamina = round((float)necessaryStamina * necessaryStaminaMod);
 	}
 	necessaryStamina = max(necessaryStamina, 1);

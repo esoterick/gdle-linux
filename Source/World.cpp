@@ -236,9 +236,18 @@ DungeonDesc_t* CWorld::GetDungeonDesc(const char* szDungeonName)
 	DungeonDescMap::iterator i = m_mDungeonDescs.begin();
 	DungeonDescMap::iterator iend = m_mDungeonDescs.end();
 
+	std::string dungeonName = "";
+	std::string searchName = szDungeonName;
+
 	while (i != iend)
 	{
-		if (!stricmp(szDungeonName, i->second.szDungeonName))
+		dungeonName = i->second.szDungeonName;
+
+		std::transform(dungeonName.begin(), dungeonName.end(), dungeonName.begin(), ::tolower);
+		std::transform(searchName.begin(), searchName.end(), searchName.begin(), ::tolower);
+
+
+		if (dungeonName.find(searchName) != std::string::npos)
 			return &i->second;
 
 		i++;
@@ -496,7 +505,7 @@ TeleTownList_s CWorld::GetTeleportLocation(std::string location)
 		//Lets waste a bunch of time with this.. Hey, if its the first one on the list its O(1)
 		std::string town = var.m_teleString;
 		std::transform(town.begin(), town.end(), town.begin(), ::tolower);
-		if (town.find(location) != std::string::npos) {
+		if (town[0] == location[0] && town.find(location) != std::string::npos) {
 			val = var;
 			break;
 		}
@@ -634,13 +643,6 @@ CWeenieObject *CWorld::FindObject(DWORD object_id, bool allowLandblockActivation
 	
 	if(result == m_mAllObjects.end())
 		return NULL;
-
-	if (result->second->m_Qualities.GetBool(MERGE_LOCKED, false))
-		return NULL;
-
-	if (lockObject && result->second->m_Qualities.GetInt(MAX_STACK_SIZE_INT, 0) > 1)
-		result->second->m_Qualities.SetBool(MERGE_LOCKED, true);
-
 	
 	return result->second;
 }
@@ -703,6 +705,9 @@ DWORD CWorld::GetPlayerId(const char *name, bool allowOffline)
 //==================================================
 CPlayerWeenie *CWorld::FindPlayer(const char *target_name)
 {
+	if (!target_name)
+		return NULL;
+	
 	if (*target_name == '+')
 		target_name++;
 
@@ -878,6 +883,13 @@ void CWorld::BroadcastGlobal(void *_data, DWORD _len, WORD _group, DWORD ignore_
 void CWorld::BroadcastLocal(DWORD cellid, std::string text)
 {
 	BinaryWriter *textMsg = ServerText(text.c_str(), LTT_DEFAULT);
+	g_pWorld->BroadcastPVS(cellid, textMsg->GetData(), textMsg->GetSize(), PRIVATE_MSG, 0, false);
+	delete textMsg;
+}
+
+void CWorld::BroadcastLocal(DWORD cellid, std::string text, LogTextType channel)
+{
+	BinaryWriter *textMsg = ServerText(text.c_str(), channel);
 	g_pWorld->BroadcastPVS(cellid, textMsg->GetData(), textMsg->GetSize(), PRIVATE_MSG, 0, false);
 	delete textMsg;
 }

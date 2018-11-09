@@ -32,7 +32,7 @@ void BinaryWriter::ExpandBuffer(size_t len)
 		unsigned int minGrowSize = 0x200;
 		unsigned int maxGrowSize = 0x100000;
 
-		unsigned int growSize = min(maxGrowSize, max(minGrowSize, m_dwDataSize));
+		unsigned int growSize = min(maxGrowSize, max(minGrowSize, (unsigned int)m_dwDataSize));
 		unsigned int newSize = (DWORD) (len + growSize);
 
 		BYTE *pbExpandedBuffer = new BYTE[newSize];

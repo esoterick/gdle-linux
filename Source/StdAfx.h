@@ -20,6 +20,8 @@
 #define WIN32_LEAN_AND_MEAN
 #define PSAPI_VERSION 2
 
+#define NOMINMAX
+
 #include <windows.h>
 #include <WinSock2.h>
 #include <shellapi.h>
@@ -53,6 +55,9 @@
 #include <thread>
 #include <future>
 
+using std::min;
+using std::max;
+
 #include "resource.h"
 
 #define stricmp _stricmp
@@ -78,7 +83,7 @@
 #define PUBLIC_STRING ""
 #endif
 
-#define SERVER_VERSION_NUMBER_STRING "1.23"
+#define SERVER_VERSION_NUMBER_STRING "1.24"
 #define SERVER_VERSION_STRING __DATE__ " @ " __TIME__ " (" CONFIGURATION_STRING " " PLATFORM_STRING PUBLIC_STRING ")"
 
 //#define SERVER_VERSION_NUMBER_STRING "1.0.0.9" // "1.0.0.11"

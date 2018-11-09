@@ -73,7 +73,7 @@ CREATE TABLE `characters` (
 CREATE TABLE `globals` (
   `id` int(11) NOT NULL,
   `data` longblob NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -84,7 +84,7 @@ CREATE TABLE `globals` (
 CREATE TABLE `houses` (
   `house_id` int(11) NOT NULL,
   `data` longblob NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -161,7 +161,15 @@ INSERT INTO `teletowns` (`ID`, `Description`, `Command`, `Landblock`, `Position_
 (48, 'Teletown - Xarabydun', 'Xarabydun', '934B0021', '42D899D2', '40C32B22', '4191273D', 'BF76ED35', '00000000', '00000000', 'BE871A5D'),
 (49, 'Teletown - Yanshi', 'Yanshi', 'B46F001E', '42966666', '42F83333', '420AC0DB', '3F800000', '00000000', '00000000', '00000000'),
 (50, 'Teletown - Yaraq', 'Yaraq', '7D64000D', '41FF3333', '42D13333', '413F258C', '3F13BFC6', '00000000', '00000000', 'BF510F73'),
-(51, 'Teletown - Zaikhal', 'Zaikhal', '80900013', '4281B9DB', '425EBF7D', '42F80290', 'BF6E0CBF', '00000000', '00000000', 'BEBC57C1');
+(51, 'Teletown - Zaikhal', 'Zaikhal', '80900013', '4281B9DB', '425EBF7D', '42F80290', 'BF6E0CBF', '00000000', '00000000', 'BEBC57C1'),
+(52,'Teletown - Eastwatch','Eastwatch','49F00023','42d80000','42700000','432a0000','3f800000','00000000','00000000','00000000'),
+(53,'Teletown - Westwatch','Westwatch','23DA002B','430535c3','428ce148','4000a3d7','bf7d70a4','00000000','00000000','00000000'),
+(54,'Teletown - Silyun','Silyun','27EC0015','42700000','42d80000','42a0051f','3f800000','00000000','00000000','00000000'),
+(55,'Teletown - Sanamar','Sanamar','33D9000B','423b51ec','42687ae1','42500a3d','3f800000','00000000','00000000','3f800000'),
+(56,'Teletown - Merwart Village','Merwart Village','C9E3000B','42100000','2700000','41600000','3f800000','00000000','00000000','bf800000'),
+(57,'Teletown - Fiun Outpost','Fiun Outpost','38F7001A','42a0e666','41fce148','3faf5c29','00000000','00000000','00000000','3f800000'),
+(58,'Teletown - Kor-Gursha','Kor-Gursha','009C0247','43200000','c28c0000','c1900000','3f800000','00000000','00000000','bf800000'),
+(59,'Teletown - Mar\'uun','Mar\'uun','880401C4','42200000','c3020000','c3700000','3f800000','00000000','00000000','00000000');
 
 -- --------------------------------------------------------
 

@@ -2862,45 +2862,58 @@ void CWeenieObject::Tick()
 
 	if (_nextRegen >= 0 && _nextRegen <= Timer::cur_time)
 	{
-		if (m_Qualities._generator_queue)
+		int numSpawned = m_Qualities._generator_registry ? (DWORD)m_Qualities._generator_registry->_registry.size() : 0;
+
+		//check if the number spawned is higher than the max_generated_objects. Linkable generators have a max of 0, so check if there is an existing _generator_queue instead.
+		if (numSpawned < InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) || InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) == 0 && m_Qualities._generator_queue)
 		{
-			PackableList<GeneratorQueueNode> &queue = m_Qualities._generator_queue->_queue;
-			for (auto entry = queue.begin(); entry != queue.end();)
+			if (m_Qualities._generator_queue)
 			{
-				if (entry->when <= Timer::cur_time)
-				{
-					double regenInterval = 0.0;
-					if (m_Qualities.InqFloat(REGENERATION_INTERVAL_FLOAT, regenInterval) && regenInterval > 0.0)
+				PackableList<GeneratorQueueNode> &queue = m_Qualities._generator_queue->_queue;
+				for (auto entry = queue.begin(); entry != queue.end();)
+				{	
+					// don't spawn from generator queue if numSpawned is greater than or equal to the max generated. Does not apply for linked generators with max of 0.
+					if (numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) && InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) != 0)
+						break;
+
+					if (entry->when <= Timer::cur_time)
 					{
-						if (m_Qualities._generator_table)
+						double regenInterval = 0.0;
+						if (m_Qualities.InqFloat(REGENERATION_INTERVAL_FLOAT, regenInterval) && regenInterval > 0.0)
 						{
-							for (auto &profile : m_Qualities._generator_table->_profile_list)
+							if (m_Qualities._generator_table)
 							{
-								if (profile.slot == entry->slot)
+								for (auto &profile : m_Qualities._generator_table->_profile_list)
 								{
-									g_pWeenieFactory->GenerateFromTypeOrWcid(this, &profile);
-									break;
+									if (profile.slot == entry->slot)
+									{
+										g_pWeenieFactory->GenerateFromTypeOrWcid(this, &profile);
+										numSpawned++;
+										break;
+									}
 								}
 							}
 						}
+
+						//ChanceCreateGeneratorSlot(entry->slot);
+						entry = queue.erase(entry);
+						continue;
 					}
 
-					//ChanceCreateGeneratorSlot(entry->slot);
-					entry = queue.erase(entry);
-					continue;
+					entry++;
 				}
-
-				entry++;
 			}
+
+			g_pWeenieFactory->AddFromGeneratorTable(this, false);
+
+			//Linkable generators do not have a _nextRegen time when the generator_queue is empty and they have spawns in the world. Regular generators should not have a _nextRegen time if they have more spawns than MAX_GENERATED_OBJECTS_INT.
+			if ((!m_Qualities._generator_queue || m_Qualities._generator_queue->_queue.empty()) && numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
+				_nextRegen = -1.0;
+			else if (InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0 , TRUE) > 0 && numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
+				_nextRegen = -1.0;
+			else
+				_nextRegen = Timer::cur_time + (InqFloatQuality(REGENERATION_INTERVAL_FLOAT, -1.0, TRUE) * g_pConfig->RespawnTimeMultiplier());
 		}
-
-		g_pWeenieFactory->AddFromGeneratorTable(this, false);
-
-		int numSpawned = m_Qualities._generator_registry ? (DWORD)m_Qualities._generator_registry->_registry.size() : 0;
-		if ((!m_Qualities._generator_queue || m_Qualities._generator_queue->_queue.empty()) && numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
-			_nextRegen = -1.0;
-		else
-			_nextRegen = Timer::cur_time + (InqFloatQuality(REGENERATION_INTERVAL_FLOAT, -1.0, TRUE) * g_pConfig->RespawnTimeMultiplier());
 	}
 
 	if (_nextHeartBeat != -1.0 && _nextHeartBeat <= Timer::cur_time)
@@ -3003,7 +3016,7 @@ void CWeenieObject::CheckRegeneration(double rate, STypeAttribute2nd currentAttr
 			m_Qualities.InqAttribute(ENDURANCE_ATTRIBUTE, endurance, true);
 			float strAndEnd = (float)(strength + (endurance * 2));
 			float regenMod = 1.0 + (0.0494 * pow(strAndEnd, 1.179) / 100.0f); //formula deduced from values present in the client pdb.
-			regenMod = min(max(regenMod, 1.0), 2.1);
+			regenMod = min(max(regenMod, 1.0f), 2.1f);
 
 			rate *= regenMod;
 		}
@@ -3179,9 +3192,30 @@ void CWeenieObject::InitCreateGenerator()
 		g_pWeenieFactory->AddFromGeneratorTable(this, true);
 }
 
-void CWeenieObject::InitCreateGeneratorOnDeath() //Called by Emote_Type 72 Generator
+void CWeenieObject::GenerateOnDemand(int amount) //Called by Emote_Type 72 Generator
 {
-	g_pWeenieFactory->AddFromGeneratorTable(this, true);
+	if (amount != 0)
+	{
+		g_pWeenieFactory->AddFromGeneratorTable(this, true);
+	}
+
+	else (m_Qualities._generator_registry);
+	{
+		while (!m_Qualities._generator_registry->_registry.empty())
+		{
+			DWORD weenie_id = m_Qualities._generator_registry->_registry.begin()->first;
+
+			if (CWeenieObject *spawned_weenie = g_pWorld->FindObject(weenie_id))
+			{
+				//erase weenie from generator registry to stop spawning new weenies.
+				m_Qualities._generator_registry->_registry.erase(weenie_id);
+			}
+		}
+		if (m_Qualities._generator_queue)
+		{
+			m_Qualities._generator_queue->_queue.clear();
+		}
+	}
 }
 
 
@@ -4179,20 +4213,20 @@ float CWeenieObject::GetEffectiveArmorLevel(DamageEventData &damageData, bool bI
 		}
 		else
 		{
-			armorLevel = min(shieldSkill, armorLevel);
+			armorLevel = min((float)shieldSkill, armorLevel);
 		}
 	}
 
 	switch (damageData.damage_type)
 	{
-	case DAMAGE_TYPE::SLASH_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_SLASH_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0f)); break;
-	case DAMAGE_TYPE::PIERCE_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_PIERCE_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0f)); break;
-	case DAMAGE_TYPE::BLUDGEON_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_BLUDGEON_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0f)); break;
-	case DAMAGE_TYPE::FIRE_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_FIRE_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0f)); break;
-	case DAMAGE_TYPE::COLD_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_COLD_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0f)); break;
-	case DAMAGE_TYPE::ACID_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_ACID_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0f)); break;
-	case DAMAGE_TYPE::ELECTRIC_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_ELECTRIC_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0f)); break;
-	case DAMAGE_TYPE::NETHER_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_NETHER_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0f)); break;
+	case DAMAGE_TYPE::SLASH_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_SLASH_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0)); break;
+	case DAMAGE_TYPE::PIERCE_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_PIERCE_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0)); break;
+	case DAMAGE_TYPE::BLUDGEON_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_BLUDGEON_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0)); break;
+	case DAMAGE_TYPE::FIRE_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_FIRE_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0)); break;
+	case DAMAGE_TYPE::COLD_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_COLD_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0)); break;
+	case DAMAGE_TYPE::ACID_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_ACID_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0)); break;
+	case DAMAGE_TYPE::ELECTRIC_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_ELECTRIC_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0)); break;
+	case DAMAGE_TYPE::NETHER_DAMAGE_TYPE: armorLevel *= max(0.0, min(InqFloatQuality(ARMOR_MOD_VS_NETHER_FLOAT, 1.0f, bIgnoreMagicArmor), 2.0)); break;
 	}
 
 	if (isShield)
@@ -4296,7 +4330,7 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 			else
 				resistanceNatural = 1.0f - (((0.1666667 * strAndEnd) - 23.33333) / 100.f);
 
-			resistanceNatural = max(resistanceNatural, 0.5);
+			resistanceNatural = max(resistanceNatural, 0.5f);
 
 			//natural resistances only work if they beat the buffed value before any debuffs are applied.
 			if (resistanceNatural < buffDetails.enchantedValue_DecreasingOnly)
@@ -6020,7 +6054,7 @@ DWORD CWeenieObject::GetEffectiveManaConversionSkill()
 
 		if (manaMod > 0.0)
 		{
-			manaConvSkill = (DWORD)max(0, ((int)manaConvSkill * (1.0 + manaMod)));
+			manaConvSkill = (DWORD)max(0, (int)(manaConvSkill * (1.0 + manaMod)));
 		}
 	}
 
@@ -6167,12 +6201,13 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 				{
 					DWORD endurance = 0;
 					m_Qualities.InqAttribute(ENDURANCE_ATTRIBUTE, endurance, true);
+
 					float noStamUseChance = 0;
 					if (endurance >= 50)
 					{
 						noStamUseChance = ((float)(endurance * endurance) * 0.000005) + ((float)endurance * 0.00124) - 0.07; // Better curve and caps at 300 End vs 400 End
 					}
-					noStamUseChance = min(noStamUseChance, 0.75);
+					noStamUseChance = min(noStamUseChance, 0.75f);
 					if (Random::RollDice(0.0, 1.0) > noStamUseChance)
 						AdjustStamina(-1); // failed the roll, use stamina.
 				}
@@ -6258,7 +6293,7 @@ bool CWeenieObject::TryMissileEvade(DWORD attackSkill)
 				DWORD endurance = 0;
 				m_Qualities.InqAttribute(ENDURANCE_ATTRIBUTE, endurance, true);
 				float noStaminaUseChance = ((float)endurance - 100.0) / 400.0; //made up formula: 75% reduction at 400 endurance.
-				noStaminaUseChance = min(max(noStaminaUseChance, 0.0), 0.75);
+				noStaminaUseChance = min(max(noStaminaUseChance, 0.0f), 0.75f);
 				if (Random::RollDice(0.0, 1.0) > noStaminaUseChance)
 					AdjustStamina(-1); // failed the roll, use stamina.
 			}
