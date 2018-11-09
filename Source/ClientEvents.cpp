@@ -291,67 +291,6 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
-	for (auto wielded : m_pPlayer->m_Wielded)
-	{
-	
-		// Updates shields to have SHIELD_VALUE_INT
-		if(wielded->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && wielded->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
-		{
-			wielded->m_Qualities.SetInt(SHIELD_VALUE_INT, wielded->InqIntQuality(ARMOR_LEVEL_INT, 0));
-		}
-
-		// Weeping wand nerf
-		if (wielded->m_Qualities.m_WeenieType == 35 && wielded->InqStringQuality(NAME_STRING, "") == "Weeping Wand" 
-			&& (wielded->InqDIDQuality(SPELL_DID, 0) > 0 || wielded->InqFloatQuality(SLAYER_DAMAGE_BONUS_FLOAT, 0) != 1.4))
-		{
-			wielded->m_Qualities.RemoveDataID(SPELL_DID);
-			wielded->m_Qualities.SetFloat(SLAYER_DAMAGE_BONUS_FLOAT, 1.4);
-		}
-
-	}
-
-	for (auto item : m_pPlayer->m_Items)
-	{
-		// Updates shields to have SHIELD_VALUE_INT
-		if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
-		{
-			item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
-		}
-
-		// Weeping wand nerf
-		if (item->m_Qualities.m_WeenieType == 35 && item->InqStringQuality(NAME_STRING, "") == "Weeping Wand"
-			&& (item->InqDIDQuality(SPELL_DID, 0) > 0 || item->InqFloatQuality(SLAYER_DAMAGE_BONUS_FLOAT, 0) != 1.4))
-		{
-			item->m_Qualities.RemoveDataID(SPELL_DID);
-			item->m_Qualities.SetFloat(SLAYER_DAMAGE_BONUS_FLOAT, 1.4);
-		}
-	}
-
-	for (auto pack : m_pPlayer->m_Packs)
-	{
-		
-		if (pack->m_Qualities.id != W_PACKCREATUREESSENCE_CLASS && pack->m_Qualities.id != W_PACKITEMESSENCE_CLASS && pack->m_Qualities.id != W_PACKLIFEESSENCE_CLASS &&
-			pack->m_Qualities.id != W_PACKWARESSENCE_CLASS )
-		{
-			
-			for (auto item : pack->AsContainer()->m_Items)
-			{
-				// Updates shields to have SHIELD_VALUE_INT
-				if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
-				{
-					item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
-				}
-
-				// Weeping wand nerf
-				if (item->m_Qualities.m_WeenieType == 35 && item->InqStringQuality(NAME_STRING, "") == "Weeping Wand"
-					&& (item->InqDIDQuality(SPELL_DID, 0) > 0 || item->InqFloatQuality(SLAYER_DAMAGE_BONUS_FLOAT, 0) != 1.4))
-				{
-					item->m_Qualities.RemoveDataID(SPELL_DID);
-					item->m_Qualities.SetFloat(SLAYER_DAMAGE_BONUS_FLOAT, 1.4);
-				}
-			}
-		}
-	}
 
 	// give characters created before creation timestamp was being set a timestamp and DOB from their DB date_created
 	if (!m_pPlayer->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0))
@@ -389,6 +328,133 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	*/
 
 	g_pWorld->CreateEntity(m_pPlayer);
+
+	time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+	for (auto wielded : m_pPlayer->m_Wielded)
+	{
+		// Updates shields to have SHIELD_VALUE_INT
+		if (wielded->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && wielded->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
+		{
+			wielded->m_Qualities.SetInt(SHIELD_VALUE_INT, wielded->InqIntQuality(ARMOR_LEVEL_INT, 0));
+		}
+
+		// Remove all loot items with wcid > g_pConfig->WcidForPurge()
+		if (g_pConfig->InventoryPurgeOnLogin())
+		{
+			if (wielded->m_Qualities.id > g_pConfig->WcidForPurge() && wielded->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			{
+				wielded->_timeToRot = Timer::cur_time;
+				wielded->_beganRot = true;
+			}
+		}
+
+		// Remove all expired items, or set _timeToRot if not yet expired.
+		int lifespan = wielded->m_Qualities.GetInt(LIFESPAN_INT, 0);
+
+		if (lifespan)
+		{
+			int creationTime = wielded->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0);
+			int lived = t - creationTime;
+
+			if (creationTime && lived >= lifespan)
+			{
+				wielded->_timeToRot = Timer::cur_time;
+			}
+			else
+			{
+				int lifespanRemaining = lifespan - lived;
+				wielded->_timeToRot = Timer::cur_time + lifespanRemaining;
+			}
+		}
+
+	}
+
+	for (auto item : m_pPlayer->m_Items)
+	{
+		// Updates shields to have SHIELD_VALUE_INT
+		if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
+		{
+			item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
+		}
+
+		// Remove all loot items with wcid > g_pConfig->WcidForPurge()
+		if (g_pConfig->InventoryPurgeOnLogin())
+		{
+			if (item->m_Qualities.id > g_pConfig->WcidForPurge() && item->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			{
+				item->_timeToRot = Timer::cur_time;
+				item->_beganRot = true;
+			}
+		}
+
+		// Remove all expired items, or set _timeToRot if not yet expired.
+		int lifespan = item->m_Qualities.GetInt(LIFESPAN_INT, 0);
+
+		if (lifespan)
+		{
+			int creationTime = item->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0);
+			int lived = t - creationTime;
+
+			if (creationTime && lived >= lifespan)
+			{	
+				item->_timeToRot = Timer::cur_time;
+			}
+			else
+			{
+				int lifespanRemaining = lifespan - lived;
+				item->_timeToRot = Timer::cur_time + lifespanRemaining;
+			}
+		}
+	}
+
+	for (auto pack : m_pPlayer->m_Packs)
+	{
+
+		if (pack->m_Qualities.id != W_PACKCREATUREESSENCE_CLASS && pack->m_Qualities.id != W_PACKITEMESSENCE_CLASS && pack->m_Qualities.id != W_PACKLIFEESSENCE_CLASS &&
+			pack->m_Qualities.id != W_PACKWARESSENCE_CLASS)
+		{
+
+			for (auto item : pack->AsContainer()->m_Items)
+			{
+				// Updates shields to have SHIELD_VALUE_INT
+				if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
+				{
+					item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
+				}
+
+
+				// Remove all loot items with wcid > g_pConfig->WcidForPurge()
+				if (g_pConfig->InventoryPurgeOnLogin())
+				{
+					if (item->m_Qualities.id > g_pConfig->WcidForPurge() && item->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+					{
+						item->_timeToRot = Timer::cur_time;
+						item->_beganRot = true;
+					}
+				}
+
+				// Remove all expired items, or set _timeToRot if not yet expired.
+				int lifespan = item->m_Qualities.GetInt(LIFESPAN_INT, 0);
+
+				if (lifespan)
+				{
+					int creationTime = item->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0);
+					int lived = t - creationTime;
+
+					if (creationTime && lived >= lifespan)
+					{
+						item->_timeToRot = Timer::cur_time;
+					}
+					else
+					{
+						int lifespanRemaining = lifespan - lived;
+						item->_timeToRot = Timer::cur_time + lifespanRemaining;
+					}
+				}
+			}
+		}
+	}
 
 	SendSquelchDB();
 
