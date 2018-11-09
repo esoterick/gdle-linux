@@ -625,6 +625,12 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			}
 		}
 
+		if (pEntity->m_Qualities.GetInt(LIFESPAN_INT, 0) && pEntity->_timeToRot)
+		{
+			int newLifespan = (int)(pEntity->_timeToRot - Timer::cur_time);
+			profile._intStatsTable->add(REMAINING_LIFESPAN_INT, &newLifespan); // Update the remaining_lifespan_int for inspect window.	
+		}
+
 	}
 
 	if (pEntity->m_Qualities.m_Int64Stats)

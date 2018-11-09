@@ -530,9 +530,12 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 	if (AsPlayer() && IsCurrency(sourceItem->m_Qualities.id))
 		RecalculateCoinAmount(sourceItem->m_Qualities.id);
 
-	sourceItem->m_Qualities.RemoveFloat(TIME_TO_ROT_FLOAT);
-	sourceItem->_timeToRot = -1.0;
-	sourceItem->_beganRot = false;
+	if (!sourceItem->m_Qualities.GetInt(LIFESPAN_INT, 0))
+	{
+		sourceItem->m_Qualities.RemoveFloat(TIME_TO_ROT_FLOAT);
+		sourceItem->_timeToRot = -1.0;
+		sourceItem->_beganRot = false;
+	}
 }
 
 bool CMonsterWeenie::MoveItemTo3D(DWORD sourceItemId, bool animationDone)
@@ -619,9 +622,12 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 	g_pWorld->InsertEntity(sourceItem);
 	sourceItem->Movement_Teleport(GetPosition());
 
-	sourceItem->_timeToRot = Timer::cur_time + 300.0;
-	sourceItem->_beganRot = false;
-	sourceItem->m_Qualities.SetFloat(TIME_TO_ROT_FLOAT, sourceItem->_timeToRot);
+	if (!sourceItem->m_Qualities.GetInt(LIFESPAN_INT, 0))
+	{
+		sourceItem->_timeToRot = Timer::cur_time + 300.0;
+		sourceItem->_beganRot = false;
+		sourceItem->m_Qualities.SetFloat(TIME_TO_ROT_FLOAT, sourceItem->_timeToRot);
+	}
 
 	RecalculateEncumbrance();
 
@@ -729,14 +735,6 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		sourceItem->m_Qualities.SetInt(SHIELD_VALUE_INT, sourceItem->InqIntQuality(ARMOR_LEVEL_INT, 0));
 	}
 
-	// Weeping wand nerf
-	if (sourceItem->m_Qualities.m_WeenieType == 35 && sourceItem->InqStringQuality(NAME_STRING, "") == "Weeping Wand"
-		&& (sourceItem->InqDIDQuality(SPELL_DID, 0) > 0 || sourceItem->InqFloatQuality(SLAYER_DAMAGE_BONUS_FLOAT, 0) != 1.4))
-	{
-		sourceItem->m_Qualities.RemoveDataID(SPELL_DID);
-		sourceItem->m_Qualities.SetFloat(SLAYER_DAMAGE_BONUS_FLOAT, 1.4);
-	}
-
 	//if (!sourceItem->HasOwner())
 	//{
 		if (CWeenieObject *generator = g_pWorld->FindObject(sourceItem->InqIIDQuality(GENERATOR_IID, 0)))
@@ -779,9 +777,24 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 	if (sourceItem->AsClothing() && m_bWorldIsAware)
 		UpdateModel();
 
-	sourceItem->m_Qualities.RemoveFloat(TIME_TO_ROT_FLOAT);
-	sourceItem->_timeToRot = -1.0;
-	sourceItem->_beganRot = false;
+	if (!sourceItem->m_Qualities.GetInt(LIFESPAN_INT, 0))
+	{
+		// Remove all loot items with wcid > g_pConfig->WcidForPurge()
+		if (g_pConfig->InventoryPurgeOnLogin())
+		{
+			if (sourceItem->m_Qualities.id > g_pConfig->WcidForPurge() && sourceItem->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			{
+				sourceItem->_timeToRot = Timer::cur_time;
+				sourceItem->_beganRot = true;
+			}
+		}
+		else
+		{
+			sourceItem->m_Qualities.RemoveFloat(TIME_TO_ROT_FLOAT);
+			sourceItem->_timeToRot = -1.0;
+			sourceItem->_beganRot = false;
+		}
+	}
 
 	// Checks the old motion vs Motion_NonCombat to prevent getting stuck while adjusting to the new combat style.
 	if (oldmotion != Motion_NonCombat)

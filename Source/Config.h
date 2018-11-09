@@ -87,6 +87,9 @@ public:
 	virtual int PKRespiteTime() { return m_PKRespiteTime; }
 	virtual bool SpellPurgeOnLogin() { return m_bSpellPurgeOnLogin; }
 	virtual bool UpdateAllegianceData() { return m_bUpdateAllegianceData; }
+	virtual bool InventoryPurgeOnLogin() { return m_bInventoryPurgeOnLogin; }
+
+	virtual unsigned int WcidForPurge() { return m_WcidForPurge; }
 
 
 	virtual bool AllowGeneralChat() { return m_bAllowGeneralChat; }
@@ -173,6 +176,9 @@ protected:
 	int m_PKRespiteTime = 300;
 	bool m_bSpellPurgeOnLogin = false;
 	bool m_bUpdateAllegianceData = false;
+	bool m_bInventoryPurgeOnLogin = false;
+
+	unsigned int m_WcidForPurge = 100000;
 
 	bool m_bAllowGeneralChat = 1;
 	bool m_bRealTimeRares = 0;
