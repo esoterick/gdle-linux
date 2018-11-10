@@ -10,7 +10,27 @@
 
 void CDualWieldAttackEvent::CalculateAtt(CWeenieObject *weapon, STypeSkill& weaponSkill, DWORD& weaponSkillLevel)
 {
-	return CMeleeAttackEvent::CalculateAtt(weapon, weaponSkill, weaponSkillLevel);
+	CWeenieObject *main = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+	CWeenieObject *left = _weenie->GetWieldedCombat(COMBAT_USE_OFFHAND);
+
+	float mainMod = main->GetOffenseMod();
+	float leftMod = left->GetOffenseMod();
+	
+	float offenseMod = max(mainMod, leftMod);
+
+	weaponSkill = SkillTable::OldToNewSkill((STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
+	weaponSkillLevel = 0;
+
+	_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE);
+
+	if (_hand)
+	{
+		DWORD dualSkillLevel = 0;
+		_weenie->InqSkill(STypeSkill::DUAL_WIELD_SKILL, dualSkillLevel, FALSE);
+		weaponSkillLevel = min(weaponSkillLevel, dualSkillLevel);
+	}
+
+	weaponSkillLevel = (DWORD)(weaponSkillLevel * offenseMod);
 }
 
 int CDualWieldAttackEvent::CalculateDef(CWeenieObject *weapon)

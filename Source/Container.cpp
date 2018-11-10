@@ -895,7 +895,11 @@ void CContainerWeenie::LoadEx(class CWeenieSave &save)
 				m_Wielded.push_back(weenie);
 
 				if (int combatUse = weenie->InqIntQuality(COMBAT_USE_INT, 0, TRUE))
+				{
+					if (combatUse == COMBAT_USE_MELEE && weenie->GetPlacementFrameID() == LeftHand)
+						combatUse = COMBAT_USE_OFFHAND;
 					SetWieldedCombat(weenie, (COMBAT_USE)combatUse);
+				}
 
 				assert(weenie->IsWielded());
 				assert(!weenie->IsContained());

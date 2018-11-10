@@ -1441,6 +1441,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 	if (AsPlayer())
 		RecalculateEncumbrance();
 }
+
 void CMonsterWeenie::Tick()
 {
 	CContainerWeenie::Tick();
@@ -1526,7 +1527,6 @@ void CMonsterWeenie::GivePerksForKill(CWeenieObject *pKilled)
 	// Prevent CWeenieObject::GivePerksForKill from running
 }
 
-
 void CMonsterWeenie::OnIdentifyAttempted(CWeenieObject *other)
 {
 	if (m_MonsterAI)
@@ -1554,70 +1554,6 @@ void CMonsterWeenie::HandleAggro(CWeenieObject *attacker)
 	if (m_MonsterAI)
 		m_MonsterAI->HandleAggro(attacker);
 }
-
-/*
-CBaelZharon::CBaelZharon()
-{
-	SetName("Bael'Zharon");
-	SetSetupID(0x0200099E);
-	SetScale(1.8f);
-
-	m_ObjDesc.paletteID = 0x04001071;
-	m_ObjDesc.AddSubpalette(new Subpalette(0x04001072, 0, 0));
-
-	m_fTickFrequency = -1.0f;
-}
-*/
-
-#if 0
-CTargetDrudge::CTargetDrudge()
-{
-	SetSetupID(0x02000034);
-	SetScale(0.95f);
-	SetName("Oak Target Drudge");
-	SetMotionTableID(0x0900008A);
-	SetPETableID(0x3400006B);
-	SetSoundTableID(0x20000051);
-
-	m_miBaseModel.SetBasePalette(0x01B9);
-	m_miBaseModel.ReplacePalette(0x08B4, 0x00, 0x00);
-	m_miBaseModel.ReplaceTexture(0x00, 0x0036, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x01, 0x0031, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x02, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x03, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x04, 0x0D33, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x05, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x06, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x07, 0x0D33, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x08, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x09, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0A, 0x0035, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0B, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0C, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0D, 0x0035, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0E, 0x0D33, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0E, 0x0EE8, 0x0EE8);
-	m_miBaseModel.ReplaceTexture(0x0F, 0x0035, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x10, 0x0035, 0x0D33);
-	m_miBaseModel.ReplaceModel(0x00, 0x005D);
-	m_miBaseModel.ReplaceModel(0x01, 0x005E);
-	m_miBaseModel.ReplaceModel(0x02, 0x006E);
-	m_miBaseModel.ReplaceModel(0x03, 0x0064);
-	m_miBaseModel.ReplaceModel(0x04, 0x18D9);
-	m_miBaseModel.ReplaceModel(0x05, 0x006F);
-	m_miBaseModel.ReplaceModel(0x06, 0x0316);
-	m_miBaseModel.ReplaceModel(0x07, 0x18D9);
-	m_miBaseModel.ReplaceModel(0x08, 0x006D);
-	m_miBaseModel.ReplaceModel(0x09, 0x006B);
-	m_miBaseModel.ReplaceModel(0x0A, 0x005F);
-	m_miBaseModel.ReplaceModel(0x0B, 0x006C);
-	m_miBaseModel.ReplaceModel(0x0C, 0x0068);
-	m_miBaseModel.ReplaceModel(0x0D, 0x0060);
-	m_miBaseModel.ReplaceModel(0x0E, 0x18D7);
-	m_miBaseModel.ReplaceModel(0x0F, 0x0067);
-	m_miBaseModel.ReplaceModel(0x10, 0x0060);
-}
-#endif
 
 bool CMonsterWeenie::IsAttackMotion(DWORD motion)
 {
