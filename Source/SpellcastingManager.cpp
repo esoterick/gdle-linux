@@ -1542,14 +1542,63 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 			case 3: // portal recall
 			{
-				Position lastPortalPos;
-				if (m_pWeenie->m_Qualities.InqPosition(LAST_PORTAL_POSITION, lastPortalPos) && lastPortalPos.objcell_id != 0)
+				DWORD portalDID = 0;
+
+				if (m_pWeenie->m_Qualities.InqDataID(LAST_PORTAL_DID, portalDID) && portalDID != 0)
 				{
-					BeginPortalSend(lastPortalPos);
-				}
-				else if (m_pWeenie->GetWorldTopLevelOwner()->m_Qualities.InqPosition(LAST_PORTAL_POSITION, lastPortalPos) && lastPortalPos.objcell_id != 0)
-				{
-					BeginPortalSend(lastPortalPos);
+					CWeenieDefaults *portalDefaults = NULL;
+
+					if (portalDID && !(1955 == portalDID))
+					{
+						portalDefaults = g_pWeenieFactory->GetWeenieDefaults(portalDID);
+					}
+					else if (portalDID && (1955 == portalDID))
+					{
+						portalDefaults = g_pWeenieFactory->GetWeenieDefaults(portalDID);
+						portalDefaults->m_Qualities.SetPosition(DESTINATION_POSITION, m_pWeenie->InqPositionQuality(LINKED_PORTAL_ONE_POSITION, Position()));
+					}
+
+
+					int minLevel = 0;
+					int maxLevel = 0;
+					portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
+					portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
+
+					int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
+
+					if (minLevel && currentLevel < minLevel)
+					{
+						m_pWeenie->SendText("You are not powerful enough to recall this portal yet.", LTT_MAGIC);
+						break;
+					}
+					else if (maxLevel && currentLevel > maxLevel)
+					{
+						m_pWeenie->SendText("You are too powerful to recall this portal.", LTT_MAGIC);
+						break;
+					}
+
+					std::string restriction;
+					if (portalDefaults->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction))
+					{
+						if (CPlayerWeenie *player = m_pWeenie->AsPlayer())
+						{
+							if (!player->InqQuest(restriction.c_str()))
+							{
+								m_pWeenie->SendText("You try to recall the portal but there is no effect.", LTT_MAGIC);
+								break;
+							}
+						}
+					}
+
+					Position portalDest;
+					if (portalDefaults->m_Qualities.InqPosition(DESTINATION_POSITION, portalDest) && portalDest.objcell_id != 0)
+					{
+						BeginPortalSend(portalDest);
+					}
+					else
+					{
+						m_pWeenie->SendText("The portal you last used has no destination set.", LTT_MAGIC);
+					}
 				}
 				else
 				{
@@ -1560,12 +1609,11 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 				break;
 			}
 
+			break;
+
 			case 4: // primary portal recall
 			{
 				DWORD portalDID = 0;
-
-
-
 
 				if (m_pWeenie->m_Qualities.InqDataID(LINKED_PORTAL_ONE_DID, portalDID) && portalDID != 0)
 				{
@@ -1808,7 +1856,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 					{
 						if (Enchantment* highest_enchant = enchant_reg->GetHighestEnchantOfCategory(enchant._spell_category, enchant._smod.type)) // check if spell of this category already exists
 						{
-							if (highest_enchant->_id == enchant._id)
+							if ((highest_enchant->_id & 0xFFFF) == enchant._id)
 								text_option = 1;
 
 							else 
@@ -1817,7 +1865,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 								text_option = highest_enchant->_power_level > enchant._power_level ? 2 : 3; 
 
 								CSpellTable* st = MagicSystem::GetSpellTable();
-								existing_spell_name = st->GetSpellBase(highest_enchant->_id)->_name;
+								existing_spell_name = st->GetSpellBase((highest_enchant->_id & 0xFFFF))->_name;
 							}
 						}
 					}

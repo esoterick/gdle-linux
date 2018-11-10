@@ -1165,7 +1165,7 @@ int CTreasureFactory::GenerateRareItem(CWeenieObject *parent, CWeenieObject *kil
 		}
 	}
 
-	if (!realTimeRare && roll < (0.0004 * g_pConfig->RareDropMultiplier())) 
+	if (!realTimeRare && roll < (0.0004 * g_pConfig->RareDropMultiplier()))
 		rareDropped = true;
 
 	if (rareDropped)
@@ -1213,7 +1213,7 @@ int CTreasureFactory::GenerateRareItem(CWeenieObject *parent, CWeenieObject *kil
 
 		int rareCount = killer->m_Qualities.GetInt((STypeInt)tierInt, 0);
 		killer->m_Qualities.SetInt((STypeInt)tierInt, rareCount + 1);
-				
+
 
 		if (CWeenieObject *newItem = GenerateRandomRareByTier(tier))
 		{
@@ -1364,8 +1364,8 @@ CWeenieObject *CTreasureFactory::GenerateRandomRareByTier(int rareTier)
 	{
 		if (entry.first == rareTier)
 		{
-				rareWcid = entry.second.rareTierWcids[getRandomNumberExclusive((int)entry.second.rareTierWcids.size())];
-				break;
+			rareWcid = entry.second.rareTierWcids[getRandomNumberExclusive((int)entry.second.rareTierWcids.size())];
+			break;
 		}
 	}
 
@@ -1475,7 +1475,7 @@ CWeenieObject *CTreasureFactory::GenerateTreasure(int tierId, eTreasureCategory 
 			category = &_TreasureProfile->jewelry[getRandomNumberExclusive((int)_TreasureProfile->jewelry.size())];
 		break;
 	case TreasureCategory_Caster:
-			if (!_TreasureProfile->casters.empty())
+		if (!_TreasureProfile->casters.empty())
 			category = &_TreasureProfile->casters[getRandomNumberExclusive((int)_TreasureProfile->casters.size())];
 		break;
 	case TreasureCategory_Gem:
@@ -1751,10 +1751,10 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 
 			//gemType = g_pPortalDataEx->_treasureTableData.RollMaterialFromBaseMaterial(Gem_MaterialType, tier->tierId);
 			//gemValueMultiplier = *g_pPortalDataEx->_treasureTableData._materialValueAddedPossibly.lookup(gemType);
-	
-				newItem->m_Qualities.SetInt(GEM_COUNT_INT, gemCount);
-				newItem->m_Qualities.SetInt(GEM_TYPE_INT, gemType);
-			
+
+			newItem->m_Qualities.SetInt(GEM_COUNT_INT, gemCount);
+			newItem->m_Qualities.SetInt(GEM_TYPE_INT, gemType);
+
 		}
 	}
 
@@ -1938,6 +1938,9 @@ void CTreasureFactory::MutateMeleeWeapon(CWeenieObject *newItem, CWieldTier *wie
 
 			CWeenieDefaults *weenieDefs = g_pWeenieFactory->GetWeenieDefaults(variantId);
 
+			// set wcid to that of the elemental variant.
+			newItem->m_Qualities.id = weenieDefs->m_Qualities.id;
+
 			if (weenieDefs == NULL)
 				return;
 
@@ -2000,53 +2003,15 @@ void CTreasureFactory::MutateMissileWeapon(CWeenieObject *newItem, CWieldTier *w
 			if (getRandomNumberExclusive(100) < wieldTier->elementalChance * 100)
 				elementalType = (eElements)getRandomNumber(4, 7);
 			newItem->m_Qualities.SetInt(ELEMENTAL_DAMAGE_BONUS_INT, elementalDamage);
-
-            // Removed as it is no longer needed once Elemental Missile Weapons are added into the loot.
-			/*switch (elementalType)
-			{
-			case acid:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, ACID_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_ACID);
-				newItem->m_Qualities.SetString(NAME_STRING, "Acid " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case cold:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, COLD_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_FROST);
-				newItem->m_Qualities.SetString(NAME_STRING, "Frost " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case fire:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, FIRE_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_FIRE);
-				newItem->m_Qualities.SetString(NAME_STRING, "Fire " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case lightning:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, ELECTRIC_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_LIGHTNING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Electric " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case bludgeoning:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, BLUDGEON_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_BLUDGEONING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Blunt " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case piercing:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, PIERCE_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_PIERCING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Piercing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case slashing:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, SLASH_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_SLASHING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Slashing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			}*/
 		}
 	}
 }
 
 void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
 {
-	if (wieldTier->weaponSkillRequired > 0)
+	bool hasRequirement1 = false;
+
+	if (wieldTier->weaponSkillRequired > 0 && wieldTier->maxElementalDamageMod > 0)
 	{
 		std::vector<STypeSkill> possibleRequirements;
 		//possibleRequirements.push_back(CREATURE_ENCHANTMENT_SKILL);
@@ -2054,6 +2019,8 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 		//possibleRequirements.push_back(LIFE_MAGIC_SKILL);
 		possibleRequirements.push_back(WAR_MAGIC_SKILL);
 		STypeSkill skill = possibleRequirements[getRandomNumberExclusive((int)possibleRequirements.size())];
+		hasRequirement1 = true;
+
 		newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, skill);
 
 		switch (skill)
@@ -2084,15 +2051,7 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 			break;
 		}
 
-		if (wieldTier->maxManaConversionBonus > 0 && getRandomNumberExclusive(100) < wieldTier->manaConversionBonusChance * 100 * (1 + (creationInfo.qualityModifier * 2)))
-		{
-			double manaConversionMod = round(getRandomDouble(wieldTier->minManaConversionBonus / 100, wieldTier->maxManaConversionBonus / 100, eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2);
-			if (manaConversionMod > 0)
-				newItem->m_Qualities.SetFloat(MANA_CONVERSION_MOD_FLOAT, manaConversionMod);
-		}
 
-		if (wieldTier->maxElementalDamageMod > 0)
-		{
 			double elementalDamageMod = round(getRandomDouble(wieldTier->minElementalDamageMod, wieldTier->maxElementalDamageMod, eRandomFormula::favorMid, 2, 0), 2);
 
 			elementalDamageMod = 1.0 + (elementalDamageMod / 100.0);
@@ -2102,77 +2061,58 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 				elementalType = (eElements)getRandomNumber(1, 3);
 			newItem->m_Qualities.SetFloat(ELEMENTAL_DAMAGE_MOD_FLOAT, elementalDamageMod);
 
-            // Removed as it is no longer needed once Elemental Casters are added into the loot.
-			/*switch (elementalType)
-			{
-			case acid:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, ACID_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_ACID);
-				newItem->m_Qualities.SetString(NAME_STRING, "Acid " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case cold:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, COLD_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_FROST);
-				newItem->m_Qualities.SetString(NAME_STRING, "Frost " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case fire:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, FIRE_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_FIRE);
-				newItem->m_Qualities.SetString(NAME_STRING, "Fire " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case lightning:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, ELECTRIC_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_LIGHTNING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Electric " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case bludgeoning:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, BLUDGEON_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_BLUDGEONING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Blunt " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case piercing:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, PIERCE_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_PIERCING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Piercing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			case slashing:
-				newItem->m_Qualities.SetInt(DAMAGE_TYPE_INT, SLASH_DAMAGE_TYPE);
-				newItem->m_Qualities.SetInt(UI_EFFECTS_INT, UI_EFFECT_TYPE::UI_EFFECT_SLASHING);
-				newItem->m_Qualities.SetString(NAME_STRING, "Slashing " + newItem->m_Qualities.GetString(NAME_STRING, ""));
-				break;
-			}*/
-		}
 	}
-	//else// 
-	{
-		double manaConversionnowield = round(getRandomDouble(0, 0.10), 2);
-		if (manaConversionnowield > 0)
-			newItem->m_Qualities.SetFloat(MANA_CONVERSION_MOD_FLOAT, manaConversionnowield);
 
-		double meleeDefensenowield = round(getRandomDouble(1.0, 1.15), 2);
-		if (meleeDefensenowield > 0)
-			newItem->m_Qualities.SetFloat(WEAPON_DEFENSE_FLOAT, meleeDefensenowield);
+
+	if (wieldTier->maxManaConversionBonus > 0 && getRandomNumberExclusive(100) < wieldTier->manaConversionBonusChance * 100 * (1 + (creationInfo.qualityModifier * 2)))
+	{
+		double manaConversionMod = round(getRandomDouble(wieldTier->minManaConversionBonus / 100, wieldTier->maxManaConversionBonus / 100, eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2);
+		if (manaConversionMod > 0)
+			newItem->m_Qualities.SetFloat(MANA_CONVERSION_MOD_FLOAT, manaConversionMod);
+	}
+
+	if (wieldTier->maxMeleeDefenseBonus > 0 && getRandomNumberExclusive(100) < wieldTier->meleeDefenseBonusChance * 100 * (1 + (creationInfo.qualityModifier * 2)))
+	{
+		double meleeMod = round(getRandomDouble(wieldTier->minMeleeDefenseBonus / 100, wieldTier->maxMeleeDefenseBonus / 100, eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2);
+		if (meleeMod > 0)
+			newItem->m_Qualities.SetFloat(MANA_CONVERSION_MOD_FLOAT, meleeMod);
+	}
+
+	if (wieldTier->minLevel > 0)
+	{
+		if (hasRequirement1)
+		{
+			newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_2_INT, eWieldRequirements::level);
+			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 2);
+			newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_2_INT, wieldTier->minLevel);
+		}
+		else
+		{
+			newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_INT, eWieldRequirements::level);
+			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 2);
+			newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_INT, wieldTier->minLevel);
+		}
 	}
 }
 
 
 void CTreasureFactory::MutateGem(CWeenieObject *newItem, CWieldTier *wieldTier, sItemCreationInfo &creationInfo, CTreasureTier *tier, CTreasureProfileCategory *category, CItemTreasureProfileEntry *entry)
-{	
+{
 	if (!entry->elementalVariants.empty())
 	{
-			int variantId = entry->elementalVariants[getRandomNumberExclusive((int)entry->elementalVariants.size())];
+		int variantId = entry->elementalVariants[getRandomNumberExclusive((int)entry->elementalVariants.size())];
 
 
-			CWeenieDefaults *weenieDefs = g_pWeenieFactory->GetWeenieDefaults(variantId);
+		CWeenieDefaults *weenieDefs = g_pWeenieFactory->GetWeenieDefaults(variantId);
 
-			if (weenieDefs == NULL)
-				return;
-			else
-			{
-				g_pWeenieFactory->ApplyWeenieDefaults(newItem, variantId);
-				newItem->m_Qualities.SetInt(ITEM_USEABLE_INT, 8);
-				newItem->m_Qualities.m_WeenieType = 38;
-			}
+		if (weenieDefs == NULL)
+			return;
+		else
+		{
+			g_pWeenieFactory->ApplyWeenieDefaults(newItem, variantId);
+			newItem->m_Qualities.SetInt(ITEM_USEABLE_INT, 8);
+			newItem->m_Qualities.m_WeenieType = 38;
+		}
 
 	}
 }
@@ -2257,21 +2197,21 @@ void CTreasureFactory::MutateArmor(CWeenieObject *newItem, CWieldTier *wieldTier
 		}
 	}
 
-		if (wieldTier->minLevel > 0)
+	if (wieldTier->minLevel > 0)
+	{
+		if (hasRequirement1)
 		{
-			if (hasRequirement1)
-			{
-				newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_2_INT, eWieldRequirements::level);
-				newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 2);
-				newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_2_INT, wieldTier->minLevel);
-			}
-			else
-			{
-				newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_INT, eWieldRequirements::level);
-				newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 2);
-				newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_INT, wieldTier->minLevel);
-			}
+			newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_2_INT, eWieldRequirements::level);
+			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 2);
+			newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_2_INT, wieldTier->minLevel);
 		}
+		else
+		{
+			newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_INT, eWieldRequirements::level);
+			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 2);
+			newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_INT, wieldTier->minLevel);
+		}
+	}
 }
 
 std::vector<CPossibleSpells> CTreasureFactory::MergeSpellLists(std::vector<CPossibleSpells> list1, std::vector<CPossibleSpells> list2)
@@ -2538,17 +2478,17 @@ void CTreasureFactory::AddSpell(CWeenieObject *newItem, std::vector<CPossibleSpe
 					continue; //invalid spell id
 
 				if (category->category == "gemstones")
-				{	
+				{
 					newItem->m_Qualities.SetDataID(SPELL_DID, spell);
 					newItem->m_Qualities.SetInt(ITEM_USEABLE_INT, 8);
 				}
-				
-					newItem->m_Qualities.AddSpell(spell);
-					creationInfo.spellIds.push_back(spell);
-					creationInfo.spells.push_back(possibleSpell);
-					creationInfo.isMagical = true;
-					creationInfo.totalSpellsCount++;
-			
+
+				newItem->m_Qualities.AddSpell(spell);
+				creationInfo.spellIds.push_back(spell);
+				creationInfo.spells.push_back(possibleSpell);
+				creationInfo.isMagical = true;
+				creationInfo.totalSpellsCount++;
+
 				int spellPower = _TreasureProfile->spellProperties.spellPower[spellVariantIndex];
 				creationInfo.totalPower += spellPower;
 				creationInfo.totalMana += _TreasureProfile->spellProperties.spellMana[spellVariantIndex];
