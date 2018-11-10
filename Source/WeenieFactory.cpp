@@ -634,6 +634,9 @@ CWeenieObject *CWeenieFactory::CreateWeenieByClassID(DWORD wcid, const Position 
 	if (!defaults)
 		return NULL;
 
+	if (!g_pConfig->CreateTemplates() && (!strcmp(defaults->m_Qualities.GetString(NAME_STRING, "").c_str(), "Name Me Please") || !strcmp(defaults->m_Qualities.GetString(NAME_STRING, "").c_str(), "CreatureName")))
+		return NULL;
+
 	return CreateWeenie(defaults, pos, bSpawn);
 }
 
@@ -641,6 +644,9 @@ CWeenieObject *CWeenieFactory::CreateWeenieByName(const char *name, const Positi
 {
 	CWeenieDefaults *defaults = GetWeenieDefaults(name);
 	if (!defaults)
+		return NULL;
+
+	if (!g_pConfig->CreateTemplates() && (!strcmp(defaults->m_Qualities.GetString(NAME_STRING, "").c_str(), "Name Me Please") || !strcmp(defaults->m_Qualities.GetString(NAME_STRING, "").c_str(), "CreatureName")))
 		return NULL;
 
 	return CreateWeenie(defaults, pos, bSpawn);

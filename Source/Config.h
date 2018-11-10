@@ -99,6 +99,7 @@ public:
 	virtual bool RealTimeRares() { return m_bRealTimeRares; }
 
 	virtual bool LoginAtLS() { return m_bLoginAtLS; }
+	virtual bool CreateTemplates() { return m_bCreateTemplates; }
 
 protected:
 	virtual void PostLoad() override;
@@ -188,6 +189,7 @@ protected:
 	double m_fRareDropMultiplier = 0.0;
 
 	bool m_bLoginAtLS = 0;
+	bool m_bCreateTemplates = 0;
 };
 
 extern CPhatACServerConfig *g_pConfig;
