@@ -351,15 +351,23 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 				break;
 
 			int current_level = target->m_Qualities.GetInt(LEVEL_INT, 1);
-			DWORD64 xp_to_next_level = ExperienceSystem::ExperienceToRaiseLevel(current_level, current_level + 1);
+			if (current_level == 275)
+			{
+				target->GiveXP(emote.max64, true, false);
+				break;
+			}
+			else
+			{
+				DWORD64 xp_to_next_level = ExperienceSystem::ExperienceToRaiseLevel(current_level, current_level + 1);
 
-			DWORD64 xp_to_give = (DWORD64)round((long double)xp_to_next_level * emote.percent);
-			if (emote.min64 > 0)
-				xp_to_give = max(xp_to_give, emote.min64);
-			if (emote.max64 > 0)
-				xp_to_give = min(xp_to_give, emote.max64);
-			target->GiveXP(xp_to_give, true, false);
-			break;
+				DWORD64 xp_to_give = (DWORD64)round((long double)xp_to_next_level * emote.percent);
+				if (emote.min64 > 0)
+					xp_to_give = max(xp_to_give, emote.min64);
+				if (emote.max64 > 0)
+					xp_to_give = min(xp_to_give, emote.max64);
+				target->GiveXP(xp_to_give, true, false);
+				break;
+			}
 		}
 	case Give_EmoteType:
 		{
