@@ -120,6 +120,7 @@
     <ClCompile Include="RecipeFactory.cpp" />
     <ClCompile Include="Source\AugmentationDevice.cpp" />
     <ClCompile Include="Source\BindStone.cpp" />
+    <ClCompile Include="Source\command\admin\SetStats.cpp" />
     <ClCompile Include="Source\easylogging++.cpp" />
     <ClCompile Include="Source\EnumUtil.cpp" />
     <ClCompile Include="Source\Game.cpp" />
