@@ -1471,9 +1471,9 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 								{
 									DWORD64 xpToAward = skill._pp;
 									skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
-									skill._pp = 0;
-									skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
-									skill._init_level = 5;
+									skill._pp = 526;
+									skill._level_from_pp = 5;
+									skill._init_level = 0;
 									player->m_Qualities.SetSkill(skillToAlter, skill);
 									player->NotifySkillStatUpdated(skillToAlter);
 
@@ -1546,9 +1546,9 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 						{
 							DWORD64 xpToAward = skill._pp;
 							skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
-							skill._pp = 0;
-							skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
-							skill._init_level = 5;
+							skill._pp = 526;
+							skill._level_from_pp = 5;
+							skill._init_level = 0;
 							player->m_Qualities.SetSkill(skillToAlter, skill);
 							player->NotifySkillStatUpdated(skillToAlter);
 
@@ -1584,9 +1584,9 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 								if (heritageGroup->mSkillList.array_data[i].skillNum == skillToAlter)
 								{
 									DWORD64 xpToAward = skill._pp;
-									skill._pp = 0;
-									skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
-									skill._init_level = 5;
+									skill._pp = 526;
+									skill._level_from_pp = 5;
+									skill._init_level = 0;
 									player->m_Qualities.SetSkill(skillToAlter, skill);
 									player->NotifySkillStatUpdated(skillToAlter);
 
@@ -1634,8 +1634,8 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 						{
 							DWORD64 xpToAward = skill._pp;
 							skill._pp = 0;
-							skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
-							skill._init_level = 5;
+							skill._level_from_pp = 5;
+							skill._init_level = 0;
 							player->m_Qualities.SetSkill(skillToAlter, skill);
 							player->NotifySkillStatUpdated(skillToAlter);
 
@@ -1794,6 +1794,50 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 				target->m_Qualities.SetFloat((STypeFloat)emote.stat, emote.percent);
 				target->NotifyFloatStatUpdated((STypeFloat)emote.stat, FALSE);
 			}
+		}
+	}
+	case StartBarber_EmoteType:
+	{
+		if (!_weenie->m_Qualities._emote_table)
+			break;
+
+		CWeenieObject *player = g_pWorld->FindObject(target_id)->AsPlayer();
+
+		if (player)
+		{
+			BinaryWriter writer;
+			writer.Write<DWORD>(0x75);
+			writer.Write<DWORD>(player->InqDIDQuality(PALETTE_BASE_DID, 0));
+			writer.Write<DWORD>(player->InqDIDQuality(HEAD_OBJECT_DID, 0));
+			writer.Write<DWORD>(0); // Head Texture - TODO find where this is stored.
+			writer.Write<DWORD>(0); // Default Head Texture - TODO find where this is stored.
+			writer.Write<DWORD>(player->InqDIDQuality(EYES_TEXTURE_DID, 0));
+			writer.Write<DWORD>(player->InqDIDQuality(DEFAULT_EYES_TEXTURE_DID, 0));
+			writer.Write<DWORD>(player->InqDIDQuality(NOSE_TEXTURE_DID, 0));
+			writer.Write<DWORD>(player->InqDIDQuality(DEFAULT_NOSE_TEXTURE_DID, 0));
+			writer.Write<DWORD>(player->InqDIDQuality(MOUTH_TEXTURE_DID, 0));
+			writer.Write<DWORD>(player->InqDIDQuality(DEFAULT_MOUTH_TEXTURE_DID, 0));
+			writer.Write<DWORD>(player->InqDIDQuality(SKIN_PALETTE_DID, 0));
+			writer.Write<DWORD>(player->InqDIDQuality(HAIR_PALETTE_DID, 0));
+			writer.Write<DWORD>(player->InqDIDQuality(EYES_PALETTE_DID, 0));
+			writer.Write<DWORD>(player->InqDIDQuality(SETUP_DID, 0));
+			if (player->m_Qualities.GetInt(HERITAGE_GROUP_INT, 0) == Empyrean_HeritageGroup)
+			{
+				if(player->m_Qualities.GetDID(MOTION_TABLE_DID, 0) == 0x900020D)
+					writer.Write<int>(1);
+				else
+					writer.Write<int>(0);
+			}
+			else if (player->m_Qualities.GetInt(HERITAGE_GROUP_INT, 0) == Undead_HeritageGroup)
+			{
+				// Option1 for Undead - TODO check for head flame enabled, if yes, send 1, else 0.
+				writer.Write<int>(0);
+			}
+			else
+				writer.Write<int>(0);
+
+			writer.Write<int>(0); // Option2 - Unused?
+			player->SendNetMessage(&writer, PRIVATE_MSG, FALSE, FALSE);
 		}
 
 		break;

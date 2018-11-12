@@ -282,6 +282,11 @@ void CWeenieFactory::RefreshLocalStorage()
 	MapScrollWCIDs();
 }
 
+void CWeenieFactory::RefreshLocalWeenie(DWORD wcid)
+{
+	LoadLocalWeenie(wcid);
+}
+
 void CWeenieFactory::LoadLocalStorage(bool refresh)
 {
 	auto itr = std::filesystem::recursive_directory_iterator("data/json/weenies/", std::filesystem::directory_options::skip_permission_denied);
@@ -438,6 +443,79 @@ void CWeenieFactory::LoadLocalStorage(bool refresh)
 	}
 
 	}
+
+void CWeenieFactory::LoadLocalWeenie(DWORD wcid)
+{
+	auto existing = m_WeenieDefaults.find(wcid);
+	if (existing != m_WeenieDefaults.end())
+	{
+		std::filesystem::path path = m_WeenieDefaults[wcid]->m_sourceFile.c_str();
+
+		std::mutex mapLock;
+		std::mutex multiMapLock;
+
+		if (path.extension().compare(".json") == 0)
+		{
+			std::ifstream fs(path);
+
+			json jsonData;
+			fs >> jsonData;
+			fs.close();
+
+			CWeenieDefaults *pDefaults = new CWeenieDefaults();
+			if (pDefaults->m_Qualities.UnPackJson(jsonData))
+			{
+				pDefaults->m_WCID = pDefaults->m_Qualities.id;
+				pDefaults->m_sourceFile = path.string();
+
+
+				CWeenieDefaults *toDelete = NULL;
+				{
+					std::scoped_lock lock(mapLock);
+
+					if (existing != m_WeenieDefaults.end())
+					{
+						toDelete = existing->second;
+					}
+
+					m_WeenieDefaults[pDefaults->m_WCID] = pDefaults;
+				}
+
+				std::string name;
+				if (pDefaults->m_Qualities.InqString(NAME_STRING, name))
+				{
+					// convert name for easier matching, lowercase and remove any spaces
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+					name.erase(remove_if(name.begin(), name.end(), isspace), name.end());
+
+					// remove if this WCID is already in here
+					for (std::multimap<std::string, CWeenieDefaults *>::iterator i = m_WeenieDefaultsByName.begin(); i != m_WeenieDefaultsByName.end(); i++)
+					{
+						if (i->second->m_Qualities.GetID() == pDefaults->m_Qualities.GetID())
+						{
+							std::scoped_lock lock(multiMapLock);
+							m_WeenieDefaultsByName.erase(i);
+							break;
+						}
+					}
+
+					std::scoped_lock lock(multiMapLock);
+					m_WeenieDefaultsByName.insert(std::pair<std::string, CWeenieDefaults *>(name, pDefaults));
+
+				}
+
+				if (toDelete)
+				{
+					delete toDelete;
+				}
+			}
+			else
+			{
+				delete pDefaults;
+			}
+		}
+	}
+}
 
 void CWeenieFactory::LoadLocalStorageIndexed()
 {
