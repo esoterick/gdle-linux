@@ -1099,7 +1099,7 @@ bool CWorldLandBlock::PlayerWithinPVS()
 	return false;
 }
 
-void CWorldLandBlock::ClearSpawns()
+void CWorldLandBlock::ClearSpawns(bool forced)
 {
 	WeenieVector::iterator eit = m_EntityList.begin();
 	WeenieVector::iterator eend = m_EntityList.end();
@@ -1110,20 +1110,25 @@ void CWorldLandBlock::ClearSpawns()
 	{
 		pEntity = *eit;
 
-		if (pEntity && !pEntity->HasOwner() && !pEntity->m_bDontClear)
+		if (pEntity && !pEntity->HasOwner() && !pEntity->AsPlayer())
 		{
-			if (pEntity)
+			if (forced || !pEntity->m_bDontClear)
 			{
-				Destroy(pEntity);
+					if (pEntity)
+					{
+						Destroy(pEntity);
 
-				eit = m_EntityList.begin();
-				eend = m_EntityList.end();
+						eit = m_EntityList.begin();
+						eend = m_EntityList.end();
+					}
+					else
+					{
+						eit = m_EntityList.erase(eit);
+						eend = m_EntityList.end();
+					}
 			}
 			else
-			{
-				eit = m_EntityList.erase(eit);
-				eend = m_EntityList.end();
-			}
+				eit++;
 		}
 		else
 		{

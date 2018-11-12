@@ -5672,7 +5672,7 @@ int CWeenieObject::SimulateGiveObject(CContainerWeenie *target_container, CWeeni
 		if (IsCreature())
 		{
 			int amount = object_weenie->InqIntQuality(STACK_SIZE_INT, 1);
-			if (amount > 1)
+			if (amount > 1 && !(m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->m_Qualities.id)))
 			{
 				SendText(csprintf("You give %s %s %s.", target_container->GetName().c_str(), FormatNumberString(amount).c_str(), object_weenie->GetPluralName().c_str()), LTT_DEFAULT);
 				target_container->SendText(csprintf("%s gives you %s %s.", GetName().c_str(), FormatNumberString(amount).c_str(), object_weenie->GetPluralName().c_str()), LTT_DEFAULT);
@@ -5766,7 +5766,7 @@ void CWeenieObject::SimulateGiveObject(class CContainerWeenie *target_container,
 		if (IsCreature())
 		{
 			int amount = object_weenie->InqIntQuality(STACK_SIZE_INT, 1);
-			if (amount > 1)
+			if (amount > 1 && !(m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->m_Qualities.id)))
 			{
 				SendText(csprintf("You give %s %s %s.", target_container->GetName().c_str(), FormatNumberString(amount).c_str(), object_weenie->GetPluralName().c_str()), LTT_DEFAULT);
 				target_container->SendText(csprintf("%s gives you %s %s.", GetName().c_str(), FormatNumberString(amount).c_str(), object_weenie->GetPluralName().c_str()), LTT_DEFAULT);
