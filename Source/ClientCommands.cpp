@@ -3402,8 +3402,7 @@ CLIENT_COMMAND(decquest, "<name>", "", SENTINEL_ACCESS, CHARACTER_CATEGORY)
 
 CLIENT_COMMAND(spawntreasure, "<tier>, <amount>, <category>", "Spawn treasure of a specific tier.", ADMIN_ACCESS, SPAWN_CATEGORY)
 {
-	int mode = atoi(argv[0]);
-	int tier = atoi(argv[1]);
+	int tier = atoi(argv[0]);
 	int num = 1;
 	int cat = (eTreasureCategory)getRandomNumber(2, 8);
 
