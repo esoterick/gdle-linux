@@ -3400,41 +3400,23 @@ CLIENT_COMMAND(decquest, "<name>", "", SENTINEL_ACCESS, CHARACTER_CATEGORY)
 }
 #endif
 
-CLIENT_COMMAND(spawntreasure, "<mode>, <tier>, <amount>, <category>", "Spawn treasure of a specific tier.", ADMIN_ACCESS, SPAWN_CATEGORY)
+CLIENT_COMMAND(spawntreasure, "<tier>, <amount>, <category>", "Spawn treasure of a specific tier.", ADMIN_ACCESS, SPAWN_CATEGORY)
 {
 	int mode = atoi(argv[0]);
 	int tier = atoi(argv[1]);
+	int num = 1;
+	int cat = (eTreasureCategory)getRandomNumber(2, 8);
 
-	switch (mode)
-	{
-	case 1:
-	{
-		if (argc < 2)
+		if (argc < 1)
 			return true;
-
-		//pPlayer->SpawnTreasureInContainer(eTreasureCategory::TreasureCategory_Junk, 1, 3);
-
-		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(tier, (eTreasureCategory)getRandomNumber(2, 8));
-		//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Caster);
-
-		if (treasure)
-		{
-			treasure->SetInitialPosition(pPlayer->GetPosition());
-			treasure->m_bDontClear = false;
-			if (!g_pWorld->CreateEntity(treasure))
-				delete treasure;
-		}
-	}
-	case 2:
-	{
-		if (argc < 3)
-			return true;
-
-		int num = atoi(argv[2]);
+		if (argc >= 2)
+			num = atoi(argv[1]);
+		if (argc >= 3)
+			cat = atoi(argv[2]);
 
 		for (int i = 0; i < num; i++)
 		{
-			CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(tier, (eTreasureCategory)getRandomNumber(2, 8));
+			CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure((tier), (eTreasureCategory)cat);
 			//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Armor);
 
 			if (treasure)
@@ -3451,35 +3433,6 @@ CLIENT_COMMAND(spawntreasure, "<mode>, <tier>, <amount>, <category>", "Spawn tre
 			else
 				continue;
 		}
-	}
-	case 3:
-	{
-		if (argc < 4)
-			return true;
-
-		int num = atoi(argv[2]);
-		int cat = atoi(argv[3]);
-		for (int i = 0; i < num; i++)
-		{
-			CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(tier, (eTreasureCategory)cat);
-			//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Armor);
-
-			if (treasure)
-			{
-				treasure->SetInitialPosition(pPlayer->m_Position.add_offset(Vector(Random::GenFloat(-2.0, 2.0), Random::GenFloat(-2.0, 2.0), 1.0)));
-
-				if (!g_pWorld->CreateEntity(treasure))
-				{
-					treasure->m_bDontClear = false;
-					delete treasure;
-					return false;
-				}
-			}
-			else
-				continue;
-		}
-	}
-	}
 
 	return false;
 }
