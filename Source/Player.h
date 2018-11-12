@@ -119,11 +119,12 @@ public:
 
 	//cmoski -- remove last assessed item
 	void SetLastAssessed(DWORD guid);
-	std::string RemoveLastAssessed();
+	std::string RemoveLastAssessed(bool forced = false);
 
 	CClient *GetClient() { return m_pClient; }
 
 	DWORD m_LastAssessed;
+	DWORD m_dwLastSpawnedObjectID;
 	
 	DWORD GetCharacterOptions() { return _playerModule.options_; }
 	DWORD GetCharacterOptions2() { return _playerModule.options2_; }

@@ -161,9 +161,9 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 						xpToAward = skill._pp;
 						skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
 						skill._pp = 0;
-						skill._init_level = 5;
+						skill._init_level = 0;
+						skill._level_from_pp = 5;
 
-						skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
 						player->m_Qualities.SetSkill(skillToAlter, skill);
 						player->NotifySkillStatUpdated(skillToAlter);
 
@@ -203,8 +203,8 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 								{
 									DWORD64 xpToAward = skill._pp;
 									skill._pp = 0;
-									skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
-									skill._init_level = 5;
+									skill._level_from_pp = 5;
+									skill._init_level = 0;
 									player->m_Qualities.SetSkill(skillToAlter, skill);
 									player->NotifySkillStatUpdated(skillToAlter);
 
@@ -256,8 +256,8 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 							//player->SendText(csprintf("You cannot untrain %s!", pSkillBase->_name.c_str()), LTT_DEFAULT);
 							DWORD64 xpToAward = skill._pp;
 							skill._pp = 0;
-							skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
-							skill._init_level = 5;
+							skill._level_from_pp = 5;
+							skill._init_level = 0;
 							player->m_Qualities.SetSkill(skillToAlter, skill);
 							player->NotifySkillStatUpdated(skillToAlter);
 
