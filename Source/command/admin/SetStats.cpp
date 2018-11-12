@@ -26,7 +26,7 @@
 //	return false;
 //}
 
-CLIENT_COMMAND(setint, "statid value", "Set Int Stat of last assessed item", ADMIN_ACCESS)
+CLIENT_COMMAND(setint, "statid value", "Set Int Stat of last assessed item", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 2)
 		return true;
@@ -44,7 +44,7 @@ CLIENT_COMMAND(setint, "statid value", "Set Int Stat of last assessed item", ADM
 	return false;
 }
 
-CLIENT_COMMAND(setint64, "statid value", "Set Int64 Stat of last assessed item", ADMIN_ACCESS)
+CLIENT_COMMAND(setint64, "statid value", "Set Int64 Stat of last assessed item", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 2)
 		return true;
@@ -62,7 +62,7 @@ CLIENT_COMMAND(setint64, "statid value", "Set Int64 Stat of last assessed item",
 	return false;
 }
 
-CLIENT_COMMAND(setfloat, "statid value", "Set Float Stat of last assessed item", ADMIN_ACCESS)
+CLIENT_COMMAND(setfloat, "statid value", "Set Float Stat of last assessed item", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 2)
 		return true;
@@ -80,7 +80,7 @@ CLIENT_COMMAND(setfloat, "statid value", "Set Float Stat of last assessed item",
 	return false;
 }
 
-CLIENT_COMMAND(setdid, "statid value", "Set DID Stat of last assessed item", ADMIN_ACCESS)
+CLIENT_COMMAND(setdid, "statid value", "Set DID Stat of last assessed item", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 2)
 		return true;
@@ -98,7 +98,7 @@ CLIENT_COMMAND(setdid, "statid value", "Set DID Stat of last assessed item", ADM
 	return false;
 }
 
-CLIENT_COMMAND(setiid, "statid value", "Set IID Stat of last assessed item", ADMIN_ACCESS)
+CLIENT_COMMAND(setiid, "statid value", "Set IID Stat of last assessed item", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 2)
 		return true;
@@ -116,7 +116,7 @@ CLIENT_COMMAND(setiid, "statid value", "Set IID Stat of last assessed item", ADM
 	return false;
 }
 
-CLIENT_COMMAND(setbool, "statid value (0, 1)", "Set Bool Stat of last assessed item", ADMIN_ACCESS)
+CLIENT_COMMAND(setbool, "statid value (0, 1)", "Set Bool Stat of last assessed item", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 2)
 		return true;
@@ -134,7 +134,7 @@ CLIENT_COMMAND(setbool, "statid value (0, 1)", "Set Bool Stat of last assessed i
 	return false;
 }
 
-CLIENT_COMMAND(setstring, "statid value", "Set String Stat of last assessed item", ADMIN_ACCESS)
+CLIENT_COMMAND(setstring, "statid value", "Set String Stat of last assessed item", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 2)
 		return true;
@@ -151,7 +151,7 @@ CLIENT_COMMAND(setstring, "statid value", "Set String Stat of last assessed item
 	return false;
 }
 
-CLIENT_COMMAND(setattr, "attrid value", "Set Attribute base value of last assessed item", ADMIN_ACCESS)
+CLIENT_COMMAND(setattr, "attrid value", "Set Attribute base value of last assessed item", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 2)
 		return true;
@@ -169,7 +169,7 @@ CLIENT_COMMAND(setattr, "attrid value", "Set Attribute base value of last assess
 	return false;
 }
 
-CLIENT_COMMAND(setvital, "vitalid value", "Set Vital base value of last assessed item", ADMIN_ACCESS)
+CLIENT_COMMAND(setvital, "vitalid value", "Set Vital base value of last assessed item", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 2)
 		return true;
@@ -187,7 +187,7 @@ CLIENT_COMMAND(setvital, "vitalid value", "Set Vital base value of last assessed
 	return false;
 }
 
-CLIENT_COMMAND(setskill, "skillid value", "Set Skill base value of last assessed item", ADMIN_ACCESS)
+CLIENT_COMMAND(setskill, "skillid value", "Set Skill base value of last assessed item", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 2)
 		return true;
