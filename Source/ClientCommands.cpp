@@ -3403,6 +3403,7 @@ CLIENT_COMMAND(decquest, "<name>", "", SENTINEL_ACCESS, CHARACTER_CATEGORY)
 CLIENT_COMMAND(spawntreasure, "<mode>, <tier>, <amount>, <category>", "Spawn treasure of a specific tier.", ADMIN_ACCESS, SPAWN_CATEGORY)
 {
 	int mode = atoi(argv[0]);
+	int tier = atoi(argv[1]);
 
 	switch (mode)
 	{
@@ -3413,7 +3414,7 @@ CLIENT_COMMAND(spawntreasure, "<mode>, <tier>, <amount>, <category>", "Spawn tre
 
 		//pPlayer->SpawnTreasureInContainer(eTreasureCategory::TreasureCategory_Junk, 1, 3);
 
-		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), (eTreasureCategory)getRandomNumber(2, 8));
+		CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(tier, (eTreasureCategory)getRandomNumber(2, 8));
 		//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Caster);
 
 		if (treasure)
@@ -3429,12 +3430,11 @@ CLIENT_COMMAND(spawntreasure, "<mode>, <tier>, <amount>, <category>", "Spawn tre
 		if (argc < 3)
 			return true;
 
-		int tier = atoi(argv[0]);
-		int num = atoi(argv[1]);
+		int num = atoi(argv[2]);
 
 		for (int i = 0; i < num; i++)
 		{
-			CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), (eTreasureCategory)getRandomNumber(2, 8));
+			CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(tier, (eTreasureCategory)getRandomNumber(2, 8));
 			//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Armor);
 
 			if (treasure)
@@ -3457,12 +3457,11 @@ CLIENT_COMMAND(spawntreasure, "<mode>, <tier>, <amount>, <category>", "Spawn tre
 		if (argc < 4)
 			return true;
 
-		int tier = atoi(argv[0]);
-		int num = atoi(argv[1]);
-		int cat = atoi(argv[2]);
+		int num = atoi(argv[2]);
+		int cat = atoi(argv[3]);
 		for (int i = 0; i < num; i++)
 		{
-			CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure((tier), (eTreasureCategory)cat);
+			CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(tier, (eTreasureCategory)cat);
 			//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Armor);
 
 			if (treasure)
