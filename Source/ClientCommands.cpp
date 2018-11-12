@@ -3404,7 +3404,7 @@ CLIENT_COMMAND(spawntreasure, "<tier>, <amount>, <category>", "Spawn treasure of
 {
 	int tier = atoi(argv[0]);
 	int num = 1;
-	int cat = (eTreasureCategory)getRandomNumber(2, 8);
+	int cat;
 
 		if (argc < 1)
 			return true;
@@ -3415,6 +3415,9 @@ CLIENT_COMMAND(spawntreasure, "<tier>, <amount>, <category>", "Spawn treasure of
 
 		for (int i = 0; i < num; i++)
 		{
+			if (argc < 3)
+				cat = (eTreasureCategory)getRandomNumber(2, 8);
+
 			CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure((tier), (eTreasureCategory)cat);
 			//CWeenieObject *treasure = g_pTreasureFactory->GenerateTreasure(atoi(argv[0]), eTreasureCategory::TreasureCategory_Armor);
 
