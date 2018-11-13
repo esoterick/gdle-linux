@@ -203,10 +203,13 @@ void CWorldLandBlock::SpawnDynamics()
 				if (wcid == W_HUMAN_CLASS || wcid == W_ADMIN_CLASS || wcid == W_SENTINEL_CLASS)
 					continue;
 
-				CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid, &pos, true);
+				CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid, &pos, false);
 
-				if (!weenie)
+				if (weenie)
 				{
+					weenie->SetID(g_pObjectIDGen->GenerateGUID(eEphemeral));
+					g_pWorld->CreateEntity(weenie, false);
+
 				}
 
 				// LOG(Temp, Normal, TEXT("Loaded auto-spawn %s (%u, %X) ei: %d\n"), GetWCIDName(wcid), wcid, wcid, encounterIndex);
@@ -310,11 +313,12 @@ void CWorldLandBlock::SpawnDynamics()
 			if (weenie)
 			{
 				bool bDynamicID = !weenie->IsStuck();
+				weenie->SetID(bDynamicID ? g_pObjectIDGen->GenerateGUID(eEphemeral) : iid);
 
-				if (!bDynamicID)
-				{
-					weenie->SetID(iid);
-				}
+				//if (!bDynamicID)
+				//{
+				//	weenie->SetID(iid);
+				//}
 
 				g_pWorld->CreateEntity(weenie);
 
