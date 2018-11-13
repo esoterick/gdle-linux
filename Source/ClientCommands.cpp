@@ -2414,14 +2414,14 @@ CLIENT_COMMAND(setmodel, "[monster]", "Changes your model to a monster.", ADMIN_
 #endif
 
 
-CLIENT_COMMAND(invisible, "", "Go Invisible", BASIC_ACCESS, CHARACTER_CATEGORY)
+CLIENT_COMMAND(invisible, "", "Go Invisible", ADMIN_ACCESS, CHARACTER_CATEGORY)
 {
 	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
 	pPlayer->EmitEffect(PS_Hidden, fSpeed);
 	return false;
 }
 
-CLIENT_COMMAND(visible, "", "Go Visible", BASIC_ACCESS, CHARACTER_CATEGORY)
+CLIENT_COMMAND(visible, "", "Go Visible", ADMIN_ACCESS, CHARACTER_CATEGORY)
 {
 	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
 	pPlayer->EmitEffect(PS_UnHide, fSpeed);
