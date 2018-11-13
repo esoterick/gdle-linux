@@ -4287,6 +4287,11 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 	case W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
 	case W_MATERIALWHITESAPPHIRE_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(4453); break;
+
+	case 45683: // Left-hand tether
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(6798); break;
+	case 45684: // Left-hand tether remover
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(6799); break;
 	default:
 		return NULL;
 	}
