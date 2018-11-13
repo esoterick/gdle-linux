@@ -48,18 +48,7 @@
 // Most of these commands are just for experimenting and never meant to be used in a real game
 // TODO: Add flags to these commands so they are only accessible under certain modes such as a sandbox mode
 
-enum CommandCategory
-{
-	HIDDEN_CATEGORY = 0,
-	GENERAL_CATEGORY,
-	EXPLORE_CATEGORY,
-	SPAWN_CATEGORY,
-	CHARACTER_CATEGORY,
-	SERVER_CATEGORY,
-
-};
-
-CommandMap CommandBase::m_mCommands;
+//CommandMap CommandBase::m_mCommands;
 
 void CommandBase::Create(const char* szName, const char* szArguments, const char* szHelp, pfnCommandCallback pCallback, int iAccessLevel, int iCategory, bool bSource)
 {
@@ -73,8 +62,8 @@ void CommandBase::Create(const char* szName, const char* szArguments, const char
 		iCategory,
 		bSource
 	};
-
-	m_mCommands[std::string(szName)] = i;
+	GetCommandMap()[std::string(szName)] = i;
+	//m_mCommands[std::string(szName)] = i;
 }
 
 bool g_bSilence = false;
@@ -1997,7 +1986,7 @@ CLIENT_COMMAND(fixclient, "", "Resets the client back to login state.", BASIC_AC
 	return false;
 }
 
-std::map<std::string, int> commandMap;
+//std::map<std::string, int> commandMap;
 
 CLIENT_COMMAND(config, "<setting> <on/off>", "Manually sets a character option on the server.\nUse /config list to see a list of settings.", BASIC_ACCESS, CHARACTER_CATEGORY)
 {
@@ -2505,9 +2494,6 @@ CLIENT_COMMAND(exportrecipe, "<recipeid>", "Export recipe number", ADMIN_ACCESS,
 	return true;
 }
 
-
-
-
 CLIENT_COMMAND(importrecipe, "<recipeid>", "Import a recipes", ADMIN_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 1)
@@ -2544,7 +2530,6 @@ CLIENT_COMMAND(importrecipe, "<recipeid>", "Import a recipes", ADMIN_ACCESS, SER
 	pPlayer->SendText(csprintf("RecipeID %d loaded and updated.", recipeId), LTT_DEFAULT);
 	return false;
 }
-
 
 CLIENT_COMMAND(dungeon, "<command>", "Dungeon commands.", BASIC_ACCESS, EXPLORE_CATEGORY)
 {
@@ -5272,9 +5257,10 @@ const char* CommandBase::Info(CommandEntry* pCommand)
 
 CommandEntry* CommandBase::FindCommand(const char* szName, int iAccessLevel)
 {
-	CommandMap::iterator i = m_mCommands.find(szName);
+	CommandMap& commands = GetCommandMap();
+	CommandMap::iterator i = commands.find(szName);
 
-	if (i == m_mCommands.end())
+	if (i == commands.end())
 		return NULL;
 
 	if (iAccessLevel == -1 || iAccessLevel >= i->second.access)
@@ -5283,8 +5269,44 @@ CommandEntry* CommandBase::FindCommand(const char* szName, int iAccessLevel)
 		return NULL;
 }
 
+void CommandBase::PrintCommandList(CWeenieObject* sendto, int category, int access_level, char* cmdName)
+{
+	if (cmdName)
+	{
+		CommandEntry* pCommand = FindCommand(cmdName, access_level);
+
+		if (pCommand)
+		{
+			sendto->SendText(Info(pCommand), 1);
+		}
+		else
+		{
+			sendto->SendText("Unknown command. Use !help to receive a list of commands.", 1);
+		}
+	}
+	else
+	{
+		// List all commands.
+		std::string strCommandList = "Command List: \n";
+		CommandMap& commands = GetCommandMap();
+
+		for (CommandMap::iterator it = commands.begin(); it != commands.end(); it++)
+		{
+			if (it->second.access <= access_level && it->second.category == category) {
+				strCommandList += Info(&it->second);
+				strCommandList += "\n";
+			}
+		}
+		strCommandList += "Use !help <command> to receive command syntax.\n";
+		sendto->SendText(strCommandList.c_str(), 1);
+	}
+}
+
 bool CommandBase::Execute(char *command, CClient *client)
 {
+	if (!client)
+		return true;
+
 	char* argv[MAX_ARGUMENTS];
 	int	argc = 0;
 	bool inquote = false;
@@ -5344,192 +5366,27 @@ bool CommandBase::Execute(char *command, CClient *client)
 		char *command_name = argv[0];
 		if (!stricmp(command_name, "emuhelp"))
 		{
-			if (!client)
-				return true;
-
 			player_weenie->SendText("Please use one of the following to see a list of commands:\n/generalhelp - Lists general commands that don't fall into any other category.\n/explorehelp - Lists commands pertaining to exploring (dungeon information, teleport commands (if enabled), etc.. \n/spawnhelp - Lists commands pertaining to the spawning of items and mobs.\n/characterhelp - Lists commands pertaining to your character.\n/serverhelp - Lists commands that affect the entire server.", 1);
 		}
 		else if (!stricmp(command_name, "generalhelp") || !stricmp(command_name, "ghelp"))
 		{
-			if (!client)
-				return true;
-
-			if (argc > 1)
-			{
-				CommandEntry* pCommand = FindCommand(argv[1], access_level);
-
-				if (pCommand)
-				{
-					player_weenie->SendText(Info(pCommand), 1);
-					return true;
-				}
-				else
-				{
-					player_weenie->SendText("Unknown command. Use !help to receive a list of commands.", 1);
-				}
-			}
-			else
-			{
-				// List all commands.
-				std::string strCommandList = "Command List: \n";
-
-				for (CommandMap::iterator it = m_mCommands.begin(); it != m_mCommands.end(); it++)
-				{
-
-					if (it->second.access <= access_level && it->second.category == 1) {
-						strCommandList += Info(&it->second);
-						strCommandList += "\n";
-					}
-				}
-				strCommandList += "Use !help <command> to receive command syntax.\n";
-				player_weenie->SendText(strCommandList.c_str(), 1);
-				return true;
-			}
+			PrintCommandList(player_weenie, GENERAL_CATEGORY, access_level, (argc > 1) ? argv[1] : NULL);
 		}
 		else if (!stricmp(command_name, "explorehelp") || !stricmp(command_name, "ehelp"))
 		{
-			if (!client)
-				return true;
-
-			if (argc > 1)
-			{
-				CommandEntry* pCommand = FindCommand(argv[1], access_level);
-
-				if (pCommand)
-				{
-					player_weenie->SendText(Info(pCommand), 1);
-					return true;
-				}
-				else
-				{
-					player_weenie->SendText("Unknown command. Use !help to receive a list of commands.", 1);
-				}
-			}
-			else
-			{
-				// List all commands.
-				std::string strCommandList = "Command List: \n";
-
-				for (CommandMap::iterator it = m_mCommands.begin(); it != m_mCommands.end(); it++)
-				{
-					if (it->second.access <= access_level && it->second.category == 2) {
-						strCommandList += Info(&it->second);
-						strCommandList += "\n";
-					}
-				}
-				strCommandList += "Use !help <command> to receive command syntax.\n";
-				player_weenie->SendText(strCommandList.c_str(), 1);
-				return true;
-			}
-
+			PrintCommandList(player_weenie, EXPLORE_CATEGORY, access_level, (argc > 1) ? argv[1] : NULL);
 		}
 		else if (!stricmp(command_name, "spawnhelp") || !stricmp(command_name, "sphelp"))
 		{
-			if (!client)
-				return true;
-
-			if (argc > 1)
-			{
-				CommandEntry* pCommand = FindCommand(argv[1], access_level);
-
-				if (pCommand)
-				{
-					player_weenie->SendText(Info(pCommand), 1);
-					return true;
-				}
-				else
-				{
-					player_weenie->SendText("Unknown command. Use !help to receive a list of commands.", 1);
-				}
-			}
-			else
-			{
-				// List all commands.
-				std::string strCommandList = "Command List: \n";
-
-				for (CommandMap::iterator it = m_mCommands.begin(); it != m_mCommands.end(); it++)
-				{
-					if (it->second.access <= access_level && it->second.category == 3) {
-						strCommandList += Info(&it->second);
-						strCommandList += "\n";
-					}
-				}
-				strCommandList += "Use !help <command> to receive command syntax.\n";
-				player_weenie->SendText(strCommandList.c_str(), 1);
-				return true;
-			}
+			PrintCommandList(player_weenie, SPAWN_CATEGORY, access_level, (argc > 1) ? argv[1] : NULL);
 		}
 		else if (!stricmp(command_name, "characterhelp") || !stricmp(command_name, "chelp"))
 		{
-		if (!client)
-			return true;
-
-		if (argc > 1)
-		{
-			CommandEntry* pCommand = FindCommand(argv[1], access_level);
-
-			if (pCommand)
-			{
-				player_weenie->SendText(Info(pCommand), 1);
-				return true;
-			}
-			else
-			{
-				player_weenie->SendText("Unknown command. Use !help to receive a list of commands.", 1);
-			}
-		}
-		else
-		{
-			// List all commands.
-			std::string strCommandList = "Command List: \n";
-
-			for (CommandMap::iterator it = m_mCommands.begin(); it != m_mCommands.end(); it++)
-			{
-				if (it->second.access <= access_level && it->second.category == 4) {
-					strCommandList += Info(&it->second);
-					strCommandList += "\n";
-				}
-			}
-			strCommandList += "Use !help <command> to receive command syntax.\n";
-			player_weenie->SendText(strCommandList.c_str(), 1);
-			return true;
-		}
+			PrintCommandList(player_weenie, CHARACTER_CATEGORY, access_level, (argc > 1) ? argv[1] : NULL);
 		}
 		else if (!stricmp(command_name, "serverhelp") || !stricmp(command_name, "svhelp"))
 		{
-		if (!client)
-				return true;
-
-			if (argc > 1)
-			{
-				CommandEntry* pCommand = FindCommand(argv[1], access_level);
-
-				if (pCommand)
-				{
-					player_weenie->SendText(Info(pCommand), 1);
-					return true;
-				}
-				else
-				{
-					player_weenie->SendText("Unknown command. Use !help to receive a list of commands.", 1);
-				}
-			}
-			else
-			{
-				// List all commands.
-				std::string strCommandList = "Command List: \n";
-
-				for (CommandMap::iterator it = m_mCommands.begin(); it != m_mCommands.end(); it++)
-				{
-					if (it->second.access <= access_level && it->second.category == 5) {
-						strCommandList += Info(&it->second);
-						strCommandList += "\n";
-					}
-				}
-				strCommandList += "Use !help <command> to receive command syntax.\n";
-				player_weenie->SendText(strCommandList.c_str(), 1);
-				return true;
-			}
+			PrintCommandList(player_weenie, SERVER_CATEGORY, access_level, (argc > 1) ? argv[1] : NULL);
 		}
 		else
 		{
@@ -5564,11 +5421,13 @@ bool CommandBase::Execute(char *command, CClient *client)
 }
 
 ClientCommand::ClientCommand(const char* szName, const char* szArguments, const char* szHelp, pfnCommandCallback pCallback, int iAccessLevel, int iCategory)
+	: CommandBase()
 {
 	CommandBase::Create(szName, szArguments, szHelp, pCallback, iAccessLevel, iCategory, true);
 }
 
 ServerCommand::ServerCommand(const char* szName, const char* szArguments, const char* szHelp, pfnCommandCallback pCallback, int iAccessLevel, int iCategory)
+	: CommandBase()
 {
 	CommandBase::Create(szName, szArguments, szHelp, pCallback, iAccessLevel, iCategory, false);
 }

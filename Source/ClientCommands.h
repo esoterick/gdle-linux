@@ -1,3 +1,4 @@
+#pragma once
 
 using namespace std;
 
@@ -39,6 +40,17 @@ enum AccessFlags
 	InvincibleCommands_Flag = 0x400
 };
 
+enum CommandCategory
+{
+	HIDDEN_CATEGORY = 0,
+	GENERAL_CATEGORY,
+	EXPLORE_CATEGORY,
+	SPAWN_CATEGORY,
+	CHARACTER_CATEGORY,
+	SERVER_CATEGORY,
+
+};
+
 #define MAX_ARGUMENTS 12
 
 struct CommandEntry {
@@ -61,11 +73,22 @@ public:
 	static bool Execute(char *command, CClient *client);
 
 protected:
+	CommandBase()
+	{
+	}
+
 	static void Create(const char* szName, const char* szArguments, const char* szHelp, pfnCommandCallback pCallback, int iAccessLevel, int iCategory, bool bSource);
 	static const char* Info(CommandEntry* pCommand);
 	static CommandEntry* FindCommand(const char* szName, int iAccessLevel = -1);
 
-	static CommandMap m_mCommands;
+	static void PrintCommandList(CWeenieObject* sendto, int category, int access_level, char* cmdName);
+
+	//static CommandMap m_mCommands;
+	static CommandMap& GetCommandMap()
+	{
+		static CommandMap commands;
+		return commands;
+	}
 };
 
 class ClientCommand : CommandBase
