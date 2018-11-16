@@ -2313,15 +2313,23 @@ DWORD CMonsterWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObjec
 double CMonsterWeenie::GetMeleeDefenseModUsingWielded()
 {
 	std::list<CWeenieObject *> wielded;
-	Container_GetWieldedByMask(wielded, WEAPON_LOC | HELD_LOC);
+	//Container_GetWieldedByMask(wielded, WEAPON_LOC | HELD_LOC);
 
 	double defenseMod = 1.0;
-	for (auto item : wielded)
+	defenseMod *= CWeenieObject::GetMeleeDefenseMod();
+
+	if (attack_manager)
 	{
-		defenseMod *= item->GetMeleeDefenseMod();
+		defenseMod *= (double)attack_manager->GetDefenseMod();
 	}
 
-	defenseMod *= CWeenieObject::GetMeleeDefenseMod();
+	//double defenseMod = 1.0;
+	//for (auto item : wielded)
+	//{
+	//	defenseMod *= item->GetMeleeDefenseMod();
+	//}
+
+	//defenseMod *= CWeenieObject::GetMeleeDefenseMod();
 
 	Container_GetWieldedByMask(wielded, ARMOR_LOC);
 	for (auto item : m_Wielded) //check all armor for appropriate imbue effects

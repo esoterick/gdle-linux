@@ -169,15 +169,15 @@ void CDualWieldAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 	_left_hand ^= -1;
 
-	DWORD attack_motion = 0;
-
 	if (_left_hand)
 	{
 		_do_attack_animation = _offhand_attack_motion;
+		_combat_style = COMBAT_USE_OFFHAND;
 	}
 	else
 	{
 		_do_attack_animation = _main_attack_motion;
+		_combat_style = COMBAT_USE_MELEE;
 	}
 
 }
