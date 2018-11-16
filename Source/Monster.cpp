@@ -277,10 +277,12 @@ bool CMonsterWeenie::GetEquipPlacementAndHoldLocation(CWeenieObject *item, DWORD
 	}
 	else if (location & SHIELD_LOC)
 	{
-		if (item->InqIntQuality(LOCATIONS_INT, 0, TRUE) == MELEE_WEAPON_LOC)
+		if (item->InqIntQuality(LOCATIONS_INT, 0, TRUE) != SHIELD_LOC)
 		{
+			int combatStyle = item->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0);
+
 			*pPlacementFrame = Placement::LeftWeapon;
-			*pHoldLocation = PARENT_LEFT_WEAPON;
+			*pHoldLocation = (combatStyle == Unarmed_CombatStyle) ? PARENT_LEFT_HAND : PARENT_LEFT_WEAPON;
 		}
 		else
 		{
@@ -1942,6 +1944,10 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 		case Undef_CombatStyle:
 		case Unarmed_CombatStyle:
 			new_motion_style = Motion_HandCombat;
+
+			if (shield && shield->GetPlacementFrameID() != Shield)
+				new_motion_style = Motion_DualWieldCombat;
+
 			newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
 			break;
 
