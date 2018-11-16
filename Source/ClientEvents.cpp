@@ -214,21 +214,24 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	m_pPlayer->LoadSquelches();
 	last_age_update = chrono::system_clock::to_time_t(chrono::system_clock::now());
 
-	// fix for trained skills higher than they should be on char create.
-	for (DWORD i = 0; i < m_pPlayer->m_Qualities._skillStatsTable->size(); i++)
+	if (m_pPlayer->m_Qualities._skillStatsTable)
 	{
-		Skill trained;
-		m_pPlayer->m_Qualities.InqSkill((STypeSkill)i, trained);
-
-		if (trained._sac == SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+		// fix for trained skills higher than they should be on char create.
+		for (DWORD i = 0; i < m_pPlayer->m_Qualities._skillStatsTable->size(); i++)
 		{
-			trained._init_level = 0;
-			trained._level_from_pp = trained._level_from_pp + 5;
-			if (trained._level_from_pp > 208)
-				trained._level_from_pp = 208;
+			Skill trained;
+			m_pPlayer->m_Qualities.InqSkill((STypeSkill)i, trained);
 
-			m_pPlayer->m_Qualities.SetSkill((STypeSkill)i, trained);
-			m_pPlayer->NotifySkillStatUpdated((STypeSkill)i);
+			if (trained._sac == SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			{
+				trained._init_level = 0;
+				trained._level_from_pp = trained._level_from_pp + 5;
+				if (trained._level_from_pp > 208)
+					trained._level_from_pp = 208;
+
+				m_pPlayer->m_Qualities.SetSkill((STypeSkill)i, trained);
+				m_pPlayer->NotifySkillStatUpdated((STypeSkill)i);
+			}
 		}
 	}
 
@@ -2771,6 +2774,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			DWORD mode = pReader->ReadDWORD();
 			if (pReader->GetLastError()) break;
 
+			m_pPlayer->m_bChangingStance = true;
 			ChangeCombatStance((COMBAT_MODE)mode);
 			break;
 		}
@@ -3936,6 +3940,12 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (is_newer_event_stamp(moveToState.force_position_ts, m_pPlayer->_force_position_timestamp))
 			{
 				SERVER_WARN << "Old force position timestamp on 0xF61C. Ignoring.";
+				break;
+			}
+
+			if (m_pPlayer->m_bChangingStance)
+			{
+				DEBUG_DATA << "Player changing stance during 0xF61C. Ignoring.";
 				break;
 			}
 

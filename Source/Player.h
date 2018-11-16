@@ -155,6 +155,7 @@ public:
 
 	bool m_bAdminVision = false;
 	bool m_bPrivacyMode = false;
+	bool m_bChangingStance = false;
 
 	void UpdateModuleFromClient(PlayerModule &module);
 	virtual void SaveEx(class CWeenieSave &save) override;

@@ -857,6 +857,8 @@ void CPlayerWeenie::OnMotionDone(DWORD motion, BOOL success)
 {
 	CMonsterWeenie::OnMotionDone(motion, success);
 
+	m_bChangingStance = false;
+
 	//if (IsAttackMotion(motion) && success)
 	//{
 	//	NotifyAttackDone();
