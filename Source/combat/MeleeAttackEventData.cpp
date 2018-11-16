@@ -328,6 +328,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 			if (tg->HeadingFrom(_weenie, true) < CLEAVING_ATTACK_ANGLE / 2)
 			{
 				HandlePerformAttack(tg, dmgEvent);
+				dmgEvent.killingBlow = false;
 				numTargets--;
 			}
 		}
