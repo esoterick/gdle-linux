@@ -20,6 +20,8 @@ public:
 	bool CalculateSpawnPosition(float missileRadius);
 	bool CalculateMissileVelocity(bool track = true, bool gravity = true, float speed = 20.0f);
 
+	float CalculateDef() override;
+
 	virtual class CMissileAttackEvent *AsMissileAttackEvent() { return this; }
 
 	DWORD _do_attack_animation = 0;

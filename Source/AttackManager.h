@@ -33,6 +33,13 @@ public:
 
 	void MarkForCleanup(CAttackEventData *data);
 
+	float GetDefenseMod()
+	{
+		if (_attackData)
+			return _attackData->CalculateDef();
+		return 1.0f;
+	}
+
 private:
 	class CWeenieObject *_weenie = NULL;
 

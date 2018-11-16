@@ -19,12 +19,12 @@ public:
 	//void Finish();
 
 	virtual void HandleAttackHook(const AttackCone &cone) override;
+	virtual float CalculateDef() override;
 
 	//void HandlePerformAttack(CWeenieObject *target, DamageEventData dmgEvent);
 
 protected:
 	virtual void CalculateAtt(CWeenieObject *weapon, STypeSkill& weaponSkill, DWORD& weaponSkillLevel) override;
-	virtual int CalculateDef(CWeenieObject *weapon) override;
 
 	int _left_hand;
 

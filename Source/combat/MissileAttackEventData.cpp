@@ -8,6 +8,18 @@
 #include "CombatFormulas.h"
 #include "combat/MissileAttackEventData.h"
 
+float CMissileAttackEvent::CalculateDef()
+{
+	CWeenieObject *weapon = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_MISSILE);
+	if (weapon)
+	{
+		float defenseMod = weapon->GetMeleeDefenseMod();
+		return defenseMod;
+	}
+
+	return CAttackEventData::CalculateDef();
+}
+
 void CMissileAttackEvent::Setup()
 {
 	if (!_weenie)

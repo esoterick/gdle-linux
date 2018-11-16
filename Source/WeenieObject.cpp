@@ -5953,11 +5953,16 @@ double CWeenieObject::GetMeleeDefenseMod()
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantFloat(WEAPON_DEFENSE_FLOAT, &mod);
 
-	CWeenieObject *wielder = GetWorldWielder();
-	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
-	{
-		mod += (wielder->GetMeleeDefenseMod()) - 1.0;
-	}
+	//if (attack_manager)
+	//{
+	//	attack_manager->GetDefenseMod();
+	//}
+
+	//CWeenieObject *wielder = GetWorldWielder();
+	//if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
+	//{
+	//	mod += (wielder->GetMeleeDefenseMod()) - 1.0;
+	//}
 
 	return mod;
 }

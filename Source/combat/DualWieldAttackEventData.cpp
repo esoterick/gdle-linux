@@ -18,24 +18,35 @@ void CDualWieldAttackEvent::CalculateAtt(CWeenieObject *weapon, STypeSkill& weap
 	
 	float offenseMod = max(mainMod, leftMod);
 
-	weaponSkill = SkillTable::OldToNewSkill((STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
 	weaponSkillLevel = 0;
-
-	_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE);
 
 	if (_left_hand)
 	{
 		DWORD dualSkillLevel = 0;
 		_weenie->InqSkill(STypeSkill::DUAL_WIELD_SKILL, dualSkillLevel, FALSE);
+		weaponSkill = SkillTable::OldToNewSkill((STypeSkill)left->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
 		weaponSkillLevel = min(weaponSkillLevel, dualSkillLevel);
+	}
+	else
+	{
+		weaponSkill = SkillTable::OldToNewSkill((STypeSkill)main->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
+		_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE);
 	}
 
 	weaponSkillLevel = (DWORD)(weaponSkillLevel * offenseMod);
 }
 
-int CDualWieldAttackEvent::CalculateDef(CWeenieObject *weapon)
+float CDualWieldAttackEvent::CalculateDef()
 {
-	return 0;
+	CWeenieObject *main = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+	CWeenieObject *left = _weenie->GetWieldedCombat(COMBAT_USE_OFFHAND);
+
+	float mainMod = main->GetMeleeDefenseMod();
+	float leftMod = left->GetMeleeDefenseMod();
+
+	float defenseMod = max(mainMod, leftMod);
+
+	return defenseMod;
 }
 
 void CDualWieldAttackEvent::Setup()

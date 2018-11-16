@@ -42,6 +42,8 @@ public:
 	virtual void Cancel(DWORD error = 0);
 	virtual void Done(DWORD error = 0);
 
+	virtual float CalculateDef() { return 1.0f; }
+
 	virtual class CMeleeAttackEvent *AsMeleeAttackEvent() { return NULL; }
 	virtual class CMissileAttackEvent *AsMissileAttackEvent() { return NULL; }
 
