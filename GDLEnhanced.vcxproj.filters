@@ -60,6 +60,7 @@
     </Filter>
     <Filter Include="Source Files\Object Capabilities\Combat">
       <UniqueIdentifier>{00c5a251-396e-4e91-8a5e-33da1d3d1fd3}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\Command">
       <UniqueIdentifier>{d8d37e2e-1e30-44c7-8b81-97cf55b5e6ca}</UniqueIdentifier>
     </Filter>
@@ -724,6 +725,7 @@
     </ClCompile>
     <ClCompile Include="Source\combat\MissileAttackEventData.cpp">
       <Filter>Source Files\Object Capabilities\Combat</Filter>
+    </ClCompile>
     <ClCompile Include="Source\command\admin\SetStats.cpp">
       <Filter>Source Files\Command\Admin</Filter>
     </ClCompile>
