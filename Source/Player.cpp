@@ -2381,6 +2381,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 		for each (TYPEMod<STypeInt, int> intMod in op->_mods[index]._intMod)
 		{
 			bool applyToCreatedItem = false;
+			bool removeFromTarget = false;
 			CWeenieObject *modificationSource = NULL;
 			switch (intMod._unk) //this is a guess
 			{
@@ -2407,6 +2408,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			{
 			case 1: //=
 				value = intMod._value;
+				if (value == 0)
+					removeFromTarget = true;
 				break;
 			case 2: //+
 				value += intMod._value;
@@ -2441,6 +2444,10 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			{
 				pCreatedItem->m_Qualities.SetInt(intMod._stat, value);
 				pCreatedItem->NotifyIntStatUpdated(intMod._stat, false);
+			}
+			if (removeFromTarget)
+			{
+				pTarget->m_Qualities.RemoveInt(intMod._stat);
 			}
 			else
 			{
@@ -2585,6 +2592,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 		for each (TYPEMod<STypeString, std::string> stringMod in op->_mods[index]._stringMod)
 		{
 			bool applyToCreatedItem = false;
+			bool removeFromTarget = false;
 			CWeenieObject *modificationSource = NULL;
 			switch (stringMod._unk) //this is a guess
 			{
@@ -2606,6 +2614,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			{
 			case 1: //=
 				value = stringMod._value;
+				if (value == "")
+					removeFromTarget = true;
 				break;
 			case 2: //+
 				value += stringMod._value;
@@ -2660,6 +2670,10 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pCreatedItem->m_Qualities.SetString(stringMod._stat, value);
 				pCreatedItem->NotifyStringStatUpdated(stringMod._stat, false);
 			}
+			if (removeFromTarget)
+			{
+				pTarget->m_Qualities.RemoveString(stringMod._stat);
+			}
 			else
 			{
 				pTarget->m_Qualities.SetString(stringMod._stat, value);
@@ -2673,6 +2687,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 		for each (TYPEMod<STypeDID, DWORD> didMod in op->_mods[index]._didMod)
 		{
 			bool applyToCreatedItem = false;
+			bool removeFromTarget = false;
 			CWeenieObject *modificationSource = NULL;
 			switch (didMod._unk) //this is a guess
 			{
@@ -2694,6 +2709,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			{
 			case 1: //=
 				value = didMod._value;
+				if (value == 0)
+					value = didMod._value;
 				break;
 			case 2: //+
 				value += didMod._value;
@@ -2723,6 +2740,10 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			{
 				pCreatedItem->m_Qualities.SetDataID(didMod._stat, value);
 				pCreatedItem->NotifyDIDStatUpdated(didMod._stat, false);
+			}
+			if (removeFromTarget)
+			{
+				pTarget->m_Qualities.RemoveDataID(didMod._stat);
 			}
 			else
 			{
@@ -3210,12 +3231,99 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		m_Qualities.RemoveInstanceID(CONTAINER_IID);
 	}
 
-	//set scale on Lugian and Empyrean characters and Setup DID on Olthoi
-	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Lugian_HeritageGroup)
-		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.3);
 
-	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Empyrean_HeritageGroup)
-		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+	if (g_pConfig->FixOldChars())
+	{
+		int heritage = InqIntQuality(HERITAGE_GROUP_INT, 1);
+
+		// fix scale and other misc things for different heritage groups
+		switch (heritage)
+		{
+		case Lugian_HeritageGroup:
+		{
+			if (InqStringQuality(SEX_STRING, "") == "Male")
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.3);
+			else
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+		}
+		break;
+		case Empyrean_HeritageGroup:
+		{
+			if (InqStringQuality(SEX_STRING, "") == "Male")
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+			else
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.15);
+		}
+		break;
+		case Gearknight_HeritageGroup:
+		{
+			if (InqStringQuality(SEX_STRING, "") == "Male")
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+			else
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.1);
+
+			ObjDesc gk;
+			GetObjDesc(gk);
+
+			m_Qualities.SetDataID(HEAD_OBJECT_DID, gk.lastAPChange->part_id);
+		}
+		break;
+		case Tumerok_HeritageGroup:
+		{
+			if (InqStringQuality(SEX_STRING, "") == "Male")
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.1);
+		}
+		break;
+		case Olthoi_HeritageGroup:
+		case OlthoiAcid_HeritageGroup:
+		{
+			Position sanc = Position(g_pConfig->OlthoiStartPosition());
+
+			m_Qualities.SetPosition(SANCTUARY_POSITION, sanc);
+			m_Qualities.SetBool((STypeBool)LOGIN_AT_LIFESTONE_BOOL, 1);
+			m_Qualities.SetInt(PLAYER_KILLER_STATUS_INT, PK_PKStatus); // Olthoi are always Red
+
+			if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Olthoi_HeritageGroup)
+			{
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 0.9);
+				m_Qualities.SetDataID(HEAD_OBJECT_DID, 0x010045f0);
+			}
+			else
+			{
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 0.6);
+				m_Qualities.SetDataID(HEAD_OBJECT_DID, 0x01004616);
+			}
+		}
+		break;
+		default:
+			break;
+		}
+
+		// add racial augmentations
+		switch (heritage)
+		{
+		case Shadowbound_HeritageGroup:
+		case Penumbraen_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_CRITICAL_EXPERTISE_INT, 1); break;
+		case Gearknight_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_DAMAGE_REDUCTION_INT, 1); break;
+		case Tumerok_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_CRITICAL_POWER_INT, 1); break;
+		case Lugian_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, 1); break;
+		case Empyrean_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_INFUSED_LIFE_MAGIC_INT, 1); break;
+		case Undead_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_CRITICAL_DEFENSE_INT, 1); break;
+		case Olthoi_HeritageGroup:
+		case OlthoiAcid_HeritageGroup:
+			break; // none
+		default: // sho, aluv, gharu, viamont
+			m_Qualities.SetInt(AUGMENTATION_JACK_OF_ALL_TRADES_INT, 1); break;
+		}
+	}
+
+	//End of temporary code
 
 	// Generate a random number of seconds between 1 second and 2 months of seconds and write int for the Real Time Rare drop system.
 	if (g_pConfig->RealTimeRares() && !m_Qualities.GetInt(RARES_LOGIN_TIMESTAMP_INT, 0))
@@ -3227,8 +3335,6 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 
 		m_Qualities.SetInt(RARES_LOGIN_TIMESTAMP_INT, t);
 	}
-
-	//End of temporary code
 
 	g_pAllegianceManager->SetWeenieAllegianceQualities(this);
 	auto loginTime = chrono::system_clock::to_time_t(chrono::system_clock::now());
@@ -3930,6 +4036,8 @@ void CPlayerWeenie::UpdatePKActivity()
 
 CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target, CWeenieObject *tool, CCraftOperation *op)
 {
+	int coverage = target->m_Qualities.GetInt(LOCATIONS_INT, 0);
+
 	switch (tool->m_Qualities.id)
 	{
 	case W_DYERAREETERNALFOOLPROOFBLUE_CLASS:
@@ -4292,6 +4400,75 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(6798); break;
 	case 45684: // Left-hand tether remover
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(6799); break;
+
+	case 42979: // Core Plating Integrator
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(6800);
+		
+		if (op)
+		{
+			for (auto it = op->_mods[0]._stringMod.begin(); it != op->_mods[0]._stringMod.end(); it++)
+			{
+				if (it._Ptr->_Myval._stat64i32 == GEAR_PLATING_NAME_STRING)
+				{
+					switch (coverage)
+					{
+					case INVENTORY_LOC::HEAD_WEAR_LOC:
+						it._Ptr->_Myval._value = "Core Helm Plating"; break;
+					case INVENTORY_LOC::HAND_WEAR_LOC:
+						it._Ptr->_Myval._value = "Core Gauntlet Plating"; break;
+					case INVENTORY_LOC::FOOT_WEAR_LOC:
+						it._Ptr->_Myval._value = "Core Solleret Plating"; break;
+					case INVENTORY_LOC::UPPER_ARM_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Pauldron Plating"; break;
+					case INVENTORY_LOC::LOWER_ARM_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Bracer Plating"; break;
+					case INVENTORY_LOC::LOWER_LEG_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Greaves Plating"; break;
+					case INVENTORY_LOC::ABDOMEN_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Girth Plating"; break;
+					case INVENTORY_LOC::CHEST_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Chest Plating"; break;
+					case INVENTORY_LOC::UPPER_LEG_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Tasset Plating"; break;
+					case 0x0E: // Tunic - Abdomen, Chest, Upper Arms
+					case 0x1E: // Shirt - Abdomen, Chest, Upper/Lower Arms
+						it._Ptr->_Myval._value = "Core Upper Body Underplating"; break;
+					case 0xC4: // Pants - Upper/Lower Legs
+						it._Ptr->_Myval._value = "Core Lower Body Underplating"; break;
+					case 0xDE: // Raiment - Abdomen, Upper/Lower Arms, Upper/Lower Legs
+						it._Ptr->_Myval._value = "Core Raiment Underplating"; break;
+					case 0x600: // Cuirass - Chest, Abdomen
+						it._Ptr->_Myval._value = "Core Cuirass Plating"; break;
+					case 0xE00: // Chainmail Shirt - Chest, Upper Arms, Abdomen
+					case 0xA00: // Jaleh's Chain Shirt - Chest, Upper Arms
+						it._Ptr->_Myval._value = "Core Shirt Plating"; break;
+					case 0x1A00: // Amuli Coat - Chest, Upper/Lower Arms
+						it._Ptr->_Myval._value = "Core Coat Plating"; break;
+					case 0x1E00: // Hauberk - Chest, Upper/Lower Arms, Abdomen
+						it._Ptr->_Myval._value = "Core Hauberk Plating"; break;
+					case 0x6000: // Celdon Leggings - Upper/Lower Leg
+					case 0x6400: // Amuli Leggings - Abdomen, Upper/Lower Leg
+						it._Ptr->_Myval._value = "Core Leg Plating"; break;
+					case 0x7F00: // Faran Robe - Chest, Abdomen, Upper/Lower Arms, Upper/Lower Legs, Feet
+					case 0x7F01: // Faran Robe with Hood - Head + Robe
+					case 0x7A00: // Swamp Lord's War Paint - Robe - Feet
+						it._Ptr->_Myval._value = "Core Body Plating"; break;
+					case 0x7F20: // Guise - All parts - Head
+					case 0x7F21: // Full Guise - All parts
+						it._Ptr->_Myval._value = "Core Guise Plating"; break;
+					default:
+						if (coverage < 0x100) // Clothing
+							it._Ptr->_Myval._value = "Core Underplating";
+						else
+							it._Ptr->_Myval._value = "Core Armor Plating"; break;
+					}
+				}
+			}
+		}
+		break;
+
+	case 43022: // Core Plating Deintegrator
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(6801); break;
 	default:
 		return NULL;
 	}

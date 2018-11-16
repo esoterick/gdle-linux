@@ -166,6 +166,7 @@ void CPhatACServerConfig::PostLoad()
 	m_YaraqStartPosition = GetValue("yaraq_start_position", "");
 	m_ShoushiStartPosition = GetValue("shoushi_start_position", "");
 	m_SanamarStartPosition = GetValue("sanamar_start_position", "");
+	m_OlthoiStartPosition = GetValue("olthoi_start_position", "");
 
 	m_PKRespiteTime = atoi(GetValue("pk_respite_time", "300"));
 	m_bSpellPurgeOnLogin = atoi(GetValue("spell_purge_on_login", "0")) != 0;
@@ -183,6 +184,8 @@ void CPhatACServerConfig::PostLoad()
 
 	m_bCreateTemplates = (atoi(GetValue("spawn_template_weenies", "0"))) != 0;
 	m_bAllowPKCommands = (atoi(GetValue("allow_pk_commands", "0"))) != 0;
+	m_bAllowOlthoi = (atoi(GetValue("allow_olthoi", "0"))) != 0;
+	m_bFixOldChars = (atoi(GetValue("fix_old_chars", "0"))) != 0;
 }
 
 double CPhatACServerConfig::GetMultiplierForQuestTime(int questTime)

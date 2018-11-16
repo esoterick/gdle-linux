@@ -732,6 +732,18 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		return false;
 	}
 
+	if (sourceItem->InqIntQuality(HERITAGE_SPECIFIC_ARMOR_INT, 0) && sourceItem->InqIntQuality(HERITAGE_SPECIFIC_ARMOR_INT, 0) != m_Qualities.GetInt(HERITAGE_GROUP_INT,1)) // Other heritages cannot wear gearknight armor.
+	{
+		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_SPECIFIC_ARMOR_REQUIRES_HERITAGE);
+		return false;
+	}
+
+	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Gearknight_HeritageGroup && !sourceItem->InqIntQuality(HERITAGE_SPECIFIC_ARMOR_INT, 0) && sourceItem->m_Qualities.GetInt(LOCATIONS_INT, 0) < 0x8000) // Only restrict Armor, not weapons, cloaks, jewelry, trinkets, etc.
+	{
+		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_HERITAGE_REQUIRES_SPECIFIC_ARMOR);
+		return false;
+	}
+
 	if (sourceItem->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && sourceItem->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
 	{
 		sourceItem->m_Qualities.SetInt(SHIELD_VALUE_INT, sourceItem->InqIntQuality(ARMOR_LEVEL_INT, 0));
@@ -777,7 +789,10 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 	}
 
 	if (sourceItem->AsClothing() && m_bWorldIsAware)
-		UpdateModel();
+	{
+		if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) != Gearknight_HeritageGroup || sourceItem->m_Qualities.GetInt(LOCATIONS_INT, 0) == CLOAK_LOC) // Gearknights can still wear cloaks.
+			UpdateModel();
+	}
 
 	if (!sourceItem->m_Qualities.GetInt(LIFESPAN_INT, 0))
 	{
