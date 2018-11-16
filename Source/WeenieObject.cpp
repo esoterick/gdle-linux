@@ -4445,6 +4445,37 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		}
 	}
 
+	if (damageData.damageAfterMitigation > 0 && damageData.damage_type < 0x80) // elemental damage types only
+	{
+		// calculate augmentation resistances
+		if (damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FAMILY_INT, 0) > 0)
+		{
+			double reduction = 0.0;
+
+			switch (damageData.damage_type)
+			{
+			case BLUDGEON_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_BLUNT_INT, 0);break;
+			case SLASH_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_SLASH_INT, 0); break;
+			case PIERCE_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_PIERCE_INT, 0); break;
+			case ACID_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_ACID_INT, 0); break;
+			case FIRE_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FIRE_INT, 0); break;
+			case COLD_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FROST_INT, 0); break;
+			case ELECTRIC_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_LIGHTNING_INT, 0); break;
+			default:
+				break;
+			}
+
+			damageData.damageAfterMitigation *= 1.0 - reduction;
+		}
+	}
+
 	if (damageData.damageAfterMitigation < 0)
 	{
 		//todo: can't all damage types heal? Like hitting a fire elemental with fire should heal it instead of damage it?
