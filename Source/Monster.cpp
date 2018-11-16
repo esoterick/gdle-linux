@@ -649,6 +649,8 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 	if (bWasWielded)
 		sourceItem->OnUnwield(this);
 	sourceItem->OnDropped(this);
+
+	sourceItem->m_bDontClear = false;
 }
 
 bool CMonsterWeenie::MoveItemToWield(DWORD sourceItemId, DWORD targetLoc, bool animationDone)
@@ -1401,7 +1403,7 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 			{
 				targetContainer->EmitSound(Sound_ReceiveItem, 1.0f);
 
-				if (amountToTransfer > 1)
+				if (amountToTransfer > 1 && !(topLevelOwner->m_Qualities._emote_table && topLevelOwner->HasEmoteForID(Refuse_EmoteCategory, newStackItem->m_Qualities.id)))
 				{
 					SendText(csprintf("You give %s %s %s.", topLevelOwner->GetName().c_str(), FormatNumberString(amountToTransfer).c_str(), newStackItem->GetPluralName().c_str()), LTT_DEFAULT);
 					topLevelOwner->SendText(csprintf("%s gives you %s %s.", GetName().c_str(), FormatNumberString(amountToTransfer).c_str(), newStackItem->GetPluralName().c_str()), LTT_DEFAULT);

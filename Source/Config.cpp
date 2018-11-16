@@ -182,6 +182,7 @@ void CPhatACServerConfig::PostLoad()
 	m_bLoginAtLS = (atoi(GetValue("force_users_to_login_at_lifestone", "0"))) != 0;
 
 	m_bCreateTemplates = (atoi(GetValue("spawn_template_weenies", "0"))) != 0;
+	m_bAllowPKCommands = (atoi(GetValue("allow_pk_commands", "0"))) != 0;
 }
 
 double CPhatACServerConfig::GetMultiplierForQuestTime(int questTime)

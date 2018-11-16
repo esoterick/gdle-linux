@@ -426,17 +426,21 @@ void CPlayerWeenie::SetLastAssessed(DWORD guid)
 	m_LastAssessed = guid;
 }
 
-std::string CPlayerWeenie::RemoveLastAssessed()
+std::string CPlayerWeenie::RemoveLastAssessed(bool forced)
 {
 	if (m_LastAssessed != 0)
 	{
 		CWeenieObject *pObject = g_pWorld->FindWithinPVS(this, m_LastAssessed);
 
-		if (pObject != NULL && !pObject->AsPlayer() && !pObject->m_bDontClear) {
-			std::string name = pObject->GetName();
-			pObject->MarkForDestroy();
-			m_LastAssessed = 0;
-			return name;
+		if (pObject != NULL && !pObject->AsPlayer()) {
+
+			if (forced || !pObject->m_bDontClear)
+			{
+					std::string name = pObject->GetName();
+					pObject->MarkForDestroy();
+					m_LastAssessed = 0;
+					return name;
+			}
 		}
 	}
 
@@ -852,6 +856,8 @@ void CPlayerWeenie::NotifyCommenceAttack()
 void CPlayerWeenie::OnMotionDone(DWORD motion, BOOL success)
 {
 	CMonsterWeenie::OnMotionDone(motion, success);
+
+	m_bChangingStance = false;
 
 	//if (IsAttackMotion(motion) && success)
 	//{
@@ -3201,21 +3207,6 @@ bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount
 
 void CPlayerWeenie::SetLoginPlayerQualities()
 {
-	//Temporary as a way to fix existing characters
-	if (m_Qualities._skillStatsTable)
-	{
-		for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = m_Qualities._skillStatsTable->begin(); entry != m_Qualities._skillStatsTable->end(); entry++)
-		{
-			Skill skill = entry->second;
-			if (skill._sac == SKILL_ADVANCEMENT_CLASS::SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
-				m_Qualities.SetSkillLevel(entry->first, 10);
-			else if (skill._sac == SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-				m_Qualities.SetSkillLevel(entry->first, 5);
-			else
-				m_Qualities.SetSkillLevel(entry->first, 0);
-		}
-	}
-
 	if (m_Qualities.GetIID(CONTAINER_IID, 0))
 	{
 		m_Qualities.RemoveInstanceID(CONTAINER_IID);
@@ -4298,6 +4289,11 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 	case W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
 	case W_MATERIALWHITESAPPHIRE_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(4453); break;
+
+	case 45683: // Left-hand tether
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(6798); break;
+	case 45684: // Left-hand tether remover
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(6799); break;
 	default:
 		return NULL;
 	}

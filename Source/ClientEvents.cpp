@@ -214,6 +214,27 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	m_pPlayer->LoadSquelches();
 	last_age_update = chrono::system_clock::to_time_t(chrono::system_clock::now());
 
+	if (m_pPlayer->m_Qualities._skillStatsTable)
+	{
+		// fix for trained skills higher than they should be on char create.
+		for (DWORD i = 0; i < m_pPlayer->m_Qualities._skillStatsTable->size(); i++)
+		{
+			Skill trained;
+			m_pPlayer->m_Qualities.InqSkill((STypeSkill)i, trained);
+
+			if (trained._sac == SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+			{
+				trained._init_level = 0;
+				trained._level_from_pp = trained._level_from_pp + 5;
+				if (trained._level_from_pp > 208)
+					trained._level_from_pp = 208;
+
+				m_pPlayer->m_Qualities.SetSkill((STypeSkill)i, trained);
+				m_pPlayer->NotifySkillStatUpdated((STypeSkill)i);
+			}
+		}
+	}
+
 	// give characters created before creation timestamp was being set a timestamp and DOB from their DB date_created
 	if (!m_pPlayer->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0))
 	{
@@ -397,7 +418,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 			int lived = t - creationTime;
 
 			if (creationTime && lived >= lifespan)
-			{	
+			{
 				item->_timeToRot = Timer::cur_time;
 			}
 			else
@@ -1043,7 +1064,8 @@ void CClientEvents::SpendSkillCredits(STypeSkill key, DWORD credits)
 	}
 
 	m_pPlayer->GiveSkillAdvancementClass(key, TRAINED_SKILL_ADVANCEMENT_CLASS);
-	m_pPlayer->m_Qualities.SetSkillLevel(key, 5);
+	m_pPlayer->m_Qualities._skillStatsTable->operator[](key)._level_from_pp = 5;
+	m_pPlayer->m_Qualities._skillStatsTable->operator[](key)._pp = 526;
 	m_pPlayer->NotifySkillStatUpdated(key);
 
 	m_pPlayer->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, unassignedCredits - costToRaise);
@@ -2276,8 +2298,169 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 	if (pReader->GetLastError()) return;
 
 #ifdef _DEBUG
-	DEBUG_DATA << "Processing event:" << dwEvent;
+	string enumString = "";
+	switch (dwEvent)
+	{
+	case 0x0005: enumString = "CHANGE_PLAYER_OPTION "; break;
+	case 0x0008: enumString = "MELEE_ATTACK "; break;
+	case 0x000A: enumString = "MISSILE_ATTACK "; break;
+	case 0x000F: enumString = "SET_AFK_MODE "; break;
+	case 0x0010: enumString = "SET_AFK_MESSAGE "; break;
+	case 0x0015: enumString = "TEXT_CLIENT "; break;
+	case 0x0017: enumString = "REMOVE_FRIEND "; break;
+	case 0x0018: enumString = "ADD_FRIEND "; break;
+	case 0x0019: enumString = "STORE_ITEM "; break;
+	case 0x001A: enumString = "EQUIP_ITEM "; break;
+	case 0x001B: enumString = "DROP_ITEM "; break;
+	case 0x001D: enumString = "ALLEGIANCE_SWEAR "; break;
+	case 0x001E: enumString = "ALLEGIANCE_BREAK "; break;
+	case 0x001F: enumString = "ALLEGIANCE_SEND_UPDATES "; break;
+	case 0x0025: enumString = "CLEAR_FRIENDS "; break;
+	case 0x0026: enumString = "RECALL_PKL_ARENA "; break;
+	case 0x0027: enumString = "RECALL_PK_ARENA "; break;
+	case 0x002C: enumString = "SET_DISPLAY_TITLE "; break;
+	case 0x0275: enumString = "CONFIRMATION_RESPONSE "; break;
+	case 0x027D: enumString = "UST_SALVAGE_REQUEST "; break;
+	case 0x0030: enumString = "ALLEGIANCE_QUERY_NAME "; break;
+	case 0x0031: enumString = "ALLEGIANCE_CLEAR_NAME "; break;
+	case 0x0032: enumString = "SEND_TELL_BY_GUID "; break;
+	case 0x0033: enumString = "ALLEGIANCE_SET_NAME "; break;
+	case 0x0035: enumString = "USE_ITEM_EX "; break;
+	case 0x0036: enumString = "USE_OBJECT "; break;
+	case 0x003B: enumString = "ALLEGIANCE_SET_OFFICER "; break;
+	case 0x003C: enumString = "ALLEGIANCE_SET_OFFICER_TITLE "; break;
+	case 0x003D: enumString = "ALLEGIANCE_LIST_OFFICER_TITLES "; break;
+	case 0x003E: enumString = "ALLEGIANCE_CLEAR_OFFICER_TITLES "; break;
+	case 0x003F: enumString = "ALLEGIANCE_LOCK_ACTION "; break;
+	case 0x0040: enumString = "ALLEGIANCE_APPROVED_VASSAL "; break;
+	case 0x0041: enumString = "ALLEGIANCE_CHAT_GAG "; break;
+	case 0x0042: enumString = "ALLEGIANCE_HOUSE_ACTION "; break;
+	case 0x0044: enumString = "SPEND_XP_VITALS "; break;
+	case 0x0045: enumString = "SPEND_XP_ATTRIBUTES "; break;
+	case 0x0046: enumString = "SPEND_XP_SKILLS "; break;
+	case 0x0047: enumString = "SPEND_SKILL_CREDITS "; break;
+	case 0x0048: enumString = "CAST_UNTARGETED_SPELL "; break;
+	case 0x004A: enumString = "CAST_TARGETED_SPELL "; break;
+	case 0x0053: enumString = "CHANGE_COMBAT_STANCE "; break;
+	case 0x0054: enumString = "STACKABLE_MERGE "; break;
+	case 0x0055: enumString = "STACKABLE_SPLIT_TO_CONTAINER "; break;
+	case 0x0056: enumString = "STACKABLE_SPLIT_TO_3D "; break;
+	case 0x019B: enumString = "STACKABLE_SPLIT_TO_WIELD "; break;
+	case 0x0058: enumString = "SQUELCH_CHARACTER_MODIFY "; break;
+	case 0x0059: enumString = "SQUELCH_ACCOUNT_MODIFY "; break;
+	case 0x005B: enumString = "SQUELCH_GLOBAL_MODIFY "; break;
+	case 0x005D: enumString = "SEND_TELL_BY_NAME "; break;
+	case 0x005F: enumString = "BUY_FROM_VENDOR "; break;
+	case 0x0060: enumString = "SELL_TO_VENDOR "; break;
+	case 0x0063: enumString = "RECALL_LIFESTONE "; break;
+	case 0x00A1: enumString = "LOGIN_COMPLETE "; break;
+	case 0x00A2: enumString = "FELLOW_CREATE "; break;
+	case 0x00A3: enumString = "FELLOW_QUIT "; break;
+	case 0x00A4: enumString = "FELLOW_DISMISS "; break;
+	case 0x00A5: enumString = "FELLOW_RECRUIT "; break;
+	case 0x00A6: enumString = "FELLOW_UPDATE "; break;
+	case 0x00AA: enumString = "BOOK_ADD_PAGE "; break;
+	case 0x00AB: enumString = "BOOK_MODIFY_PAGE "; break;
+	case 0x00AC: enumString = "BOOK_DATA "; break;
+	case 0x00AD: enumString = "BOOK_DELETE_PAGE "; break;
+	case 0x00AE: enumString = "BOOK_PAGE_DATA "; break;
+	case 0x00CD: enumString = "GIVE_OBJECT "; break;
+	case 0x00BF: enumString = "INSCRIBE "; break;
+	case 0x00C8: enumString = "APPRAISE "; break;
+	case 0x00D6: enumString = "ADMIN_TELEPORT "; break;
+	case 0x0140: enumString = "ABUSE_LOG_REQUEST "; break;
+	case 0x0145: enumString = "CHANNEL_ADD "; break;
+	case 0x0146: enumString = "CHANNEL_REMOVE "; break;
+	case 0x0147: enumString = "CHANNEL_TEXT "; break;
+	case 0x0148: enumString = "CHANNEL_LIST "; break;
+	case 0x0149: enumString = "CHANNEL_INDEX "; break;
+	case 0x0195: enumString = "NO_LONGER_VIEWING_CONTAINER "; break;
+	case 0x019C: enumString = "ADD_ITEM_SHORTCUT "; break;
+	case 0x019D: enumString = "REMOVE_ITEM_SHORTCUT "; break;
+	case 0x01A1: enumString = "CHARACTER_OPTIONS "; break;
+	case 0x01A8: enumString = "SPELLBOOK_REMOVE "; break;
+	case 0x01B7: enumString = "CANCEL_ATTACK "; break;
+	case 0x01BF: enumString = "QUERY_HEALTH "; break;
+	case 0x01C2: enumString = "QUERY_AGE "; break;
+	case 0x01C4: enumString = "QUERY_BIRTH "; break;
+	case 0x01DF: enumString = "TEXT_INDIRECT "; break;
+	case 0x01E1: enumString = "TEXT_EMOTE "; break;
+	case 0x01E3: enumString = "ADD_TO_SPELLBAR "; break;
+	case 0x01E4: enumString = "REMOVE_FROM_SPELLBAR "; break;
+	case 0x01E9: enumString = "PING "; break;
+	case 0x1F6: enumString = "TRADE_OPEN "; break;
+	case 0x1F7: enumString = "TRADE_CLOSE "; break;
+	case 0x1F8: enumString = "TRADE_ADD "; break;
+	case 0x1FA: enumString = "TRADE_ACCEPT "; break;
+	case 0x1FB: enumString = "TRADE_DECLINE "; break;
+	case 0x204: enumString = "TRADE_RESET "; break;
+	case 0x0216: enumString = "CLEAR_PLAYER_CONSENT_LIST "; break;
+	case 0x0217: enumString = "DISPLAY_PLAYER_CONSENT_LIST "; break;
+	case 0x0218: enumString = "REMOVE_FROM_PLAYER_CONSENT_LIST "; break;
+	case 0x0219: enumString = "ADD_PLAYER_PERMISSION "; break;
+	case 0x021A: enumString = "REMOVE_PLAYER_PERMISSION "; break;
+	case 0x021C: enumString = "HOUSE_BUY "; break;
+	case 0x021F: enumString = "HOUSE_ABANDON "; break;
+	case 0x21E: enumString = "HOUSE_OF_PLAYER_QUERY "; break;
+	case 0x0221: enumString = "HOUSE_RENT "; break;
+	case 0x0245: enumString = "HOUSE_ADD_GUEST "; break;
+	case 0x0246: enumString = "HOUSE_REMOVE_GUEST "; break;
+	case 0x0247: enumString = "HOUSE_SET_OPEN_ACCESS "; break;
+	case 0x0249: enumString = "HOUSE_CHANGE_STORAGE_PERMISSIONS "; break;
+	case 0x024A: enumString = "HOUSE_BOOT_GUEST "; break;
+	case 0x024C: enumString = "HOUSE_CLEAR_STORAGE_PERMISSIONS "; break;
+	case 0x024D: enumString = "HOUSE_GUEST_LIST "; break;
+	case 0x0254: enumString = "ALLEGIANCE_SET_MOTD "; break;
+	case 0x0255: enumString = "ALLEGIANCE_QUERY_MOTD "; break;
+	case 0x0256: enumString = "ALLEGIANCE_CLEAR_MOTD "; break;
+	case 0x0258: enumString = "HOUSE_QUERY_SLUMLORD "; break;
+	case 0x025C: enumString = "HOUSE_SET_OPEN_STORAGE_ACCESS "; break;
+	case 0x025E: enumString = "HOUSE_REMOVE_ALL_GUESTS "; break;
+	case 0x025F: enumString = "HOUSE_BOOT_ALL "; break;
+	case 0x0262: enumString = "RECALL_HOUSE "; break;
+	case 0x0263: enumString = "ITEM_MANA_REQUEST "; break;
+	case 0x0266: enumString = "HOUSE_SET_HOOKS_VISIBILITY "; break;
+	case 0x0267: enumString = "HOUSE_CHANGE_ALLEGIANCE_GUEST_PERMISSIONS "; break;
+	case 0x0268: enumString = "HOUSE_CHANGE_ALLEGIANCE_STORAGE_PERMISSIONS "; break;
+	case 0x0269: enumString = "CHESS_JOIN "; break;
+	case 0x026A: enumString = "CHESS_QUIT "; break;
+	case 0x026B: enumString = "CHESS_MOVE "; break;
+	case 0x026D: enumString = "CHESS_PASS "; break;
+	case 0x026E: enumString = "CHESS_STALEMATE "; break;
+	case 0x0270: enumString = "HOUSE_LIST_AVAILABLE "; break;
+	case 0x0277: enumString = "ALLEGIANCE_BOOT_PLAYER "; break;
+	case 0x0278: enumString = "RECALL_HOUSE_MANSION "; break;
+	case 0x0279: enumString = "DIE_COMMAND "; break;
+	case 0x027B: enumString = "ALLEGIANCE_INFO_REQUEST "; break;
+	case 0x0286: enumString = "SPELLBOOK_FILTERS "; break;
+	case 0x028D: enumString = "RECALL_MARKET "; break;
+	case 0x028F: enumString = "PKLITE "; break;
+	case 0x0290: enumString = "FELLOW_ASSIGN_NEW_LEADER "; break;
+	case 0x0291: enumString = "FELLOW_CHANGE_OPENNESS "; break;
+	case 0x02A0: enumString = "ALLEGIANCE_CHAT_BOOT "; break;
+	case 0x02A1: enumString = "ALLEGIANCE_ADD_PLAYER_BAN "; break;
+	case 0x02A2: enumString = "ALLEGIANCE_REMOVE_PLAYER_BAN "; break;
+	case 0x02A3: enumString = "ALLEGIANCE_LIST_BANS "; break;
+	case 0x02A5: enumString = "ALLEGIANCE_REMOVE_OFFICER "; break;
+	case 0x02A6: enumString = "ALLEGIANCE_LIST_OFFICERS "; break;
+	case 0x02A7: enumString = "ALLEGIANCE_CLEAR_OFFICERS "; break;
+	case 0x02AB: enumString = "RECALL_ALLEGIANCE_HOMETOWN "; break;
+	case 0x0311: enumString = "FINISH_BARBER "; break;
+	case 0x0316: enumString = "CONTRACT_ABANDON "; break;
+	case 0xF61B: enumString = "MOVEMENT_JUMP "; break;
+	case 0xF61C: enumString = "MOVEMENT_MOVE_TO_STATE "; break;
+	case 0xF61E: enumString = "MOVEMENT_DO_MOVEMENT_COMMAND "; break;
+	case 0xF649: enumString = "MOVEMENT_TURN_TO "; break;
+	case 0xF661: enumString = "MOVEMENT_STOP "; break;
+	case 0xF752: enumString = "MOVEMENT_AUTONOMY_LEVEL "; break;
+	case 0xF753: enumString = "MOVEMENT_AUTONOMOUS_POSITION "; break;
+	case 0xF7C9: enumString = "MOVEMENT_JUMP_NON_AUTONOMOUS "; break;
+
+	};
+
+	DEBUG_DATA << "Processing event:" << enumString;
 #endif
+
 
 	switch (dwEvent)
 	{
@@ -2591,6 +2774,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			DWORD mode = pReader->ReadDWORD();
 			if (pReader->GetLastError()) break;
 
+			m_pPlayer->m_bChangingStance = true;
 			ChangeCombatStance((COMBAT_MODE)mode);
 			break;
 		}
@@ -3580,6 +3764,45 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			// DataID defaultEyesTexture, DataID noseTexture, DataID defaultNoseTexture, DataID mouthTexture, DataID defaultMouthTexture
 			// DataID skinPalette, DataID hairPalette, DataID eyesPalette, DataID setupID, int option1, int option2
 			// option1 = toggle certain race options e.g. empyrean float or flaming head undead, option2 = not used?
+
+			DWORD basePalette = pReader->Read<DWORD>();
+			DWORD headObject = pReader->Read<DWORD>();
+			DWORD headTexture = pReader->Read<DWORD>();
+			DWORD defaultHeadTexture = pReader->Read<DWORD>();
+			DWORD eyesTexture = pReader->Read<DWORD>();
+			DWORD defaultEyesTexture = pReader->Read<DWORD>();
+			DWORD noseTexture = pReader->Read<DWORD>();
+			DWORD defaultNoseTexture = pReader->Read<DWORD>();
+			DWORD mouthTexture = pReader->Read<DWORD>();
+			DWORD defaultMouthTexture = pReader->Read<DWORD>();
+			DWORD skinPalette = pReader->Read<DWORD>();
+			DWORD hairPalette = pReader->Read<DWORD>();
+			DWORD eyesPalette = pReader->Read<DWORD>();
+			DWORD setupID = pReader->Read<DWORD>();
+			int option1 = pReader->Read<int>();
+			int option2 = pReader->Read<int>();
+
+			m_pPlayer->m_Qualities.SetDataID(HEAD_OBJECT_DID, headObject);
+			m_pPlayer->m_Qualities.SetDataID(EYES_TEXTURE_DID, eyesTexture);
+			m_pPlayer->m_Qualities.SetDataID(NOSE_TEXTURE_DID, noseTexture);
+			m_pPlayer->m_Qualities.SetDataID(MOUTH_TEXTURE_DID, mouthTexture);
+			m_pPlayer->m_Qualities.SetDataID(SKIN_PALETTE_DID, skinPalette);
+			m_pPlayer->m_Qualities.SetDataID(HAIR_PALETTE_DID, hairPalette);
+			m_pPlayer->m_Qualities.SetDataID(EYES_PALETTE_DID, eyesPalette);
+			m_pPlayer->m_Qualities.SetDataID(SETUP_DID, setupID);
+
+			if (m_pPlayer->m_Qualities.GetInt(HERITAGE_GROUP_INT, 0) == Empyrean_HeritageGroup && option1 == 0)
+			{
+				m_pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x9000207);
+				m_pPlayer->NotifyDIDStatUpdated(MOTION_TABLE_DID);
+			}
+			else if (m_pPlayer->m_Qualities.GetInt(HERITAGE_GROUP_INT, 0) == Empyrean_HeritageGroup && option1 == 1)
+			{
+				m_pPlayer->m_Qualities.SetDataID(MOTION_TABLE_DID, 0x900020D);
+				m_pPlayer->NotifyDIDStatUpdated(MOTION_TABLE_DID);
+			}
+
+			m_pPlayer->UpdateModel();
 			break;
 		}
 		case MOVEMENT_JUMP: // Jump Movement
@@ -3717,6 +3940,12 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			if (is_newer_event_stamp(moveToState.force_position_ts, m_pPlayer->_force_position_timestamp))
 			{
 				SERVER_WARN << "Old force position timestamp on 0xF61C. Ignoring.";
+				break;
+			}
+
+			if (m_pPlayer->m_bChangingStance)
+			{
+				DEBUG_DATA << "Player changing stance during 0xF61C. Ignoring.";
 				break;
 			}
 

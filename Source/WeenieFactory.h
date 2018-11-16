@@ -38,6 +38,7 @@ public:
 	DWORD GetWCIDForScrollSpell(DWORD spell_id);
 
 	void RefreshLocalStorage();
+	void RefreshLocalWeenie(DWORD wcid);
 
 	DWORD m_FirstAvatarWCID = 0;
 	DWORD m_NumAvatars = 0;
@@ -50,6 +51,7 @@ protected:
 	void ApplyWeenieDefaults(CWeenieObject *weenie, CWeenieDefaults *defaults);
 
 	void LoadLocalStorage(bool refresh = false);
+	void LoadLocalWeenie(DWORD wcid);
 	void LoadLocalStorageIndexed();
 	void LoadAvatarData();
 

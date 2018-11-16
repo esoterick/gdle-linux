@@ -203,10 +203,13 @@ void CWorldLandBlock::SpawnDynamics()
 				if (wcid == W_HUMAN_CLASS || wcid == W_ADMIN_CLASS || wcid == W_SENTINEL_CLASS)
 					continue;
 
-				CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid, &pos, true);
+				CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid, &pos, false);
 
-				if (!weenie)
+				if (weenie)
 				{
+					weenie->SetID(g_pObjectIDGen->GenerateGUID(eEphemeral));
+					g_pWorld->CreateEntity(weenie, false);
+
 				}
 
 				// LOG(Temp, Normal, TEXT("Loaded auto-spawn %s (%u, %X) ei: %d\n"), GetWCIDName(wcid), wcid, wcid, encounterIndex);
@@ -310,11 +313,12 @@ void CWorldLandBlock::SpawnDynamics()
 			if (weenie)
 			{
 				bool bDynamicID = !weenie->IsStuck();
+				weenie->SetID(bDynamicID ? g_pObjectIDGen->GenerateGUID(eEphemeral) : iid);
 
-				if (!bDynamicID)
-				{
-					weenie->SetID(iid);
-				}
+				//if (!bDynamicID)
+				//{
+				//	weenie->SetID(iid);
+				//}
 
 				g_pWorld->CreateEntity(weenie);
 
@@ -1099,7 +1103,7 @@ bool CWorldLandBlock::PlayerWithinPVS()
 	return false;
 }
 
-void CWorldLandBlock::ClearSpawns()
+void CWorldLandBlock::ClearSpawns(bool forced)
 {
 	WeenieVector::iterator eit = m_EntityList.begin();
 	WeenieVector::iterator eend = m_EntityList.end();
@@ -1110,20 +1114,25 @@ void CWorldLandBlock::ClearSpawns()
 	{
 		pEntity = *eit;
 
-		if (pEntity && !pEntity->HasOwner() && !pEntity->m_bDontClear)
+		if (pEntity && !pEntity->HasOwner() && !pEntity->AsPlayer())
 		{
-			if (pEntity)
+			if (forced || !pEntity->m_bDontClear)
 			{
-				Destroy(pEntity);
+					if (pEntity)
+					{
+						Destroy(pEntity);
 
-				eit = m_EntityList.begin();
-				eend = m_EntityList.end();
+						eit = m_EntityList.begin();
+						eend = m_EntityList.end();
+					}
+					else
+					{
+						eit = m_EntityList.erase(eit);
+						eend = m_EntityList.end();
+					}
 			}
 			else
-			{
-				eit = m_EntityList.erase(eit);
-				eend = m_EntityList.end();
-			}
+				eit++;
 		}
 		else
 		{

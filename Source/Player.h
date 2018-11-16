@@ -119,11 +119,12 @@ public:
 
 	//cmoski -- remove last assessed item
 	void SetLastAssessed(DWORD guid);
-	std::string RemoveLastAssessed();
+	std::string RemoveLastAssessed(bool forced = false);
 
 	CClient *GetClient() { return m_pClient; }
 
 	DWORD m_LastAssessed;
+	DWORD m_dwLastSpawnedObjectID;
 	
 	DWORD GetCharacterOptions() { return _playerModule.options_; }
 	DWORD GetCharacterOptions2() { return _playerModule.options2_; }
@@ -154,6 +155,7 @@ public:
 
 	bool m_bAdminVision = false;
 	bool m_bPrivacyMode = false;
+	bool m_bChangingStance = false;
 
 	void UpdateModuleFromClient(PlayerModule &module);
 	virtual void SaveEx(class CWeenieSave &save) override;

@@ -100,6 +100,7 @@ public:
 
 	virtual bool LoginAtLS() { return m_bLoginAtLS; }
 	virtual bool CreateTemplates() { return m_bCreateTemplates; }
+	virtual bool AllowPKCommands() { return m_bAllowPKCommands; }
 
 protected:
 	virtual void PostLoad() override;
@@ -190,6 +191,7 @@ protected:
 
 	bool m_bLoginAtLS = 0;
 	bool m_bCreateTemplates = 0;
+	bool m_bAllowPKCommands = 0;
 };
 
 extern CPhatACServerConfig *g_pConfig;
