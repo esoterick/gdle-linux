@@ -9,7 +9,7 @@ class CDualWieldAttackEvent : public CMeleeAttackEvent
 public:
 	CDualWieldAttackEvent() :
 		CMeleeAttackEvent(COMBAT_USE_MELEE),
-		_hand(0), _main_attack_motion(0), _offhand_attack_motion(0)
+		_left_hand(0), _main_attack_motion(0), _offhand_attack_motion(0)
 	{ }
 
 	virtual void Setup() override;
@@ -26,7 +26,7 @@ protected:
 	virtual void CalculateAtt(CWeenieObject *weapon, STypeSkill& weaponSkill, DWORD& weaponSkillLevel) override;
 	virtual int CalculateDef(CWeenieObject *weapon) override;
 
-	int _hand;
+	int _left_hand;
 
 	int _main_attack_motion;
 	int _offhand_attack_motion;

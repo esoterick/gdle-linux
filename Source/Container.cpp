@@ -284,7 +284,7 @@ void CContainerWeenie::Container_EquipItem(DWORD dwCell, CWeenieObject *item, DW
 	int combatUse = item->InqIntQuality(COMBAT_USE_INT, 0, TRUE);
 	if (combatUse)
 	{
-		if (combatUse == COMBAT_USE_MELEE && placement == LeftHand)
+		if (combatUse == COMBAT_USE_MELEE && placement == LeftWeapon)
 			combatUse = COMBAT_USE_OFFHAND;
 		SetWieldedCombat(item, (COMBAT_USE)combatUse);
 	}
@@ -896,7 +896,8 @@ void CContainerWeenie::LoadEx(class CWeenieSave &save)
 
 				if (int combatUse = weenie->InqIntQuality(COMBAT_USE_INT, 0, TRUE))
 				{
-					if (combatUse == COMBAT_USE_MELEE && weenie->GetPlacementFrameID() == LeftHand)
+					int frame = weenie->InqIntQuality(PLACEMENT_POSITION_INT, 0, TRUE);
+					if (combatUse == COMBAT_USE_MELEE && frame == LeftWeapon)
 						combatUse = COMBAT_USE_OFFHAND;
 					SetWieldedCombat(weenie, (COMBAT_USE)combatUse);
 				}

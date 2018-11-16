@@ -23,7 +23,7 @@ void CDualWieldAttackEvent::CalculateAtt(CWeenieObject *weapon, STypeSkill& weap
 
 	_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE);
 
-	if (_hand)
+	if (_left_hand)
 	{
 		DWORD dualSkillLevel = 0;
 		_weenie->InqSkill(STypeSkill::DUAL_WIELD_SKILL, dualSkillLevel, FALSE);
@@ -65,21 +65,59 @@ void CDualWieldAttackEvent::Setup()
 
 				AttackType attack_type = (AttackType)weapon->InqIntQuality(ATTACK_TYPE_INT, 0);
 
-				if (attack_type == (Thrust_AttackType | Slash_AttackType))
+				switch (attack_type)
 				{
+				case Thrust_AttackType | Slash_AttackType:
 					if (_attack_power >= 0.25f)
-						attack_type = Slash_AttackType;
+						attack_type = OffhandSlash_AttackType;
 					else
-						attack_type = Thrust_AttackType;
+						attack_type = OffhandThrust_AttackType;
+					break;
+
+				case Thrust_AttackType:
+					attack_type = OffhandThrust_AttackType;
+					break;
+
+				case Slash_AttackType:
+					attack_type = OffhandSlash_AttackType;
+					break;
+
+				case Punch_AttackType:
+					attack_type = OffhandPunch_AttackType;
+					break;
+
+				case Kick_AttackType:
+					attack_type = Unarmed_AttackType;
+					break;
+
+				case DoubleSlash_AttackType:
+					attack_type = OffhandDoubleSlash_AttackType;
+					break;
+
+				case TripleSlash_AttackType:
+					attack_type = OffhandTripleSlash_AttackType;
+					break;
+
+				case DoubleThrust_AttackType:
+					attack_type = OffhandDoubleThrust_AttackType;
+					break;
+
+				case TripleThrust_AttackType:
+					attack_type = OffhandTripleThrust_AttackType;
+					break;
+
 				}
-
-				attack_type = (AttackType)(attack_type * 0x100);
-
+				/*
+					Undef_AttackType = 0x0,
+					Kick_AttackType = 0x8,
+					Unarmed_AttackType = 0x19,
+					MultiStrike_AttackType = 0x79E0,
+				*/
 				if (CombatManeuver *combat_maneuver = _weenie->_combatTable->TryGetCombatManuever(_weenie->get_minterp()->InqStyle(), attack_type, _attack_height))
 				{
 					//don't load attack_motion for UA full speed attacks (Low and Med only) so that attack power is used to calculate motion instead.
-					if ((weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != 1) || _attack_power >= 0.25f || _attack_height == 1)
-						attack_motion = combat_maneuver->motion;
+					//if ((weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT, 0) != 1) || _attack_power >= 0.25f || _attack_height == 1)
+					attack_motion = combat_maneuver->motion;
 				}
 			}
 		}
@@ -118,11 +156,11 @@ void CDualWieldAttackEvent::HandleAttackHook(const AttackCone &cone)
 {
 	CMeleeAttackEvent::HandleAttackHook(cone);
 
-	_hand ^= -1;
+	_left_hand ^= -1;
 
 	DWORD attack_motion = 0;
 
-	if (_hand)
+	if (_left_hand)
 	{
 		_do_attack_animation = _offhand_attack_motion;
 	}
