@@ -87,7 +87,7 @@ void AttackManager::OnAttackDone(DWORD error)
 				_weenie->NotifyAttackDone();
 			}
 
-			_attackData->_attack_charge_time = Timer::cur_time + (_attackData->_attack_power);
+			//_attackData->_attack_charge_time = Timer::cur_time + (_attackData->_attack_power);
 			_attackData->Begin();
 		}
 		else
