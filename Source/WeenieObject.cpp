@@ -2718,7 +2718,7 @@ void CWeenieObject::WieldedTick()
 							wielder->SendText(csprintf("The %s will run out of mana soon.", GetName().c_str()), LTT_MAGIC); //todo: made up message, confirm if it's correct
 					}
 
-					_nextManaUse = Timer::cur_time + (-manaRate * 1000);
+					_nextManaUse = Timer::cur_time + (1 / -manaRate);
 				}
 				else
 				{
