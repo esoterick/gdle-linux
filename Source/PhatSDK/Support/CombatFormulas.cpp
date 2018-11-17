@@ -74,8 +74,8 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 		return;
 	if (!dmgEvent->source)
 		return;
-	if (!dmgEvent->source->GetWielded(MELEE_WEAPON_LOC) && !dmgEvent->source->AsPlayer())
-		return;
+	/*if (!dmgEvent->source->GetWielded(MELEE_WEAPON_LOC) && !dmgEvent->source->AsPlayer())
+		return;*/
 
 	
 	switch (dmgEvent->damage_form)
