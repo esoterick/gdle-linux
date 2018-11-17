@@ -736,6 +736,8 @@ public:
 
 	virtual void NotifyRemoveFromWorld() { }
 
+	std::unordered_map<DWORD, DWORD> m_GeneratorSpawns;
+
 protected:
 	CWorldLandBlock *m_pBlock = NULL;
 

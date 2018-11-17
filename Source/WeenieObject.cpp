@@ -890,6 +890,7 @@ void CWeenieObject::EnsureLink(CWeenieObject *source)
 void CWeenieObject::NotifyGeneratedDeath(CWeenieObject *weenie)
 {
 	OnGeneratedDeath(weenie);
+	m_GeneratorSpawns.erase(weenie->GetID());
 }
 
 void CWeenieObject::OnGeneratedDeath(CWeenieObject *weenie)
@@ -978,6 +979,7 @@ void CWeenieObject::NotifyGeneratedPickedUp(CWeenieObject *weenie)
 {
 	OnGeneratedPickedUp(weenie);
 	weenie->m_Qualities.RemoveInstanceID(GENERATOR_IID);
+	m_GeneratorSpawns.erase(weenie->GetID());
 }
 
 void CWeenieObject::OnGeneratedPickedUp(CWeenieObject *weenie)
@@ -2898,7 +2900,7 @@ void CWeenieObject::Tick()
 
 	if (_nextRegen >= 0 && _nextRegen <= Timer::cur_time)
 	{
-		int numSpawned = m_Qualities._generator_registry ? (DWORD)m_Qualities._generator_registry->_registry.size() : 0;
+		int numSpawned = m_GeneratorSpawns.size();
 
 		//check if the number spawned is higher than the max_generated_objects. Linkable generators have a max of 0, so check if there is an existing _generator_queue instead.
 		if (numSpawned < InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) || InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) == 0 && m_Qualities._generator_queue)
@@ -2940,7 +2942,7 @@ void CWeenieObject::Tick()
 				}
 			}
 
-			g_pWeenieFactory->AddFromGeneratorTable(this, false);
+			numSpawned += g_pWeenieFactory->AddFromGeneratorTable(this, false);
 
 			//Linkable generators do not have a _nextRegen time when the generator_queue is empty and they have spawns in the world. Regular generators should not have a _nextRegen time if they have more spawns than MAX_GENERATED_OBJECTS_INT.
 			if ((!m_Qualities._generator_queue || m_Qualities._generator_queue->_queue.empty()) && numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
@@ -3179,8 +3181,7 @@ void CWeenieObject::PostSpawn()
 		SetLocked(FALSE);
 	}
 
-	if (!m_Qualities._generator_queue)// Prevents generators that have a generator_queue from reinitializing
-		InitCreateGenerator();
+	InitCreateGenerator();
 
 	double heartbeatInterval;
 	if (m_Qualities.InqFloat(HEARTBEAT_INTERVAL_FLOAT, heartbeatInterval, TRUE))
@@ -4439,37 +4440,6 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 				// Needed?  boils down to the same formula as capPercent above
 				//reduction = 1 * (float(capPercent * st * shieldSkill * 0.0030) - (capPercent * st * .3));
 				reduction = capPercent;
-			}
-
-			damageData.damageAfterMitigation *= 1.0 - reduction;
-		}
-	}
-
-	if (damageData.damageAfterMitigation > 0 && damageData.damage_type < 0x80) // elemental damage types only
-	{
-		// calculate augmentation resistances
-		if (damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FAMILY_INT, 0) > 0)
-		{
-			double reduction = 0.0;
-
-			switch (damageData.damage_type)
-			{
-			case BLUDGEON_DAMAGE_TYPE:
-				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_BLUNT_INT, 0);break;
-			case SLASH_DAMAGE_TYPE:
-				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_SLASH_INT, 0); break;
-			case PIERCE_DAMAGE_TYPE:
-				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_PIERCE_INT, 0); break;
-			case ACID_DAMAGE_TYPE:
-				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_ACID_INT, 0); break;
-			case FIRE_DAMAGE_TYPE:
-				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FIRE_INT, 0); break;
-			case COLD_DAMAGE_TYPE:
-				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FROST_INT, 0); break;
-			case ELECTRIC_DAMAGE_TYPE:
-				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_LIGHTNING_INT, 0); break;
-			default:
-				break;
 			}
 
 			damageData.damageAfterMitigation *= 1.0 - reduction;

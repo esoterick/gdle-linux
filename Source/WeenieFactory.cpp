@@ -1154,6 +1154,7 @@ void CWeenieFactory::AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject
 		if (!parent->m_Qualities._generator_registry)
 			parent->m_Qualities._generator_registry = new GeneratorRegistry();
 		parent->m_Qualities._generator_registry->_registry.add(weenie->GetID(), &node);
+		parent->m_GeneratorSpawns[weenie->GetID()] = weenie->m_Qualities.id;
 
 		weenie->ChanceExecuteEmoteSet(parent->GetID(), Generation_EmoteCategory);
 	}
@@ -1256,10 +1257,10 @@ int CWeenieFactory::AddFromCreateList(CWeenieObject *parent, PackableListWithJso
 
 int CWeenieFactory::AddFromGeneratorTable(CWeenieObject *parent, bool isInit)
 {
-	int numSpawned = 0;
+	int numSpawned = parent->m_GeneratorSpawns.size();
 
 	if (!parent->m_Qualities._generator_table)
-		return numSpawned;
+		return 0;
 
 	int maxSpawns = isInit ? parent->InqIntQuality(INIT_GENERATED_OBJECTS_INT, 0) : parent->InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0);
 
@@ -1270,7 +1271,7 @@ int CWeenieFactory::AddFromGeneratorTable(CWeenieObject *parent, bool isInit)
 	}
 
 	if (numSpawned >= maxSpawns)
-		return numSpawned;
+		return 0;
 
 	std::list<GeneratorProfile> genList = isInit ? parent->m_Qualities._generator_table->GetInitialGenerationList() : parent->m_Qualities._generator_table->GetGenerationList();
 
