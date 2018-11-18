@@ -84,6 +84,7 @@ public:
 	virtual const char *YaraqStartPosition() { return m_YaraqStartPosition.c_str(); }
 	virtual const char *ShoushiStartPosition() { return m_ShoushiStartPosition.c_str(); }
 	virtual const char *SanamarStartPosition() { return m_SanamarStartPosition.c_str(); }
+	virtual const char *OlthoiStartPosition() { return m_OlthoiStartPosition.c_str(); }
 
 	virtual int PKRespiteTime() { return m_PKRespiteTime; }
 	virtual bool SpellPurgeOnLogin() { return m_bSpellPurgeOnLogin; }
@@ -101,6 +102,9 @@ public:
 	virtual bool LoginAtLS() { return m_bLoginAtLS; }
 	virtual bool CreateTemplates() { return m_bCreateTemplates; }
 	virtual bool AllowPKCommands() { return m_bAllowPKCommands; }
+	virtual bool AllowOlthoi() { return m_bAllowOlthoi; }
+
+	virtual bool FixOldChars() { return m_bFixOldChars; }
 
 protected:
 	virtual void PostLoad() override;
@@ -177,6 +181,7 @@ protected:
 	std::string m_YaraqStartPosition;
 	std::string m_ShoushiStartPosition;
 	std::string m_SanamarStartPosition;
+	std::string m_OlthoiStartPosition;
 
 	int m_PKRespiteTime = 300;
 	bool m_bSpellPurgeOnLogin = false;
@@ -192,6 +197,8 @@ protected:
 	bool m_bLoginAtLS = 0;
 	bool m_bCreateTemplates = 0;
 	bool m_bAllowPKCommands = 0;
+	bool m_bAllowOlthoi = 0;
+	bool m_bFixOldChars = 1;
 };
 
 extern CPhatACServerConfig *g_pConfig;
