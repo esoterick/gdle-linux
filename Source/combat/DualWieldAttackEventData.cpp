@@ -24,8 +24,15 @@ void CDualWieldAttackEvent::CalculateAtt(CWeenieObject *weapon, STypeSkill& weap
 	{
 		DWORD dualSkillLevel = 0;
 		_weenie->InqSkill(STypeSkill::DUAL_WIELD_SKILL, dualSkillLevel, FALSE);
+		
 		weaponSkill = SkillTable::OldToNewSkill((STypeSkill)left->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
-		weaponSkillLevel = min(weaponSkillLevel, dualSkillLevel);
+		_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE);
+
+		if (dualSkillLevel < weaponSkillLevel)
+		{
+			weaponSkill = STypeSkill::DUAL_WIELD_SKILL;
+			weaponSkillLevel = dualSkillLevel;
+		}
 	}
 	else
 	{

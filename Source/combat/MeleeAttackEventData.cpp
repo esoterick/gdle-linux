@@ -230,18 +230,24 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 	CWeenieObject *shield = _weenie->GetWieldedCombat(COMBAT_USE::COMBAT_USE_SHIELD);
 
-	int weaponBurden = 0;
-	int shieldBurden = 0;
-	if (weapon != NULL && weapon != _weenie)
-		weaponBurden = weapon->InqIntQuality(ENCUMB_VAL_INT, 0);
+	constexpr float weaponBurdenFactor = 1.0f / 450.0f;
+	constexpr float shieldBurdenFactor = 1.0f / 680.0f;
 
-	if (shield != NULL) // TODO: Test if this will work once Dual Wield in
-		shieldBurden = shield->InqIntQuality(ENCUMB_VAL_INT, 0);
+	float weaponBurden = 0.0f;
+	float shieldBurden = 0.0f;
+	if (weapon != NULL && weapon != _weenie)
+		weaponBurden = (float)weapon->InqIntQuality(ENCUMB_VAL_INT, 0) * weaponBurdenFactor;
+
+	if (shield != NULL) // TODO: Consider adding burden calc to AttackEventData
+	{
+		shieldBurden = (float)shield->InqIntQuality(ENCUMB_VAL_INT, 0);
+		shieldBurden *= (shield->GetPlacementFrameID() == Shield) ? shieldBurdenFactor : weaponBurdenFactor;
+	}
 
 	float powerStamMod = 0.25 + _attack_power * 0.75;
 	powerStamMod = powerStamMod > 1.0 ? 1.0 : powerStamMod;
 
-	float equipStamCost = 2.0 + (weaponBurden / 450.0 + shieldBurden / 680.0);
+	float equipStamCost = 2.0 + (weaponBurden + shieldBurden);
 	int necessaryStam = min(1, (int)(equipStamCost * powerStamMod + 0.5));
 
 	if (_weenie->AsPlayer())
