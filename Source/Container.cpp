@@ -112,8 +112,12 @@ CWeenieObject *CContainerWeenie::GetWieldedCombat(COMBAT_USE combatUse)
 	// The first entry is "Undef" so we omit that.
 	int index = combatUse - 1;
 
-	if (index < 0 || index >= MAX_WIELDED_COMBAT)
+	if (index < 0 || index > MAX_WIELDED_COMBAT)
 		return NULL;
+
+	// OFFHAND is the shield slot
+	if (combatUse == COMBAT_USE_OFFHAND)
+		index = COMBAT_USE_SHIELD - 1;
 
 	return m_WieldedCombat[index];
 }
@@ -123,8 +127,12 @@ void CContainerWeenie::SetWieldedCombat(CWeenieObject *wielded, COMBAT_USE comba
 	// The first entry is "Undef" so we omit that.
 	int index = combatUse - 1;
 
-	if (index < 0 || index >= MAX_WIELDED_COMBAT)
+	if (index < 0 || index > MAX_WIELDED_COMBAT)
 		return;
+
+	// OFFHAND is the shield slot
+	if (combatUse == COMBAT_USE_OFFHAND)
+		index = COMBAT_USE_SHIELD - 1;
 
 	m_WieldedCombat[index] = wielded;
 }
@@ -250,8 +258,14 @@ BOOL CContainerWeenie::Container_CanEquip(CWeenieObject *item, DWORD location)
 	if (!item)
 		return FALSE;
 
-	if (!item->IsValidWieldLocation(location))
+	int possible = item->InqIntQuality(LOCATIONS_INT, 0, TRUE);
+
+	// weapons (right-hand) can go in the shield (left-hand) slot, too
+	if ((possible & location) == 0 && !(location == SHIELD_LOC && possible == MELEE_WEAPON_LOC))
 		return FALSE;
+
+	//if (!item->IsValidWieldLocation(location))
+	//	return FALSE;
 
 	for (auto wielded : m_Wielded)
 	{
@@ -267,8 +281,13 @@ BOOL CContainerWeenie::Container_CanEquip(CWeenieObject *item, DWORD location)
 
 void CContainerWeenie::Container_EquipItem(DWORD dwCell, CWeenieObject *item, DWORD inv_loc, DWORD child_location, DWORD placement)
 {
-	if (int combatUse = item->InqIntQuality(COMBAT_USE_INT, 0, TRUE))
+	int combatUse = item->InqIntQuality(COMBAT_USE_INT, 0, TRUE);
+	if (combatUse)
+	{
+		if (combatUse == COMBAT_USE_MELEE && placement == LeftWeapon)
+			combatUse = COMBAT_USE_OFFHAND;
 		SetWieldedCombat(item, (COMBAT_USE)combatUse);
+	}
 
 	bool bAlreadyEquipped = false;
 	for (auto entry : m_Wielded)
@@ -876,7 +895,12 @@ void CContainerWeenie::LoadEx(class CWeenieSave &save)
 				m_Wielded.push_back(weenie);
 
 				if (int combatUse = weenie->InqIntQuality(COMBAT_USE_INT, 0, TRUE))
+				{
+					int frame = weenie->InqIntQuality(PLACEMENT_POSITION_INT, 0, TRUE);
+					if (combatUse == COMBAT_USE_MELEE && frame == LeftWeapon)
+						combatUse = COMBAT_USE_OFFHAND;
 					SetWieldedCombat(weenie, (COMBAT_USE)combatUse);
+				}
 
 				assert(weenie->IsWielded());
 				assert(!weenie->IsContained());
