@@ -6228,7 +6228,7 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 	DWORD defenseSkill = 0;
 	InqSkill(MELEE_DEFENSE_SKILL, defenseSkill, FALSE);
 
-	double defenseMod = GetMeleeDefenseModUsingWielded();
+	double defenseMod = 1.0;
 
 	bool inCombatMode = true;
 	if (get_minterp()->interpreted_state.current_style == Motion_NonCombat)
@@ -6250,6 +6250,8 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 			break;
 		}
 	}
+	else
+		defenseMod = GetMeleeDefenseModUsingWielded();
 	
 	defenseSkill = (int)round((double)defenseSkill * defenseMod * CalculateDefenseImpact());
 	bool success = ::TryMeleeEvade(attackSkill, defenseSkill);
