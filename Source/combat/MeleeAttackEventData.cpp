@@ -21,17 +21,17 @@ void CMeleeAttackEvent::CalculateAtt(CWeenieObject *weapon, STypeSkill& weaponSk
 	}
 }
 
-float CMeleeAttackEvent::CalculateDef()
-{
-	CWeenieObject *weapon = _weenie->GetWieldedCombat(_combat_style);
-	if (weapon)
-	{
-		float defenseMod = weapon->GetMeleeDefenseMod();
-		return defenseMod;
-	}
-
-	return CAttackEventData::CalculateDef();
-}
+//float CMeleeAttackEvent::CalculateDef()
+//{
+//	CWeenieObject *weapon = _weenie->GetWieldedCombat(_combat_style);
+//	if (weapon)
+//	{
+//		float defenseMod = weapon->GetMeleeDefenseMod();
+//		return defenseMod;
+//	}
+//
+//	return CAttackEventData::CalculateDef();
+//}
 
 void CMeleeAttackEvent::Setup()
 {

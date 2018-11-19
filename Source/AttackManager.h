@@ -33,6 +33,7 @@ public:
 
 	void MarkForCleanup(CAttackEventData *data);
 
+	// This is not actually used by the system. Revisit later.
 	float GetDefenseMod()
 	{
 		if (_attackData)
