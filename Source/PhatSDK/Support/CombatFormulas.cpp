@@ -360,7 +360,19 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		{
 		case DF_MELEE:
 			dmgEvent->rendingMultiplier = max(GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 400, 2.5), 1.0);
-			break;
+			{
+				if (dmgEvent->isDualWield)
+				{
+					// Dual Wield uses the Dual Wield Skill for offhand weapon rends.
+					DWORD dualWield = 0;
+					dmgEvent->source->m_Qualities.InqSkillLevel(DUAL_WIELD_SKILL, dualWield);
+
+					dmgEvent->rendingMultiplier = max(GetImbueMultiplier(dualWield, 0, 400, 2.5), 1.0);
+				}
+				else
+					dmgEvent->rendingMultiplier = max(GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 400, 2.5), 1.0);
+				break;
+			}
 		case DF_MISSILE:
 			dmgEvent->rendingMultiplier = max(0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 360, 2.25), 1.0);
 			break;
@@ -399,6 +411,19 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		{
 		case DF_MELEE:
 			dmgEvent->armorRendingMultiplier = 1.0 / max(GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 400, 2.5), 1.0);
+			{
+				if (dmgEvent->isDualWield)
+				{
+					// Dual Wield uses the Dual Wield Skill for offhand weapon rends.
+					DWORD dualWield = 0;
+					dmgEvent->source->m_Qualities.InqSkillLevel(DUAL_WIELD_SKILL, dualWield);
+
+					dmgEvent->armorRendingMultiplier = max(GetImbueMultiplier(dualWield, 0, 400, 2.5), 1.0);
+				}
+				else
+					dmgEvent->armorRendingMultiplier = 1.0 / max(GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 400, 2.5), 1.0);
+				break;
+			}
 		case DF_MISSILE:
 			dmgEvent->armorRendingMultiplier = 1.0 / max(0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 360, 2.25), 1.0);
 			break;
