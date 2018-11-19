@@ -1558,46 +1558,48 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 						portalDefaults->m_Qualities.SetPosition(DESTINATION_POSITION, m_pWeenie->InqPositionQuality(LINKED_PORTAL_ONE_POSITION, Position()));
 					}
 
-
-					int minLevel = 0;
-					int maxLevel = 0;
-					portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
-					portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
-
-					int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
-
-					if (minLevel && currentLevel < minLevel)
+					if (portalDefaults)
 					{
-						m_pWeenie->SendText("You are not powerful enough to recall this portal yet.", LTT_MAGIC);
-						break;
-					}
-					else if (maxLevel && currentLevel > maxLevel)
-					{
-						m_pWeenie->SendText("You are too powerful to recall this portal.", LTT_MAGIC);
-						break;
-					}
+						int minLevel = 0;
+						int maxLevel = 0;
+						portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
+						portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
 
-					std::string restriction;
-					if (portalDefaults->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction))
-					{
-						if (CPlayerWeenie *player = m_pWeenie->AsPlayer())
+						int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
+
+						if (minLevel && currentLevel < minLevel)
 						{
-							if (!player->InqQuest(restriction.c_str()))
+							m_pWeenie->SendText("You are not powerful enough to recall this portal yet.", LTT_MAGIC);
+							break;
+						}
+						else if (maxLevel && currentLevel > maxLevel)
+						{
+							m_pWeenie->SendText("You are too powerful to recall this portal.", LTT_MAGIC);
+							break;
+						}
+
+						std::string restriction;
+						if (portalDefaults->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction))
+						{
+							if (CPlayerWeenie *player = m_pWeenie->AsPlayer())
 							{
-								m_pWeenie->SendText("You try to recall the portal but there is no effect.", LTT_MAGIC);
-								break;
+								if (!player->InqQuest(restriction.c_str()))
+								{
+									m_pWeenie->SendText("You try to recall the portal but there is no effect.", LTT_MAGIC);
+									break;
+								}
 							}
 						}
-					}
 
-					Position portalDest;
-					if (portalDefaults->m_Qualities.InqPosition(DESTINATION_POSITION, portalDest) && portalDest.objcell_id != 0)
-					{
-						BeginPortalSend(portalDest);
-					}
-					else
-					{
-						m_pWeenie->SendText("The portal you last used has no destination set.", LTT_MAGIC);
+						Position portalDest;
+						if (portalDefaults->m_Qualities.InqPosition(DESTINATION_POSITION, portalDest) && portalDest.objcell_id != 0)
+						{
+							BeginPortalSend(portalDest);
+						}
+						else
+						{
+							m_pWeenie->SendText("The portal you last used has no destination set.", LTT_MAGIC);
+						}
 					}
 				}
 				else
@@ -1629,46 +1631,48 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 						portalDefaults->m_Qualities.SetPosition(DESTINATION_POSITION, m_pWeenie->InqPositionQuality(LINKED_PORTAL_ONE_POSITION, Position()));
 					}
 
-
-					int minLevel = 0;
-					int maxLevel = 0;
-					portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
-					portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
-
-					int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
-
-					if (minLevel && currentLevel < minLevel)
+					if (portalDefaults)
 					{
-						m_pWeenie->SendText("You are not powerful enough to recall this portal yet.", LTT_MAGIC);
-						break;
-					}
-					else if (maxLevel && currentLevel > maxLevel)
-					{
-						m_pWeenie->SendText("You are too powerful to recall this portal.", LTT_MAGIC);
-						break;
-					}
+						int minLevel = 0;
+						int maxLevel = 0;
+						portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
+						portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
 
-					std::string restriction;
-					if (portalDefaults->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction))
-					{
-						if (CPlayerWeenie *player = m_pWeenie->AsPlayer())
+						int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
+
+						if (minLevel && currentLevel < minLevel)
 						{
-							if (!player->InqQuest(restriction.c_str()))
+							m_pWeenie->SendText("You are not powerful enough to recall this portal yet.", LTT_MAGIC);
+							break;
+						}
+						else if (maxLevel && currentLevel > maxLevel)
+						{
+							m_pWeenie->SendText("You are too powerful to recall this portal.", LTT_MAGIC);
+							break;
+						}
+
+						std::string restriction;
+						if (portalDefaults->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction))
+						{
+							if (CPlayerWeenie *player = m_pWeenie->AsPlayer())
 							{
-								m_pWeenie->SendText("You try to recall the portal but there is no effect.", LTT_MAGIC);
-								break;
+								if (!player->InqQuest(restriction.c_str()))
+								{
+									m_pWeenie->SendText("You try to recall the portal but there is no effect.", LTT_MAGIC);
+									break;
+								}
 							}
 						}
-					}
 
-					Position portalDest;
-					if (portalDefaults->m_Qualities.InqPosition(DESTINATION_POSITION, portalDest) && portalDest.objcell_id != 0)
-					{
-						BeginPortalSend(portalDest);
-					}
-					else
-					{
-						m_pWeenie->SendText("The primary portal you have tied has no destination set.", LTT_MAGIC);
+						Position portalDest;
+						if (portalDefaults->m_Qualities.InqPosition(DESTINATION_POSITION, portalDest) && portalDest.objcell_id != 0)
+						{
+							BeginPortalSend(portalDest);
+						}
+						else
+						{
+							m_pWeenie->SendText("The primary portal you have tied has no destination set.", LTT_MAGIC);
+						}
 					}
 				}
 				else
