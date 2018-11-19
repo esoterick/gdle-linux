@@ -16,7 +16,7 @@ public:
 	virtual void HandleAttackHook(const AttackCone &cone) override;
 	void HandlePerformAttack(CWeenieObject *target, DamageEventData dmgEvent);
 
-	virtual float CalculateDef() override;
+	//virtual float CalculateDef() override;
 
 	virtual class CMeleeAttackEvent *AsMeleeAttackEvent() { return this; }
 

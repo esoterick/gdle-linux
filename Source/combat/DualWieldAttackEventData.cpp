@@ -43,18 +43,20 @@ void CDualWieldAttackEvent::CalculateAtt(CWeenieObject *weapon, STypeSkill& weap
 	weaponSkillLevel = (DWORD)(weaponSkillLevel * offenseMod);
 }
 
-float CDualWieldAttackEvent::CalculateDef()
-{
-	CWeenieObject *main = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
-	CWeenieObject *left = _weenie->GetWieldedCombat(COMBAT_USE_OFFHAND);
-
-	float mainMod = main->GetMeleeDefenseMod();
-	float leftMod = left->GetMeleeDefenseMod();
-
-	float defenseMod = max(mainMod, leftMod);
-
-	return defenseMod;
-}
+//float CDualWieldAttackEvent::CalculateDef()
+//{
+//	CWeenieObject *main = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
+//	CWeenieObject *left = _weenie->GetWieldedCombat(COMBAT_USE_OFFHAND);
+//
+//	float mainMod = main->GetMeleeDefenseMod();
+//	float leftMod = left->GetMeleeDefenseMod();
+//
+//	float defenseMod = max(mainMod, leftMod);
+//
+//	OutputDebugString(csprintf("%f CDualWieldAttackEvent::CalculateDef\n", defenseMod));
+//
+//	return defenseMod;
+//}
 
 void CDualWieldAttackEvent::Setup()
 {

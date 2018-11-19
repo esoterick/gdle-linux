@@ -2327,25 +2327,37 @@ DWORD CMonsterWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObjec
 
 double CMonsterWeenie::GetMeleeDefenseModUsingWielded()
 {
-	std::list<CWeenieObject *> wielded;
-	//Container_GetWieldedByMask(wielded, WEAPON_LOC | HELD_LOC);
-
 	double defenseMod = 1.0;
-	defenseMod *= CWeenieObject::GetMeleeDefenseModUsingWielded();
 
-	if (attack_manager)
-	{
-		defenseMod *= (double)attack_manager->GetDefenseMod();
-	}
-
-	//double defenseMod = 1.0;
-	//for (auto item : wielded)
+	// we don't have an attack manager unless we are in active combat
+	//if (m_AttackManager)
 	//{
-	//	defenseMod *= item->GetMeleeDefenseMod();
+	//	defenseMod *= (double)m_AttackManager->GetDefenseMod();
 	//}
 
-	//defenseMod *= CWeenieObject::GetMeleeDefenseMod();
+	CWeenieObject *main = GetWieldedCombat(COMBAT_USE_MELEE);
+	CWeenieObject *left = GetWieldedCombat(COMBAT_USE_OFFHAND);
+	CWeenieObject *bow = GetWieldedCombat(COMBAT_USE_MISSILE);
+	CWeenieObject *both = GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+	CWeenieObject *caster = GetWieldedCaster();
 
+	if (caster)
+		defenseMod = caster->GetMeleeDefenseMod();
+	else if (bow)
+		defenseMod = bow->GetMeleeDefenseMod();
+	else if (both)
+		defenseMod = both->GetMeleeDefenseMod();
+	else
+	{
+		// Calling the weapon::GetMeleeDefenseMod will include buffs, as will calling the base
+		// Here we check wether or not the main hand is empty, using
+		// the base defense (probably 1 + buffs) instead
+		defenseMod = main ? main->GetMeleeDefenseMod() : CWeenieObject::GetMeleeDefenseMod();
+		if (left)
+			defenseMod = max(defenseMod, left->GetMeleeDefenseMod());
+	}
+
+	std::list<CWeenieObject *> wielded;
 	Container_GetWieldedByMask(wielded, ARMOR_LOC);
 	for (auto item : m_Wielded) //check all armor for appropriate imbue effects
 	{

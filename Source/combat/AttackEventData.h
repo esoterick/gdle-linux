@@ -42,6 +42,7 @@ public:
 	virtual void Cancel(DWORD error = 0);
 	virtual void Done(DWORD error = 0);
 
+	// This is not actually used by the system. Revisit later.
 	virtual float CalculateDef() { return 1.0f; }
 
 	virtual class CMeleeAttackEvent *AsMeleeAttackEvent() { return NULL; }

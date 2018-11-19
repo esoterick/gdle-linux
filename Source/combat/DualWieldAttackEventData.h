@@ -19,7 +19,7 @@ public:
 	//void Finish();
 
 	virtual void HandleAttackHook(const AttackCone &cone) override;
-	virtual float CalculateDef() override;
+	//virtual float CalculateDef() override;
 
 	//void HandlePerformAttack(CWeenieObject *target, DamageEventData dmgEvent);
 

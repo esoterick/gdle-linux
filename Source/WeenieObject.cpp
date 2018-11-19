@@ -5941,28 +5941,7 @@ bool CWeenieObject::TryMagicResist(DWORD magicSkill)
 
 double CWeenieObject::GetMeleeDefenseModUsingWielded()
 {
-	double mod = 1.0f;
-
-	if (GetWieldedCombat(COMBAT_USE_OFFHAND))
-	{
-		CWeenieObject *main = GetWieldedCombat(COMBAT_USE_MELEE);
-		CWeenieObject *left = GetWieldedCombat(COMBAT_USE_OFFHAND);
-
-		float mainMod = main->GetMeleeDefenseMod();
-		float leftMod = left->GetMeleeDefenseMod();
-
-		mod = max(mainMod, leftMod);
-	}
-	else if (GetWieldedCombat(COMBAT_USE_MELEE))
-		mod = GetWieldedCombat(COMBAT_USE_MELEE)->GetMeleeDefenseMod();
-	else if (GetWieldedCombat(COMBAT_USE_MISSILE))
-		mod = GetWieldedCombat(COMBAT_USE_MISSILE)->GetMeleeDefenseMod();
-	else if (GetWieldedCombat(COMBAT_USE_TWO_HANDED))
-		mod = GetWieldedCombat(COMBAT_USE_TWO_HANDED)->GetMeleeDefenseMod();
-	else if (GetWieldedCaster())
-		mod = GetWieldedCaster()->GetMeleeDefenseMod();
-
-	return mod;
+	return GetMeleeDefenseMod();
 }
 
 double CWeenieObject::GetMeleeDefenseMod()
@@ -6249,7 +6228,7 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 	DWORD defenseSkill = 0;
 	InqSkill(MELEE_DEFENSE_SKILL, defenseSkill, FALSE);
 
-	double defenseMod = GetMeleeDefenseModUsingWielded();
+	double defenseMod = 1.0;
 
 	bool inCombatMode = true;
 	if (get_minterp()->interpreted_state.current_style == Motion_NonCombat)
@@ -6271,6 +6250,8 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 			break;
 		}
 	}
+	else
+		defenseMod = GetMeleeDefenseModUsingWielded();
 	
 	defenseSkill = (int)round((double)defenseSkill * defenseMod * CalculateDefenseImpact());
 	bool success = ::TryMeleeEvade(attackSkill, defenseSkill);
