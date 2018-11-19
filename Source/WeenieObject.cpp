@@ -3181,7 +3181,7 @@ void CWeenieObject::PostSpawn()
 		SetLocked(FALSE);
 	}
 
-	InitCreateGenerator();
+		InitCreateGenerator();
 
 	double heartbeatInterval;
 	if (m_Qualities.InqFloat(HEARTBEAT_INTERVAL_FLOAT, heartbeatInterval, TRUE))
@@ -5941,7 +5941,28 @@ bool CWeenieObject::TryMagicResist(DWORD magicSkill)
 
 double CWeenieObject::GetMeleeDefenseModUsingWielded()
 {
-	return GetMeleeDefenseMod();
+	double mod = 1.0f;
+
+	if (GetWieldedCombat(COMBAT_USE_OFFHAND))
+	{
+		CWeenieObject *main = GetWieldedCombat(COMBAT_USE_MELEE);
+		CWeenieObject *left = GetWieldedCombat(COMBAT_USE_OFFHAND);
+
+		float mainMod = main->GetMeleeDefenseMod();
+		float leftMod = left->GetMeleeDefenseMod();
+
+		mod = max(mainMod, leftMod);
+	}
+	else if (GetWieldedCombat(COMBAT_USE_MELEE))
+		mod = GetWieldedCombat(COMBAT_USE_MELEE)->GetMeleeDefenseMod();
+	else if (GetWieldedCombat(COMBAT_USE_MISSILE))
+		mod = GetWieldedCombat(COMBAT_USE_MISSILE)->GetMeleeDefenseMod();
+	else if (GetWieldedCombat(COMBAT_USE_TWO_HANDED))
+		mod = GetWieldedCombat(COMBAT_USE_TWO_HANDED)->GetMeleeDefenseMod();
+	else if (GetWieldedCaster())
+		mod = GetWieldedCaster()->GetMeleeDefenseMod();
+
+	return mod;
 }
 
 double CWeenieObject::GetMeleeDefenseMod()
