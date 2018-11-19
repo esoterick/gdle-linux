@@ -5,7 +5,7 @@
 #include <mutex>
 #include <thread>
 
-#define MAX_CONNECTED_CLIENTS 600
+#define MAX_CONNECTED_CLIENTS 1000
 
 class CBanDescription : public PackObj
 {
