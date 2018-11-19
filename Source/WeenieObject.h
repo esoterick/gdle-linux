@@ -133,8 +133,6 @@ struct DamageEventData
 	double armorCleavingModifier = 0.0;
 	int cleaveTargets = 1;
 
-	bool isDualWield = false;
-
 	std::string GetSourceName();
 	std::string GetTargetName();
 };

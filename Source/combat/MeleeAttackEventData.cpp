@@ -298,9 +298,6 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	dmgEvent.preVarianceDamage = preVarianceDamage;
 	dmgEvent.baseDamage = preVarianceDamage * (1.0f - Random::GenFloat(0.0f, variance)) * (0.5 + _attack_power);
 
-	if (_combat_style == COMBAT_USE_OFFHAND)
-		dmgEvent.isDualWield = true;
-
 	HandlePerformAttack(target, dmgEvent);
 
 	int cleaveTargets = weapon->InqIntQuality(CLEAVING_INT, 1) - 1;
