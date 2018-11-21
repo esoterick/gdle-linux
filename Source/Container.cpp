@@ -896,8 +896,8 @@ void CContainerWeenie::LoadEx(class CWeenieSave &save)
 
 				if (int combatUse = weenie->InqIntQuality(COMBAT_USE_INT, 0, TRUE))
 				{
-					int frame = weenie->InqIntQuality(PLACEMENT_POSITION_INT, 0, TRUE);
-					if (combatUse == COMBAT_USE_MELEE && frame == LeftWeapon)
+					int parentLoc = weenie->InqIntQuality(PARENT_LOCATION_INT, 0, TRUE);
+					if (combatUse == COMBAT_USE_MELEE && parentLoc != SHIELD_LOC)
 						combatUse = COMBAT_USE_OFFHAND;
 					SetWieldedCombat(weenie, (COMBAT_USE)combatUse);
 				}
