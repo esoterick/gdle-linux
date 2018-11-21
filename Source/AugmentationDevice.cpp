@@ -121,7 +121,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifyAttributeStatUpdated(STRENGTH_ATTRIBUTE);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseAttribute, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Reinforcement of the Lugians augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -165,7 +165,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifyAttributeStatUpdated(ENDURANCE_ATTRIBUTE);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseAttribute, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Bleeargh's Fortitude augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -209,7 +209,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifyAttributeStatUpdated(COORDINATION_ATTRIBUTE);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseAttribute, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Oswald's Enhancement augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -253,7 +253,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifyAttributeStatUpdated(QUICKNESS_ATTRIBUTE);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseAttribute, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Siraluun's Blessing augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -297,7 +297,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifyAttributeStatUpdated(FOCUS_ATTRIBUTE);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseAttribute, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Enduring Calm augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -341,7 +341,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifyAttributeStatUpdated(SELF_ATTRIBUTE);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseAttribute, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Steadfast Will augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -386,7 +386,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifySkillStatUpdated(SALVAGING_SKILL);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseSkill, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Ciandra's Essence augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -431,7 +431,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifySkillStatUpdated(ITEM_APPRAISAL_SKILL);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseSkill, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Yoshi's Essence augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -476,7 +476,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifySkillStatUpdated(ARMOR_APPRAISAL_SKILL);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseSkill, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Jibril's Essence augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -521,7 +521,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifySkillStatUpdated(MAGIC_ITEM_APPRAISAL_SKILL);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseSkill, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Celdiseth's Essence augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -566,7 +566,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 					player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 					player->NotifySkillStatUpdated(WEAPON_APPRAISAL_SKILL);
 
-					player->EmitEffect(159, 1.0f);
+					player->EmitEffect(PS_AugmentationUseSkill, 1.0f);
 					player->SendText("Congratulations! You have succeeded in acquiring the Koga's Essence augmentation.", LTT_DEFAULT);
 					std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 					if (!text.empty())
@@ -597,7 +597,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->m_Qualities.SetInt(CONTAINERS_CAPACITY_INT, 8);
 				player->NotifyIntStatUpdated(CONTAINERS_CAPACITY_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Shadow of The Seventh Mule augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -628,7 +628,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->NotifyIntStatUpdated(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT);
 				player->NotifyIntStatUpdated(ENCUMB_CAPACITY_INT);
 				player->CPlayerWeenie::RecalculateEncumbrance();
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Might of The Seventh Mule augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -657,7 +657,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_LESS_DEATH_ITEM_LOSS_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Clutch of the Miser augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -686,7 +686,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_SPELLS_REMAIN_PAST_DEATH_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Enduring Enchantment augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -715,7 +715,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_CRITICAL_DEFENSE_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Critical Protection augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -744,7 +744,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_BONUS_XP_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Quick Learner augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -773,7 +773,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_BONUS_SALVAGE_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Ciandra's Fortune augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -802,7 +802,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_BONUS_IMBUE_CHANCE_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Charmed Smith augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -831,7 +831,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_FASTER_REGEN_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Innate Renewal augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -860,7 +860,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INCREASED_SPELL_DURATION_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Archmage's Endurance augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -890,7 +890,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_RESISTANCE_SLASH_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseResistances, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Enhancement of the Blade Turner augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -921,7 +921,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_RESISTANCE_PIERCE_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseResistances, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Enhancement of the Arrow Turner augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -952,7 +952,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_RESISTANCE_BLUNT_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseResistances, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Enhancement of the Mace Turner augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -983,7 +983,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_RESISTANCE_ACID_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseResistances, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Caustic Enhancement augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1014,7 +1014,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_RESISTANCE_FIRE_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseResistances, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Fiery Enhancement augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1045,7 +1045,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_RESISTANCE_FROST_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseResistances, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Icy Enhancement augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1076,7 +1076,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_RESISTANCE_LIGHTNING_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseResistances, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Storm's Enhancement augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1106,7 +1106,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_CREATURE_MAGIC_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Infused Creature Magic augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1135,7 +1135,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_ITEM_MAGIC_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Infused Item Magic augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1164,7 +1164,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_LIFE_MAGIC_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Infused Life Magic augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1193,7 +1193,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_WAR_MAGIC_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Infused War Magic augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1222,7 +1222,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_CRITICAL_EXPERTISE_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Eye of the Remorseless augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1251,7 +1251,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_CRITICAL_POWER_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Hand of the Remorseless augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1280,7 +1280,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_SKILLED_MELEE_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of The Steel Circle augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1309,7 +1309,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_SKILLED_MISSILE_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of the Focused Eye augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1338,7 +1338,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_SKILLED_MAGIC_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Master of The Five Fold Path augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1367,7 +1367,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_DAMAGE_BONUS_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Frenzy of the Slayer augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1396,7 +1396,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_DAMAGE_REDUCTION_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Iron Skin of the Invincible augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1425,7 +1425,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_JACK_OF_ALL_TRADES_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Jack of All Trades augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())
@@ -1454,7 +1454,7 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 				player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, unassignedXP - augCost);
 				player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				player->NotifyIntStatUpdated(AUGMENTATION_INFUSED_VOID_MAGIC_INT);
-				player->EmitEffect(159, 1.0f);
+				player->EmitEffect(PS_AugmentationUseOther, 1.0f);
 				player->SendText("Congratulations! You have succeeded in acquiring the Infused Void Magic augmentation.", LTT_DEFAULT);
 				std::string text = csprintf("%s has acquired the %s augmentation!", player->GetName().c_str(), GetName().c_str());
 				if (!text.empty())

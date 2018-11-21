@@ -5675,7 +5675,14 @@ bool CWeenieObject::IsValidWieldLocation(DWORD location)
 
 bool CWeenieObject::CanEquipWith(CWeenieObject *other, DWORD otherLocation)
 {
-	if (InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE) & otherLocation)
+	int loc = InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE);
+
+	if ( loc & otherLocation)
+	{
+		return false;
+	}
+
+	if (otherLocation == SHIELD_LOC && loc & (HELD_LOC | MISSILE_WEAPON_LOC))
 	{
 		return false;
 	}

@@ -686,7 +686,13 @@ void CClientEvents::SendTell(const char* szText, const char* targetName, const D
 		return;
 
 	if (pTarget->GetID() == m_pPlayer->GetID())
-			return;
+	{
+		std::string filteredText = FilterBadChatCharacters(szText);
+		char szResponse[300];
+		_snprintf(szResponse, 300, "You think, \"%s\"", szText);
+		m_pPlayer->SendNetMessage(ServerText(szResponse, 3), PRIVATE_MSG, FALSE, TRUE);
+		return;
+	}
 
 	if (!CheckForChatSpam())
 		return;
