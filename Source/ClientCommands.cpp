@@ -1341,6 +1341,22 @@ const char *skipHexPrefix(const char *hexString)
 	return hexString;
 }
 
+const char *skipBracketPrefix(const char *OBracketString)
+{
+	if (OBracketString[0] == '[')
+		OBracketString += 1;
+
+	return OBracketString;
+}
+
+const char *skipBracketSuffix(const char *CBracketString)
+{
+	if (strlen(CBracketString) - 1 == ']')
+		CBracketString[strlen(CBracketString)-1];
+
+return CBracketString;
+}
+
 CLIENT_COMMAND(teleloc, "<landcell> [x=0] [y=0] [z=0] [anglew=1] [anglex=0] [angley=0] [anglez=0]", "Teleports to a specific location.", BASIC_ACCESS, EXPLORE_CATEGORY)
 {
 	if (!g_pConfig->EnableTeleCommands() && pPlayer->GetAccessLevel() < ADVOCATE_ACCESS)
@@ -1355,9 +1371,9 @@ CLIENT_COMMAND(teleloc, "<landcell> [x=0] [y=0] [z=0] [anglew=1] [anglex=0] [ang
 	Position target;
 
 	target.objcell_id = strtoul(skipHexPrefix(argv[0]), NULL, 16);
-	target.frame.m_origin.x = (float)((argc >= 2) ? atof(argv[1]) : 0);
+	target.frame.m_origin.x = (float)((argc >= 2) ? atof(skipBracketPrefix(argv[1])) : 0);
 	target.frame.m_origin.y = (float)((argc >= 3) ? atof(argv[2]) : 0);
-	target.frame.m_origin.z = (float)((argc >= 4) ? atof(argv[3]) : 0);
+	target.frame.m_origin.z = (float)((argc >= 4) ? atof(skipBracketSuffix(argv[3])) : 0);
 	target.frame.m_angles.w = (float)((argc >= 8) ? atof(argv[4]) : 1.0f);
 	target.frame.m_angles.x = (float)((argc >= 8) ? atof(argv[5]) : 0);
 	target.frame.m_angles.y = (float)((argc >= 8) ? atof(argv[6]) : 0);
