@@ -1960,7 +1960,7 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 		case Unarmed_CombatStyle:
 			new_motion_style = Motion_HandCombat;
 
-			if (shield && shield->GetPlacementFrameID() != Shield)
+			if (shield && shield->InqIntQuality(LOCATIONS_INT, 0, TRUE) != SHIELD_LOC)
 				new_motion_style = Motion_DualWieldCombat;
 
 			newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
@@ -1972,7 +1972,7 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 
 			if (shield)
 			{
-				if (shield->GetPlacementFrameID() != Shield)
+				if (shield->InqIntQuality(LOCATIONS_INT, 0, TRUE) != SHIELD_LOC)
 					new_motion_style = Motion_DualWieldCombat;
 				else
 					new_motion_style = Motion_SwordShieldCombat;
