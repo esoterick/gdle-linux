@@ -67,7 +67,7 @@ void CDualWieldAttackEvent::Setup()
 
 	// DW is 20% faster
 	_attack_speed *= 0.8f;
-	_attack_charge_time *= 0.8f;
+	_attack_charge_time = Timer::cur_time + (_attack_power * 0.8f);
 
 	if (!_offhand_attack_motion)
 	{
@@ -92,6 +92,20 @@ void CDualWieldAttackEvent::Setup()
 						attack_type = OffhandSlash_AttackType;
 					else
 						attack_type = OffhandThrust_AttackType;
+					break;
+
+				case DoubleThrust_AttackType | DoubleSlash_AttackType:
+					if (_attack_power >= 0.25f)
+						attack_type = OffhandDoubleSlash_AttackType;
+					else
+						attack_type = OffhandDoubleThrust_AttackType;
+					break;
+
+				case TripleThrust_AttackType | TripleSlash_AttackType:
+					if (_attack_power >= 0.25f)
+						attack_type = OffhandTripleSlash_AttackType;
+					else
+						attack_type = OffhandTripleThrust_AttackType;
 					break;
 
 				case Thrust_AttackType:

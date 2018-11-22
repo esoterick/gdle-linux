@@ -73,8 +73,6 @@ void CMissileAttackEvent::Setup()
 	_attack_speed = 2.5f - (attackTime * (1.0 / 70.0));
 	_attack_speed = max(min(_attack_speed, 2.5f), 0.8f);
 
-	CAttackEventData::Setup();
-
 	_max_attack_distance = 80.0;
 	_max_attack_angle = MAX_MISSILE_ATTACK_CONE_ANGLE;
 	_timeout = Timer::cur_time + 15.0;

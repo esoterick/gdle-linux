@@ -69,7 +69,7 @@ void CAttackEventData::Begin()
 		return;
 	}
 
-	if (_attack_charge_time < 0.0 || Timer::cur_time >= _attack_charge_time)
+	if ((_attack_charge_time > 0.0 && Timer::cur_time >= _attack_charge_time) || (AsMissileAttackEvent() && _attack_charge_time < 0.0))
 	{
 		PostCharge();
 	}
