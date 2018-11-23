@@ -337,6 +337,13 @@ void CGenericUseEvent::Finish()
 			Cancel(WERROR_TOO_FAR);
 			return;
 		}
+
+		// Prevent items like Head of the Homunculus, Wallbound Niffis, Tursh Totem, etc. from being used in packs.
+		if (target->InqIntQuality(HOOK_GROUP_INT, 0))
+		{
+			Cancel(WERROR_HOOKER_NOT_USEABLE_OFF_HOOK);
+			return;
+		}
 		
 		if (_do_use_response)
 		{

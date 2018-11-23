@@ -169,9 +169,11 @@ void AttackManager::BeginMeleeAttack(DWORD target_id, ATTACK_HEIGHT height, floa
 {
 	CMeleeAttackEvent *attackEvent = nullptr;
 
+	CWeenieObject *left = _weenie->GetWieldedCombat(COMBAT_USE_OFFHAND);
+
 	if (_weenie->GetWieldedCombat(COMBAT_USE_TWO_HANDED))
 		attackEvent = new CTwoHandAttackEvent();
-	else if (_weenie->GetWieldedCombat(COMBAT_USE_OFFHAND))
+	else if (left && left->InqIntQuality(LOCATIONS_INT, 0) != SHIELD_LOC)
 		attackEvent = new CDualWieldAttackEvent();
 	else
 		attackEvent = new CMeleeAttackEvent();
