@@ -2956,7 +2956,7 @@ void CWeenieObject::Tick()
 
 	if (_nextHeartBeat != -1.0 && _nextHeartBeat <= Timer::cur_time)
 	{
-		if (!IsDead() && !IsInPortalSpace())
+		if (!IsDead() && !IsInPortalSpace() && IsCompletelyIdle())
 		{
 			if (_nextHeartBeatEmote != -1.0 && _nextHeartBeatEmote <= Timer::cur_time)
 			{
@@ -2997,6 +2997,8 @@ void CWeenieObject::Tick()
 			CheckRegeneration(InqFloatQuality(STAMINA_RATE_FLOAT, 0.0), STAMINA_ATTRIBUTE_2ND, MAX_STAMINA_ATTRIBUTE_2ND);
 			CheckRegeneration(InqFloatQuality(MANA_RATE_FLOAT, 0.0), MANA_ATTRIBUTE_2ND, MAX_MANA_ATTRIBUTE_2ND);
 		}
+		else
+			_nextHeartBeat = Timer::cur_time + 30.0;
 
 		double heartbeatInterval;
 		if (m_Qualities.InqFloat(HEARTBEAT_INTERVAL_FLOAT, heartbeatInterval, TRUE))

@@ -1523,7 +1523,7 @@ void CClient::ProcessMessage(BYTE *data, DWORD length, WORD group)
 		{
 			if (m_vars.bInWorld)
 			{
-				m_pEvents->BeginLogout();
+				m_pEvents->ForceLogout();
 			}
 
 			break;
