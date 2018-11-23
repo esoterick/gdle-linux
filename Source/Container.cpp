@@ -1531,6 +1531,14 @@ void CContainerWeenie::RecalculateEncumbrance()
 
 	if (oldValue != newValue)
 	{
+		if (m_Qualities.m_WeenieType == Corpse_WeenieType || m_Qualities.m_WeenieType == Chest_WeenieType)
+		{
+			CWeenieDefaults *defaults = g_pWeenieFactory->GetWeenieDefaults(m_Qualities.id);
+
+			if (defaults)
+				newValue += defaults->m_Qualities.GetInt(ENCUMB_VAL_INT, 0);
+		}
+
 		m_Qualities.SetInt(ENCUMB_VAL_INT, newValue);
 		NotifyIntStatUpdated(ENCUMB_VAL_INT, true);
 	}
