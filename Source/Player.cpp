@@ -3747,6 +3747,12 @@ void CLifestoneRecallUseEvent::OnReadyToUse()
 
 void CLifestoneRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel();
+		return;
+	}
+
 	_weenie->AdjustMana(_weenie->GetMana() * -0.5);
 	_weenie->TeleportToLifestone();
 	Done();
@@ -3761,6 +3767,12 @@ void CHouseRecallUseEvent::OnReadyToUse()
 
 void CHouseRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel();
+		return;
+	}
+
 	_weenie->TeleportToHouse();
 	Done();
 }
@@ -3787,7 +3799,7 @@ void CMarketplaceRecallUseEvent::OnReadyToUse()
 
 void CMarketplaceRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	if (_weenie->IsDead() || _weenie->IsInPortalSpace())
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
 	{
 		Cancel();
 		return;
@@ -3806,6 +3818,12 @@ void CAllegianceHometownRecallUseEvent::OnReadyToUse()
 
 void CAllegianceHometownRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel();
+		return;
+	}
+
 	_weenie->TeleportToAllegianceHometown();
 	Done();
 }
