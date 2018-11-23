@@ -568,6 +568,9 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		profile._intStatsTable->remove(PHYSICS_STATE_INT);
 		profile._intStatsTable->remove(XP_OVERRIDE_INT);
 		profile._intStatsTable->remove(MAX_GENERATED_OBJECTS_INT);
+		profile._intStatsTable->remove(ITEM_TYPE_INT);
+		profile._intStatsTable->remove(MASS_INT);
+		profile._intStatsTable->remove(ITEM_USEABLE_INT);
 		//profile._intStatsTable->remove(NUM_ITEMS_IN_MATERIAL_INT); // ADDED -- removed the mysterious double used for calculations (divison against amt of items in bag)
 		//[NUM_ITEMS_IN_MATERIAL_INT(170)] == Correct one to keep for SHOWING bags' workmanship
 		//[STRUCTURE_INT (92)] == Number of Uses on Salvage ID...actually Double SalvageWorkmanship (SHOWN)
@@ -631,6 +634,21 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			profile._intStatsTable->add(REMAINING_LIFESPAN_INT, &newLifespan); // Update the remaining_lifespan_int for inspect window.	
 		}
 
+		if (pEntity->InqBoolQuality(LOCKED_BOOL, 0))
+		{
+			Skill skill;
+			DWORD lockpickSkill = 0;
+
+			pSource->m_Qualities.InqSkill(LOCKPICK_SKILL, skill);
+			lockpickSkill = pSource->m_Qualities.InqSkillLevel(LOCKPICK_SKILL, lockpickSkill);
+
+			if (skill._sac >= TRAINED_SKILL_ADVANCEMENT_CLASS)
+			{
+				int success = GetSkillChance(lockpickSkill, pEntity->InqIntQuality(RESIST_LOCKPICK_INT, 0));
+				profile._intStatsTable->add(APPRAISAL_LOCKPICK_SUCCESS_PERCENT_INT, &success); // Update the lockpick success chance for inspect window.
+			}
+		}
+
 	}
 
 	if (pEntity->m_Qualities.m_Int64Stats)
@@ -657,6 +675,9 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		profile._boolStatsTable->remove(VISIBILITY_BOOL);
 		profile._boolStatsTable->remove(LIGHTS_STATUS_BOOL);
 		profile._boolStatsTable->remove(CORPSE_GENERATED_RARE_BOOL);
+		profile._boolStatsTable->remove(RESET_MESSAGE_PENDING_BOOL);
+		profile._boolStatsTable->remove(DEFAULT_LOCKED_BOOL);
+		profile._boolStatsTable->remove(DEFAULT_OPEN_BOOL);
 	}
 
 	if (pEntity->m_Qualities.m_FloatStats)
@@ -673,6 +694,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		profile._floatStatsTable->remove(RESET_INTERVAL_FLOAT);
 		profile._floatStatsTable->remove(REGENERATION_INTERVAL_FLOAT);
 		profile._floatStatsTable->remove(USE_RADIUS_FLOAT);
+		profile._floatStatsTable->remove(CREATION_TIMESTAMP_FLOAT);
 
 		double *weapon_defense = profile._floatStatsTable->lookup(WEAPON_DEFENSE_FLOAT);
 		double old_weapon_defense = weapon_defense ? *weapon_defense : 1.0;
@@ -759,6 +781,13 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		profile._strStatsTable->remove(USE_MESSAGE_STRING);
 		profile._strStatsTable->remove(GENERATOR_EVENT_STRING);
 		profile._strStatsTable->remove(KILL_QUEST_STRING);
+		profile._strStatsTable->remove(NAME_STRING);
+
+		if (pEntity->InqBoolQuality(PORTAL_SHOW_DESTINATION_BOOL, 0))
+		{
+			string dest = pEntity->InqStringQuality(APPRAISAL_PORTAL_DESTINATION_STRING, "");
+			profile._strStatsTable->add(APPRAISAL_PORTAL_DESTINATION_STRING, &dest);
+		}
 
 		if (false) // bIsSourceAdmin)
 		{

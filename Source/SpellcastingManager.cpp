@@ -2356,6 +2356,11 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 					weenie->CopyStringStat(QUEST_RESTRICTION_STRING, &portalDefaults->m_Qualities);
 					if (canFlagForQuest)
 						weenie->CopyStringStat(QUEST_STRING, &portalDefaults->m_Qualities);
+					if (portalDefaults->m_Qualities.GetBool(PORTAL_SHOW_DESTINATION_BOOL, 0))
+					{
+						weenie->CopyBoolStat(PORTAL_SHOW_DESTINATION_BOOL, &portalDefaults->m_Qualities);
+						weenie->CopyStringStat(APPRAISAL_PORTAL_DESTINATION_STRING, &portalDefaults->m_Qualities);
+					}
 				}
 				else
 				{
