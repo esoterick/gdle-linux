@@ -3134,7 +3134,12 @@ double CSpellcastingManager::DetermineSpellRange()
 	if (!m_SpellCastData.spell)
 		return 0.0;
 
-	double range = m_SpellCastData.spell->_base_range_constant + m_SpellCastData.spell->_base_range_mod * m_SpellCastData.current_skill;
+	double range = 0.0;
+	
+	if (m_SpellCastData.spellEx)
+		range = m_SpellCastData.spellEx->_base_range_constant + m_SpellCastData.spellEx->_base_range_mod * m_SpellCastData.current_skill; 
+	else
+		range = m_SpellCastData.spell->_base_range_constant + m_SpellCastData.spell->_base_range_mod * m_SpellCastData.current_skill;
 
 	const float RADAR_OUTDOOR_RADIUS = 75.0f;
 	if (range > RADAR_OUTDOOR_RADIUS)
