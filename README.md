@@ -4,8 +4,6 @@ GDL Github: https://github.com/GamesDeadLol/GDL
 
 GDL-Classic Github: https://github.com/bDekaru/ClassicDereth
 
-License: https://raw.githubusercontent.com/bDekaru/ClassicDereth/master/LICENSE
-
 Maintained by the GDLE Development Team. Contact us at https://discord.gg/WzGX348
 
 Development:
