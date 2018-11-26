@@ -52,7 +52,7 @@ void TradeManager::AddToTrade(CPlayerWeenie *playerFrom, DWORD item)
 
 	CWeenieObject *pItem = g_pWorld->FindWithinPVS(playerFrom, item);
 
-	if (!pItem || pItem->GetWorldTopLevelOwner() != playerFrom || pItem->IsAttunedOrContainsAttuned())
+	if (!pItem || pItem->GetWorldTopLevelOwner() != playerFrom || pItem->IsAttunedOrContainsAttuned() || pItem->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_CONTAINER)
 	{
 		playerFrom->SendText("You cannot trade that item!", LTT_ERROR);
 		BinaryWriter cannotTrade;

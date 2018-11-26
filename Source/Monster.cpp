@@ -140,8 +140,8 @@ CWeenieObject *CMonsterWeenie::SpawnWielded(CWeenieObject *item, bool deleteItem
 
 		return NULL;
 	}
-	
-	item->SetID(g_pWorld->GenerateGUID(m_Qualities.GetInt(HERITAGE_GROUP_INT,0) == 0 ? eEphemeral : eDynamicGUID));
+
+	item->SetID(g_pWorld->GenerateGUID(m_Qualities.GetInt(HERITAGE_GROUP_INT, 0) == 0 ? eEphemeral : eDynamicGUID));
 
 	if (!g_pWorld->CreateEntity(item, false))
 	{
@@ -228,7 +228,7 @@ CContainerWeenie *CMonsterWeenie::FindValidNearbyContainer(DWORD containerId, fl
 				NotifyInventoryFailedEvent(containerId, WERROR_OBJECT_GONE);
 				return NULL;
 			}
-			
+
 			container = object->AsContainer();
 
 			if (!container || container->HasOwner() || !container->InValidCell())
@@ -277,8 +277,18 @@ bool CMonsterWeenie::GetEquipPlacementAndHoldLocation(CWeenieObject *item, DWORD
 	}
 	else if (location & SHIELD_LOC)
 	{
-		*pPlacementFrame = Placement::Shield;
-		*pHoldLocation = PARENT_SHIELD;
+		if (item->InqIntQuality(LOCATIONS_INT, 0, TRUE) != SHIELD_LOC)
+		{
+			int combatStyle = item->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0);
+
+			*pPlacementFrame = Placement::LeftWeapon;
+			*pHoldLocation = (combatStyle == Unarmed_CombatStyle) ? PARENT_LEFT_HAND : PARENT_LEFT_WEAPON;
+		}
+		else
+		{
+			*pPlacementFrame = Placement::Shield;
+			*pHoldLocation = PARENT_SHIELD;
+		}
 	}
 	else if (location & HELD_LOC)
 	{
@@ -482,8 +492,8 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 
 	//if (!sourceItem->HasOwner())
 	//{
-		if (CWeenieObject *generator = g_pWorld->FindObject(sourceItem->InqIIDQuality(GENERATOR_IID, 0)))
-			generator->NotifyGeneratedPickedUp(sourceItem);
+	if (CWeenieObject *generator = g_pWorld->FindObject(sourceItem->InqIIDQuality(GENERATOR_IID, 0)))
+		generator->NotifyGeneratedPickedUp(sourceItem);
 	//}
 
 	// Take it out of whatever slot it's in.
@@ -608,7 +618,7 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 	sourceItem->unset_parent();
 	sourceItem->enter_world(&m_Position);
 
-	if(!sourceItem->m_Qualities.m_PositionStats)
+	if (!sourceItem->m_Qualities.m_PositionStats)
 		sourceItem->m_Qualities.SetPosition(LOCATION_POSITION, m_Position);
 
 	sourceItem->SetPlacementFrame(0x65, FALSE);
@@ -638,7 +648,7 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 	if (bWasWielded && oldmotion != Motion_NonCombat)
 		AdjustToNewCombatMode();
 
-	if(bWasWielded)
+	if (bWasWielded)
 		sourceItem->OnUnwield(this);
 	sourceItem->OnDropped(this);
 
@@ -732,6 +742,18 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		return false;
 	}
 
+	if (sourceItem->InqIntQuality(HERITAGE_SPECIFIC_ARMOR_INT, 0) && sourceItem->InqIntQuality(HERITAGE_SPECIFIC_ARMOR_INT, 0) != m_Qualities.GetInt(HERITAGE_GROUP_INT, 1)) // Other heritages cannot wear gearknight armor.
+	{
+		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_SPECIFIC_ARMOR_REQUIRES_HERITAGE);
+		return false;
+	}
+
+	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Gearknight_HeritageGroup && !sourceItem->InqIntQuality(HERITAGE_SPECIFIC_ARMOR_INT, 0) && sourceItem->m_Qualities.GetInt(LOCATIONS_INT, 0) < 0x8000) // Only restrict Armor, not weapons, cloaks, jewelry, trinkets, etc.
+	{
+		NotifyInventoryFailedEvent(sourceItem->GetID(), WERROR_HERITAGE_REQUIRES_SPECIFIC_ARMOR);
+		return false;
+	}
+
 	if (sourceItem->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && sourceItem->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
 	{
 		sourceItem->m_Qualities.SetInt(SHIELD_VALUE_INT, sourceItem->InqIntQuality(ARMOR_LEVEL_INT, 0));
@@ -739,8 +761,8 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 
 	//if (!sourceItem->HasOwner())
 	//{
-		if (CWeenieObject *generator = g_pWorld->FindObject(sourceItem->InqIIDQuality(GENERATOR_IID, 0)))
-			generator->NotifyGeneratedPickedUp(sourceItem);
+	if (CWeenieObject *generator = g_pWorld->FindObject(sourceItem->InqIIDQuality(GENERATOR_IID, 0)))
+		generator->NotifyGeneratedPickedUp(sourceItem);
 	//}
 
 	DWORD cell_id = m_Position.objcell_id;
@@ -777,7 +799,10 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 	}
 
 	if (sourceItem->AsClothing() && m_bWorldIsAware)
-		UpdateModel();
+	{
+		if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) != Gearknight_HeritageGroup || sourceItem->m_Qualities.GetInt(LOCATIONS_INT, 0) == CLOAK_LOC) // Gearknights can still wear cloaks.
+			UpdateModel();
+	}
 
 	if (!sourceItem->m_Qualities.GetInt(LIFESPAN_INT, 0))
 	{
@@ -899,7 +924,7 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 		}
 	}
 
-	if(isPickup)
+	if (isPickup)
 		sourceItem->OnPickedUp(this);
 	sourceItem->OnWield(this);
 	return true;
@@ -931,13 +956,13 @@ bool CMonsterWeenie::MergeItem(DWORD sourceItemId, DWORD targetItemId, DWORD amo
 	{
 		//from ground or other container or to ground or other container.
 		CStackMergeInventoryUseEvent *mergeEvent = new CStackMergeInventoryUseEvent();
-		if(sourceItem->IsContained() || sourceItem->IsWielded())
+		if (sourceItem->IsContained() || sourceItem->IsWielded())
 			mergeEvent->_target_id = targetItemId;
 		else
 			mergeEvent->_target_id = sourceItemId;
 		mergeEvent->_sourceItemId = sourceItemId;
 		mergeEvent->_targetItemId = targetItemId;
-		mergeEvent->_amountToTransfer = amountToTransfer;		
+		mergeEvent->_amountToTransfer = amountToTransfer;
 		ExecuteUseEvent(mergeEvent);
 	}
 	else
@@ -1121,7 +1146,7 @@ bool CMonsterWeenie::SplitItemto3D(DWORD sourceItemId, DWORD amountToTransfer, b
 	}
 
 	// Temporarily disallow dropping stackable items.
-	if (sourceItem->m_Qualities.GetInt(MAX_STACK_SIZE_INT,0) > 1)
+	if (sourceItem->m_Qualities.GetInt(MAX_STACK_SIZE_INT, 0) > 1)
 	{
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_ATTUNED_ITEM);
 		return false;
@@ -1168,7 +1193,7 @@ bool CMonsterWeenie::SplitItemto3D(DWORD sourceItemId, DWORD amountToTransfer, b
 
 		// set original item amount to what remains.
 		sourceItem->SetStackSize(totalAmount - amountToTransfer);
-		if(newStackItem->m_Qualities.GetInt(MAX_STACK_SIZE_INT, 0) > 1)
+		if (newStackItem->m_Qualities.GetInt(MAX_STACK_SIZE_INT, 0) > 1)
 			newStackItem->m_Qualities.SetInstanceID(OWNER_IID, GetID());
 		// and now move on to dropping it
 		CDropInventoryUseEvent *dropEvent = new CDropInventoryUseEvent();
@@ -1405,8 +1430,8 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 					// check emote Refusal here for "You allow %s to examine your %s." text.
 					if (topLevelOwner->m_Qualities._emote_table && topLevelOwner->HasEmoteForID(Refuse_EmoteCategory, newStackItem->m_Qualities.id))
 					{
-							SendText(csprintf("You allow %s to examine your %s.", topLevelOwner->GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
-							topLevelOwner->SendText(csprintf("%s allows you to examine their %s.", GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+						SendText(csprintf("You allow %s to examine your %s.", topLevelOwner->GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
+						topLevelOwner->SendText(csprintf("%s allows you to examine their %s.", GetName().c_str(), newStackItem->GetName().c_str()), LTT_DEFAULT);
 					}
 					else
 					{
@@ -1433,8 +1458,9 @@ void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieOb
 
 	//DebugValidate();
 	if (AsPlayer())
-	RecalculateEncumbrance();
+		RecalculateEncumbrance();
 }
+
 void CMonsterWeenie::Tick()
 {
 	CContainerWeenie::Tick();
@@ -1520,7 +1546,6 @@ void CMonsterWeenie::GivePerksForKill(CWeenieObject *pKilled)
 	// Prevent CWeenieObject::GivePerksForKill from running
 }
 
-
 void CMonsterWeenie::OnIdentifyAttempted(CWeenieObject *other)
 {
 	if (m_MonsterAI)
@@ -1548,70 +1573,6 @@ void CMonsterWeenie::HandleAggro(CWeenieObject *attacker)
 	if (m_MonsterAI)
 		m_MonsterAI->HandleAggro(attacker);
 }
-
-/*
-CBaelZharon::CBaelZharon()
-{
-	SetName("Bael'Zharon");
-	SetSetupID(0x0200099E);
-	SetScale(1.8f);
-
-	m_ObjDesc.paletteID = 0x04001071;
-	m_ObjDesc.AddSubpalette(new Subpalette(0x04001072, 0, 0));
-
-	m_fTickFrequency = -1.0f;
-}
-*/
-
-#if 0
-CTargetDrudge::CTargetDrudge()
-{
-	SetSetupID(0x02000034);
-	SetScale(0.95f);
-	SetName("Oak Target Drudge");
-	SetMotionTableID(0x0900008A);
-	SetPETableID(0x3400006B);
-	SetSoundTableID(0x20000051);
-
-	m_miBaseModel.SetBasePalette(0x01B9);
-	m_miBaseModel.ReplacePalette(0x08B4, 0x00, 0x00);
-	m_miBaseModel.ReplaceTexture(0x00, 0x0036, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x01, 0x0031, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x02, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x03, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x04, 0x0D33, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x05, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x06, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x07, 0x0D33, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x08, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x09, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0A, 0x0035, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0B, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0C, 0x0030, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0D, 0x0035, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0E, 0x0D33, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x0E, 0x0EE8, 0x0EE8);
-	m_miBaseModel.ReplaceTexture(0x0F, 0x0035, 0x0D33);
-	m_miBaseModel.ReplaceTexture(0x10, 0x0035, 0x0D33);
-	m_miBaseModel.ReplaceModel(0x00, 0x005D);
-	m_miBaseModel.ReplaceModel(0x01, 0x005E);
-	m_miBaseModel.ReplaceModel(0x02, 0x006E);
-	m_miBaseModel.ReplaceModel(0x03, 0x0064);
-	m_miBaseModel.ReplaceModel(0x04, 0x18D9);
-	m_miBaseModel.ReplaceModel(0x05, 0x006F);
-	m_miBaseModel.ReplaceModel(0x06, 0x0316);
-	m_miBaseModel.ReplaceModel(0x07, 0x18D9);
-	m_miBaseModel.ReplaceModel(0x08, 0x006D);
-	m_miBaseModel.ReplaceModel(0x09, 0x006B);
-	m_miBaseModel.ReplaceModel(0x0A, 0x005F);
-	m_miBaseModel.ReplaceModel(0x0B, 0x006C);
-	m_miBaseModel.ReplaceModel(0x0C, 0x0068);
-	m_miBaseModel.ReplaceModel(0x0D, 0x0060);
-	m_miBaseModel.ReplaceModel(0x0E, 0x18D7);
-	m_miBaseModel.ReplaceModel(0x0F, 0x0067);
-	m_miBaseModel.ReplaceModel(0x10, 0x0060);
-}
-#endif
 
 bool CMonsterWeenie::IsAttackMotion(DWORD motion)
 {
@@ -1650,84 +1611,84 @@ void CMonsterWeenie::OnMotionDone(DWORD motion, BOOL success)
 			switch (m_MotionUseData.m_MotionUseType)
 			{
 			case MUT_CONSUME_FOOD:
+			{
+				bool bConsumed = false;
+				MotionUseData useData = m_MotionUseData;
+
+				if (bUseSuccess)
 				{
-					bool bConsumed = false;
-					MotionUseData useData = m_MotionUseData;
+					m_MotionUseData.Reset(); // necessary so this doesn't become infinitely recursive
 
-					if (bUseSuccess)
+					DoForcedStopCompletely();
+
+					CWeenieObject *pItem = FindContainedItem(useData.m_MotionUseTarget);
+
+					if (pItem)
 					{
-						m_MotionUseData.Reset(); // necessary so this doesn't become infinitely recursive
+						ReleaseContainedItemRecursive(pItem);
 
-						DoForcedStopCompletely();
+						bConsumed = true;
 
-						CWeenieObject *pItem = FindContainedItem(useData.m_MotionUseTarget);
+						if (DWORD use_sound_did = pItem->InqDIDQuality(USE_SOUND_DID, 0))
+							EmitSound(use_sound_did, 1.0f);
 
-						if (pItem)
+						DWORD boost_stat = pItem->InqIntQuality(BOOSTER_ENUM_INT, 0);
+						DWORD boost_value = pItem->InqIntQuality(BOOST_VALUE_INT, 0);
+
+						switch (boost_stat)
 						{
-							ReleaseContainedItemRecursive(pItem);
+						case HEALTH_ATTRIBUTE_2ND:
+						case STAMINA_ATTRIBUTE_2ND:
+						case MANA_ATTRIBUTE_2ND:
+						{
+							STypeAttribute2nd maxStatType = (STypeAttribute2nd)(boost_stat - 1);
+							STypeAttribute2nd statType = (STypeAttribute2nd)boost_stat;
 
-							bConsumed = true;
+							DWORD statValue = 0, maxStatValue = 0;
+							m_Qualities.InqAttribute2nd(statType, statValue, FALSE);
+							m_Qualities.InqAttribute2nd(maxStatType, maxStatValue, FALSE);
 
-							if (DWORD use_sound_did = pItem->InqDIDQuality(USE_SOUND_DID, 0))
-								EmitSound(use_sound_did, 1.0f);
+							DWORD newStatValue = min(statValue + boost_value, maxStatValue);
 
-							DWORD boost_stat = pItem->InqIntQuality(BOOSTER_ENUM_INT, 0);
-							DWORD boost_value = pItem->InqIntQuality(BOOST_VALUE_INT, 0);
-
-							switch (boost_stat)
+							int statChange = newStatValue - statValue;
+							if (statChange)
 							{
-							case HEALTH_ATTRIBUTE_2ND:
-							case STAMINA_ATTRIBUTE_2ND:
-							case MANA_ATTRIBUTE_2ND:
+								if (statType == HEALTH_ATTRIBUTE_2ND)
 								{
-									STypeAttribute2nd maxStatType = (STypeAttribute2nd)(boost_stat - 1);
-									STypeAttribute2nd statType = (STypeAttribute2nd)boost_stat;
-
-									DWORD statValue = 0, maxStatValue = 0;
-									m_Qualities.InqAttribute2nd(statType, statValue, FALSE);
-									m_Qualities.InqAttribute2nd(maxStatType, maxStatValue, FALSE);
-
-									DWORD newStatValue = min(statValue + boost_value, maxStatValue);
-
-									int statChange = newStatValue - statValue;
-									if (statChange)
-									{
-										if (statType == HEALTH_ATTRIBUTE_2ND)
-										{
-											AdjustHealth(statChange);
-											NotifyAttribute2ndStatUpdated(statType);
-										}
-										else
-										{
-											m_Qualities.SetAttribute2nd(statType, newStatValue);
-											NotifyAttribute2ndStatUpdated(statType);
-										}
-									}
-
-									const char *vitalName = "";
-									switch (boost_stat)
-									{
-									case HEALTH_ATTRIBUTE_2ND: vitalName = "health"; break;
-									case STAMINA_ATTRIBUTE_2ND: vitalName = "stamina"; break;
-									case MANA_ATTRIBUTE_2ND: vitalName = "mana"; break;
-									}
-
-									SendText(csprintf("The %s restores %d points of your %s.", pItem->GetName().c_str(), max(0, statChange), vitalName), LTT_DEFAULT);
-									break;
+									AdjustHealth(statChange);
+									NotifyAttribute2ndStatUpdated(statType);
+								}
+								else
+								{
+									m_Qualities.SetAttribute2nd(statType, newStatValue);
+									NotifyAttribute2ndStatUpdated(statType);
 								}
 							}
 
-							NotifyContainedItemRemoved(pItem->id);
+							const char *vitalName = "";
+							switch (boost_stat)
+							{
+							case HEALTH_ATTRIBUTE_2ND: vitalName = "health"; break;
+							case STAMINA_ATTRIBUTE_2ND: vitalName = "stamina"; break;
+							case MANA_ATTRIBUTE_2ND: vitalName = "mana"; break;
+							}
 
-							pItem->MarkForDestroy();
+							SendText(csprintf("The %s restores %d points of your %s.", pItem->GetName().c_str(), max(0, statChange), vitalName), LTT_DEFAULT);
+							break;
 						}
+						}
+
+						NotifyContainedItemRemoved(pItem->id);
+
+						pItem->MarkForDestroy();
 					}
-
-					if (!bConsumed)
-						NotifyInventoryFailedEvent(useData.m_MotionUseTarget, 0);
-
-					break;
 				}
+
+				if (!bConsumed)
+					NotifyInventoryFailedEvent(useData.m_MotionUseTarget, 0);
+
+				break;
+			}
 			}
 
 			m_MotionUseData.Reset();
@@ -1741,7 +1702,7 @@ CCorpseWeenie *CMonsterWeenie::CreateCorpse(bool visible)
 		return NULL;
 
 	// spawn corpse
-	CCorpseWeenie *pCorpse = (CCorpseWeenie *) g_pWeenieFactory->CreateWeenieByClassID(W_CORPSE_CLASS);
+	CCorpseWeenie *pCorpse = (CCorpseWeenie *)g_pWeenieFactory->CreateWeenieByClassID(W_CORPSE_CLASS);
 
 	pCorpse->CopyDIDStat(SETUP_DID, this);
 	pCorpse->CopyDIDStat(MOTION_TABLE_DID, this);
@@ -1839,7 +1800,7 @@ void CMonsterWeenie::OnDeathAnimComplete()
 			GenerateDeathLoot(pCorpse);
 
 		if (pCorpse && m_bIsRareEligible && !g_pTreasureFactory->_TreasureProfile->rareTiers.empty() && g_pConfig->RareDropMultiplier() > 0.0)
-		{			
+		{
 			if (killer && killer->_IsPlayer())
 				g_pWeenieFactory->GenerateRareItem(pCorpse, killer);
 		}
@@ -1850,7 +1811,7 @@ void CMonsterWeenie::OnDeathAnimComplete()
 void CMonsterWeenie::OnDeath(DWORD killer_id)
 {
 	CWeenieObject::OnDeath(killer_id);
-	
+
 	if (m_aDamageSources.empty()) // not sure this should ever happen
 	{
 		m_highestDamageSource = killer_id;
@@ -1892,7 +1853,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 	if (!g_pWorld->FindObjectName(m_highestDamageSource, m_DeathKillerNameForCorpse))
 		m_DeathKillerNameForCorpse = "fate";
 
-	if (m_Qualities._generator_registry && m_Qualities.GetInt(GENERATOR_DESTRUCTION_TYPE_INT,0) && m_Qualities.GetInt(GENERATOR_DESTRUCTION_TYPE_INT, 0) != 1)
+	if (m_Qualities._generator_registry && m_Qualities.GetInt(GENERATOR_DESTRUCTION_TYPE_INT, 0) && m_Qualities.GetInt(GENERATOR_DESTRUCTION_TYPE_INT, 0) != 1)
 	{
 		for each(auto entry in m_Qualities._generator_registry->_registry)
 		{
@@ -1973,7 +1934,7 @@ bool CMonsterWeenie::IsDead()
 
 void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 {
-	COMBAT_MODE newCombatMode = (COMBAT_MODE) InqIntQuality(COMBAT_MODE_INT, COMBAT_MODE::NONCOMBAT_COMBAT_MODE, TRUE);
+	COMBAT_MODE newCombatMode = (COMBAT_MODE)InqIntQuality(COMBAT_MODE_INT, COMBAT_MODE::NONCOMBAT_COMBAT_MODE, TRUE);
 	DWORD new_motion_style = get_minterp()->InqStyle();
 
 	switch (mode)
@@ -1984,101 +1945,108 @@ void CMonsterWeenie::ChangeCombatMode(COMBAT_MODE mode, bool playerRequested)
 		break;
 
 	case MELEE_COMBAT_MODE:
-		{	
-		CWeenieObject *weapon =NULL;
-			if(!GetWieldedMelee())
-				weapon = GetWieldedTwoHanded();
-			else {
-				weapon = GetWieldedMelee();
-			}
-			CombatStyle default_combat_style = weapon ? (CombatStyle)weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, Undef_CombatStyle) : Undef_CombatStyle;
+	{
+		CWeenieObject *weapon = GetWieldedMelee();
+		CWeenieObject *shield = GetWieldedShield();
 
-			switch (default_combat_style)
+		if (!weapon)
+			weapon = GetWieldedTwoHanded();
+
+		CombatStyle default_combat_style = weapon ? (CombatStyle)weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, Undef_CombatStyle) : Undef_CombatStyle;
+
+		switch (default_combat_style)
+		{
+		case Undef_CombatStyle:
+		case Unarmed_CombatStyle:
+			new_motion_style = Motion_HandCombat;
+
+			if (shield && shield->InqIntQuality(LOCATIONS_INT, 0, TRUE) != SHIELD_LOC)
+				new_motion_style = Motion_DualWieldCombat;
+
+			newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
+			break;
+
+		case OneHanded_CombatStyle:
+		{
+			new_motion_style = Motion_SwordCombat;
+
+			if (shield)
 			{
-			case Undef_CombatStyle:
-			case Unarmed_CombatStyle:
-				new_motion_style = Motion_HandCombat;
-				newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
-				break;
-
-			case OneHanded_CombatStyle:
-				{
-					new_motion_style = Motion_SwordCombat;
-
-					if (CWeenieObject *shield = GetWieldedShield())
-					{
-						new_motion_style = Motion_SwordShieldCombat;
-					}
-
-					newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
-					break;
-				}
-			
-			case TwoHanded_CombatStyle:
-					new_motion_style = Motion_2HandedSwordCombat;
-					newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
-					break;				
+				if (shield->InqIntQuality(LOCATIONS_INT, 0, TRUE) != SHIELD_LOC)
+					new_motion_style = Motion_DualWieldCombat;
+				else
+					new_motion_style = Motion_SwordShieldCombat;
 			}
-
+				
+			newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
 			break;
 		}
+
+		case TwoHanded_CombatStyle:
+			new_motion_style = Motion_2HandedSwordCombat;
+			newCombatMode = COMBAT_MODE::MELEE_COMBAT_MODE;
+			break;
+		}
+
+		break;
+	}
 
 	case MISSILE_COMBAT_MODE:
+	{
+		CWeenieObject *weapon = GetWieldedMissile();
+		CombatStyle default_combat_style = weapon ? (CombatStyle)weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, Undef_CombatStyle) : Undef_CombatStyle;
+
+		switch (default_combat_style)
 		{
-			CWeenieObject *weapon = GetWieldedMissile();
-			CombatStyle default_combat_style = weapon ? (CombatStyle)weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, Undef_CombatStyle) : Undef_CombatStyle;
-
-			switch (default_combat_style)
+		case Bow_CombatStyle:
+			if (CWeenieObject *ammo = GetWieldedAmmo())
 			{
-			case Bow_CombatStyle:
-				if (CWeenieObject *ammo = GetWieldedAmmo())
-				{
-					new_motion_style = Motion_BowCombat;
-					newCombatMode = COMBAT_MODE::MISSILE_COMBAT_MODE;
-				}
-				else
-				{
-					 NotifyWeenieError(WERROR_COMBAT_OUT_OF_AMMO);
-					 new_motion_style = Motion_NonCombat;
-					 newCombatMode = COMBAT_MODE::NONCOMBAT_COMBAT_MODE;
-				}
-				break;
-
-			case Crossbow_CombatStyle:
-				if (CWeenieObject *ammo = GetWieldedAmmo())
-				{
-					new_motion_style = Motion_CrossbowCombat;
-					newCombatMode = COMBAT_MODE::MISSILE_COMBAT_MODE;
-				}
-				else
-				{
-					NotifyWeenieError(WERROR_COMBAT_OUT_OF_AMMO);
-					new_motion_style = Motion_NonCombat;
-					newCombatMode = COMBAT_MODE::NONCOMBAT_COMBAT_MODE;
-				}
-				break;
-
-			case ThrownWeapon_CombatStyle:
-				new_motion_style = Motion_ThrownWeaponCombat;
+				new_motion_style = Motion_BowCombat;
 				newCombatMode = COMBAT_MODE::MISSILE_COMBAT_MODE;
-				break;
+			}
+			else
+			{
+				NotifyWeenieError(WERROR_COMBAT_OUT_OF_AMMO);
+				new_motion_style = Motion_NonCombat;
+				newCombatMode = COMBAT_MODE::NONCOMBAT_COMBAT_MODE;
+			}
+			break;
 
-			case Atlatl_CombatStyle:
-				if (CWeenieObject *ammo = GetWieldedAmmo())
-				{
-					new_motion_style = Motion_AtlatlCombat;
-					newCombatMode = COMBAT_MODE::MISSILE_COMBAT_MODE;
-				}
-				else
-				{
-					NotifyWeenieError(WERROR_COMBAT_OUT_OF_AMMO);
-					new_motion_style = Motion_NonCombat;
-					newCombatMode = COMBAT_MODE::NONCOMBAT_COMBAT_MODE;
-				}
-				break;
+		case Crossbow_CombatStyle:
+			if (CWeenieObject *ammo = GetWieldedAmmo())
+			{
+				new_motion_style = Motion_CrossbowCombat;
+				newCombatMode = COMBAT_MODE::MISSILE_COMBAT_MODE;
+			}
+			else
+			{
+				NotifyWeenieError(WERROR_COMBAT_OUT_OF_AMMO);
+				new_motion_style = Motion_NonCombat;
+				newCombatMode = COMBAT_MODE::NONCOMBAT_COMBAT_MODE;
+			}
+			break;
+
+		case ThrownWeapon_CombatStyle:
+			new_motion_style = Motion_ThrownWeaponCombat;
+			newCombatMode = COMBAT_MODE::MISSILE_COMBAT_MODE;
+			break;
+
+		case Atlatl_CombatStyle:
+			if (CWeenieObject *ammo = GetWieldedAmmo())
+			{
+				new_motion_style = Motion_AtlatlCombat;
+				newCombatMode = COMBAT_MODE::MISSILE_COMBAT_MODE;
+			}
+			else
+			{
+				NotifyWeenieError(WERROR_COMBAT_OUT_OF_AMMO);
+				new_motion_style = Motion_NonCombat;
+				newCombatMode = COMBAT_MODE::NONCOMBAT_COMBAT_MODE;
 			}
 			break;
 		}
+		break;
+	}
 
 	case MAGIC_COMBAT_MODE:
 		new_motion_style = Motion_Magic;
@@ -2123,7 +2091,7 @@ bool CMonsterWeenie::ClothingPrioritySorter(const CWeenieObject *first, const CW
 void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 {
 	std::list<CWeenieObject *> wieldedWearable;
-	Container_GetWieldedByMask(wieldedWearable, ARMOR_LOC|CLOTHING_LOC);
+	Container_GetWieldedByMask(wieldedWearable, ARMOR_LOC | CLOTHING_LOC);
 	for (auto wearable : wieldedWearable)
 	{
 		if (wearable->IsAvatarJumpsuit())
@@ -2178,7 +2146,7 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 			if (!ShowHelm())
 				continue;
 		}
-		
+
 		DWORD clothing_table_id = clothing->InqDIDQuality(CLOTHINGBASE_DID, 0);
 		DWORD palette_template_key = clothing->InqIntQuality(PALETTE_TEMPLATE_INT, 0);
 
@@ -2213,7 +2181,7 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 	*/
 
 	std::list<CWeenieObject *> wieldedArmors;
-	Container_GetWieldedByMask(wieldedArmors, CLOTHING_LOC|ARMOR_LOC);
+	Container_GetWieldedByMask(wieldedArmors, CLOTHING_LOC | ARMOR_LOC);
 	wieldedArmors.sort(ClothingPrioritySorter);
 
 	for (auto armor : wieldedArmors)
@@ -2359,17 +2327,37 @@ DWORD CMonsterWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObjec
 
 double CMonsterWeenie::GetMeleeDefenseModUsingWielded()
 {
-	std::list<CWeenieObject *> wielded;
-	Container_GetWieldedByMask(wielded, WEAPON_LOC | HELD_LOC);
-
 	double defenseMod = 1.0;
-	for (auto item : wielded)
+
+	// we don't have an attack manager unless we are in active combat
+	//if (m_AttackManager)
+	//{
+	//	defenseMod *= (double)m_AttackManager->GetDefenseMod();
+	//}
+
+	CWeenieObject *main = GetWieldedCombat(COMBAT_USE_MELEE);
+	CWeenieObject *left = GetWieldedCombat(COMBAT_USE_OFFHAND);
+	CWeenieObject *bow = GetWieldedCombat(COMBAT_USE_MISSILE);
+	CWeenieObject *both = GetWieldedCombat(COMBAT_USE_TWO_HANDED);
+	CWeenieObject *caster = GetWieldedCaster();
+
+	if (caster)
+		defenseMod = caster->GetMeleeDefenseMod();
+	else if (bow)
+		defenseMod = bow->GetMeleeDefenseMod();
+	else if (both)
+		defenseMod = both->GetMeleeDefenseMod();
+	else
 	{
-		defenseMod *= item->GetMeleeDefenseMod();
+		// Calling the weapon::GetMeleeDefenseMod will include buffs, as will calling the base
+		// Here we check wether or not the main hand is empty, using
+		// the base defense (probably 1 + buffs) instead
+		defenseMod = main ? main->GetMeleeDefenseMod() : CWeenieObject::GetMeleeDefenseMod();
+		if (left)
+			defenseMod = max(defenseMod, left->GetMeleeDefenseMod());
 	}
 
-	defenseMod *= CWeenieObject::GetMeleeDefenseMod();
-
+	std::list<CWeenieObject *> wielded;
 	Container_GetWieldedByMask(wielded, ARMOR_LOC);
 	for (auto item : m_Wielded) //check all armor for appropriate imbue effects
 	{
@@ -2416,12 +2404,12 @@ double CMonsterWeenie::GetMagicDefenseModUsingWielded()
 
 	defenseMod *= CWeenieObject::GetMagicDefenseMod();
 
-/*	Container_GetWieldedByMask(wielded, ARMOR_LOC);
-	for (auto item : m_Wielded) //check all armor for appropriate imbue effects - commented out as this is checked in TryMagicResist and should be adding 1 to skill, not 1% 
-	{
-		if (item->GetImbueEffects() & MagicDefense_ImbuedEffectType)
-			defenseMod += 0.01;
-	}*/
+	/*	Container_GetWieldedByMask(wielded, ARMOR_LOC);
+		for (auto item : m_Wielded) //check all armor for appropriate imbue effects - commented out as this is checked in TryMagicResist and should be adding 1 to skill, not 1%
+		{
+			if (item->GetImbueEffects() & MagicDefense_ImbuedEffectType)
+				defenseMod += 0.01;
+		}*/
 
 	return defenseMod;
 }
@@ -2430,7 +2418,7 @@ int CMonsterWeenie::GetAttackTimeUsingWielded()
 {
 	std::list<CWeenieObject *> wielded;
 	Container_GetWieldedByMask(wielded, WEAPON_LOC);
-	
+
 	for (auto item : wielded)
 	{
 		return item->GetAttackTime();
@@ -2477,10 +2465,10 @@ int CMonsterWeenie::GetAttackDamage()
 float CMonsterWeenie::GetEffectiveArmorLevel(DamageEventData &damageData, bool bIgnoreMagicArmor)
 {
 	std::list<CWeenieObject *> wielded;
-	Container_GetWieldedByMask(wielded, ARMOR_LOC|CLOTHING_LOC|SHIELD_LOC);
+	Container_GetWieldedByMask(wielded, ARMOR_LOC | CLOTHING_LOC | SHIELD_LOC);
 
 	EnchantedQualityDetails buffDetails;
-	
+
 	//body part
 	GetBodyArmorEnchantmentDetails(damageData.hitPart, damageData.damage_type, &buffDetails);
 
@@ -2605,7 +2593,7 @@ bool CMonsterWeenie::CanTarget(CWeenieObject* target)
 }
 
 bool CMonsterWeenie::CheckRareEligible(CWeenieObject *highestDamageDealer)
-{ 
+{
 	if (!highestDamageDealer)
 		return false;
 

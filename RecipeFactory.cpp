@@ -17,6 +17,9 @@ void RecipeFactory::Reset()
 
 void RecipeFactory::Initialize()
 {
+	WINLOG(Data, Normal, "Loading recipes...\n");
+	SERVER_INFO << "Loading recipes...";
+
 	json precursorData;
 	std::ifstream rpcStream("data\\json\\recipeprecursors.json");
 	if (rpcStream.is_open())
@@ -46,6 +49,9 @@ void RecipeFactory::Initialize()
 
 	if (_jsonRecipes.size() > 0)
 		UpdateExitingRecipes();
+
+	WINLOG(Data, Normal, "Finished loading recipes.\n");
+	SERVER_INFO << "Finished loading recipes";
 }
 
 void RecipeFactory::UpdateCraftTableData()

@@ -399,6 +399,7 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		{
 		case DF_MELEE:
 			dmgEvent->armorRendingMultiplier = 1.0 / max(GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 400, 2.5), 1.0);
+			break;
 		case DF_MISSILE:
 			dmgEvent->armorRendingMultiplier = 1.0 / max(0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 360, 2.25), 1.0);
 			break;

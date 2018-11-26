@@ -2718,7 +2718,7 @@ void CWeenieObject::WieldedTick()
 							wielder->SendText(csprintf("The %s will run out of mana soon.", GetName().c_str()), LTT_MAGIC); //todo: made up message, confirm if it's correct
 					}
 
-					_nextManaUse = Timer::cur_time + (-manaRate * 1000);
+					_nextManaUse = Timer::cur_time + (1 / -manaRate);
 				}
 				else
 				{
@@ -2956,7 +2956,7 @@ void CWeenieObject::Tick()
 
 	if (_nextHeartBeat != -1.0 && _nextHeartBeat <= Timer::cur_time)
 	{
-		if (!IsDead() && !IsInPortalSpace())
+		if (!IsDead() && !IsInPortalSpace() && IsCompletelyIdle())
 		{
 			if (_nextHeartBeatEmote != -1.0 && _nextHeartBeatEmote <= Timer::cur_time)
 			{
@@ -2997,6 +2997,8 @@ void CWeenieObject::Tick()
 			CheckRegeneration(InqFloatQuality(STAMINA_RATE_FLOAT, 0.0), STAMINA_ATTRIBUTE_2ND, MAX_STAMINA_ATTRIBUTE_2ND);
 			CheckRegeneration(InqFloatQuality(MANA_RATE_FLOAT, 0.0), MANA_ATTRIBUTE_2ND, MAX_MANA_ATTRIBUTE_2ND);
 		}
+		else
+			_nextHeartBeat = Timer::cur_time + 30.0;
 
 		double heartbeatInterval;
 		if (m_Qualities.InqFloat(HEARTBEAT_INTERVAL_FLOAT, heartbeatInterval, TRUE))
@@ -3181,7 +3183,7 @@ void CWeenieObject::PostSpawn()
 		SetLocked(FALSE);
 	}
 
-	InitCreateGenerator();
+		InitCreateGenerator();
 
 	double heartbeatInterval;
 	if (m_Qualities.InqFloat(HEARTBEAT_INTERVAL_FLOAT, heartbeatInterval, TRUE))
@@ -4446,6 +4448,38 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 		}
 	}
 
+	if (damageData.damageAfterMitigation > 0 && damageData.damage_type < 0x80) // elemental damage types only
+	{
+		// calculate augmentation resistances
+		if (damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FAMILY_INT, 0) > 0)
+		{
+			double reduction = 0.0;
+
+			switch (damageData.damage_type)
+			{
+			case BLUDGEON_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_BLUNT_INT, 0); break;
+			case SLASH_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_SLASH_INT, 0); break;
+			case PIERCE_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_PIERCE_INT, 0); break;
+			case ACID_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_ACID_INT, 0); break;
+			case FIRE_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FIRE_INT, 0); break;
+			case COLD_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FROST_INT, 0); break;
+			case ELECTRIC_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_LIGHTNING_INT, 0); break;
+			default:
+				break;
+			}
+
+			damageData.damageAfterMitigation *= 1.0 - reduction;
+		}
+	}
+
+
 	if (damageData.damageAfterMitigation < 0)
 	{
 		//todo: can't all damage types heal? Like hitting a fire elemental with fire should heal it instead of damage it?
@@ -5643,7 +5677,14 @@ bool CWeenieObject::IsValidWieldLocation(DWORD location)
 
 bool CWeenieObject::CanEquipWith(CWeenieObject *other, DWORD otherLocation)
 {
-	if (InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE) & otherLocation)
+	int loc = InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE);
+
+	if ( loc & otherLocation)
+	{
+		return false;
+	}
+
+	if (otherLocation == SHIELD_LOC && loc & (HELD_LOC | MISSILE_WEAPON_LOC))
 	{
 		return false;
 	}
@@ -6196,7 +6237,7 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 	DWORD defenseSkill = 0;
 	InqSkill(MELEE_DEFENSE_SKILL, defenseSkill, FALSE);
 
-	double defenseMod = GetMeleeDefenseModUsingWielded();
+	double defenseMod = 1.0;
 
 	bool inCombatMode = true;
 	if (get_minterp()->interpreted_state.current_style == Motion_NonCombat)
@@ -6218,6 +6259,8 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 			break;
 		}
 	}
+	else
+		defenseMod = GetMeleeDefenseModUsingWielded();
 	
 	defenseSkill = (int)round((double)defenseSkill * defenseMod * CalculateDefenseImpact());
 	bool success = ::TryMeleeEvade(attackSkill, defenseSkill);
