@@ -443,7 +443,7 @@ void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height
 			{
 				int m = Random::GenInt(0, m_pWeenie->_combatTable->_num_combat_maneuvers - 1);
 
-				if (m_pWeenie->_combatTable->_cmt[m].style == style && m_pWeenie->_combatTable->_cmt[m].attack_type == attackType)
+				if (m_pWeenie->_combatTable->_cmt[m].style == style && m_pWeenie->_combatTable->_cmt[m].attack_type & attackType)
 				{
 					combatManeuver = &m_pWeenie->_combatTable->_cmt[m];
 					break;
