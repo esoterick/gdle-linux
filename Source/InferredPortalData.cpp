@@ -24,6 +24,8 @@ void CInferredPortalData::Init()
 
 	std::filesystem::path dataPath("data/json");
 
+	std::filesystem::create_directories(dataPath);
+
 	{
 		_regionData.Destroy();
 
