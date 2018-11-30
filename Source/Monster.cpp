@@ -57,8 +57,9 @@ void CMonsterWeenie::ApplyQualityOverrides()
 {
 	int group = 1;
 	int gender = 1;
-	m_Qualities.InqInt(HERITAGE_GROUP_INT, group);
-	m_Qualities.InqInt(GENDER_INT, gender);
+
+	if (!m_Qualities.InqInt(HERITAGE_GROUP_INT, group) || !m_Qualities.InqInt(GENDER_INT, gender))
+		return;
 
 	HeritageGroup_CG *heritage = CachedCharGenData->mHeritageGroupList.lookup(group);
 	Sex_CG *sex = heritage->mGenderList.lookup(gender);
