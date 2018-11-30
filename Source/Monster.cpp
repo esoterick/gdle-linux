@@ -55,6 +55,104 @@ CMonsterWeenie::~CMonsterWeenie()
 
 void CMonsterWeenie::ApplyQualityOverrides()
 {
+	int group = 1;
+	int gender = 1;
+	m_Qualities.InqInt(HERITAGE_GROUP_INT, group);
+	m_Qualities.InqInt(GENDER_INT, gender);
+
+	HeritageGroup_CG *heritage = CachedCharGenData->mHeritageGroupList.lookup(group);
+	Sex_CG *sex = heritage->mGenderList.lookup(gender);
+
+	DWORD tmp = 0;
+	DWORD tmp_default = 0;
+
+	int max = 0;
+	int idx = 0;
+	ObjDesc *desc = nullptr;
+	HairStyle_CG *hair = nullptr;
+
+	// hair/head
+	if (m_Qualities.InqDataID(HEAD_OBJECT_DID, tmp))
+	{
+		for (int i = 0; i < sex->mHairStyleList.num_used; i++)
+		{
+			if (sex->mHairStyleList.array_data[i].objDesc.firstAPChange->part_id == tmp)
+				hair = &(sex->mHairStyleList.array_data[i]);
+		}
+	}
+	else
+	{
+		max = sex->mHairStyleList.num_used / 2;
+		idx = Random::GenInt(0, max);
+		hair = &(sex->mHairStyleList.array_data[idx]);
+
+		m_Qualities.SetDataID(HEAD_OBJECT_DID, hair->objDesc.firstAPChange->part_id);
+	}
+
+	// eyes
+	if (!m_Qualities.InqDataID(DEFAULT_EYES_TEXTURE_DID, tmp_default))
+	{
+		max = sex->mEyeStripList.num_used / 2;
+		idx = Random::GenInt(0, max);
+		EyesStrip_CG *eyes = &(sex->mEyeStripList.array_data[idx]);
+
+		desc = hair->bald ? &eyes->objDesc_Bald : &eyes->objDesc;
+
+		if (desc->firstTMChange)
+		{
+			m_Qualities.SetDataID(DEFAULT_EYES_TEXTURE_DID, desc->firstTMChange->old_tex_id);
+			m_Qualities.SetDataID(EYES_TEXTURE_DID, desc->firstTMChange->new_tex_id);
+		}
+		
+		//if (desc->paletteID)
+		//{
+		//	
+		//}
+	}
+
+	// nose
+	if (!m_Qualities.InqDataID(DEFAULT_NOSE_TEXTURE_DID, tmp_default))
+	{
+		max = sex->mNoseStripList.num_used / 2;
+		idx = Random::GenInt(0, max);
+		FaceStrip_CG *nose = &(sex->mNoseStripList.array_data[idx]);
+
+		desc = &nose->objDesc;
+
+		if (desc->firstTMChange)
+		{
+			m_Qualities.SetDataID(DEFAULT_NOSE_TEXTURE_DID, desc->firstTMChange->old_tex_id);
+			m_Qualities.SetDataID(NOSE_TEXTURE_DID, desc->firstTMChange->new_tex_id);
+		}
+	}
+
+	// mouth
+	if (!m_Qualities.InqDataID(DEFAULT_MOUTH_TEXTURE_DID, tmp_default))
+	{
+		max = sex->mMouthStripList.num_used / 2;
+		idx = Random::GenInt(0, max);
+		FaceStrip_CG *mouth = &(sex->mMouthStripList.array_data[idx]);
+
+		desc = &mouth->objDesc;
+
+		if (desc->firstTMChange)
+		{
+			m_Qualities.SetDataID(DEFAULT_MOUTH_TEXTURE_DID, desc->firstTMChange->old_tex_id);
+			m_Qualities.SetDataID(MOUTH_TEXTURE_DID, desc->firstTMChange->new_tex_id);
+		}
+	}
+
+	//DWORD skin_palette_id;
+	//if (m_Qualities.InqDataID(SKIN_PALETTE_DID, skin_palette_id))
+	//	objDesc.AddSubpalette(new Subpalette(skin_palette_id, 0 << 3, 0x18 << 3));
+
+	//DWORD hair_palette_id;
+	//if (m_Qualities.InqDataID(HAIR_PALETTE_DID, hair_palette_id))
+	//	objDesc.AddSubpalette(new Subpalette(hair_palette_id, 0x18 << 3, 0x8 << 3));
+
+	//DWORD eye_palette_id;
+	//if (m_Qualities.InqDataID(EYES_PALETTE_DID, eye_palette_id))
+	//	objDesc.AddSubpalette(new Subpalette(eye_palette_id, 0x20 << 3, 0x8 << 3));
 }
 
 void CMonsterWeenie::PreSpawnCreate()
