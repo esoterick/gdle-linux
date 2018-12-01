@@ -306,8 +306,11 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	if (cleaveTargets)
 	{
 		std::list<CWeenieObject *> lpNearby;
+		if (_weenie->AsPlayer())
+			g_pWorld->EnumNearby(dmgEvent.source, _max_attack_distance, &lpNearby);
+		else
+			g_pWorld->EnumNearbyPlayers(dmgEvent.source, _max_attack_distance, &lpNearby);
 
-		g_pWorld->EnumNearby(dmgEvent.source, _max_attack_distance, &lpNearby);
 		int numTargets = cleaveTargets;
 		for (auto tg : lpNearby)
 		{
