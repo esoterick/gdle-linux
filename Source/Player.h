@@ -301,6 +301,20 @@ public:
 	virtual void OnUseAnimSuccess(DWORD motion) override;
 };
 
+class CPKArenaUseEvent : public CUseEventData
+{
+public:
+	virtual void OnReadyToUse() override;
+	virtual void OnUseAnimSuccess(DWORD motion) override;
+};
+
+class CPKLArenaUseEvent : public CUseEventData
+{
+public:
+	virtual void OnReadyToUse() override;
+	virtual void OnUseAnimSuccess(DWORD motion) override;
+};
+
 class CAllegianceHometownRecallUseEvent : public CUseEventData
 {
 public:

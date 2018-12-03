@@ -3809,6 +3809,62 @@ void CMarketplaceRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 	Done();
 }
 
+void CPKArenaUseEvent::OnReadyToUse()
+{
+	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	ExecuteUseAnimation(Motion_PKArenaRecall);
+	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the PK Arena.", _weenie->GetName().c_str()));
+}
+
+void CPKArenaUseEvent::OnUseAnimSuccess(DWORD motion)
+{
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel();
+		return;
+	}
+
+	Position *positions = new Position[5];
+	positions[0] = (Position(0x00660117, Vector(30, -50, 0.005f), Quaternion(1, 0, 0, 0)));
+	positions[1] = (Position(0x00660106, Vector(10, 0, 0.005f), Quaternion(0.321023f, 0, 0, -0.947071f)));
+	positions[2] = (Position(0x00660103, Vector(0, -30, 0.005f), Quaternion(0.714424f, 0, 0, -0.699713f)));
+	positions[3] = (Position(0x0066011E, Vector(50, 0, 0.005f), Quaternion(-0.276474f, 0, 0, -0.961021f)));
+	positions[4] = (Position(0x00660127, Vector(60, -30, 0.005f), Quaternion(0.731689f, 0, 0, 0.681639f)));
+
+	int randomLoc = getRandomNumber(0, 4);
+
+	_weenie->Movement_Teleport(positions[randomLoc]);
+	Done();
+}
+
+void CPKLArenaUseEvent::OnReadyToUse()
+{
+	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	ExecuteUseAnimation(Motion_PKArenaRecall);
+	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the PKL Arena.", _weenie->GetName().c_str()));
+}
+
+void CPKLArenaUseEvent::OnUseAnimSuccess(DWORD motion)
+{
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel();
+		return;
+	}
+
+	Position *positions = new Position[5];
+	positions[0] = (Position(0x00670117, Vector(30, -50, 0.005f), Quaternion(1, 0, 0, 0)));
+	positions[1] = (Position(0x00670106, Vector(10, 0, 0.005f), Quaternion(0.321023f, 0, 0, -0.947071f)));
+	positions[2] = (Position(0x00670103, Vector(0, -30, 0.005f), Quaternion(0.714424f, 0, 0, -0.699713f)));
+	positions[3] = (Position(0x0067011e, Vector(50, 0, 0.005f), Quaternion(-0.276474f, 0, 0, -0.961021f)));
+	positions[4] = (Position(0x00670127, Vector(60, -30, 0.005f), Quaternion(0.731689f, 0, 0, 0.681639f)));
+
+	int randomLoc = getRandomNumber(0, 4);
+
+	_weenie->Movement_Teleport(positions[randomLoc]);
+	Done();
+}
+
 void CAllegianceHometownRecallUseEvent::OnReadyToUse()
 {
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
