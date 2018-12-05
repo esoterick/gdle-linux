@@ -3312,7 +3312,12 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		case Tumerok_HeritageGroup:
 			m_Qualities.SetInt(AUGMENTATION_CRITICAL_POWER_INT, 1); break;
 		case Lugian_HeritageGroup:
-			m_Qualities.SetInt(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, 1); break;
+		{
+			if (!m_Qualities.GetInt(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, 0))
+				m_Qualities.SetInt(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, 1); 
+
+			break;
+		}
 		case Empyrean_HeritageGroup:
 			m_Qualities.SetInt(AUGMENTATION_INFUSED_LIFE_MAGIC_INT, 1); break;
 		case Undead_HeritageGroup:
