@@ -465,8 +465,9 @@ void CMissileAttackEvent::FireMissile()
 	missile->_weaponSkill = SkillTable::OldToNewSkill((STypeSkill)weapon->InqIntQuality(WEAPON_SKILL_INT, UNDEF_SKILL, false));
 	if (_weenie->InqSkill(missile->_weaponSkill, missile->_weaponSkillLevel, false))
 	{
-		double offenseMod = weapon->GetOffenseMod();
-		missile->_weaponSkillLevel = (DWORD)(missile->_weaponSkillLevel * offenseMod);
+		//Missile weapons don't get offense mods.
+		//double offenseMod = weapon->GetOffenseMod();
+		//missile->_weaponSkillLevel = (DWORD)(missile->_weaponSkillLevel * offenseMod);
 
 		if (!hadEnoughStamina)
 		{
