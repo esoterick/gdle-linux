@@ -654,6 +654,7 @@ public:
 	virtual double GetElementalDamage();
 	virtual int GetAttackTimeUsingWielded();
 	virtual int GetAttackDamage();
+	virtual int GetElementalDamageBonus();
 
 	double GetCrushingBlowMultiplier();
 	double GetBitingStrikeFrequency();

@@ -30,6 +30,7 @@
 #include "Config.h"
 #include "House.h"
 #include "FellowshipManager.h"
+#include "Ammunition.h"
 
 
 CWeenieObject::CWeenieObject()
@@ -6208,9 +6209,31 @@ int CWeenieObject::GetAttackDamage()
 {
 	int damage = InqIntQuality(DAMAGE_INT, 0, TRUE);
 	
-	// Don't enchant Ammunition
+	// Don't enchant Ammunition instead look up the damage of the launcher
 	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
-		return damage;
+	{
+		CAmmunitionWeenie *missile = AsAmmunition();
+
+		if (missile && missile->_launcherID)
+		{
+			CWeenieObject *launcher = g_pWorld->FindObject(missile->_launcherID);
+			if (launcher)
+			{
+				damage += launcher->GetAttackDamage();
+
+				int launcherElement = launcher->m_Qualities.GetInt(DAMAGE_TYPE_INT, 0);
+				int ammoElement = m_Qualities.GetInt(DAMAGE_TYPE_INT, 0);
+				
+				if (ammoElement == launcherElement || ammoElement == BASE_DAMAGE_TYPE)
+				{
+					if (launcher->m_Qualities.GetInt(ELEMENTAL_DAMAGE_BONUS_INT, 0))
+						damage += launcher->GetElementalDamageBonus();
+				}
+
+				return damage;
+			}
+		}
+	}
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantInt(DAMAGE_INT, &damage, FALSE);
@@ -6222,6 +6245,26 @@ int CWeenieObject::GetAttackDamage()
 	}
 
 	return damage;
+}
+
+int CWeenieObject::GetElementalDamageBonus()
+{
+	int damageBonus = InqIntQuality(ELEMENTAL_DAMAGE_BONUS_INT, 0, TRUE);
+
+	// Ammunition shouldn't have an elemental damage bonus.
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return damageBonus;
+
+	if (m_Qualities._enchantment_reg)
+		m_Qualities._enchantment_reg->EnchantInt(ELEMENTAL_DAMAGE_BONUS_INT, &damageBonus, FALSE);
+
+	CWeenieObject *wielder = GetWorldWielder();
+	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
+	{
+		damageBonus += wielder->GetElementalDamageBonus();
+	}
+
+	return damageBonus;
 }
 
 bool CWeenieObject::IsInPeaceMode()
