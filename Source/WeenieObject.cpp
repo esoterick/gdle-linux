@@ -2957,49 +2957,53 @@ void CWeenieObject::Tick()
 
 	if (_nextHeartBeat != -1.0 && _nextHeartBeat <= Timer::cur_time)
 	{
-		if (!IsDead() && !IsInPortalSpace() && IsCompletelyIdle())
+		if (!IsDead() && !IsInPortalSpace())
 		{
-			if (_nextHeartBeatEmote != -1.0 && _nextHeartBeatEmote <= Timer::cur_time)
+			if (IsCompletelyIdle()) // Don't perform idle emotes unless you are completely idle, but allow vital regeneration.
 			{
-				_nextHeartBeatEmote = Timer::cur_time + Random::GenUInt(2, 15); //add a little variation to avoid synchronization.
-
-				//_last_update_pos is the time of the last attack/movement/action, basically we don't want to do heartBeat emotes if we're active.
-				if (Timer::cur_time > _last_update_pos + 30.0 && m_Qualities._emote_table)
+				if (_nextHeartBeatEmote != -1.0 && _nextHeartBeatEmote <= Timer::cur_time)
 				{
-					PackableList<EmoteSet> *emoteSetList = m_Qualities._emote_table->_emote_table.lookup(HeartBeat_EmoteCategory);
+					_nextHeartBeatEmote = Timer::cur_time + Random::GenUInt(2, 15); //add a little variation to avoid synchronization.
 
-					if (emoteSetList)
+					//_last_update_pos is the time of the last attack/movement/action, basically we don't want to do heartBeat emotes if we're active.
+					if (Timer::cur_time > _last_update_pos + 30.0 && m_Qualities._emote_table)
 					{
-						double dice = Random::GenFloat(0.0, 1.0);
+						PackableList<EmoteSet> *emoteSetList = m_Qualities._emote_table->_emote_table.lookup(HeartBeat_EmoteCategory);
 
-						for (auto &emoteSet : *emoteSetList)
+						if (emoteSetList)
 						{
-							if (dice < emoteSet.probability)
-							{
-								if (movement_manager && movement_manager->motion_interpreter)
-								{
-									if (emoteSet.style == movement_manager->motion_interpreter->interpreted_state.current_style &&
-										emoteSet.substyle == movement_manager->motion_interpreter->interpreted_state.forward_command &&
-										!movement_manager->motion_interpreter->interpreted_state.turn_command &&
-										!movement_manager->motion_interpreter->interpreted_state.sidestep_command)
-									{
-										MakeEmoteManager()->ExecuteEmoteSet(emoteSet, 0);
-									}
-								}
+							double dice = Random::GenFloat(0.0, 1.0);
 
-								break;
+							for (auto &emoteSet : *emoteSetList)
+							{
+								if (dice < emoteSet.probability)
+								{
+									if (movement_manager && movement_manager->motion_interpreter)
+									{
+										if (emoteSet.style == movement_manager->motion_interpreter->interpreted_state.current_style &&
+											emoteSet.substyle == movement_manager->motion_interpreter->interpreted_state.forward_command &&
+											!movement_manager->motion_interpreter->interpreted_state.turn_command &&
+											!movement_manager->motion_interpreter->interpreted_state.sidestep_command)
+										{
+											MakeEmoteManager()->ExecuteEmoteSet(emoteSet, 0);
+										}
+									}
+
+									break;
+								}
 							}
 						}
 					}
 				}
 			}
+			else
+				_nextHeartBeatEmote = Timer::cur_time + 30.0;
 
 			CheckRegeneration(InqFloatQuality(HEALTH_RATE_FLOAT, 0.0), HEALTH_ATTRIBUTE_2ND, MAX_HEALTH_ATTRIBUTE_2ND);
 			CheckRegeneration(InqFloatQuality(STAMINA_RATE_FLOAT, 0.0), STAMINA_ATTRIBUTE_2ND, MAX_STAMINA_ATTRIBUTE_2ND);
 			CheckRegeneration(InqFloatQuality(MANA_RATE_FLOAT, 0.0), MANA_ATTRIBUTE_2ND, MAX_MANA_ATTRIBUTE_2ND);
 		}
-		else
-			_nextHeartBeat = Timer::cur_time + 30.0;
+
 
 		double heartbeatInterval;
 		if (m_Qualities.InqFloat(HEARTBEAT_INTERVAL_FLOAT, heartbeatInterval, TRUE))

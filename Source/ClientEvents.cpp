@@ -2545,7 +2545,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 		ClientText(szText);
 
-		m_pPlayer->_nextHeartBeat = Timer::cur_time + 30.0;
+		m_pPlayer->_nextHeartBeatEmote = Timer::cur_time + 30.0;
 		break;
 	}
 	case REMOVE_FRIEND:
@@ -2566,7 +2566,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		if (pReader->GetLastError()) break;
 
 		m_pPlayer->MoveItemToContainer(dwItemID, dwContainer, (char)dwSlot);
-		m_pPlayer->_nextHeartBeat = Timer::cur_time + 30.0;
+		m_pPlayer->_nextHeartBeatEmote = Timer::cur_time + 30.0;
 		break;
 	}
 	case EQUIP_ITEM: //Equip Item
@@ -2576,7 +2576,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		if (pReader->GetLastError()) break;
 
 		m_pPlayer->MoveItemToWield(dwItemID, dwCoverage);
-		m_pPlayer->_nextHeartBeat = Timer::cur_time + 30.0;
+		m_pPlayer->_nextHeartBeatEmote = Timer::cur_time + 30.0;
 		break;
 	}
 	case DROP_ITEM: //Drop Item
@@ -2585,7 +2585,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		if (pReader->GetLastError()) break;
 
 		m_pPlayer->MoveItemTo3D(dwItemID);
-		m_pPlayer->_nextHeartBeat = Timer::cur_time + 30.0;
+		m_pPlayer->_nextHeartBeatEmote = Timer::cur_time + 30.0;
 		break;
 	}
 	case ALLEGIANCE_SWEAR: // Swear Allegiance request
@@ -3123,7 +3123,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 		Identify(target_id);
 
-		m_pPlayer->_nextHeartBeat = Timer::cur_time + 30.0;
+		m_pPlayer->_nextHeartBeatEmote = Timer::cur_time + 30.0;
 		break;
 	}
 	case ADMIN_TELEPORT: // Advocate teleport (triggered by having an admin flag set, clicking the mini-map)
@@ -3247,7 +3247,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 		RequestHealthUpdate(target_id);
 
-		m_pPlayer->_nextHeartBeat = Timer::cur_time + 30.0;
+		m_pPlayer->_nextHeartBeatEmote = Timer::cur_time + 30.0;
 		break;
 	}
 	case QUERY_AGE:
@@ -3612,7 +3612,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 
 		m_pPlayer->HandleItemManaRequest(itemId);
-		m_pPlayer->_nextHeartBeat = Timer::cur_time + 30.0;
+		m_pPlayer->_nextHeartBeatEmote = Timer::cur_time + 30.0;
 		break;
 	}
 	case HOUSE_SET_HOOKS_VISIBILITY: // House_SetHooksVisibility 
