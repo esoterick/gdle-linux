@@ -256,8 +256,22 @@ void CUseEventData::ExecuteUseAnimation(DWORD motion, MovementParameters *params
 
 bool CUseEventData::QuestRestrictions(CWeenieObject *target)
 {
+	std::string restriction;
+	if (target->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction)) //Allows for restrition of pickup if you are NOT flagged. (IE must have flag for use)
+	{
+		if (CPlayerWeenie *player = _weenie->AsPlayer())
+		{
+			if (!player->InqQuest(restriction.c_str()))
+			{
+				_weenie->DoForcedStopCompletely();
+				Cancel(WERROR_QUEST_RESRICTION_UNSOLVED); // Sends -> This item requires you to complete a specific quest before you can pick it up!
+				return true;
+			}
+		}
+	}
+
 	std::string questString;
-	if (target->m_Qualities.InqString(QUEST_STRING, questString) && !questString.empty()) //Used for restriction of pickup if quest is already solved. Common use is for timer restritions.
+	if (target->m_Qualities.InqString(QUEST_STRING, questString) && !questString.empty()) //Used for restriction of pickup if quest is already solved. Common use is for timer restrictions.
 	{
 		if (_weenie->InqQuest(questString.c_str()))
 		{
@@ -277,20 +291,6 @@ bool CUseEventData::QuestRestrictions(CWeenieObject *target)
 		_weenie->StampQuest(questString.c_str());
 		target->m_Qualities.SetString(QUEST_STRING, "");
 		
-	}
-
-	std::string restriction;
-	if (target->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction)) //Allows for restrition of pickup if you are NOT flagged. (IE must have flag for use)
-	{
-		if (CPlayerWeenie *player = _weenie->AsPlayer())
-		{
-			if (!player->InqQuest(restriction.c_str()))
-			{
-				_weenie->DoForcedStopCompletely();
-				Cancel(WERROR_QUEST_RESRICTION_UNSOLVED); // Sends -> This item requires you to complete a specific quest before you can pick it up!
-				return true;
-			}
-		}
 	}
 	return false;
 }
