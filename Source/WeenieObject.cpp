@@ -5683,14 +5683,14 @@ bool CWeenieObject::IsValidWieldLocation(DWORD location)
 bool CWeenieObject::CanEquipWith(CWeenieObject *other, DWORD otherLocation)
 {
 	int loc = InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE);
-	int allLoc = InqIntQuality(LOCATIONS_INT, 0, TRUE);
+	//int allLoc = InqIntQuality(LOCATIONS_INT, 0, TRUE);
 
-	int otherAllLoc = other->InqIntQuality(LOCATIONS_INT, 0, TRUE);
-	int otherLoc = other->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE);
+	//int otherAllLoc = other->InqIntQuality(LOCATIONS_INT, 0, TRUE);
+	//int otherLoc = other->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE);
 
-	WINLOG(Object, Normal, "Can Equip %s => %s || %08x %08x => %08x %08x (%08x)\n",
-		GetName().c_str(), other->GetName().c_str(),
-		allLoc, loc, otherAllLoc, otherLoc, otherLocation);
+	//WINLOG(Object, Normal, "Can Equip %s => %s || %08x %08x => %08x %08x (%08x)\n",
+	//	GetName().c_str(), other->GetName().c_str(),
+	//	allLoc, loc, otherAllLoc, otherLoc, otherLocation);
 
 	// if this object covers other location, no
 	if ( loc & otherLocation)
@@ -5707,16 +5707,6 @@ bool CWeenieObject::CanEquipWith(CWeenieObject *other, DWORD otherLocation)
 			return false;
 		}
 	}
-
-	//if (otherLocation == SHIELD_LOC && loc & (HELD_LOC | MISSILE_WEAPON_LOC))
-	//{
-	//	return false;
-	//}
-
-	//if (otherLocation == SHIELD_LOC && (loc & ~(MELEE_WEAPON_LOC | SHIELD_LOC)))
-	//{
-	//	return false;
-	//}
 
 	return true;
 }
