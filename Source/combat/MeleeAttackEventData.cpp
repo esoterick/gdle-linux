@@ -306,10 +306,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	if (cleaveTargets)
 	{
 		std::list<CWeenieObject *> lpNearby;
-		if (_weenie->AsPlayer())
-			g_pWorld->EnumNearby(dmgEvent.source, _max_attack_distance, &lpNearby);
-		else
-			g_pWorld->EnumNearbyPlayers(dmgEvent.source, _max_attack_distance, &lpNearby);
+		g_pWorld->EnumNearby(dmgEvent.source, _max_attack_distance, &lpNearby);
 
 		int numTargets = cleaveTargets;
 		for (auto tg : lpNearby)
@@ -320,20 +317,10 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 			if (tg == target)
 				continue;
 
-			if (
-				!tg->IsAttackable() ||
-				(
-					tg->AsPlayer() &&
-					(
-					(
-						_weenie->IsPK() && !tg->IsPK()
-						) ||
-						(
-							_weenie->IsPKLite() && !tg->IsPKLite()
-							)
-						)
-					)
-				)
+			if (_weenie->m_Qualities.id != 1 && tg->m_Qualities.id != 1) // Don't cleave mobs if we are a mob. Where 1 is the WCID for a player (always 1).
+				continue;
+
+			if (!tg->IsAttackable() || (tg->_IsPlayer() && _weenie->_IsPlayer() && ((!_weenie->IsPK() || !tg->IsPK()) && (!_weenie->IsPKLite() || !tg->IsPKLite()))))
 				continue;
 
 			if (tg->HeadingFrom(_weenie, true) < CLEAVING_ATTACK_ANGLE / 2)
