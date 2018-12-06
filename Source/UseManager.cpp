@@ -257,7 +257,7 @@ void CUseEventData::ExecuteUseAnimation(DWORD motion, MovementParameters *params
 bool CUseEventData::QuestRestrictions(CWeenieObject *target)
 {
 	std::string restriction;
-	if (target->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction)) //Allows for restrition of pickup if you are NOT flagged. (IE must have flag for use)
+	if (target->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction) && !restriction.empty()) //Allows for restrition of pickup if you are NOT flagged. (IE must have flag for use)
 	{
 		if (CPlayerWeenie *player = _weenie->AsPlayer())
 		{
