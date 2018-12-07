@@ -64,8 +64,8 @@ void CMeleeAttackEvent::Setup()
 				{
 					attack_motion = combat_maneuver->motion;
 
-					// UA full speed attacks (Low only) need 3 added to get the correct animation.
-					if (_combat_style == Unarmed_CombatStyle && _attack_power <= 0.25f && _attack_height == 3)
+					// UA full speed attacks (Low only) need 3 removed to get the correct animation.
+					if (weapon && weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT,0) == Unarmed_CombatStyle && _attack_power <= 0.25f && _attack_height == 3)
 						attack_motion -= 3;
 				}
 			}
