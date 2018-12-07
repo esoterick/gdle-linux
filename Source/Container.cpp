@@ -1180,6 +1180,9 @@ void CContainerWeenie::ResetToInitialState()
 								i++;
 						}
 					}
+
+					if (m_GeneratorSpawns.size() > 0)
+						m_GeneratorSpawns.clear();
 				}
 			}
 		}
@@ -1189,6 +1192,8 @@ void CContainerWeenie::ResetToInitialState()
 				m_Qualities._generator_registry->_registry.clear();
 			if (m_Qualities._generator_queue)
 				m_Qualities._generator_queue->_queue.clear();
+			if (m_GeneratorSpawns.size() > 0)
+				m_GeneratorSpawns.clear();
 		}
 	}
 
