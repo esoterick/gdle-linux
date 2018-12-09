@@ -37,6 +37,7 @@ void CMeleeAttackEvent::Setup()
 {
 	DWORD attack_motion = 0;
 	DWORD weapon_id = 0;
+	DWORD style = _weenie->get_minterp()->InqStyle();
 
 	if (!_do_attack_animation)
 	{
@@ -52,24 +53,62 @@ void CMeleeAttackEvent::Setup()
 
 				AttackType attack_type = (AttackType)weapon->InqIntQuality(ATTACK_TYPE_INT, 0);
 
-				if (attack_type == (Thrust_AttackType | Slash_AttackType))
+			if (attack_type == (Thrust_AttackType | Slash_AttackType))
+			{
+				if (_attack_power >= 0.25f)
+					attack_type = Slash_AttackType;
+				else
+					attack_type = Thrust_AttackType;
+			}
+
+			// Different rules for Dual Wield vs Onehand and shield.
+			if (style == Motion_DualWieldCombat)
+			{
+				// Dual Wield can use both slash and thrust animations based on power.
+				switch (attack_type)
 				{
+				case DoubleThrust_AttackType | DoubleSlash_AttackType:
 					if (_attack_power >= 0.25f)
-						attack_type = Slash_AttackType;
+						attack_type = DoubleSlash_AttackType;
 					else
-						attack_type = Thrust_AttackType;
-				}
+						attack_type = DoubleThrust_AttackType;
+					break;
 
-				if (CombatManeuver *combat_maneuver = _weenie->_combatTable->TryGetCombatManuever(_weenie->get_minterp()->InqStyle(), attack_type, _attack_height))
-				{
-					attack_motion = combat_maneuver->motion;
-
-					// UA full speed attacks (Low only) need 3 removed to get the correct animation.
-					if (weapon && weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT,0) == Unarmed_CombatStyle && _attack_power <= 0.25f && _attack_height == 3)
-						attack_motion -= 3;
+				case TripleThrust_AttackType | TripleSlash_AttackType:
+					if (_attack_power >= 0.25f)
+						attack_type = TripleSlash_AttackType;
+					else
+						attack_type = TripleThrust_AttackType;
+					break;
 				}
 			}
+			else if (style == Motion_SwordShieldCombat)
+			{
+				// Force Thrust animation when use a shield with a multi-strike weapon.
+				switch (attack_type)
+				{
+				case DoubleThrust_AttackType | DoubleSlash_AttackType:
+					attack_type = DoubleThrust_AttackType;
+					break;
+
+				case TripleThrust_AttackType | TripleSlash_AttackType:
+					attack_type = TripleThrust_AttackType;
+					break;
+				}
+			}
+
+
+
+			if (CombatManeuver *combat_maneuver = _weenie->_combatTable->TryGetCombatManuever(style, attack_type, _attack_height))
+			{
+				attack_motion = combat_maneuver->motion;
+
+				// UA full speed attacks (Low only) need 3 removed to get the correct animation.
+				if (weapon && weapon->m_Qualities.GetInt(DEFAULT_COMBAT_STYLE_INT,0) == Unarmed_CombatStyle && _attack_power <= 0.25f && _attack_height == 3)
+					attack_motion -= 3;
+			}
 		}
+	}
 
 		if (!attack_motion)
 		{
@@ -215,7 +254,8 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	//todo: maybe handle this differently as to integrate all possible damage type combos
 	if (damageType == (DAMAGE_TYPE::SLASH_DAMAGE_TYPE | DAMAGE_TYPE::PIERCE_DAMAGE_TYPE))
 	{
-		if (_attack_power >= 0.25f)
+		// Damage type should always be Pierce for multi-strike Thrust animations, not slashing.
+		if (_attack_power >= 0.25f && !(_do_attack_animation >= Motion_DoubleThrustLow && _do_attack_animation <= Motion_TripleThrustHigh))
 			damageType = DAMAGE_TYPE::SLASH_DAMAGE_TYPE;
 		else
 			damageType = DAMAGE_TYPE::PIERCE_DAMAGE_TYPE;

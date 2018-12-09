@@ -66,7 +66,7 @@ void CDualWieldAttackEvent::Setup()
 		_main_attack_motion = _do_attack_animation;
 
 	// DW is 20% faster
-	_attack_speed *= 0.8f;
+	_attack_speed *= 1.2f; // Higher is faster.
 	_attack_charge_time = Timer::cur_time + (_attack_power * 0.8f);
 
 	if (!_offhand_attack_motion)
@@ -186,16 +186,15 @@ void CDualWieldAttackEvent::Setup()
 	}
 }
 
-void CDualWieldAttackEvent::HandleAttackHook(const AttackCone &cone)
+void CDualWieldAttackEvent::OnAttackAnimSuccess(DWORD motion)
 {
-	CMeleeAttackEvent::HandleAttackHook(cone);
-
 	_left_hand ^= -1;
 
 	if (_left_hand)
 	{
 		_do_attack_animation = _offhand_attack_motion;
 		_combat_style = COMBAT_USE_OFFHAND;
+
 	}
 	else
 	{
@@ -203,4 +202,5 @@ void CDualWieldAttackEvent::HandleAttackHook(const AttackCone &cone)
 		_combat_style = COMBAT_USE_MELEE;
 	}
 
+	Finish();
 }
