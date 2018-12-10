@@ -1555,7 +1555,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 					else if (portalDID && (1955 == portalDID))
 					{
 						portalDefaults = g_pWeenieFactory->GetWeenieDefaults(portalDID);
-						portalDefaults->m_Qualities.SetPosition(DESTINATION_POSITION, m_pWeenie->InqPositionQuality(LINKED_PORTAL_ONE_POSITION, Position()));
+						portalDefaults->m_Qualities.SetPosition(DESTINATION_POSITION, m_pWeenie->InqPositionQuality(LAST_PORTAL_POSITION, Position()));
 					}
 
 					if (portalDefaults)
