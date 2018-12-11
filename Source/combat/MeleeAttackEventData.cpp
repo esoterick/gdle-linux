@@ -338,7 +338,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	dmgEvent.attackSkill = weaponSkill;
 	dmgEvent.attackSkillLevel = weaponSkillLevel;
 	dmgEvent.preVarianceDamage = preVarianceDamage;
-	dmgEvent.baseDamage = preVarianceDamage * (1.0f - Random::GenFloat(0.0f, variance)) * (0.5 + _attack_power);
+	dmgEvent.baseDamage = CalculateBaseDamage(preVarianceDamage, variance, _attack_power);
 
 	HandlePerformAttack(target, dmgEvent);
 
@@ -365,6 +365,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 			if (tg->HeadingFrom(_weenie, true) < CLEAVING_ATTACK_ANGLE / 2)
 			{
+				dmgEvent.baseDamage = CalculateBaseDamage(preVarianceDamage, variance, _attack_power);
 				HandlePerformAttack(tg, dmgEvent);
 				dmgEvent.killingBlow = false;
 				numTargets--;
@@ -460,4 +461,9 @@ void CMeleeAttackEvent::HandlePerformAttack(CWeenieObject *target, DamageEventDa
 	CalculateDamage(&dmgEvent);
 
 	_weenie->TryToDealDamage(dmgEvent);
+}
+
+double CMeleeAttackEvent::CalculateBaseDamage(int preVarianceDamage, float variance, float _attack_power)
+{
+	return preVarianceDamage * (1.0f - Random::GenFloat(0.0f, variance)) * (0.5 + _attack_power);
 }
