@@ -339,9 +339,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	dmgEvent.attackSkillLevel = weaponSkillLevel;
 	dmgEvent.preVarianceDamage = preVarianceDamage;
 	dmgEvent.variance = variance;
-	//dmgEvent.baseDamage = CalculateBaseDamage(preVarianceDamage, variance, _attack_power);
 
-	//CalculateBaseDamage(dmgEvent, variance);
 	HandlePerformAttack(target, dmgEvent);
 
 	int cleaveTargets = weapon->InqIntQuality(CLEAVING_INT, 1) - 1;
@@ -367,7 +365,6 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 			if (tg->HeadingFrom(_weenie, true) < CLEAVING_ATTACK_ANGLE / 2)
 			{
-				//dmgEvent.baseDamage = CalculateBaseDamage(preVarianceDamage, variance, _attack_power);
 				HandlePerformAttack(tg, dmgEvent);
 				dmgEvent.killingBlow = false;
 				numTargets--;
