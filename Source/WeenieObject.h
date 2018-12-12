@@ -94,6 +94,7 @@ struct DamageEventData
 	DAMAGE_TYPE damage_type = UNDEF_DAMAGE_TYPE;
 	
 	int preVarianceDamage = 0;
+	float variance = 0.0f;
 	double baseDamage = 0;
 	double damageBeforeMitigation = 0;
 	double damageAfterMitigation = 0;

@@ -26,7 +26,7 @@ protected:
 	CMeleeAttackEvent(COMBAT_USE style) : _combat_style(style) { }
 
 	virtual void CalculateAtt(CWeenieObject *weapon, STypeSkill& weaponSkill, DWORD& weaponSkillLevel);
-	double CMeleeAttackEvent::CalculateBaseDamage(int preVarianceDamage, float variance, float _attack_power);
+	//DamageEventData CMeleeAttackEvent::CalculateBaseDamage(DamageEventData dmgEvent, float variance);
 
 	COMBAT_USE _combat_style;
 };

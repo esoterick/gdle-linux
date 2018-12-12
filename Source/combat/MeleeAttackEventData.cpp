@@ -338,8 +338,10 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 	dmgEvent.attackSkill = weaponSkill;
 	dmgEvent.attackSkillLevel = weaponSkillLevel;
 	dmgEvent.preVarianceDamage = preVarianceDamage;
-	dmgEvent.baseDamage = CalculateBaseDamage(preVarianceDamage, variance, _attack_power);
+	dmgEvent.variance = variance;
+	//dmgEvent.baseDamage = CalculateBaseDamage(preVarianceDamage, variance, _attack_power);
 
+	//CalculateBaseDamage(dmgEvent, variance);
 	HandlePerformAttack(target, dmgEvent);
 
 	int cleaveTargets = weapon->InqIntQuality(CLEAVING_INT, 1) - 1;
@@ -365,7 +367,7 @@ void CMeleeAttackEvent::HandleAttackHook(const AttackCone &cone)
 
 			if (tg->HeadingFrom(_weenie, true) < CLEAVING_ATTACK_ANGLE / 2)
 			{
-				dmgEvent.baseDamage = CalculateBaseDamage(preVarianceDamage, variance, _attack_power);
+				//dmgEvent.baseDamage = CalculateBaseDamage(preVarianceDamage, variance, _attack_power);
 				HandlePerformAttack(tg, dmgEvent);
 				dmgEvent.killingBlow = false;
 				numTargets--;
@@ -438,10 +440,12 @@ void CMeleeAttackEvent::HandlePerformAttack(CWeenieObject *target, DamageEventDa
 
 	CalculateCriticalHitData(&dmgEvent, NULL);
 	dmgEvent.wasCrit = (Random::GenFloat(0.0, 1.0) < dmgEvent.critChance) ? true : false;
+	
 	if (dmgEvent.wasCrit)
-	{
-		dmgEvent.baseDamage = dmgEvent.preVarianceDamage * (0.5 + _attack_power);//Recalculate baseDamage with no variance (uses max dmg on weapon)
-	}
+		dmgEvent.baseDamage = dmgEvent.preVarianceDamage * (0.5 + _attack_power);//Calculate baseDamage with no variance (uses max dmg on weapon)
+
+	else 
+		dmgEvent.baseDamage = dmgEvent.preVarianceDamage * (1.0f - Random::GenFloat(0.0f, dmgEvent.variance)) * (0.5 + _attack_power); // not a crit so include variance in base damage
 
 	//cast on strike
 	if (dmgEvent.weapon->InqDIDQuality(PROC_SPELL_DID, 0))
@@ -461,9 +465,4 @@ void CMeleeAttackEvent::HandlePerformAttack(CWeenieObject *target, DamageEventDa
 	CalculateDamage(&dmgEvent);
 
 	_weenie->TryToDealDamage(dmgEvent);
-}
-
-double CMeleeAttackEvent::CalculateBaseDamage(int preVarianceDamage, float variance, float _attack_power)
-{
-	return preVarianceDamage * (1.0f - Random::GenFloat(0.0f, variance)) * (0.5 + _attack_power);
 }
