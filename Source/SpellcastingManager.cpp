@@ -416,7 +416,7 @@ Position CSpellcastingManager::GetSpellProjectileSpawnPosition(CSpellProjectile 
 		double minSpawnDist = (pSource->GetRadius() + pProjectile->GetRadius()) + 0.1f;
 
 		if (bRing)
-			minSpawnDist +=	1.0f;
+			minSpawnDist +=	0.5f; //this will influence ring projectile start position. 1.0 will cause small targets to be inside the spawn radius at point blank.
 
 		spawnPosition.frame.m_origin += targetDir * minSpawnDist;
 		spawnPosition.frame.set_vector_heading(targetDir);
