@@ -3889,6 +3889,9 @@ bool CWeenieObject::ImmuneToDamage(CWeenieObject *other)
 	if (!IsCreature())
 		return true;
 
+	if (IsCreature() && !IsAttackable()) //no aoe spell collision damage on unattackable creatures (players, etc.)
+		return true;
+
 	if (IsDead())
 		return true;
 

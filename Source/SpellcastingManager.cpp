@@ -3173,7 +3173,7 @@ int CSpellcastingManager::CheckTargetValidity()
 			}
 		}
 	}
-
+	
 	int targetType = m_SpellCastData.spell->InqTargetType();
 	if (targetType != ITEM_TYPE::TYPE_UNDEF)
 	{
@@ -3201,6 +3201,39 @@ int CSpellcastingManager::CheckTargetValidity()
 	{
 		if (pTarget->IsVendor())
 			return WERROR_MAGIC_BAD_TARGET_TYPE;
+	}
+
+	if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
+	{
+		if (!pTarget)
+			return WERROR_OBJECT_GONE;
+
+		if (pTarget->IsCreature() && !pTarget->IsAttackable() && (pTarget != m_pWeenie))//no harmful spells on unattackable players/admins/sentinels. Exclude self to cast AoE while unattackable.
+		{
+			if (pCastSource && m_SpellCastData.range_check)
+			{
+				if (pCastSource->DistanceTo(pTarget, true) > m_SpellCastData.max_range)
+					return WERROR_MISSILE_OUT_OF_RANGE;
+			}
+			return WERROR_PK_PROTECTED_TARGET;
+		}
+	}
+
+	if (m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex)
+	{
+		if (!pTarget)
+			return WERROR_OBJECT_GONE;
+
+		if (pTarget->IsCreature() && !pTarget->AsPlayer() && m_pWeenie->AsPlayer())//no buffing mobs if we are a player.
+		{
+			if (pCastSource && m_SpellCastData.range_check)
+			{
+				if (pCastSource->DistanceTo(pTarget, true) > m_SpellCastData.max_range)
+					return WERROR_MISSILE_OUT_OF_RANGE;
+			}
+			return  WERROR_MAGIC_INVALID_TARGET; 
+		}
+
 	}
 
 	return WERROR_NONE;
@@ -3295,8 +3328,34 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 
 	// m_pWeenie->SendText(csprintf("Casting %d", m_SpellCastData.spell_id), LTT_DEFAULT);
 
-	if (int targetError = CheckTargetValidity())
+	int targetError = CheckTargetValidity();
+	if (targetError)
+	{
+		CWeenieObject * pTarget = g_pWorld->FindObject(m_SpellCastData.target_id);
+		switch (targetError)
+		{
+		case WERROR_PK_PROTECTED_TARGET:
+		{
+			if (pTarget)
+			{
+				auto targetName = pTarget->GetName();
+				pTarget->SendText(csprintf("%s fails to affect you because you cannot be harmed!", m_pWeenie->GetName().c_str()), LTT_MAGIC);
+				m_pWeenie->SendText(csprintf("You fail to affect %s because %s cannot be harmed!", targetName.c_str(), targetName.c_str()), LTT_MAGIC);
+			}
+			return WERROR_NONE;
+		}
+		case WERROR_MAGIC_INVALID_TARGET:
+		{
+			if (pTarget)
+			{
+				m_pWeenie->SendText(csprintf("%s is an invalid target.", pTarget->GetName().c_str()), LTT_MAGIC);
+			}
+			return WERROR_NONE;
+		}
+		}
+	
 		return targetError;
+	}
 
 	//Components
 	CContainerWeenie *caster = m_pWeenie->AsContainer();
