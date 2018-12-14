@@ -424,63 +424,23 @@ bool CMYSQLSaveWeenieQuery::PerformQuery(MYSQL *c)
 		return false;
 	}
 
-	MYSQL_STMT *statement = mysql_stmt_init(c);
-
-	if (!statement)
+	mysql_statement<4> statement(c, "CALL blob_update_weenie(?, ?, ?, ?)");
+	if (statement)
 	{
-		SERVER_ERROR << "mysql_stmt_init() error on CreateOrUpdateWeenie for" << _weenie_id << "(" << _data_length << "):" <<  mysql_error(c);
-		return false;
+		statement.bind(0, _weenie_id);
+		statement.bind(1, _top_level_object_id);
+		statement.bind(2, _block_id);
+		statement.bind(3, _data, _data_length);
+
+		if (statement.execute())
+		{
+			g_pDBIO->DecrementPendingSave(_weenie_id);
+			return true;
+		}
 	}
 
-	std::string query_string = "CALL blob_update_weenie(?, ?, ?, ?)";
-
-	if (mysql_stmt_prepare(statement, query_string.c_str(), query_string.length()))
-	{
-		mysql_stmt_close(statement);
-
-		SERVER_ERROR << "mysql_stmt_prepare() error on CreateOrUpdateWeenie for" << _weenie_id << "(" << _data_length << "):" << mysql_error(c);
-		return false;
-	}
-
-	MYSQL_BIND data_param[4] = { 0 };
-	//memset(&data_param, 0, sizeof(data_param));
-
-	data_param[0].buffer = &_weenie_id;
-	data_param[0].buffer_type = MYSQL_TYPE_LONG;
-	data_param[0].is_unsigned = true;
-
-	data_param[1].buffer = &_top_level_object_id;
-	data_param[1].buffer_type = MYSQL_TYPE_LONG;
-	data_param[1].is_unsigned = true;
-
-	data_param[2].buffer = &_block_id;
-	data_param[2].buffer_type = MYSQL_TYPE_LONG;
-	data_param[2].is_unsigned = true;
-
-	data_param[3].buffer = _data;
-	data_param[3].buffer_length = _data_length;
-	data_param[3].buffer_type = MYSQL_TYPE_BLOB;
-
-	if (mysql_stmt_bind_param(statement, data_param))
-	{
-		mysql_stmt_close(statement);
-
-		SERVER_ERROR << "mysql_stmt_bind_param() error on CreateOrUpdateWeenie for" << _weenie_id << "(" << _data_length << "):" << mysql_error(c);
-		return false;
-	}
-
-	if (mysql_stmt_execute(statement))
-	{
-		SERVER_ERROR << "mysql_stmt_execute() error on CreateOrUpdateWeenie for" << _weenie_id << "(" << _data_length << "):" << mysql_error(c);
-		mysql_stmt_close(statement);
-
-		return false;
-	}
-
-	mysql_stmt_close(statement);
-	g_pDBIO->DecrementPendingSave(_weenie_id);
-
-	return true;
+	SERVER_ERROR << "mysql_statement error on CreateOrUpdateWeenie for" << _weenie_id << "(" << _data_length << "):" << mysql_error(c);
+	return false;
 }
 
 CMYSQLSaveHouseQuery::CMYSQLSaveHouseQuery(unsigned int house_id, void *data, unsigned int data_length)
@@ -513,53 +473,22 @@ bool CMYSQLSaveHouseQuery::PerformQuery(MYSQL *c)
 		return false;
 	}
 
-	MYSQL_STMT *statement = mysql_stmt_init(c);
-
-	if (!statement)
+	mysql_statement<2> statement(c, "CALL blob_update_house(?, ?)");
+	if (statement)
 	{
-		SERVER_ERROR << "mysql_stmt_init() error on CreateOrUpdateHouseData for" << _house_id << "(" << _data_length << "):" << mysql_error(c);
-		return false;
+		statement.bind(0, _house_id);
+		statement.bind(1, _data, _data_length);
+
+		if (statement.execute())
+		{
+			g_pDBIO->DecrementPendingSave(_house_id);
+			return true;
+		}
 	}
 
-	std::string query_string = "CALL blob_update_house(?, ?)";
+	SERVER_ERROR << "mysql_statement error on CreateOrUpdateHouseData for" << _house_id << "(" << _data_length << "):" << mysql_error(c);
+	return false;
 
-	if (mysql_stmt_prepare(statement, query_string.c_str(), query_string.length()))
-	{
-		mysql_stmt_close(statement);
-
-		SERVER_ERROR << "mysql_stmt_prepare() error on CreateOrUpdateHouseData for" << _house_id << "(" << _data_length << "):" << mysql_error(c);
-		return false;
-	}
-
-	MYSQL_BIND data_param[2] = { 0 };
-
-	data_param[0].buffer = &_house_id;
-	data_param[0].buffer_type = MYSQL_TYPE_LONG;
-
-	data_param[1].buffer = _data;
-	data_param[1].buffer_length = _data_length;
-	data_param[1].buffer_type = MYSQL_TYPE_BLOB;
-
-	if (mysql_stmt_bind_param(statement, data_param))
-	{
-		mysql_stmt_close(statement);
-
-		SERVER_ERROR << "mysql_stmt_bind_param() error on CreateOrUpdateHouseData for" << _house_id << "(" << _data_length << "):" << mysql_error(c);
-		return false;
-	}
-
-	if (mysql_stmt_execute(statement))
-	{
-		SERVER_ERROR << "mysql_stmt_execute() error on CreateOrUpdateHouseData for" << _house_id << "(" << _data_length << "):" << mysql_error(c);
-		mysql_stmt_close(statement);
-
-		return false;
-	}
-
-	mysql_stmt_close(statement);
-	g_pDBIO->DecrementPendingSave(_house_id);
-
-	return true;
 }
 
 CMYSQLDatabase::CMYSQLDatabase(const char *host, unsigned int port, const char *user, const char *password, const char *defaultdatabasename)

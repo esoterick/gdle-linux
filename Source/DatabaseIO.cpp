@@ -467,54 +467,86 @@ bool CDatabaseIO::IsCharacterNameOpen(const char *name)
 
 bool CDatabaseIO::IsPlayerCharacter(unsigned int weenie_id)
 {
-	bool isPlayer = false;
-	if (g_pDB2->Query("SELECT weenie_id FROM characters WHERE weenie_id='%u'", weenie_id))
+	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
+	mysql_statement<1> statement(sql, "SELECT weenie_id FROM characters WHERE weenie_id = ?");
+	if (statement)
 	{
-		CSQLResult *pQueryResult = g_pDB2->GetResult();
-		if (pQueryResult)
+		statement.bind(0, weenie_id);
+
+		if (statement.execute())
 		{
-			isPlayer = (pQueryResult->ResultRows() > 0);
-			delete pQueryResult;
+			uint32_t result_id = 0;
+			mysql_statement_results<1> result;
+			result.bind(0, result_id);
+
+			if (statement.bindResults(result))
+			{
+				if (result.next())
+				{
+					return true;
+				}
+			}
 		}
 	}
 
-	return isPlayer;
+	return false;
 }
 
 DWORD CDatabaseIO::GetPlayerCharacterId(const char *name)
 {
-	DWORD result = 0;
-	if (g_pDB2->Query("SELECT weenie_id FROM characters WHERE name='%s'", g_pDB2->EscapeString(name).c_str()))
-	{
-		CSQLResult *pQueryResult = g_pDB2->GetResult();
-		if (pQueryResult)
-		{
-			if (SQLResultRow_t Row = pQueryResult->FetchRow())
-				result = strtoul(Row[0], NULL, 10);
+	uint32_t id = 0;
 
-			delete pQueryResult;
-			return result;
+	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
+	mysql_statement<1> statement(sql, "SELECT weenie_id FROM characters WHERE name = ?");
+	if (statement)
+	{
+		std::string tmp(name);
+
+		statement.bind(0, tmp, tmp.length());
+
+		if (statement.execute())
+		{
+			mysql_statement_results<1> result;
+			result.bind(0, id);
+
+			if (statement.bindResults(result))
+			{
+				result.next();
+			}
 		}
 	}
-	return 0;
+
+	return (DWORD)id;
 }
 
 std::string CDatabaseIO::GetPlayerCharacterName(DWORD weenie_id)
 {
 	std::string result;
-	if (g_pDB2->Query("SELECT name FROM characters WHERE weenie_id='%u'", weenie_id))
-	{
-		CSQLResult *pQueryResult = g_pDB2->GetResult();
-		if (pQueryResult)
-		{
-			if (SQLResultRow_t Row = pQueryResult->FetchRow())
-				result = Row[0];
 
-			delete pQueryResult;
-			return result;
+	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
+	mysql_statement<1> statement(sql, "SELECT name FROM characters WHERE weenie_id = ?");
+	if (statement)
+	{
+		uint32_t id = (uint32_t)weenie_id;
+		statement.bind(0, id);
+
+		if (statement.execute())
+		{
+			unsigned long length = 0;
+			mysql_statement_results<1> results;
+			results.bind(0, result, 64, &length);
+
+			if (statement.bindResults(results))
+			{
+				if (results.next())
+				{
+					result.resize(length);
+				}
+			}
 		}
 	}
-	return "";
+
+	return result;
 }
 
 /*
@@ -542,73 +574,98 @@ bool CDatabaseIO::GetWeenie(unsigned int weenie_id, unsigned int *top_level_obje
 	if (!sql)
 		return false;
 
-	MYSQL_STMT *statement = mysql_stmt_init(sql);
-
-	const char *query_string = csprintf("SELECT top_level_object_id, block_id, data FROM weenies WHERE id = %u", weenie_id);
-	mysql_stmt_prepare(statement, query_string, (unsigned long) strlen(query_string));
-
-	MYSQL_BIND binding[3];
-	memset(binding, 0, sizeof(binding));
-
-	binding[0].buffer = top_level_object_id;
-	binding[0].buffer_length = sizeof(unsigned int);
-	binding[0].buffer_type = MYSQL_TYPE_LONG;
-	binding[0].is_unsigned = true;
-	
-	binding[1].buffer = block_id;
-	binding[1].buffer_length = sizeof(unsigned int);
-	binding[1].buffer_type = MYSQL_TYPE_LONG;
-	binding[1].is_unsigned = true;
-
-	binding[2].buffer = blob_query_buffer;
-	binding[2].buffer_length = BLOB_QUERY_BUFFER_LENGTH;
-	binding[2].buffer_type = MYSQL_TYPE_BLOB;
-	binding[2].length = data_length;
-
-	mysql_stmt_bind_result(statement, binding);
-
-	if (mysql_stmt_execute(statement) || mysql_stmt_store_result(statement))
+	mysql_statement<1> statement(sql, "SELECT top_level_object_id, block_id, data FROM weenies WHERE id = ?");
+	if (statement)
 	{
-		SERVER_ERROR << "Error on GetWeenie:" << mysql_error(sql);
-		mysql_stmt_close(statement);
-		return false;
+		statement.bind(0, weenie_id);
+
+		if (statement.execute())
+		{
+			mysql_statement_results<3> result;
+			result.bind(0, top_level_object_id);
+			result.bind(1, block_id);
+			result.bind(2, blob_query_buffer, BLOB_QUERY_BUFFER_LENGTH, data_length);
+
+			if (statement.bindResults(result))
+			{
+				if (result.next())
+				{
+					*data = blob_query_buffer;
+					return true;
+				}
+			}
+		}
 	}
 
-	if (mysql_stmt_fetch(statement))
-	{
-		SERVER_WARN << "GetWeenie failed because weenie" << weenie_id << "doesn't exist!\n%s\n";
-
-		mysql_stmt_free_result(statement);
-		mysql_stmt_close(statement);
-		return false;
-	}
-
-	*data = blob_query_buffer;
-
-	mysql_stmt_free_result(statement);
-	mysql_stmt_close(statement);
-	return true;
+	SERVER_ERROR << "Error on GetWeenie:" << mysql_error(sql);
+	return false;
 }
 
 bool CDatabaseIO::DeleteWeenie(unsigned int weenie_id)
 {
-	return g_pDB2->Query("DELETE FROM weenies WHERE id = %u OR top_level_object_id = %u", weenie_id, weenie_id);
+	//return g_pDB2->Query("DELETE FROM weenies WHERE id = %u OR top_level_object_id = %u", weenie_id, weenie_id);
+	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
+	if (!sql)
+		return false;
+
+	mysql_statement<1> statement(sql, "DELETE FROM weenies WHERE id = ? OR top_level_object_id = ?");
+	if (statement)
+	{
+		statement.bind(0, weenie_id);
+		statement.bind(1, weenie_id);
+
+		if (statement.execute())
+		{
+			return true;
+		}
+	}
+
+	SERVER_ERROR << "Error on DeleteWeenie:" << mysql_error(sql);
+	return false;
+
 }
 
 bool CDatabaseIO::IsWeenieInDatabase(unsigned int weenie_id)
 {
-	bool isWeenieInDatabase = false;
-	if (g_pDB2->Query("SELECT id FROM weenies WHERE id ='%u'", weenie_id))
+	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
+	if (!sql)
+		return false;
+
+	mysql_statement<1> statement(sql, "SELECT id FROM weenies WHERE id = ?");
+	if (statement)
 	{
-		CSQLResult *pQueryResult = g_pDB2->GetResult();
-		if (pQueryResult)
+		statement.bind(0, weenie_id);
+
+		if (statement.execute())
 		{
-			isWeenieInDatabase = (pQueryResult->ResultRows() > 0);
-			delete pQueryResult;
+			uint32_t result_id = 0;
+			mysql_statement_results<1> result;
+			result.bind(0, result_id);
+
+			if (statement.bindResults(result))
+			{
+				if (result.next())
+				{
+					return true;
+				}
+			}
 		}
 	}
 
-	return isWeenieInDatabase;
+	return false;
+
+	//bool isWeenieInDatabase = false;
+	//if (g_pDB2->Query("SELECT id FROM weenies WHERE id ='%u'", weenie_id))
+	//{
+	//	CSQLResult *pQueryResult = g_pDB2->GetResult();
+	//	if (pQueryResult)
+	//	{
+	//		isWeenieInDatabase = (pQueryResult->ResultRows() > 0);
+	//		delete pQueryResult;
+	//	}
+	//}
+
+	//return isWeenieInDatabase;
 }
 
 bool CDatabaseIO::CreateOrUpdateGlobalData(DBIOGlobalDataID id, void *data, unsigned long data_length)
@@ -617,27 +674,20 @@ bool CDatabaseIO::CreateOrUpdateGlobalData(DBIOGlobalDataID id, void *data, unsi
 	if (!sql)
 		return false;
 
-	MYSQL_STMT *statement = mysql_stmt_init(sql);
-
-	const char *query_string = csprintf("REPLACE INTO globals (id, data) VALUES (%u, ?)", id);
-	mysql_stmt_prepare(statement, query_string, (unsigned long)strlen(query_string));
-
-	MYSQL_BIND data_param;
-	memset(&data_param, 0, sizeof(data_param));
-	data_param.buffer = data;
-	data_param.buffer_length = data_length;
-	data_param.buffer_type = MYSQL_TYPE_BLOB;
-	mysql_stmt_bind_param(statement, &data_param);
-
-	bool bErrored = false;
-	if (mysql_stmt_execute(statement))
+	mysql_statement<2> statement(sql, "REPLACE INTO globals (id, data) VALUES (?, ?)");
+	
+	if (statement)
 	{
-		SERVER_ERROR << "Error on CreateOrUpdateGlobalData for" << id << ":" << mysql_error(sql);
-		bErrored = true;
-	}
+		uint32_t did = (uint32_t)id;
+		statement.bind(0, did);
+		statement.bind(1, data, data_length);
 
-	mysql_stmt_close(statement);
-	return !bErrored;
+		if (statement.execute())
+			return true;
+	}
+	
+	SERVER_ERROR << "Error on CreateOrUpdateGlobalData for" << id << ":" << mysql_error(sql);
+	return false;
 }
 
 bool CDatabaseIO::GetGlobalData(DBIOGlobalDataID id, void **data, unsigned long *data_length)
@@ -646,42 +696,30 @@ bool CDatabaseIO::GetGlobalData(DBIOGlobalDataID id, void **data, unsigned long 
 	if (!sql)
 		return false;
 
-	MYSQL_STMT *statement = mysql_stmt_init(sql);
-
-	const char *query_string = csprintf("SELECT data FROM globals WHERE id = %u", id);
-	mysql_stmt_prepare(statement, query_string, (unsigned long)strlen(query_string));
-
-	MYSQL_BIND binding[1];
-	memset(binding, 0, sizeof(binding));
-
-	binding[0].buffer = blob_query_buffer;
-	binding[0].buffer_length = BLOB_QUERY_BUFFER_LENGTH;
-	binding[0].buffer_type = MYSQL_TYPE_BLOB;
-	binding[0].length = data_length;
-
-	mysql_stmt_bind_result(statement, binding);
-
-	if (mysql_stmt_execute(statement) || mysql_stmt_store_result(statement))
+	mysql_statement<1> statement(sql, "SELECT data FROM globals WHERE id = ?");
+	if (statement)
 	{
-		SERVER_ERROR << "Error on GetGlobalData:" << mysql_error(sql);
-		mysql_stmt_close(statement);
-		return false;
+		uint32_t did = (uint32_t)id;
+		statement.bind(0, did);
+
+		if (statement.execute())
+		{
+			mysql_statement_results<1> result;
+			result.bind(0, blob_query_buffer, BLOB_QUERY_BUFFER_LENGTH, data_length);
+
+			if (statement.bindResults(result))
+			{
+				if (result.next())
+				{
+					*data = blob_query_buffer;
+					return true;
+				}
+			}
+		}
 	}
 
-	if (mysql_stmt_fetch(statement))
-	{
-		DEBUG_DATA << "GetGlobalData failed because id" << id << "doesn't exist!\n" << query_string;
-
-		mysql_stmt_free_result(statement);
-		mysql_stmt_close(statement);
-		return false;
-	}
-
-	*data = blob_query_buffer;
-
-	mysql_stmt_free_result(statement);
-	mysql_stmt_close(statement);
-	return true;
+	SERVER_ERROR << "Error on GetGlobalData:" << mysql_error(sql);
+	return false;
 }
 
 bool CDatabaseIO::CreateOrUpdateHouseData(unsigned int house_id, void *data, unsigned int data_length)
@@ -701,40 +739,29 @@ bool CDatabaseIO::GetHouseData(unsigned int house_id, void **data, unsigned long
 	if (!sql)
 		return false;
 
-	MYSQL_STMT *statement = mysql_stmt_init(sql);
-
-	const char *query_string = csprintf("SELECT data FROM houses WHERE house_id = %u", house_id);
-	mysql_stmt_prepare(statement, query_string, (unsigned long)strlen(query_string));
-
-	MYSQL_BIND binding[1];
-	memset(binding, 0, sizeof(binding));
-
-	binding[0].buffer = blob_query_buffer;
-	binding[0].buffer_length = BLOB_QUERY_BUFFER_LENGTH;
-	binding[0].buffer_type = MYSQL_TYPE_BLOB;
-	binding[0].length = data_length;
-
-	mysql_stmt_bind_result(statement, binding);
-
-	if (mysql_stmt_execute(statement) || mysql_stmt_store_result(statement))
+	mysql_statement<1> statement(sql, "SELECT data FROM houses WHERE house_id = ?");
+	if (statement)
 	{
-		SERVER_ERROR << "Error on GetHouseData:" << mysql_error(sql);
-		mysql_stmt_close(statement);
-		return false;
+		statement.bind(0, house_id);
+
+		if (statement.execute())
+		{
+			mysql_statement_results<1> result;
+			result.bind(0, blob_query_buffer, BLOB_QUERY_BUFFER_LENGTH, data_length);
+
+			if (statement.bindResults(result))
+			{
+				if (result.next())
+				{
+					*data = blob_query_buffer;
+					return true;
+				}
+			}
+		}
 	}
 
-	if (mysql_stmt_fetch(statement))
-	{
-		mysql_stmt_free_result(statement);
-		mysql_stmt_close(statement);
-		return false;
-	}
-
-	*data = blob_query_buffer;
-
-	mysql_stmt_free_result(statement);
-	mysql_stmt_close(statement);
-	return true;
+	SERVER_ERROR << "Error on GetHouseData:" << mysql_error(sql);
+	return false;
 }
 
 // CLockable _pendingSavesLock;

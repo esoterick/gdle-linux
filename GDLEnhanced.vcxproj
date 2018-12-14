@@ -348,6 +348,7 @@
     <ClInclude Include="Source\combat\DualWieldAttackEventData.h" />
     <ClInclude Include="Source\combat\MeleeAttackEventData.h" />
     <ClInclude Include="Source\combat\MissileAttackEventData.h" />
+    <ClInclude Include="Source\DatabaseUtil.h" />
     <ClInclude Include="Source\EnumUtil.h" />
     <ClInclude Include="Source\AugmentationDevice.h" />
     <ClInclude Include="Source\BindStone.h" />
