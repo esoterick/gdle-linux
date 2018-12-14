@@ -97,25 +97,25 @@ public:
 	virtual void *GetInternalConnection();
 	virtual void *GetInternalAsyncConnection();
 
-	//template<typename ...Args>
-	//bool Query(const char * query, Args... args)
-	//{
-	//	MYSQL *sql = (MYSQL *)GetInternalConnection();
+	template<typename ...Args>
+	mysql_statement<sizeof...(Args)> QueryEx(const char * query, Args... args)
+	{
+		MYSQL *sql = (MYSQL *)GetInternalConnection();
 
-	//	mysql_statement<sizeof...(args)> statement(sql, query);
-	//	if (statement)
-	//	{
-	//		if constexpr (sizeof...(args) > 0)
-	//			statement.bindargs(args...);
+		mysql_statement<sizeof...(args)> statement(sql, query);
+		if (statement)
+		{
+			if constexpr (sizeof...(args) > 0)
+				statement.bindargs(&args...);
 
-	//		if (statement.execute())
-	//		{
-	//			return true;
-	//		}
-	//	}
+			if (statement.execute())
+			{
+				return statement;
+			}
+		}
 
-	//	return false;
-	//}
+		return mysql_statement<sizeof...(args)>(nullptr, "");
+	}
 
 protected:
 	CSQLConnection *m_pConnection = NULL;

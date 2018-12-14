@@ -190,7 +190,11 @@ public:
 		return m_cols[index].length_value;
 	}
 
-	bool next() { return mysql_stmt_fetch(m_statement) == 0; }
+	bool next()
+	{
+		int res = mysql_stmt_fetch(m_statement);
+		return res == 0;
+	}
 
 	operator MYSQL_BIND*() { return m_cols; }
 
@@ -209,6 +213,9 @@ protected:
 	{  }
 
 public:
+	mysql_statement_base(mysql_statement_base&&) = default;
+	mysql_statement_base& operator=(mysql_statement_base&&) = default;
+
 	inline operator bool() { return (bool)m_statement; }
 	inline bool valid() { return (bool)m_statement; }
 
@@ -245,6 +252,9 @@ public:
 			if (mysql_stmt_prepare(m_statement.get(), m_query.c_str(), m_query.length()))
 				m_statement.reset(nullptr);
 	}
+
+	mysql_statement(mysql_statement&&) = default;
+	mysql_statement& operator=(mysql_statement&&) = default;
 
 	bool execute()
 	{

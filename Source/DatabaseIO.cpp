@@ -570,33 +570,28 @@ bool CDatabaseIO::GetWeenie(unsigned int weenie_id, unsigned int *top_level_obje
 	while (GetNumPendingSaves(weenie_id))
 		Sleep(0);
 
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	if (!sql)
-		return false;
+	mysql_statement<1> statement = g_pDB2->QueryEx(
+		"SELECT top_level_object_id, block_id, data FROM weenies WHERE id = ?",
+		weenie_id);
 
-	mysql_statement<1> statement(sql, "SELECT top_level_object_id, block_id, data FROM weenies WHERE id = ?");
 	if (statement)
 	{
-		statement.bind(0, weenie_id);
+		mysql_statement_results<3> result;
+		result.bind(0, top_level_object_id);
+		result.bind(1, block_id);
+		result.bind(2, blob_query_buffer, BLOB_QUERY_BUFFER_LENGTH, data_length);
 
-		if (statement.execute())
+		if (statement.bindResults(result))
 		{
-			mysql_statement_results<3> result;
-			result.bind(0, top_level_object_id);
-			result.bind(1, block_id);
-			result.bind(2, blob_query_buffer, BLOB_QUERY_BUFFER_LENGTH, data_length);
-
-			if (statement.bindResults(result))
+			if (result.next())
 			{
-				if (result.next())
-				{
-					*data = blob_query_buffer;
-					return true;
-				}
+				*data = blob_query_buffer;
+				return true;
 			}
 		}
 	}
 
+	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
 	SERVER_ERROR << "Error on GetWeenie:" << mysql_error(sql);
 	return false;
 }
@@ -627,27 +622,21 @@ bool CDatabaseIO::DeleteWeenie(unsigned int weenie_id)
 
 bool CDatabaseIO::IsWeenieInDatabase(unsigned int weenie_id)
 {
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	if (!sql)
-		return false;
+	mysql_statement<1> statement = g_pDB2->QueryEx(
+		"SELECT id FROM weenies WHERE id = ?",
+		weenie_id);
 
-	mysql_statement<1> statement(sql, "SELECT id FROM weenies WHERE id = ?");
 	if (statement)
 	{
-		statement.bind(0, weenie_id);
+		uint32_t result_id = 0;
+		mysql_statement_results<1> result;
+		result.bind(0, result_id);
 
-		if (statement.execute())
+		if (statement.bindResults(result))
 		{
-			uint32_t result_id = 0;
-			mysql_statement_results<1> result;
-			result.bind(0, result_id);
-
-			if (statement.bindResults(result))
+			if (result.next())
 			{
-				if (result.next())
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 	}
@@ -692,32 +681,26 @@ bool CDatabaseIO::CreateOrUpdateGlobalData(DBIOGlobalDataID id, void *data, unsi
 
 bool CDatabaseIO::GetGlobalData(DBIOGlobalDataID id, void **data, unsigned long *data_length)
 {
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	if (!sql)
-		return false;
+	mysql_statement<1> statement = g_pDB2->QueryEx(
+		"SELECT data FROM globals WHERE id = ?",
+		(uint32_t)id);
 
-	mysql_statement<1> statement(sql, "SELECT data FROM globals WHERE id = ?");
 	if (statement)
 	{
-		uint32_t did = (uint32_t)id;
-		statement.bind(0, did);
+		mysql_statement_results<1> result;
+		result.bind(0, blob_query_buffer, BLOB_QUERY_BUFFER_LENGTH, data_length);
 
-		if (statement.execute())
+		if (statement.bindResults(result))
 		{
-			mysql_statement_results<1> result;
-			result.bind(0, blob_query_buffer, BLOB_QUERY_BUFFER_LENGTH, data_length);
-
-			if (statement.bindResults(result))
+			if (result.next())
 			{
-				if (result.next())
-				{
-					*data = blob_query_buffer;
-					return true;
-				}
+				*data = blob_query_buffer;
+				return true;
 			}
 		}
 	}
 
+	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
 	SERVER_ERROR << "Error on GetGlobalData:" << mysql_error(sql);
 	return false;
 }
