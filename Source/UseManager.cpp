@@ -20,7 +20,7 @@ void CUseEventData::Update()
 void CUseEventData::SetupUse()
 {	
 	CWeenieObject *target = GetTarget();
-	if (target)
+	if (target && _max_use_distance == FLT_MAX) //change max use distance only if still the initialized value. Otherwise this has already been defined.)
 	{
 		_max_use_distance = target->InqFloatQuality(USE_RADIUS_FLOAT, 0.0);
 	}
