@@ -3231,7 +3231,7 @@ int CSpellcastingManager::CheckTargetValidity()
 				if (pCastSource->DistanceTo(pTarget, true) > m_SpellCastData.max_range)
 					return WERROR_MISSILE_OUT_OF_RANGE;
 			}
-			return  WERROR_MAGIC_INVALID_TARGET; 
+			return  WERROR_MAGIC_BAD_TARGET_TYPE;
 		}
 
 	}
@@ -3344,11 +3344,12 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 			}
 			return WERROR_NONE;
 		}
-		case WERROR_MAGIC_INVALID_TARGET:
+		case WERROR_MAGIC_BAD_TARGET_TYPE:
 		{
 			if (pTarget)
 			{
-				m_pWeenie->SendText(csprintf("%s is an invalid target.", pTarget->GetName().c_str()), LTT_MAGIC);
+				m_pWeenie->EmitSound(Sound_UI_GeneralError, 1.0f, true);
+				m_pWeenie->NotifyWeenieErrorWithString(WERROR_MAGIC_BAD_TARGET_TYPE, pTarget->GetName().c_str());
 			}
 			return WERROR_NONE;
 		}
