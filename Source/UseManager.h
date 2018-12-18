@@ -41,6 +41,7 @@ public:
 	double _max_use_distance = FLT_MAX;
 	double _timeout = FLT_MAX;
 	DWORD _active_use_anim = 0;
+	Position _initial_use_position;
 
 	bool QuestRestrictions(CWeenieObject *target);
 };
