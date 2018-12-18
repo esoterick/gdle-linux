@@ -433,44 +433,47 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	{
 
 		if (pack->m_Qualities.id != W_PACKCREATUREESSENCE_CLASS && pack->m_Qualities.id != W_PACKITEMESSENCE_CLASS && pack->m_Qualities.id != W_PACKLIFEESSENCE_CLASS &&
-			pack->m_Qualities.id != W_PACKWARESSENCE_CLASS)
+			pack->m_Qualities.id != W_PACKWARESSENCE_CLASS && pack->m_Qualities.id != 43173)
 		{
-
-			for (auto item : pack->AsContainer()->m_Items)
+			if (pack->AsContainer())
 			{
-				// Updates shields to have SHIELD_VALUE_INT
-				if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
-				{
-					item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
-				}
 
-
-				// Remove all loot items with wcid > g_pConfig->WcidForPurge()
-				if (g_pConfig->InventoryPurgeOnLogin())
+				for (auto item : pack->AsContainer()->m_Items)
 				{
-					if (item->m_Qualities.id > g_pConfig->WcidForPurge() && item->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+					// Updates shields to have SHIELD_VALUE_INT
+					if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
 					{
-						item->_timeToRot = Timer::cur_time;
-						item->_beganRot = true;
+						item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
 					}
-				}
 
-				// Remove all expired items, or set _timeToRot if not yet expired.
-				int lifespan = item->m_Qualities.GetInt(LIFESPAN_INT, 0);
 
-				if (lifespan)
-				{
-					int creationTime = item->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0);
-					int lived = t - creationTime;
-
-					if (creationTime && lived >= lifespan)
+					// Remove all loot items with wcid > g_pConfig->WcidForPurge()
+					if (g_pConfig->InventoryPurgeOnLogin())
 					{
-						item->_timeToRot = Timer::cur_time;
+						if (item->m_Qualities.id > g_pConfig->WcidForPurge() && item->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+						{
+							item->_timeToRot = Timer::cur_time;
+							item->_beganRot = true;
+						}
 					}
-					else
+
+					// Remove all expired items, or set _timeToRot if not yet expired.
+					int lifespan = item->m_Qualities.GetInt(LIFESPAN_INT, 0);
+
+					if (lifespan)
 					{
-						int lifespanRemaining = lifespan - lived;
-						item->_timeToRot = Timer::cur_time + lifespanRemaining;
+						int creationTime = item->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0);
+						int lived = t - creationTime;
+
+						if (creationTime && lived >= lifespan)
+						{
+							item->_timeToRot = Timer::cur_time;
+						}
+						else
+						{
+							int lifespanRemaining = lifespan - lived;
+							item->_timeToRot = Timer::cur_time + lifespanRemaining;
+						}
 					}
 				}
 			}
@@ -1086,6 +1089,12 @@ void CClientEvents::LifestoneRecall()
 		return;
 	}
 
+	if (m_pPlayer->InqBoolQuality(RECALLS_DISABLED_BOOL, 0))
+	{
+		m_pPlayer->NotifyWeenieError(WERROR_PORTAL_RECALLS_DISABLED);
+		return;
+	}
+
 	Position lifestone;
 	if (m_pPlayer->m_Qualities.InqPosition(SANCTUARY_POSITION, lifestone) && lifestone.objcell_id)
 	{
@@ -1108,6 +1117,12 @@ void CClientEvents::MarketplaceRecall()
 		return;
 	}
 
+	if (m_pPlayer->InqBoolQuality(RECALLS_DISABLED_BOOL, 0))
+	{
+		m_pPlayer->NotifyWeenieError(WERROR_PORTAL_RECALLS_DISABLED);
+		return;
+	}
+
 	if (!m_pPlayer->IsBusyOrInAction())
 	{
 		m_pPlayer->ExecuteUseEvent(new CMarketplaceRecallUseEvent());
@@ -1122,6 +1137,12 @@ void CClientEvents::PKArenaRecall()
 		return;
 	}
 
+	if (m_pPlayer->InqBoolQuality(RECALLS_DISABLED_BOOL, 0))
+	{
+		m_pPlayer->NotifyWeenieError(WERROR_PORTAL_RECALLS_DISABLED);
+		return;
+	}
+
 	if (!m_pPlayer->IsBusyOrInAction())
 	{
 		m_pPlayer->ExecuteUseEvent(new CPKArenaUseEvent());
@@ -1133,6 +1154,12 @@ void CClientEvents::PKLArenaRecall()
 	if (m_pPlayer->CheckPKActivity())
 	{
 		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
+	if (m_pPlayer->InqBoolQuality(RECALLS_DISABLED_BOOL, 0))
+	{
+		m_pPlayer->NotifyWeenieError(WERROR_PORTAL_RECALLS_DISABLED);
 		return;
 	}
 
@@ -1399,6 +1426,12 @@ void CClientEvents::AllegianceHometownRecall()
 		return;
 	}
 
+	if (m_pPlayer->InqBoolQuality(RECALLS_DISABLED_BOOL, 0))
+	{
+		m_pPlayer->NotifyWeenieError(WERROR_PORTAL_RECALLS_DISABLED);
+		return;
+	}
+
 	AllegianceTreeNode *allegianceNode = g_pAllegianceManager->GetTreeNode(m_pPlayer->GetID());
 
 	if (!allegianceNode)
@@ -1474,6 +1507,12 @@ void CClientEvents::HouseRecall()
 		return;
 	}
 
+	if (m_pPlayer->InqBoolQuality(RECALLS_DISABLED_BOOL, 0))
+	{
+		m_pPlayer->NotifyWeenieError(WERROR_PORTAL_RECALLS_DISABLED);
+		return;
+	}
+
 	DWORD houseId = m_pPlayer->GetAccountHouseId();
 	if (houseId)
 	{
@@ -1495,6 +1534,12 @@ void CClientEvents::HouseMansionRecall()
 	if (m_pPlayer->CheckPKActivity())
 	{
 		m_pPlayer->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+		return;
+	}
+
+	if (m_pPlayer->InqBoolQuality(RECALLS_DISABLED_BOOL, 0))
+	{
+		m_pPlayer->NotifyWeenieError(WERROR_PORTAL_RECALLS_DISABLED);
 		return;
 	}
 

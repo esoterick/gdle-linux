@@ -630,7 +630,10 @@ void CMonsterWeenie::FinishMoveItemToContainer(CWeenieObject *sourceItem, CConta
 		RecalculateEncumbrance();
 
 	if (sourceItem->GetItemType() & (TYPE_ARMOR | TYPE_CLOTHING))
-		UpdateModel();
+	{
+		if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) != Gearknight_HeritageGroup) // TODO: Update JUST cloak on gearknight unequip rather than whole model.
+			UpdateModel();
+	}
 
 	// Checks the old motion vs Motion_NonCombat to prevent getting stuck while adjusting to the new combat style.
 	if (wasWielded && oldmotion != Motion_NonCombat)
@@ -726,7 +729,10 @@ void CMonsterWeenie::FinishMoveItemTo3D(CWeenieObject *sourceItem)
 	//	pItem->SetPlacementFrame(pItem->CanPickup() ? 0x65 : 0, 1);
 
 	if (sourceItem->AsClothing())
-		UpdateModel();
+	{
+		if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) != Gearknight_HeritageGroup) // TODO: Update JUST cloak on gearknight unequip rather than whole model.
+			UpdateModel();
+	}
 
 	g_pWorld->InsertEntity(sourceItem);
 	sourceItem->Movement_Teleport(GetPosition());
@@ -899,7 +905,7 @@ bool CMonsterWeenie::FinishMoveItemToWield(CWeenieObject *sourceItem, DWORD targ
 
 	if (sourceItem->AsClothing() && m_bWorldIsAware)
 	{
-		if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) != Gearknight_HeritageGroup || sourceItem->m_Qualities.GetInt(LOCATIONS_INT, 0) == CLOAK_LOC) // Gearknights can still wear cloaks.
+		if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) != Gearknight_HeritageGroup) // TODO: Update JUST cloak on gearknight equip rather than whole model.
 			UpdateModel();
 	}
 
@@ -1921,6 +1927,7 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 	int level = InqIntQuality(LEVEL_INT, 0);
 
 	int xpForKill = 0;
+	int lumForKill = 0;
 
 	if (level <= 0)
 		xpForKill = 0;
@@ -1928,6 +1935,11 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 		xpForKill = (int)GetXPForKillLevel(level);
 
 	xpForKill = (int)(xpForKill * g_pConfig->KillXPMultiplier(level));
+
+	if (level <= 0)
+		lumForKill = 0;
+	else if (m_Qualities.InqInt(LUMINANCE_AWARD_INT, lumForKill, 0, FALSE))
+		lumForKill = (int)(lumForKill * g_pConfig->KillXPMultiplier(level));
 
 	if (xpForKill > 0)
 	{
@@ -1944,6 +1956,9 @@ void CMonsterWeenie::OnDeath(DWORD killer_id)
 					xpForKill *= 1.05;
 				}
 				pSource->GiveSharedXP(dPercentage * xpForKill, false);
+
+				if (lumForKill > 0)
+					pSource->GiveSharedLum(dPercentage * lumForKill, false);
 			}
 		}
 	}

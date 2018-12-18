@@ -506,7 +506,8 @@ void CContainerWeenie::Container_DeleteItem(DWORD item_id)
 	
 	if (bWielded && item->AsClothing())
 	{
-		UpdateModel();
+		if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) != Gearknight_HeritageGroup) // TODO: Update JUST cloak on gearknight unequip rather than whole model.
+			UpdateModel();
 	}
 
 	DWORD RemoveObject[3];

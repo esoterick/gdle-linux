@@ -53,6 +53,7 @@ public:
 	void TickUpdate();
 	void VitalsUpdate();
 	void GiveXP(CWeenieObject *source, long long amount, bool bShowText);
+	void GiveLum(CWeenieObject *source, long long amount, bool bShowText);
 	unsigned int CalculateExperienceProportionSum();
 	void Chat(DWORD sender_id, const char *text);
 	double CalculateDegradeMod(CWeenieObject *source, CWeenieObject *target);

@@ -168,6 +168,34 @@ void Fellowship::GiveXP(CWeenieObject *source, long long amount, bool bShowText)
 	}
 }
 
+void Fellowship::GiveLum(CWeenieObject *source, long long amount, bool bShowText)
+{
+	UpdateData();
+
+	if (!_share_xp)
+	{
+		source->GiveLum(amount, bShowText);
+	}
+	else
+	{
+		for (auto &entry : _fellowship_table)
+		{
+			if (entry.first == source->GetID())
+				entry.second._cp_cache += amount;
+
+			CWeenieObject *other = entry.second._cachedWeenie;
+			if (other)
+			{
+				double degradeMod = CalculateDegradeMod(source, other);
+
+				long long xpGained = (long long)(amount * entry.second.splitPercent * degradeMod);
+				if (xpGained > 0)
+					other->GiveLum(xpGained, bShowText);
+			}
+		}
+	}
+}
+
 unsigned int Fellowship::CalculateExperienceProportionSum()
 {
 	// make sure the levels are correct in the data before calling this

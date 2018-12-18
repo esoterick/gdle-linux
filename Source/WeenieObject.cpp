@@ -1901,6 +1901,7 @@ void CWeenieObject::GivePerksForKill(CWeenieObject *pKilled)
 		return;
 
 	int xpForKill = 0;
+	int lumForKill = 0;
 
 	if (!pKilled->m_Qualities.InqInt(XP_OVERRIDE_INT, xpForKill, 0, FALSE))
 		xpForKill = (int)GetXPForKillLevel(level);
@@ -1910,7 +1911,11 @@ void CWeenieObject::GivePerksForKill(CWeenieObject *pKilled)
 	if (xpForKill < 0)
 		xpForKill = 0;
 
+	if(pKilled->m_Qualities.InqInt(LUMINANCE_AWARD_INT, lumForKill, 0, FALSE))
+		lumForKill = (int)(lumForKill * g_pConfig->KillXPMultiplier(level));	
+
 	GiveSharedXP(xpForKill, false);
+	GiveSharedLum(lumForKill, false);
 }
 
 void CWeenieObject::GiveSharedXP(long long amount, bool showText)
@@ -2010,6 +2015,50 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 	{
 		// let allegiance manager pass it up
 		g_pAllegianceManager->HandleAllegiancePassup(GetID(), amount, true);
+	}
+}
+
+void CWeenieObject::GiveSharedLum(long long amount, bool showText)
+{
+	if (amount <= 0)
+		return;
+
+	EnchantedQualityDetails buffDetails;
+	GetFloatEnchantmentDetails(GLOBAL_XP_MOD_FLOAT, 0.0, &buffDetails);
+
+	if (buffDetails.enchantedValue > 0.0)
+		amount *= buffDetails.valueIncreasingMultiplier;
+
+	Fellowship *f = GetFellowship();
+
+	if (f)
+		f->GiveLum(this, amount, showText);
+	else
+		GiveLum(amount, showText);
+}
+
+void CWeenieObject::GiveLum(long long amount, bool showText)
+{
+	if (amount <= 0)
+		return;
+
+	unsigned __int64 AvailableLum = (unsigned __int64)InqInt64Quality(AVAILABLE_LUMINANCE_INT64, 0);
+	unsigned __int64 MaxLum = (unsigned __int64)InqInt64Quality(MAXIMUM_LUMINANCE_INT64, 0);
+	unsigned __int64 newAvailableLum = (unsigned __int64)InqInt64Quality(AVAILABLE_LUMINANCE_INT64, 0) + amount;
+
+	if (AvailableLum < MaxLum || (MaxLum == 0 && AvailableLum < 1000000)) // Track lum before luminance flagging but cap at 1 million.
+	{
+		m_Qualities.SetInt64(AVAILABLE_LUMINANCE_INT64, min(newAvailableLum, (unsigned __int64)1000000)); // don't go over 1 million.
+		NotifyInt64StatUpdated(AVAILABLE_LUMINANCE_INT64);
+	}
+
+	if (showText)
+	{
+		const char *notice = csprintf(
+			"You've earned %s luminance.",
+			FormatNumberString(amount).c_str());
+
+		SendText(notice, LTT_DEFAULT);
 	}
 }
 
@@ -2961,40 +3010,40 @@ void CWeenieObject::Tick()
 		{
 			if (IsCompletelyIdle()) // Don't perform idle emotes unless you are completely idle, but allow vital regeneration.
 			{
-				if (_nextHeartBeatEmote != -1.0 && _nextHeartBeatEmote <= Timer::cur_time)
+			if (_nextHeartBeatEmote != -1.0 && _nextHeartBeatEmote <= Timer::cur_time)
+			{
+				_nextHeartBeatEmote = Timer::cur_time + Random::GenUInt(2, 15); //add a little variation to avoid synchronization.
+
+				//_last_update_pos is the time of the last attack/movement/action, basically we don't want to do heartBeat emotes if we're active.
+				if (Timer::cur_time > _last_update_pos + 30.0 && m_Qualities._emote_table)
 				{
-					_nextHeartBeatEmote = Timer::cur_time + Random::GenUInt(2, 15); //add a little variation to avoid synchronization.
+					PackableList<EmoteSet> *emoteSetList = m_Qualities._emote_table->_emote_table.lookup(HeartBeat_EmoteCategory);
 
-					//_last_update_pos is the time of the last attack/movement/action, basically we don't want to do heartBeat emotes if we're active.
-					if (Timer::cur_time > _last_update_pos + 30.0 && m_Qualities._emote_table)
+					if (emoteSetList)
 					{
-						PackableList<EmoteSet> *emoteSetList = m_Qualities._emote_table->_emote_table.lookup(HeartBeat_EmoteCategory);
+						double dice = Random::GenFloat(0.0, 1.0);
 
-						if (emoteSetList)
+						for (auto &emoteSet : *emoteSetList)
 						{
-							double dice = Random::GenFloat(0.0, 1.0);
-
-							for (auto &emoteSet : *emoteSetList)
+							if (dice < emoteSet.probability)
 							{
-								if (dice < emoteSet.probability)
+								if (movement_manager && movement_manager->motion_interpreter)
 								{
-									if (movement_manager && movement_manager->motion_interpreter)
+									if (emoteSet.style == movement_manager->motion_interpreter->interpreted_state.current_style &&
+										emoteSet.substyle == movement_manager->motion_interpreter->interpreted_state.forward_command &&
+										!movement_manager->motion_interpreter->interpreted_state.turn_command &&
+										!movement_manager->motion_interpreter->interpreted_state.sidestep_command)
 									{
-										if (emoteSet.style == movement_manager->motion_interpreter->interpreted_state.current_style &&
-											emoteSet.substyle == movement_manager->motion_interpreter->interpreted_state.forward_command &&
-											!movement_manager->motion_interpreter->interpreted_state.turn_command &&
-											!movement_manager->motion_interpreter->interpreted_state.sidestep_command)
-										{
-											MakeEmoteManager()->ExecuteEmoteSet(emoteSet, 0);
-										}
+										MakeEmoteManager()->ExecuteEmoteSet(emoteSet, 0);
 									}
-
-									break;
 								}
+
+								break;
 							}
 						}
 					}
 				}
+			}
 			}
 			else
 				_nextHeartBeatEmote = Timer::cur_time + 30.0;
@@ -4421,12 +4470,15 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 				if (reduction > 0.25)
 					reduction = 0.25;
 
-				bool isPvP = damageData.source->AsPlayer() && damageData.target->AsPlayer();
+				if (damageData.source && damageData.target)
+				{
+					bool isPvP = damageData.source->AsPlayer() && damageData.target->AsPlayer();
 
-				if (isPvP)
-					reduction *= 0.72;
-				
-				damageData.damageAfterMitigation *= 1.0 - reduction;
+					if (isPvP)
+						reduction *= 0.72;
+
+					damageData.damageAfterMitigation *= 1.0 - reduction;
+				}
 			}
 		}
 
@@ -6229,7 +6281,7 @@ int CWeenieObject::GetAttackTimeUsingWielded()
 int CWeenieObject::GetAttackDamage()
 {
 	int damage = InqIntQuality(DAMAGE_INT, 0, TRUE);
-	
+
 	// Don't enchant Ammunition instead look up the damage of the launcher
 	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
 	{
@@ -6244,7 +6296,7 @@ int CWeenieObject::GetAttackDamage()
 
 				int launcherElement = launcher->m_Qualities.GetInt(DAMAGE_TYPE_INT, 0);
 				int ammoElement = m_Qualities.GetInt(DAMAGE_TYPE_INT, 0);
-				
+
 				if (ammoElement == launcherElement || ammoElement == BASE_DAMAGE_TYPE)
 				{
 					if (launcher->m_Qualities.GetInt(ELEMENTAL_DAMAGE_BONUS_INT, 0))

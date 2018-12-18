@@ -1691,6 +1691,20 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		}
 		break;
 	}
+	case AwardLuminance_EmoteType:
+	{
+		CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+		if (!target)
+			break;
+
+		long long amount = emote.heroxp64;
+
+		if (amount < 0)
+			amount = 0;
+
+		target->GiveSharedLum(amount, true);
+		break;
+	}
 	case SetInt64Stat_EmoteType:
 	{
 		CWeenieObject *target = g_pWorld->FindObject(target_id);

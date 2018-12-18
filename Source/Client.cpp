@@ -707,7 +707,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 					if (!startPos.objcell_id)
 					{
-						startPos = Position(0x33DA0001, Vector(10.79f, 0.35f, 52.03f), Quaternion(0, 0, 0, 1.0f));
+						startPos = Position(0x7203026C, Vector(11.66688f, -28.831614f, 0.005f), Quaternion(0, 0, 0, 1.0f));
 						//startPos = Position(0xA9B00006, Vector(24.258204f, 123.777000f, 63.060749f), Quaternion(1, 0, 0, 0));
 					}
 
@@ -792,6 +792,9 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				default: // sho, aluv, gharu, viamont
 					weenie->m_Qualities.SetInt(AUGMENTATION_JACK_OF_ALL_TRADES_INT, 1); break;
 				}
+
+				if (cg.heritageGroup < Olthoi_HeritageGroup) // Olthoi don't go to the training academy.
+					weenie->m_Qualities.SetBool(RECALLS_DISABLED_BOOL, 1); // Cannot use recalls out of the training academy.
 
 				weenie->Save();
 
