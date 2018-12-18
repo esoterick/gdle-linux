@@ -19,6 +19,13 @@ void CHealerWeenie::ApplyQualityOverrides()
 
 int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 {
+	if (!with->AsPlayer())
+	{
+		player->NotifyWeenieError(WERROR_HEAL_PLAYERS_ONLY);
+		player->NotifyUseDone(0);
+		return WERROR_NONE;
+	}
+
 	DWORD healing_skill = 0;
 	if (!player->InqSkill(HEALING_SKILL, healing_skill, TRUE) || !healing_skill)
 	{
@@ -35,7 +42,7 @@ int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 	{
 		if (with->GetHealth() == with->GetMaxHealth())
 		{
-			player->NotifyWeenieError(WERROR_HEAL_FULL_HEALTH);
+			player->NotifyWeenieErrorWithString(WERROR_HEAL_FULL_HEALTH, with->GetName().c_str());
 			player->NotifyUseDone(0);
 			return WERROR_NONE;
 		}
@@ -46,7 +53,7 @@ int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 	{
 		if (with->GetStamina() == with->GetMaxStamina())
 		{
-			player->NotifyWeenieError(WERROR_HEAL_FULL_HEALTH);
+			player->NotifyWeenieError(WERROR_NONE);
 			player->NotifyUseDone(0);
 			return WERROR_NONE;
 		}
@@ -57,7 +64,7 @@ int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 	{
 		if (with->GetMana() == with->GetMaxMana())
 		{
-			player->NotifyWeenieError(WERROR_HEAL_FULL_HEALTH);
+			player->NotifyWeenieError(WERROR_NONE);
 			player->NotifyUseDone(0);
 			return WERROR_NONE;
 		}
@@ -226,40 +233,65 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 			{
 				if (_target_id == _weenie->GetID())
 				{
-					if (usesLeft >= 0)
-						_weenie->SendText(csprintf("You %sheal yourself for %d %s points. Your %s has %u uses left.", prefix, amountHealed, vitalName, tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
+					if (vitalName == "Health")
+					{
+						if (usesLeft >= 0)
+							_weenie->SendText(csprintf("You %sheal yourself for %d %s points. Your %s has %u uses left.", prefix, amountHealed, vitalName, tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
+						else
+							_weenie->SendText(csprintf("You %sheal yourself for %d %s points with %s.", prefix, amountHealed, vitalName, tool->GetName().c_str()), LTT_DEFAULT);
+					}
 					else
-						_weenie->SendText(csprintf("You %sheal yourself for %d %s points with %s.", prefix, amountHealed, vitalName, tool->GetName().c_str()), LTT_DEFAULT);
+					{
+						if (usesLeft >= 0)
+							_weenie->SendText(csprintf("You %srecover %d %s points. Your %s has %u uses left.", prefix, amountHealed, vitalName, tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
+						else
+							_weenie->SendText(csprintf("You %srecover %d %s points with %s.", prefix, amountHealed, vitalName, tool->GetName().c_str()), LTT_DEFAULT);
+					}
 				}
 				else
 				{
-					if (usesLeft >= 0)
-						_weenie->SendText(csprintf("You %sheal %s for %d %s points. Your %s has %u uses left.", prefix, target->GetName().c_str(), amountHealed, vitalName, tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
-					else
-						_weenie->SendText(csprintf("You %sheal %s for %d %s points with %s.", prefix, target->GetName().c_str(), amountHealed, vitalName, tool->GetName().c_str()), LTT_DEFAULT);
-
-					target->SendText(csprintf("%s heals you for %d %s points.", _weenie->GetName().c_str(), amountHealed, vitalName), LTT_DEFAULT);
-				}
-
-				if (boost_stat == HEALTH_ATTRIBUTE_2ND)
-				{
-					if (_weenie->AsPlayer())
+					if (vitalName == "Health")
 					{
-						// update the target's health on the healing player asap
-						((CPlayerWeenie*)_weenie)->RefreshTargetHealth();
+						if (usesLeft >= 0)
+							_weenie->SendText(csprintf("You %sheal %s for %d %s points. Your %s has %u uses left.", prefix, target->GetName().c_str(), amountHealed, vitalName, tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
+						else
+							_weenie->SendText(csprintf("You %sheal %s for %d %s points with %s.", prefix, target->GetName().c_str(), amountHealed, vitalName, tool->GetName().c_str()), LTT_DEFAULT);
+
+						target->SendText(csprintf("%s heals you for %d %s points.", _weenie->GetName().c_str(), amountHealed, vitalName), LTT_DEFAULT);
 					}
+					else
+					{
+						if (usesLeft >= 0)
+							_weenie->SendText(csprintf("You %srestore %s for %d %s points. Your %s has %u uses left.", prefix, target->GetName().c_str(), amountHealed, vitalName, tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
+						else
+							_weenie->SendText(csprintf("You %srestore %s for %d %s points with %s.", prefix, target->GetName().c_str(), amountHealed, vitalName, tool->GetName().c_str()), LTT_DEFAULT);
+
+						target->SendText(csprintf("%s restores you for %d %s points.", _weenie->GetName().c_str(), amountHealed, vitalName), LTT_DEFAULT);
+					}
+
 				}
 			}
 			else
 			{
 				if (_target_id == _weenie->GetID())
 				{
-					_weenie->SendText(csprintf("You fail to heal yourself. Your %s has %d uses left.", tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
+					if(vitalName == "Health")
+						_weenie->SendText(csprintf("You fail to heal yourself. Your %s has %d uses left.", tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
+					else
+						_weenie->SendText(csprintf("You fail to recover any vitals. Your %s has %d uses left.", tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
 				}
 				else
 				{
-					_weenie->SendText(csprintf("You fail to heal %s. Your %s has %d uses left.", target->GetName().c_str(), tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
-					target->SendText(csprintf("%s fails to heal you.", _weenie->GetName().c_str()), LTT_DEFAULT);
+					if (vitalName == "Health")
+					{
+						_weenie->SendText(csprintf("You fail to heal %s. Your %s has %d uses left.", target->GetName().c_str(), tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
+						target->SendText(csprintf("%s fails to heal you.", _weenie->GetName().c_str()), LTT_DEFAULT);
+					}
+					else
+					{
+						_weenie->SendText(csprintf("You fail to restore any vitals to %s. Your %s has %d uses left.", target->GetName().c_str(), tool->GetName().c_str(), usesLeft), LTT_DEFAULT);
+						target->SendText(csprintf("%s fails to restore any of your vitals.", _weenie->GetName().c_str()), LTT_DEFAULT);
+					}
 				}
 			}
 
