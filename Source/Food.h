@@ -1,6 +1,13 @@
 #pragma once
 
 #include "WeenieObject.h"
+#include "UseManager.h"
+
+class CFoodUseEvent : public CGenericUseEvent
+{
+public:
+	virtual void OnUseAnimSuccess(DWORD motion) override;
+};
 
 class CFoodWeenie : public CWeenieObject // CWeenieObject
 {
