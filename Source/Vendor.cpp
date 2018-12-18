@@ -27,6 +27,19 @@ CVendor::~CVendor()
 	ResetItems();
 }
 
+void CVendor::Tick()
+{
+	if (m_EmoteManager)
+		m_EmoteManager->Tick();
+
+	if (m_VendorCycleTime <= Timer::cur_time)
+	{
+		CheckRange();
+		m_VendorCycleTime = (Timer::cur_time + 3);
+	}
+
+}
+
 void CVendor::ResetItems()
 {
 	for (auto item : m_Items)
@@ -382,6 +395,7 @@ int CVendor::DoUseResponse(CWeenieObject *player)
 		
 	SendVendorInventory(player);
 	DoVendorEmote(Open_VendorTypeEmote, player->GetID());
+	m_ActiveBuyers.insert(player->GetID());
 	return WERROR_NONE;
 }
 
@@ -394,5 +408,26 @@ void CAvatarVendor::PreSpawnCreate()
 	for (DWORD i = 0; i < g_pWeenieFactory->m_NumAvatars; i++)
 	{
 		AddVendorItem(g_pWeenieFactory->m_FirstAvatarWCID + i, -1);
+	}
+}
+
+void CVendor::CheckRange()
+{
+	double UseDist = InqFloatQuality(USE_RADIUS_FLOAT, 0, TRUE);
+	for (std::set<DWORD>::iterator i = m_ActiveBuyers.begin(); i != m_ActiveBuyers.end();)
+	{
+		CWeenieObject *player = g_pWorld->FindPlayer(*i);
+		if(player)
+		{
+			if (DistanceTo(player, true) > UseDist)
+			{
+				DoVendorEmote(Close_VendorTypeEmote, player->GetID());
+				i = m_ActiveBuyers.erase(i);
+			}
+			else
+				++i;
+		}
+		else
+			i = m_ActiveBuyers.erase(i);
 	}
 }
