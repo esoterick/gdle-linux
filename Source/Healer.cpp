@@ -77,6 +77,7 @@ int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 	useEvent->_target_id = with->GetID();
 	useEvent->_tool_id = GetID();
 	useEvent->_max_use_distance = 1.0;
+	useEvent->_initial_use_position = player->m_Position;
 	player->ExecuteUseEvent(useEvent);
 
 	return WERROR_NONE;
@@ -111,6 +112,9 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 
 	if (tool && target && !target->IsDead() && !target->IsInPortalSpace())
 	{
+		if (_target_id == _weenie->GetID() && _weenie->m_Position.distance(_initial_use_position) > 1.5) //Distance check between initial use and now but only if heal was executed on self.
+			return Cancel(WERROR_MOVED_TOO_FAR);
+
 		int amountHealed = 0;
 		int usesLeft = tool->InqIntQuality(STRUCTURE_INT, -1);
 		
