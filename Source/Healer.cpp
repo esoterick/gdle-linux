@@ -274,6 +274,15 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 					}
 
 				}
+
+				if (boost_stat == HEALTH_ATTRIBUTE_2ND)
+				{
+					if (_weenie->AsPlayer())
+					{
+						// update the target's health on the healing player asap
+						((CPlayerWeenie*)_weenie)->RefreshTargetHealth();
+					}
+				}
 			}
 			else
 			{
