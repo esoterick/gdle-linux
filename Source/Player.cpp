@@ -3745,6 +3745,8 @@ void CWandSpellUseEvent::Done(DWORD error)
 
 void CLifestoneRecallUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 15.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_LifestoneRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is recalling to the lifestone.", _weenie->GetName().c_str()));
@@ -3754,17 +3756,24 @@ void CLifestoneRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
 	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
 	{
-		Cancel();
+		Cancel(WERROR_INTERRUPTED);
 		return;
 	}
 
-	_weenie->AdjustMana(_weenie->GetMana() * -0.5);
-	_weenie->TeleportToLifestone();
-	Done();
+	if (InMoveRange())
+	{
+		_weenie->AdjustMana(_weenie->GetMana() * -0.5);
+		_weenie->TeleportToLifestone();
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CHouseRecallUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 15.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_HouseRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is recalling home.", _weenie->GetName().c_str()));
@@ -3774,16 +3783,23 @@ void CHouseRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
 	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
 	{
-		Cancel();
+		Cancel(WERROR_INTERRUPTED);
 		return;
 	}
 
-	_weenie->TeleportToHouse();
-	Done();
+	if (InMoveRange())
+	{
+		_weenie->TeleportToHouse();
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CMansionRecallUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 15.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_HouseRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is recalling to the Allegiance housing.", _weenie->GetName().c_str()));
@@ -3791,12 +3807,25 @@ void CMansionRecallUseEvent::OnReadyToUse()
 
 void CMansionRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	_weenie->TeleportToMansion();
-	Done();
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel(WERROR_INTERRUPTED);
+		return;
+	}
+
+	if (InMoveRange())
+	{
+		_weenie->TeleportToMansion();
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CMarketplaceRecallUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 18.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_MarketplaceRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the Marketplace.", _weenie->GetName().c_str()));
@@ -3806,16 +3835,23 @@ void CMarketplaceRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
 	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
 	{
-		Cancel();
+		Cancel(WERROR_INTERRUPTED);
 		return;
 	}
 
-	_weenie->Movement_Teleport(Position(0x016C01BC, Vector(49.11f, -31.22f, 0.005f), Quaternion(0.7009f, 0, 0, -0.7132f)));
-	Done();
+	if (InMoveRange())
+	{
+		_weenie->Movement_Teleport(Position(0x016C01BC, Vector(49.11f, -31.22f, 0.005f), Quaternion(0.7009f, 0, 0, -0.7132f)));
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CPKArenaUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 18.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_PKArenaRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the PK Arena.", _weenie->GetName().c_str()));
@@ -3825,7 +3861,7 @@ void CPKArenaUseEvent::OnUseAnimSuccess(DWORD motion)
 {
 	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
 	{
-		Cancel();
+		Cancel(WERROR_INTERRUPTED);
 		return;
 	}
 
@@ -3838,12 +3874,19 @@ void CPKArenaUseEvent::OnUseAnimSuccess(DWORD motion)
 
 	int randomLoc = getRandomNumber(0, 4);
 
-	_weenie->Movement_Teleport(positions[randomLoc]);
-	Done();
+	if (InMoveRange())
+	{
+		_weenie->Movement_Teleport(positions[randomLoc]);
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CPKLArenaUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 18.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_PKArenaRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the PKL Arena.", _weenie->GetName().c_str()));
@@ -3853,7 +3896,7 @@ void CPKLArenaUseEvent::OnUseAnimSuccess(DWORD motion)
 {
 	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
 	{
-		Cancel();
+		Cancel(WERROR_INTERRUPTED);
 		return;
 	}
 
@@ -3866,12 +3909,19 @@ void CPKLArenaUseEvent::OnUseAnimSuccess(DWORD motion)
 
 	int randomLoc = getRandomNumber(0, 4);
 
-	_weenie->Movement_Teleport(positions[randomLoc]);
-	Done();
+	if (InMoveRange())
+	{
+		_weenie->Movement_Teleport(positions[randomLoc]);
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CAllegianceHometownRecallUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 18.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_AllegianceHometownRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the Allegiance hometown.", _weenie->GetName().c_str()));
@@ -3881,12 +3931,17 @@ void CAllegianceHometownRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
 	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
 	{
-		Cancel();
+		Cancel(WERROR_INTERRUPTED);
 		return;
 	}
 
-	_weenie->TeleportToAllegianceHometown();
-	Done();
+	if (InMoveRange())
+	{
+		_weenie->TeleportToAllegianceHometown();
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CPlayerWeenie::BeginRecall(const Position &targetPos)

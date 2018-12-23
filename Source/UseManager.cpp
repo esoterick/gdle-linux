@@ -116,9 +116,29 @@ void CUseEventData::CheckTimeout()
 	{
 		if (_move_to)
 			Cancel(WERROR_MOVED_TOO_FAR);
+		else if (_recall_event)
+		{
+			// If you're in the max use range during a recall event, then the recall should still trigger. Otherwise you've moved too far.
+			if (InMoveRange())
+				OnUseAnimSuccess(_active_use_anim);
+			else
+				Cancel(WERROR_MOVED_TOO_FAR);
+		}
 		else
 			Cancel(0);
 	}
+}
+
+bool CUseEventData::InMoveRange()
+{
+	return _weenie->m_Position.distance(_initial_use_position) <= _max_use_distance ? true : false;
+}
+
+void CUseEventData::SetupRecall()
+{
+	_max_use_distance = 5.0f;
+	_initial_use_position = _weenie->m_Position;
+	_recall_event = true;
 }
 
 void CUseEventData::Cancel(DWORD error)
@@ -230,7 +250,8 @@ void CUseEventData::OnMotionDone(DWORD motion, BOOL success)
 		}
 		else
 		{
-			Cancel();
+			if(!_recall_event) // Don't cancel recall events on motion interrupts, such as jumping.
+				Cancel();
 		}
 	}	
 }

@@ -19,10 +19,12 @@ public:
 	double DistanceToTarget();
 	double HeadingDifferenceToTarget();
 	bool InUseRange();
+	bool InMoveRange();
 	CWeenieObject *GetTarget();
 	CWeenieObject *GetTool();
 	CWeenieObject *GetSourceItem();
 	void MoveToUse();
+	void SetupRecall();
 
 	virtual void HandleMoveToDone(DWORD error);
 	virtual void OnReadyToUse() = 0;
@@ -45,6 +47,7 @@ public:
 	Position _initial_use_position;
 	DWORD _source_item_id = 0;
 	bool _give_event = false;
+	bool _recall_event = false;
 
 	bool QuestRestrictions(CWeenieObject *target);
 };
