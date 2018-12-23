@@ -3407,16 +3407,13 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		{
 			SendText((pTarget->GetName() + " is already trading with someone else!").c_str(), LTT_ERROR);
 		}
-		else if (m_pPlayer->DistanceTo(pOther, true) > 1)
-		{
-			SendText((pTarget->GetName() + " is too far away!").c_str(), LTT_ERROR);
-		}
 		else
 		{
-			TradeManager *tm = TradeManager::RegisterTrade(m_pPlayer, pTarget);
+			CTradeUseEvent *tradeEvent = new CTradeUseEvent;
+			tradeEvent->_target_id = pTarget->GetID();
+			tradeEvent->_max_use_distance = 1.0;
 
-			m_pPlayer->SetTradeManager(tm);
-			pTarget->SetTradeManager(tm);
+			m_pPlayer->ExecuteUseEvent(tradeEvent);
 		}
 		break;
 	}

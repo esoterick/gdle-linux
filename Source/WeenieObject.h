@@ -580,7 +580,7 @@ public:
 	
 	virtual bool ImmuneToDamage(class CWeenieObject *other);
 	virtual bool IsBusy();
-	bool IsMovingTo();
+	bool IsMovingTo(MovementTypes key = Invalid);
 	bool IsCompletelyIdle();
 	bool HasInterpActions();
 	bool IsBusyOrInAction();

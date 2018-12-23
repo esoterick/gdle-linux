@@ -2549,6 +2549,8 @@ void CWeenieObject::ExecuteUseEvent(CUseEventData *useEvent)
 	if (m_UseManager && m_UseManager->IsUsing())
 	{
 		NotifyWeenieError(WERROR_ACTIONS_LOCKED);
+		if(useEvent->_give_event)
+			NotifyInventoryFailedEvent(useEvent->_source_item_id, WERROR_NONE);
 		return;
 	}
 
@@ -2556,6 +2558,8 @@ void CWeenieObject::ExecuteUseEvent(CUseEventData *useEvent)
 	{
 		SendText(csprintf("%s is busy.", target->GetName().c_str()), LTT_DEFAULT);
 		NotifyUseDone(WERROR_NONE);
+		if (useEvent->_give_event)
+			NotifyInventoryFailedEvent(useEvent->_source_item_id, WERROR_NONE);
 		return;
 	}
 
@@ -2563,6 +2567,8 @@ void CWeenieObject::ExecuteUseEvent(CUseEventData *useEvent)
 	{
 		NotifyWeenieError(WERROR_ACTIONS_LOCKED);
 		NotifyUseDone(WERROR_NONE);
+		if (useEvent->_give_event)
+			NotifyInventoryFailedEvent(useEvent->_source_item_id, WERROR_NONE);
 		return;
 	}
 
@@ -2945,6 +2951,13 @@ void CWeenieObject::Tick()
 
 	if (m_EmoteManager)
 		m_EmoteManager->Tick();
+
+	if (AsPlayer() && IsMovingTo(MovementTypes::MoveToObject))
+	{
+		CWeenieObject *target = g_pWorld->FindWithinPVS(this, movement_manager->moveto_manager->top_level_object_id);
+		if (!target)
+			movement_manager->CancelMoveTo(WERROR_OBJECT_GONE);
+	}
 
 	CheckForExpiredEnchantments();
 
@@ -3906,12 +3919,15 @@ bool CWeenieObject::IsBusy()
 	return false;
 }
 
-bool CWeenieObject::IsMovingTo()
+bool CWeenieObject::IsMovingTo(MovementTypes key)
 {
 	if (!movement_manager || !movement_manager->moveto_manager)
 		return false;
 
-	return movement_manager->moveto_manager->movement_type != MovementTypes::Invalid;
+	if (key == Invalid) 
+		return movement_manager->moveto_manager->movement_type != MovementTypes::Invalid; //default returns true if we are doing any type of positional movement.
+	else
+		return movement_manager->moveto_manager->movement_type == key; //are we doing a specific movement type?
 }
 
 bool CWeenieObject::IsBusyOrInAction()
