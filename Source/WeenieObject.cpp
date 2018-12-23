@@ -5406,10 +5406,10 @@ int CWeenieObject::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 
 void CWeenieObject::HandleMoveToDone(DWORD error)
 {
-	if (m_UseManager)
+	/*if (m_UseManager)
 	{
 		m_UseManager->HandleMoveToDone(error);
-	}
+	}*/
 	if (m_AttackManager)
 	{
 		m_AttackManager->HandleMoveToDone(error);
