@@ -1400,8 +1400,7 @@ void CMonsterWeenie::GiveItem(DWORD targetContainerId, DWORD sourceItemId, DWORD
 		NotifyInventoryFailedEvent(sourceItemId, WERROR_ACTIONS_LOCKED);
 		return;
 	}
-
-	CWeenieObject *target = g_pWorld->FindObject(targetContainerId);
+	CWeenieObject *target = g_pWorld->FindWithinPVS(this, targetContainerId);
 	CWeenieObject *sourceItem = g_pWorld->FindObject(sourceItemId);
 
 	if (!sourceItem || !target)
@@ -1428,13 +1427,13 @@ void CMonsterWeenie::GiveItem(DWORD targetContainerId, DWORD sourceItemId, DWORD
 		return;
 	}
 
-	if (DistanceTo(target, true) > 1.0)
-	{
-		NotifyInventoryFailedEvent(sourceItemId, WERROR_TOO_FAR);
-		return;
-	}
-
-	FinishGiveItem(target->AsContainer(), sourceItem, transferAmount);
+	CGiveEvent *giveEvent = new CGiveEvent;
+	giveEvent->_target_id = targetContainerId;
+	giveEvent->_source_item_id = sourceItemId;
+	giveEvent->_transfer_amount = transferAmount;
+	giveEvent->_max_use_distance = 1.0;
+	giveEvent->_give_event = true;
+	this->ExecuteUseEvent(giveEvent); //handles moving if needed and does all error checking during this process. At the completion of AnimSuccess FinishGiveItem is called.
 }
 
 void CMonsterWeenie::FinishGiveItem(CContainerWeenie *targetContainer, CWeenieObject *sourceItem, DWORD amountToTransfer)

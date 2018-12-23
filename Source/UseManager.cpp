@@ -184,6 +184,11 @@ CWeenieObject *CUseEventData::GetTool()
 	return g_pWorld->FindObject(_tool_id);
 }
 
+CWeenieObject *CUseEventData::GetSourceItem()
+{
+	return g_pWorld->FindObject(_source_item_id);
+}
+
 void CUseEventData::HandleMoveToDone(DWORD error)
 {
 	_move_to = false;
@@ -694,6 +699,52 @@ void CStackSplitToWieldInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 		Cancel();
 	else
 		Done();
+}
+
+//-------------------------------------------------------------------------------------
+
+void CGiveEvent::OnReadyToUse()
+{
+	ExecuteUseAnimation(Motion_Ready);
+}
+
+void CGiveEvent::OnUseAnimSuccess(DWORD motion)
+{
+	CContainerWeenie *target = GetTarget()->AsContainer();
+	if (!target)
+	{
+		_weenie->NotifyInventoryFailedEvent(_source_item_id, WERROR_NONE);
+		return Done(WERROR_OBJECT_GONE);
+	}		
+	_weenie->AsMonster()->FinishGiveItem(target, GetSourceItem(), _transfer_amount);
+	Done();
+}
+
+void CGiveEvent::Cancel(DWORD error) //This override will capture all Use_Manger/Movement Errors and tack on an inventory failed event so we don't get stuck in a busy state if our give action is cancelled.
+{
+	CancelMoveTo();
+	_weenie->NotifyInventoryFailedEvent(_source_item_id, WERROR_NONE);
+	_manager->OnUseCancelled(error);
+}
+
+//-------------------------------------------------------------------------------------
+
+void CTradeUseEvent::OnReadyToUse()
+{
+	ExecuteUseAnimation(Motion_Ready);
+}
+
+void CTradeUseEvent::OnUseAnimSuccess(DWORD motion)
+{
+	CPlayerWeenie *target = GetTarget()->AsPlayer();
+	if (!target)
+		return Done(WERROR_OBJECT_GONE);
+	
+	TradeManager *tm = TradeManager::RegisterTrade(_weenie->AsPlayer(), target);
+
+	_weenie->AsPlayer()->SetTradeManager(tm);
+	target->SetTradeManager(tm);
+	Done();
 }
 
 //-------------------------------------------------------------------------------------
