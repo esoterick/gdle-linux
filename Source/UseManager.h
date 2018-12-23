@@ -184,6 +184,7 @@ public:
 	void OnMotionDone(DWORD motion, BOOL success);
 
 	bool IsUsing();
+	bool IsMoving();
 
 	void MarkForCleanup(CUseEventData *data);
 	double _next_allowed_use = Timer::cur_time;

@@ -4109,6 +4109,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		m_pPlayer->last_move_was_autonomous = true;
 		m_pPlayer->cancel_moveto();
 
+		if (m_pPlayer->m_UseManager && m_pPlayer->m_UseManager->IsMoving())
+			m_pPlayer->m_UseManager->HandleMoveToDone(WERROR_INTERRUPTED);
+
 		if (!(moveToState.raw_motion_state.current_style & CM_Style) && moveToState.raw_motion_state.current_style)
 		{
 			SERVER_WARN << "Bad style received" << moveToState.raw_motion_state.current_style;

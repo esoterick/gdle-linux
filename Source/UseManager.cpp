@@ -2,6 +2,7 @@
 #include "StdAfx.h"
 #include "UseManager.h"
 #include "WeenieObject.h"
+#include "Animate.h"
 #include "World.h"
 #include "Container.h"
 #include "Player.h"
@@ -15,6 +16,12 @@ CUseEventData::CUseEventData()
 void CUseEventData::Update()
 {
 	CheckTimeout();
+
+	if (_move_to && InUseRange())
+	{
+		_weenie->DoForcedMotion(Motion_Ready);
+		HandleMoveToDone(WERROR_NONE);
+	}
 }
 
 void CUseEventData::SetupUse()
@@ -847,6 +854,11 @@ void UseManager::OnMotionDone(DWORD motion, BOOL success)
 bool UseManager::IsUsing()
 {
 	return _useData != NULL ? true : false;
+}
+
+bool UseManager::IsMoving()
+{
+	return IsUsing() && _useData->_move_to != 0 ? true : false;
 }
 
 void UseManager::BeginUse(CUseEventData *data)

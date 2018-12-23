@@ -2952,6 +2952,9 @@ void CWeenieObject::Tick()
 	if (m_EmoteManager)
 		m_EmoteManager->Tick();
 
+	if (m_UseManager)
+		m_UseManager->Update();
+
 	if (AsPlayer() && IsMovingTo(MovementTypes::MoveToObject))
 	{
 		CWeenieObject *target = g_pWorld->FindWithinPVS(this, movement_manager->moveto_manager->top_level_object_id);
