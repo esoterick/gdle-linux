@@ -132,7 +132,7 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 void CFoodUseEvent::OnUseAnimSuccess(DWORD motion)
 {
 	CWeenieObject *item = GetTarget();
-	if (item && item->InqIntQuality(BOOSTER_ENUM_INT, 0) == HEALTH_ATTRIBUTE_2ND && _weenie->AsPlayer() && _weenie->m_Position.distance(_initial_use_position) > 1.5)
+	if (item && item->InqIntQuality(BOOSTER_ENUM_INT, 0) == HEALTH_ATTRIBUTE_2ND && _weenie->AsPlayer() && _weenie->m_Position.distance(_initial_use_position) > 5.0)
 		return Cancel(WERROR_MOVED_TOO_FAR);
 
 	Finish();

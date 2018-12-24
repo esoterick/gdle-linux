@@ -11,8 +11,8 @@
     {
       "comment": "tier 1",
       "tierId": 1,
-      "miscItemsCategories": [ "miscTier1" ],
-      "scrollCategories": [ "I", "II", "III" ],
+      "miscItemsCategories": ["miscTier1"],
+      "scrollCategories": ["I", "II", "III"],
       "lootChance": 0.2,
       "chestLootChance": 0.4,
       "miscLootChance": 0.4,
@@ -44,7 +44,7 @@
       "clothingLootProportion": 3,
       "jewelryLootProportion": 3,
       "gemLootProportion": 4,
-      "commonArmorCategories": [ "leather", "studdedLeather", "chainmail" ],
+      "commonArmorCategories": ["leather", "studdedLeather", "chainmail"],
       "rareArmorCategories": [],
       "rareArmorChance": 0.25,
       "minWorkmanship": 1,
@@ -66,8 +66,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 2,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -88,7 +88,7 @@
         "roseQuartz",
         "smokeyQuartz"
       ],
-      "materialsLeather": [ "leather" ],
+      "materialsLeather": ["leather"],
       "materialsMetal": [
         "bronze",
         "steel",
@@ -98,14 +98,14 @@
         "brass",
         "iron"
       ],
-      "materialsStone": [ "sandstone", "alabaster", "granite" ],
-      "materialsWood": [ "pine", "mahogany", "oak" ]
+      "materialsStone": ["sandstone", "alabaster", "granite"],
+      "materialsWood": ["pine", "mahogany", "oak"]
     },
     {
       "comment": "tier 2",
       "tierId": 2,
-      "miscItemsCategories": [ "miscTier2" ],
-      "scrollCategories": [ "III", "IV", "V" ],
+      "miscItemsCategories": ["miscTier2"],
+      "scrollCategories": ["III", "IV", "V"],
       "lootChance": 0.4,
       "chestLootChance": 0.4,
       "miscLootChance": 0.4,
@@ -167,8 +167,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 4,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -198,7 +198,7 @@
         "jet",
         "redGarnet"
       ],
-      "materialsLeather": [ "leather" ],
+      "materialsLeather": ["leather"],
       "materialsMetal": [
         "bronze",
         "steel",
@@ -208,14 +208,14 @@
         "brass",
         "iron"
       ],
-      "materialsStone": [ "sandstone", "alabaster", "granite", "marble" ],
-      "materialsWood": [ "pine", "mahogany", "oak" ]
+      "materialsStone": ["sandstone", "alabaster", "granite", "marble"],
+      "materialsWood": ["pine", "mahogany", "oak"]
     },
     {
       "comment": "tier 3",
       "tierId": 3,
-      "miscItemsCategories": [ "miscTier3" ],
-      "scrollCategories": [ "V", "VI", "VII" ],
+      "miscItemsCategories": ["miscTier3"],
+      "scrollCategories": ["V", "VI", "VII"],
       "lootChance": 0.25,
       "chestLootChance": 0.4,
       "miscLootChance": 0.4,
@@ -257,7 +257,7 @@
         "diforsa",
         "tenassa"
       ],
-      "rareArmorCategories": [ "covenant", "amuli", "celdon", "koujia" ],
+      "rareArmorCategories": ["covenant", "amuli", "celdon", "koujia"],
       "rareArmorChance": 0.25,
       "minWorkmanship": 3,
       "maxWorkmanship": 7,
@@ -278,8 +278,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 6,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen", "silk", "satin", "velvet" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen", "silk", "satin", "velvet"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -338,13 +338,13 @@
         "obsidian",
         "serpentine"
       ],
-      "materialsWood": [ "pine", "mahogany", "oak", "ebony", "teak" ]
+      "materialsWood": ["pine", "mahogany", "oak", "ebony", "teak"]
     },
     {
       "comment": "tier 4",
       "tierId": 4,
-      "miscItemsCategories": [ "miscTier4" ],
-      "scrollCategories": [ "V", "VI", "VII" ],
+      "miscItemsCategories": ["miscTier4"],
+      "scrollCategories": ["V", "VI", "VII"],
       "lootChance": 0.25,
       "chestLootChance": 0.4,
       "miscLootChance": 0.4,
@@ -411,8 +411,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 8,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen", "silk", "satin", "velvet" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen", "silk", "satin", "velvet"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -476,13 +476,13 @@
         "obsidian",
         "serpentine"
       ],
-      "materialsWood": [ "pine", "mahogany", "oak", "ebony", "teak" ]
+      "materialsWood": ["pine", "mahogany", "oak", "ebony", "teak"]
     },
     {
       "comment": "tier 5",
       "tierId": 5,
-      "miscItemsCategories": [ "miscTier5" ],
-      "scrollCategories": [ "VI", "VII" ],
+      "miscItemsCategories": ["miscTier5"],
+      "scrollCategories": ["VI", "VII"],
       "lootChance": 0.25,
       "chestLootChance": 0.4,
       "miscLootChance": 0.2,
@@ -528,7 +528,7 @@
         "diforsa",
         "tenassa"
       ],
-      "rareArmorCategories": [ "chiran", "lorica", "nariyid", "alduressa" ],
+      "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
       "minWorkmanship": 3,
       "maxWorkmanship": 9,
@@ -549,8 +549,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 10,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen", "silk", "satin", "velvet" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen", "silk", "satin", "velvet"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -619,13 +619,13 @@
         "obsidian",
         "serpentine"
       ],
-      "materialsWood": [ "pine", "mahogany", "oak", "ebony", "teak" ]
+      "materialsWood": ["pine", "mahogany", "oak", "ebony", "teak"]
     },
     {
       "comment": "tier 6",
       "tierId": 6,
-      "miscItemsCategories": [ "miscTier6" ],
-      "scrollCategories": [ "VII" ],
+      "miscItemsCategories": ["miscTier6"],
+      "scrollCategories": ["VII"],
       "lootChance": 0.25,
       "chestLootChance": 0.4,
       "miscLootChance": 0.2,
@@ -671,7 +671,7 @@
         "diforsa",
         "tenassa"
       ],
-      "rareArmorCategories": [ "chiran", "lorica", "nariyid", "alduressa" ],
+      "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
       "minWorkmanship": 4,
       "maxWorkmanship": 10,
@@ -692,8 +692,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 10,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen", "silk", "satin", "velvet" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen", "silk", "satin", "velvet"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -762,13 +762,13 @@
         "obsidian",
         "serpentine"
       ],
-      "materialsWood": [ "pine", "mahogany", "oak", "ebony", "teak" ]
+      "materialsWood": ["pine", "mahogany", "oak", "ebony", "teak"]
     },
     {
       "comment": "tier 7",
       "tierId": 7,
-      "miscItemsCategories": [ "miscTier6", "miscTier7" ],
-      "scrollCategories": [ "VII" ],
+      "miscItemsCategories": ["miscTier6", "miscTier7"],
+      "scrollCategories": ["VII"],
       "lootChance": 0.25,
       "chestLootChance": 0.4,
       "miscLootChance": 0.2,
@@ -814,7 +814,7 @@
         "diforsa",
         "tenassa"
       ],
-      "rareArmorCategories": [ "chiran", "lorica", "nariyid", "alduressa" ],
+      "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
       "minWorkmanship": 4,
       "maxWorkmanship": 10,
@@ -835,8 +835,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 10,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen", "silk", "satin", "velvet" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen", "silk", "satin", "velvet"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -905,7 +905,7 @@
         "obsidian",
         "serpentine"
       ],
-      "materialsWood": [ "pine", "mahogany", "oak", "ebony", "teak" ]
+      "materialsWood": ["pine", "mahogany", "oak", "ebony", "teak"]
     },
     {
       "comment": "tier 8",
@@ -916,7 +916,7 @@
         "miscTier7.5",
         "miscTier8"
       ],
-      "scrollCategories": [ "VII" ],
+      "scrollCategories": ["VII"],
       "lootChance": 0.25,
       "chestLootChance": 0.4,
       "miscLootChance": 0.2,
@@ -962,7 +962,7 @@
         "diforsa",
         "tenassa"
       ],
-      "rareArmorCategories": [ "chiran", "lorica", "nariyid", "alduressa" ],
+      "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
       "minWorkmanship": 4,
       "maxWorkmanship": 10,
@@ -983,8 +983,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 10,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen", "silk", "satin", "velvet" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen", "silk", "satin", "velvet"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -1053,13 +1053,13 @@
         "obsidian",
         "serpentine"
       ],
-      "materialsWood": [ "pine", "mahogany", "oak", "ebony", "teak" ]
+      "materialsWood": ["pine", "mahogany", "oak", "ebony", "teak"]
     },
     {
       "comment": "tier 9 MFK",
       "tierId": 9,
-      "miscItemsCategories": [ "miscTier7.5" ],
-      "scrollCategories": [ "VII" ],
+      "miscItemsCategories": ["miscTier7.5"],
+      "scrollCategories": ["VII"],
       "lootChance": 0.25,
       "chestLootChance": 0.4,
       "miscLootChance": 0.0,
@@ -1105,7 +1105,7 @@
         "diforsa",
         "tenassa"
       ],
-      "rareArmorCategories": [ "chiran", "lorica", "nariyid", "alduressa" ],
+      "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
       "minWorkmanship": 4,
       "maxWorkmanship": 10,
@@ -1126,8 +1126,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 10,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen", "silk", "satin", "velvet" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen", "silk", "satin", "velvet"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -1196,13 +1196,13 @@
         "obsidian",
         "serpentine"
       ],
-      "materialsWood": [ "pine", "mahogany", "oak", "ebony", "teak" ]
+      "materialsWood": ["pine", "mahogany", "oak", "ebony", "teak"]
     },
     {
       "comment": "tier 10 SIK",
       "tierId": 10,
-      "miscItemsCategories": [ "miscTier5", "miscTier6" ],
-      "scrollCategories": [ "VII" ],
+      "miscItemsCategories": ["miscTier5", "miscTier6"],
+      "scrollCategories": ["VII"],
       "lootChance": 0,
       "chestLootChance": 1.0,
       "miscLootChance": 0,
@@ -1248,7 +1248,7 @@
         "diforsa",
         "tenassa"
       ],
-      "rareArmorCategories": [ "chiran", "lorica", "nariyid", "alduressa" ],
+      "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
       "minWorkmanship": 4,
       "maxWorkmanship": 10,
@@ -1269,8 +1269,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 10,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen", "silk", "satin", "velvet" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen", "silk", "satin", "velvet"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -1339,13 +1339,13 @@
         "obsidian",
         "serpentine"
       ],
-      "materialsWood": [ "pine", "mahogany", "oak", "ebony", "teak" ]
+      "materialsWood": ["pine", "mahogany", "oak", "ebony", "teak"]
     },
     {
       "comment": "Viamontian Torturer Weapon Set",
       "tierId": 2000,
-      "miscItemsCategories": [ "ViamontianTorturer" ],
-      "scrollCategories": [ "I", "II", "III" ],
+      "miscItemsCategories": ["ViamontianTorturer"],
+      "scrollCategories": ["I", "II", "III"],
       "lootChance": 1.0,
       "chestLootChance": 0.4,
       "miscLootChance": 1.0,
@@ -1377,7 +1377,7 @@
       "clothingLootProportion": 0,
       "jewelryLootProportion": 0,
       "gemLootProportion": 0,
-      "commonArmorCategories": [ "leather", "studdedLeather", "chainmail" ],
+      "commonArmorCategories": ["leather", "studdedLeather", "chainmail"],
       "rareArmorCategories": [],
       "rareArmorChance": 0,
       "minWorkmanship": 1,
@@ -1399,8 +1399,8 @@
       "allegianceRankRequirementChance": 0,
       "minSpellsForAllegianceRankRequirement": 3,
       "maxAllegianceRankRequired": 2,
-      "materialsCeramic": [ "ceramic", "porcelain" ],
-      "materialsCloth": [ "wool", "linen" ],
+      "materialsCeramic": ["ceramic", "porcelain"],
+      "materialsCloth": ["wool", "linen"],
       "materialsGem": [
         "onyx",
         "tigerEye",
@@ -1421,7 +1421,7 @@
         "roseQuartz",
         "smokeyQuartz"
       ],
-      "materialsLeather": [ "leather" ],
+      "materialsLeather": ["leather"],
       "materialsMetal": [
         "bronze",
         "steel",
@@ -1431,8 +1431,8 @@
         "brass",
         "iron"
       ],
-      "materialsStone": [ "sandstone", "alabaster", "granite" ],
-      "materialsWood": [ "pine", "mahogany", "oak" ]
+      "materialsStone": ["sandstone", "alabaster", "granite"],
+      "materialsWood": ["pine", "mahogany", "oak"]
     }
   ],
   "meleeWeapons": [
@@ -17278,7 +17278,7 @@
         },
         {
           "name": "Frost Baton",
-          "possibleMaterials": [ "wood", "metal", "gem", "stone" ],
+          "possibleMaterials": ["wood", "metal", "gem", "stone"],
           "wcid": 31824
         },
         {
@@ -18442,6 +18442,14 @@
         {
           "name": "Tunic",
           "wcid": 134
+        },
+        {
+          "name": "Toga",
+          "wcid": 28616
+        },
+        {
+          "name": "Vest",
+          "wcid": 28609
         }
       ]
     },
@@ -18492,6 +18500,89 @@
         {
           "name": "Wide Breeches",
           "wcid": 2604
+        },
+        {
+          "name": "Viamontian Pants",
+          "wcid": 28606
+        }
+      ]
+    },
+    {
+      "category": "Headgear",
+      "possibleMaterials": ["cloth"],
+      "entries": [
+        {
+          "name": "Bandana",
+          "wcid": 28612
+        },
+        {
+          "name": "Beret",
+          "wcid": 28605
+        },
+        {
+          "name": "Fez",
+          "wcid": 5894
+        },
+        {
+          "name": "Cowl",
+          "wcid": 119
+        },
+        {
+          "name": "Kasa",
+          "wcid": 5901
+        },
+        {
+          "name": "Qafiya",
+          "wcid": 128
+        },
+        {
+          "name": "Turban",
+          "wcid": 135
+        },
+        {
+          "name": "Cap",
+          "wcid": 118
+        },
+        {
+          "name": "Crown",
+          "possibleMaterials": ["metal"],
+          "wcid": 296
+        }
+      ]
+    },
+    {
+      "category": "Handwear",
+      "possibleMaterials": ["cloth", "leather"],
+      "entries": [
+        {
+          "name": "Cloth Gloves",
+          "wcid": 121
+        }
+      ]
+    },
+    {
+      "category": "Footwear",
+      "possibleMaterials": ["cloth"],
+      "entries": [
+        {
+          "name": "Loafers",
+          "wcid": 28610
+        },
+        {
+          "name": "Slippers",
+          "wcid": 133
+        },
+        {
+          "name": "Shoes",
+          "wcid": 132
+        },
+        {
+          "name": "Sandals",
+          "wcid": 129
+        },
+        {
+          "name": "Boots",
+          "wcid": 115
         }
       ]
     }

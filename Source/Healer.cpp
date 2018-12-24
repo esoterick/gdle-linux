@@ -112,7 +112,7 @@ void CHealerUseEvent::OnUseAnimSuccess(DWORD motion)
 
 	if (tool && target && !target->IsDead() && !target->IsInPortalSpace())
 	{
-		if (_target_id == _weenie->GetID() && _weenie->m_Position.distance(_initial_use_position) > 1.5) //Distance check between initial use and now but only if heal was executed on self.
+		if (_target_id == _weenie->GetID() && _weenie->m_Position.distance(_initial_use_position) > 5.0) //Distance check between initial use and now but only if heal was executed on self.
 			return Cancel(WERROR_MOVED_TOO_FAR);
 
 		int amountHealed = 0;
