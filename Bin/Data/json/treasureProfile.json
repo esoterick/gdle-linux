@@ -14394,20 +14394,12 @@
       ],
       "entries": [
         {
-          "name": "Compound Bow",
-          "wcid": 430001
-        },
-        {
           "name": "Acid Compound Bow",
           "wcid": 31799
         },
         {
           "name": "Blunt Compound Bow",
           "wcid": 31800
-        },
-        {
-          "name": "Blunt Compound Bow",
-          "wcid": 48233
         },
         {
           "name": "Fire Compound Bow",
