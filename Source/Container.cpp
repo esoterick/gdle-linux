@@ -734,49 +734,54 @@ bool CContainerWeenie::SpawnCloneInContainer(CWeenieObject *itemToClone, int amo
 
 bool CContainerWeenie::SpawnInContainer(CWeenieObject *item, bool sendEnvent, bool deleteItemOnFailure)
 {
-	item->SetID(g_pWorld->GenerateGUID(eDynamicGUID));
-	if (!Container_CanStore(item))
+	if (item)
 	{
-		if(sendEnvent)
-			NotifyInventoryFailedEvent(item->GetID(), WERROR_GIVE_NOT_ALLOWED);
-
-		if(deleteItemOnFailure)
-			delete item;
-		return false;
-	}
-
-	if (!g_pWorld->CreateEntity(item))
-	{
-		if (sendEnvent)
-			NotifyInventoryFailedEvent(item->GetID(), WERROR_GIVE_NOT_ALLOWED);
-		if (deleteItemOnFailure)
-			delete item;
-		return false;
-	}
-
-	if (sendEnvent)
-	{
-		SendNetMessage(InventoryMove(item->GetID(), GetID(), 0, item->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
-		if (item->AsContainer())
-			item->AsContainer()->MakeAwareViewContent(this);
-		MakeAware(item, true);
-
-		if (_openedById != 0)
+		item->SetID(g_pWorld->GenerateGUID(eDynamicGUID));
+		if (!Container_CanStore(item))
 		{
-			CWeenieObject *openedBy = g_pWorld->FindObject(_openedById);
+			if (sendEnvent)
+				NotifyInventoryFailedEvent(item->GetID(), WERROR_GIVE_NOT_ALLOWED);
 
-			if (openedBy)
+			if (deleteItemOnFailure)
+				delete item;
+			return false;
+		}
+
+		if (!g_pWorld->CreateEntity(item))
+		{
+			if (sendEnvent)
+				NotifyInventoryFailedEvent(item->GetID(), WERROR_GIVE_NOT_ALLOWED);
+			if (deleteItemOnFailure)
+				delete item;
+			return false;
+		}
+
+		if (sendEnvent)
+		{
+			SendNetMessage(InventoryMove(item->GetID(), GetID(), 0, item->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
+			if (item->AsContainer())
+				item->AsContainer()->MakeAwareViewContent(this);
+			MakeAware(item, true);
+
+			if (_openedById != 0)
 			{
-				openedBy->SendNetMessage(InventoryMove(item->GetID(), GetID(), 0, item->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
-				if (item->AsContainer())
-					item->AsContainer()->MakeAwareViewContent(this);
-				openedBy->MakeAware(item, true);
+				CWeenieObject *openedBy = g_pWorld->FindObject(_openedById);
+
+				if (openedBy)
+				{
+					openedBy->SendNetMessage(InventoryMove(item->GetID(), GetID(), 0, item->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
+					if (item->AsContainer())
+						item->AsContainer()->MakeAwareViewContent(this);
+					openedBy->MakeAware(item, true);
+				}
 			}
 		}
-	}
 
-	OnReceiveInventoryItem(this, item, 0);
-	return true;
+		OnReceiveInventoryItem(this, item, 0);
+		return true;
+	}
+	else
+		return false;
 }
 
 DWORD CContainerWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot)
