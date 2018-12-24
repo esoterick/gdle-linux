@@ -12,7 +12,7 @@ GDLEnhanced.vcxproj.user
 enc_temp_folder
 ./Client
 ferret_test.cfg
-[Bb]in/
+[Bb]in/Data/[Jj]son/weenies
 
 //Default
 ## Ignore Visual Studio temporary files, build results, and
