@@ -2306,38 +2306,38 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 			bool canFlagForQuest = false;
 			if (portalDID)
 			{
-				if (portalDefaults)
-				{
 					portalDefaults = g_pWeenieFactory->GetWeenieDefaults(portalDID);
 
-					int minLevel = 0;
-					int maxLevel = 0;
-					portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
-					portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
-
-					if (m_pWeenie->AsPlayer())
+					if (portalDefaults)
 					{
-						int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
-						if (minLevel && currentLevel < minLevel)
-						{
-							m_pWeenie->SendText("You are not powerful enough to summon this portal yet.", LTT_MAGIC);
-							break;
-						}
-						else if (maxLevel && currentLevel > maxLevel)
-						{
-							m_pWeenie->SendText("You are too powerful to summon this portal.", LTT_MAGIC);
-							break;
-						}
+						int minLevel = 0;
+						int maxLevel = 0;
+						portalDefaults->m_Qualities.InqInt(MIN_LEVEL_INT, minLevel);
+						portalDefaults->m_Qualities.InqInt(MAX_LEVEL_INT, maxLevel);
 
-						if ((portalDefaults->m_Qualities.GetInt(PORTAL_BITMASK_INT, 0) & 0x10))
+						if (m_pWeenie->AsPlayer())
 						{
-							m_pWeenie->SendText("That portal may not be summoned.", LTT_MAGIC);
-							break;
+							int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
+							if (minLevel && currentLevel < minLevel)
+							{
+								m_pWeenie->SendText("You are not powerful enough to summon this portal yet.", LTT_MAGIC);
+								break;
+							}
+							else if (maxLevel && currentLevel > maxLevel)
+							{
+								m_pWeenie->SendText("You are too powerful to summon this portal.", LTT_MAGIC);
+								break;
+							}
+
+							if ((portalDefaults->m_Qualities.GetInt(PORTAL_BITMASK_INT, 0) & 0x10))
+							{
+								m_pWeenie->SendText("That portal may not be summoned.", LTT_MAGIC);
+								break;
+							}
 						}
+						else
+							canFlagForQuest = true;
 					}
-					else
-						canFlagForQuest = true;
-				}
 			}
 
 			CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(W_PORTALGATEWAY_CLASS, &spawnPos, false);
