@@ -94,7 +94,7 @@ void CPortal::CheckedTeleport(CWeenieObject *pOther)
 		else
 		{
 			if (!(InqIntQuality(PORTAL_BITMASK_INT, 0) & 0x20))
-				pOther->m_Qualities.SetDataID(LAST_PORTAL_DID, GetID());
+				pOther->m_Qualities.SetDataID(LAST_PORTAL_DID, m_Qualities.id);
 
 			Teleport(pOther);
 		}
