@@ -1334,6 +1334,8 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			if (op->_SkillCheckFormulaType == 2) // imbue
 			{
 				successChance /= 3;
+
+				successChance = min(successChance, 0.33);
 				
 				if (m_Qualities.GetInt(AUGMENTATION_BONUS_IMBUE_CHANCE_INT, 0))
 					successChance += 0.05;
