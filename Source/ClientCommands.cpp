@@ -4628,11 +4628,11 @@ CLIENT_COMMAND(npk, "", "Makes you a non-player killer.", BASIC_ACCESS, CHARACTE
 	return false;
 }
 
-CLIENT_COMMAND(decent, "[name]", "Gives you great attributes.", SENTINEL_ACCESS, CHARACTER_CATEGORY)
+CLIENT_COMMAND(decent, "[name]", "Gives you great attributes.", BASIC_ACCESS, CHARACTER_CATEGORY)
 {
-	if (pPlayer->GetClient()->GetAccessLevel() < ADVOCATE_ACCESS)
+	if (!g_pConfig->EnableGodlyCommand() && pPlayer->GetClient()->GetAccessLevel() < ADMIN_ACCESS)
 	{
-		pPlayer->SendText("Command temporarily disabled for this play test. XP is awarded off monsters.", 1);
+		pPlayer->SendText("Command disabled.", 1);
 		return false;
 	}
 
