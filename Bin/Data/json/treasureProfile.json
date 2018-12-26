@@ -44,7 +44,14 @@
       "clothingLootProportion": 3,
       "jewelryLootProportion": 3,
       "gemLootProportion": 4,
-      "commonArmorCategories": ["leather", "studdedLeather", "chainmail"],
+      "commonArmorCategories": [
+        "leather",
+        "studdedLeather",
+        "chainmail",
+        "Headgear",
+        "Handwear",
+        "Footwear"
+      ],
       "rareArmorCategories": [],
       "rareArmorChance": 0.25,
       "minWorkmanship": 1,
@@ -144,7 +151,10 @@
         "yoroi",
         "scalemail",
         "platemail",
-        "diforsa"
+        "diforsa",
+        "Headgear",
+        "Handwear",
+        "Footwear"
       ],
       "rareArmorCategories": [],
       "rareArmorChance": 0.25,
@@ -255,7 +265,10 @@
         "scalemail",
         "platemail",
         "diforsa",
-        "tenassa"
+        "tenassa",
+        "Headgear",
+        "Handwear",
+        "Footwear"
       ],
       "rareArmorCategories": ["covenant", "amuli", "celdon", "koujia"],
       "rareArmorChance": 0.25,
@@ -388,7 +401,10 @@
         "celdon",
         "koujia",
         "diforsa",
-        "tenassa"
+        "tenassa",
+        "Headgear",
+        "Handwear",
+        "Footwear"
       ],
       "rareArmorCategories": [],
       "rareArmorChance": 0.25,
@@ -526,7 +542,10 @@
         "celdon",
         "koujia",
         "diforsa",
-        "tenassa"
+        "tenassa",
+        "Headgear",
+        "Handwear",
+        "Footwear"
       ],
       "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
@@ -669,7 +688,10 @@
         "celdon",
         "koujia",
         "diforsa",
-        "tenassa"
+        "tenassa",
+        "Headgear",
+        "Handwear",
+        "Footwear"
       ],
       "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
@@ -812,7 +834,10 @@
         "celdon",
         "koujia",
         "diforsa",
-        "tenassa"
+        "tenassa",
+        "Headgear",
+        "Handwear",
+        "Footwear"
       ],
       "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
@@ -960,7 +985,10 @@
         "celdon",
         "koujia",
         "diforsa",
-        "tenassa"
+        "tenassa",
+        "Headgear",
+        "Handwear",
+        "Footwear"
       ],
       "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
@@ -1103,7 +1131,10 @@
         "celdon",
         "koujia",
         "diforsa",
-        "tenassa"
+        "tenassa",
+        "Headgear",
+        "Handwear",
+        "Footwear"
       ],
       "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
@@ -1246,7 +1277,10 @@
         "celdon",
         "koujia",
         "diforsa",
-        "tenassa"
+        "tenassa",
+        "Headgear",
+        "Handwear",
+        "Footwear"
       ],
       "rareArmorCategories": ["chiran", "lorica", "nariyid", "alduressa"],
       "rareArmorChance": 0.25,
@@ -1377,7 +1411,14 @@
       "clothingLootProportion": 0,
       "jewelryLootProportion": 0,
       "gemLootProportion": 0,
-      "commonArmorCategories": ["leather", "studdedLeather", "chainmail"],
+      "commonArmorCategories": [
+        "leather",
+        "studdedLeather",
+        "chainmail",
+        "Headgear",
+        "Handwear",
+        "Footwear"
+      ],
       "rareArmorCategories": [],
       "rareArmorChance": 0,
       "minWorkmanship": 1,
@@ -18375,6 +18416,85 @@
             "wcid": 30948
           }
         ]
+      },
+      {
+        "category": "Headgear",
+        "possibleMaterials": ["cloth"],
+        "entries": [
+          {
+            "name": "Bandana",
+            "wcid": 28612
+          },
+          {
+            "name": "Beret",
+            "wcid": 28605
+          },
+          {
+            "name": "Fez",
+            "wcid": 5894
+          },
+          {
+            "name": "Cowl",
+            "wcid": 119
+          },
+          {
+            "name": "Kasa",
+            "wcid": 5901
+          },
+          {
+            "name": "Qafiya",
+            "wcid": 128
+          },
+          {
+            "name": "Turban",
+            "wcid": 135
+          },
+          {
+            "name": "Cap",
+            "wcid": 118
+          },
+          {
+            "name": "Crown",
+            "possibleMaterials": ["metal"],
+            "wcid": 296
+          }
+        ]
+      },
+      {
+        "category": "Handwear",
+        "possibleMaterials": ["cloth", "leather"],
+        "entries": [
+          {
+            "name": "Cloth Gloves",
+            "wcid": 121
+          }
+        ]
+      },
+      {
+        "category": "Footwear",
+        "possibleMaterials": ["cloth"],
+        "entries": [
+          {
+            "name": "Loafers",
+            "wcid": 28610
+          },
+          {
+            "name": "Slippers",
+            "wcid": 133
+          },
+          {
+            "name": "Shoes",
+            "wcid": 132
+          },
+          {
+            "name": "Sandals",
+            "wcid": 129
+          },
+          {
+            "name": "Boots",
+            "wcid": 115
+          }
+        ]
       }
     ]
   },
@@ -18496,85 +18616,6 @@
         {
           "name": "Viamontian Pants",
           "wcid": 28606
-        }
-      ]
-    },
-    {
-      "category": "Headgear",
-      "possibleMaterials": ["cloth"],
-      "entries": [
-        {
-          "name": "Bandana",
-          "wcid": 28612
-        },
-        {
-          "name": "Beret",
-          "wcid": 28605
-        },
-        {
-          "name": "Fez",
-          "wcid": 5894
-        },
-        {
-          "name": "Cowl",
-          "wcid": 119
-        },
-        {
-          "name": "Kasa",
-          "wcid": 5901
-        },
-        {
-          "name": "Qafiya",
-          "wcid": 128
-        },
-        {
-          "name": "Turban",
-          "wcid": 135
-        },
-        {
-          "name": "Cap",
-          "wcid": 118
-        },
-        {
-          "name": "Crown",
-          "possibleMaterials": ["metal"],
-          "wcid": 296
-        }
-      ]
-    },
-    {
-      "category": "Handwear",
-      "possibleMaterials": ["cloth", "leather"],
-      "entries": [
-        {
-          "name": "Cloth Gloves",
-          "wcid": 121
-        }
-      ]
-    },
-    {
-      "category": "Footwear",
-      "possibleMaterials": ["cloth"],
-      "entries": [
-        {
-          "name": "Loafers",
-          "wcid": 28610
-        },
-        {
-          "name": "Slippers",
-          "wcid": 133
-        },
-        {
-          "name": "Shoes",
-          "wcid": 132
-        },
-        {
-          "name": "Sandals",
-          "wcid": 129
-        },
-        {
-          "name": "Boots",
-          "wcid": 115
         }
       ]
     }
