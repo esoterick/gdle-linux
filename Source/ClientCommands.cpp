@@ -3378,6 +3378,19 @@ CLIENT_COMMAND(stampquest, "<name>", "", SENTINEL_ACCESS, CHARACTER_CATEGORY)
 	return false;
 }
 
+CLIENT_COMMAND(setquest, "<name> [# of times to stamp]", "", SENTINEL_ACCESS, CHARACTER_CATEGORY)
+{
+	if (argc < 2)
+		return true;
+
+	if (argc > 1)
+	{
+		pPlayer->_questTable.SetQuestCompletions(argv[0], atoi(argv[1]));
+		pPlayer->SendText(csprintf("%s stamped %s times.", argv[0], argv[1]), LTT_DEFAULT);
+		return false;
+	}
+}
+
 CLIENT_COMMAND(incquest, "<name>", "", SENTINEL_ACCESS, CHARACTER_CATEGORY)
 {
 	if (argc < 1)
