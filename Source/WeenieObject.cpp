@@ -2248,8 +2248,8 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 		SendText(notice, LTT_ADVANCEMENT);
 	}
 
-	if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && oldLevel == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && oldLevel == 226))
-		return 0;
+	//if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && oldLevel == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && oldLevel == 226))
+		//return 0; //We already check if the skill is maxed before entering the function.
 
 	m_Qualities.SetSkill(key, skill);
 

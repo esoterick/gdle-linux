@@ -224,13 +224,17 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 
 			if (trained._sac == SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			{
-				trained._init_level = 0;
-				trained._level_from_pp = trained._level_from_pp + 5;
-				if (trained._level_from_pp > 208)
-					trained._level_from_pp = 208;
+				// Only do this once.
+				if (trained._init_level > 0)
+				{
+					trained._init_level = 0;
+					trained._level_from_pp = trained._level_from_pp + 5;
+					if (trained._level_from_pp > 208)
+						trained._level_from_pp = 208;
 
-				m_pPlayer->m_Qualities.SetSkill((STypeSkill)i, trained);
-				m_pPlayer->NotifySkillStatUpdated((STypeSkill)i);
+					m_pPlayer->m_Qualities.SetSkill((STypeSkill)i, trained);
+					m_pPlayer->NotifySkillStatUpdated((STypeSkill)i);
+				}
 			}
 		}
 	}

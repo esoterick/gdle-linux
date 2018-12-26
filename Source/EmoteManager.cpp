@@ -295,7 +295,16 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!target)
 			break;
 
-		target->GiveSkillXP((STypeSkill)emote.stat, emote.amount, false);
+		Skill skill;
+		target->m_Qualities.InqSkill((STypeSkill)emote.stat, skill);
+
+		DWORD amount = emote.amount;
+	
+		const DWORD amountNeededForMaxXp = skill.GetXpNeededForMaxXp();
+		amount = min(amount, amountNeededForMaxXp);
+
+		if (amount > 0)
+			target->GiveSkillXP((STypeSkill)emote.stat, amount, false);
 		break;
 	}
 	case AwardLevelProportionalSkillXP_EmoteType:
@@ -323,7 +332,11 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (emote.max > 0)
 			xp_to_give = min(xp_to_give, emote.max64);
 
-		target->GiveSkillXP((STypeSkill)emote.stat, xp_to_give, false);
+		const DWORD64 amountNeededForMaxXp = skill.GetXpNeededForMaxXp();
+		xp_to_give = min(xp_to_give, amountNeededForMaxXp);
+
+		if (xp_to_give > 0)
+			target->GiveSkillXP((STypeSkill)emote.stat, xp_to_give, false);
 		break;
 	}
 	case AwardSkillPoints_EmoteType:
