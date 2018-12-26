@@ -4366,6 +4366,16 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(5202);
 		break;
 	}
+	case W_MATERIALBRASS_CLASS:
+	{
+		//Check if the item has workmanship.
+		if (!target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab brass recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3848);
+		break;
+	}
 	case W_MATERIALROSEQUARTZ_CLASS:
 	case W_MATERIALREDJADE_CLASS:
 	case W_MATERIALMALACHITE_CLASS:
