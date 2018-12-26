@@ -1033,14 +1033,14 @@ void CClientEvents::SpendSkillXP(STypeSkill key, DWORD exp)
 	// This is done as the client may send more than the amount needed if it is desynced
 	exp = min(exp, amountNeededForMaxXp);
 
-
 	if (exp > 0)
 	{
-		// Only give the skill exp if it's not maxed
-		m_pPlayer->GiveSkillXP(key, exp);
-
-		m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
-		m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+		// Only give the skill exp if it's not maxed and only take exp if GiveSkillXP does not return 0
+		if (m_pPlayer->GiveSkillXP(key, exp))
+		{
+			m_pPlayer->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, (unsigned __int64)unassignedExp - (unsigned __int64)exp);
+			m_pPlayer->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+		}
 	}
 
 }
