@@ -1180,7 +1180,7 @@ int CTreasureFactory::GenerateRareItem(CWeenieObject *parent, CWeenieObject *kil
 			tier = 3;
 		else if (tierRoll > 33)
 			tier = 4;
-		else if (tierRoll > 28)
+		else if (tierRoll > 18)
 			tier = 5;
 		else if (tierRoll > 0)
 			tier = 6;
