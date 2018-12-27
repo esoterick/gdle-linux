@@ -267,8 +267,19 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 		amount = (int)(amount * g_pConfig->RewardXPMultiplier(target->InqIntQuality(LEVEL_INT, 0)));
 
+		// If the amount is negative, we take the xp from the target.
 		if (amount < 0)
-			amount = 0;
+		{
+			long long available = target->m_Qualities.GetInt64(AVAILABLE_EXPERIENCE_INT64, 0);
+
+			if (available - -amount >= 0)
+			{
+				target->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, available - -amount);
+				target->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				break;
+			}
+				
+		}
 
 		target->GiveSharedXP(amount, true);
 		break;
@@ -283,9 +294,19 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 		amount = (int)(amount * g_pConfig->RewardXPMultiplier(target->InqIntQuality(LEVEL_INT, 0)));
 
+		// If the amount is negative, we take the xp from the target.
 		if (amount < 0)
-			amount = 0;
+		{
+			long long available = target->m_Qualities.GetInt64(AVAILABLE_EXPERIENCE_INT64, 0);
 
+			if (available - -amount >= 0)
+			{
+				target->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, available - -amount);
+				target->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
+				break;
+			}
+
+		}
 		target->GiveXP(amount, true);
 		break;
 	}
