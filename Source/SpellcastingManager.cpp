@@ -1420,6 +1420,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 
 				int minLevel = pTarget->InqIntQuality(MIN_LEVEL_INT, 0);
 				int maxLevel = pTarget->InqIntQuality(MAX_LEVEL_INT, 0);
+				DWORD origPortID = pTarget->InqDIDQuality(ORIGINAL_PORTAL_DID, 0);
 
 				int currentLevel = m_pWeenie->InqIntQuality(LEVEL_INT, 1);
 
@@ -1431,6 +1432,11 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 				else if (maxLevel && currentLevel > maxLevel)
 				{
 					m_pWeenie->SendText("You are too powerful to tie to this portal.", LTT_MAGIC);
+					break;
+				}
+				else if (origPortID == W_PORTALGATEWAY_CLASS) // Don't tie to portals with no original portal set.
+				{
+					m_pWeenie->SendText("This portal has no destination set.", LTT_MAGIC);
 					break;
 				}
 
@@ -1452,9 +1458,20 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 				case 2: // primary portal tie
 					if (pTarget->m_Qualities.m_WeenieType == Portal_WeenieType &&
 						!(pTarget->m_Qualities.GetInt(PORTAL_BITMASK_INT, 0) & 0x20))
-					{
-						m_pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_ONE_DID, pTarget->m_Qualities.id);
-						m_pWeenie->m_Qualities.SetPosition(LINKED_PORTAL_ONE_POSITION, pTarget->InqPositionQuality(DESTINATION_POSITION, Position()));
+					{	
+						if (origPortID > 0)
+						{
+							// This is a summoned portal with an original portal ID
+							m_pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_ONE_DID, origPortID);
+							m_pWeenie->m_Qualities.SetPosition(LINKED_PORTAL_ONE_POSITION, pTarget->InqPositionQuality(DESTINATION_POSITION, Position()));
+
+						}
+						else
+						{
+							// This is not a summoned portal
+							m_pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_ONE_DID, pTarget->m_Qualities.id);
+							m_pWeenie->m_Qualities.SetPosition(LINKED_PORTAL_ONE_POSITION, pTarget->InqPositionQuality(DESTINATION_POSITION, Position()));
+						}
 						bSpellPerformed = true;
 						m_pWeenie->SendText("You have successfully linked with the portal.", LTT_MAGIC);
 					}
@@ -1468,9 +1485,20 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 				case 3: // secondary portal tie
 					if (pTarget->m_Qualities.m_WeenieType == Portal_WeenieType &&
 						!(pTarget->m_Qualities.GetInt(PORTAL_BITMASK_INT, 0) & 0x20))
-					{
-						m_pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_TWO_DID, pTarget->m_Qualities.id);
-						m_pWeenie->m_Qualities.SetPosition(LINKED_PORTAL_TWO_POSITION, pTarget->InqPositionQuality(DESTINATION_POSITION, Position()));
+					{					
+						if (origPortID > 0)
+						{
+							// This is a summoned portal with an original portal ID
+							m_pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_TWO_DID, origPortID);
+							m_pWeenie->m_Qualities.SetPosition(LINKED_PORTAL_TWO_POSITION, pTarget->InqPositionQuality(DESTINATION_POSITION, Position()));
+
+						}
+						else
+						{
+							// This is not a summoned portal
+							m_pWeenie->m_Qualities.SetDataID(LINKED_PORTAL_TWO_DID, pTarget->m_Qualities.id);
+							m_pWeenie->m_Qualities.SetPosition(LINKED_PORTAL_TWO_POSITION, pTarget->InqPositionQuality(DESTINATION_POSITION, Position()));
+						}
 						bSpellPerformed = true;
 						m_pWeenie->SendText("You have successfully linked with the portal.", LTT_MAGIC);
 					}
@@ -2360,6 +2388,18 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 					weenie->CopyIntStat(MAX_LEVEL_INT, &portalDefaults->m_Qualities);
 					weenie->CopyIntStat(PORTAL_BITMASK_INT, &portalDefaults->m_Qualities);
 					weenie->CopyStringStat(QUEST_RESTRICTION_STRING, &portalDefaults->m_Qualities);
+
+					switch (meta->_link)
+					{
+					case 1:
+						weenie->m_Qualities.SetDataID(ORIGINAL_PORTAL_DID, m_pWeenie->InqDIDQuality(LINKED_PORTAL_ONE_DID, 0));
+						break;
+
+					case 2:
+						weenie->m_Qualities.SetDataID(ORIGINAL_PORTAL_DID, m_pWeenie->InqDIDQuality(LINKED_PORTAL_TWO_DID, 0));
+						break;
+					}
+
 					if (canFlagForQuest)
 						weenie->CopyStringStat(QUEST_STRING, &portalDefaults->m_Qualities);
 					if (portalDefaults->m_Qualities.GetBool(PORTAL_SHOW_DESTINATION_BOOL, 0))
@@ -2374,10 +2414,12 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 					{
 					case 1:
 						weenie->m_Qualities.SetPosition(DESTINATION_POSITION, m_pWeenie->InqPositionQuality(LINKED_PORTAL_ONE_POSITION, Position()));
+						weenie->m_Qualities.SetDataID(ORIGINAL_PORTAL_DID, m_pWeenie->InqDIDQuality(LINKED_PORTAL_ONE_DID, 0));
 						break;
 
 					case 2:
 						weenie->m_Qualities.SetPosition(DESTINATION_POSITION, m_pWeenie->InqPositionQuality(LINKED_PORTAL_TWO_POSITION, Position()));
+						weenie->m_Qualities.SetDataID(ORIGINAL_PORTAL_DID, m_pWeenie->InqDIDQuality(LINKED_PORTAL_TWO_DID, 0));
 						break;
 					}
 				}
