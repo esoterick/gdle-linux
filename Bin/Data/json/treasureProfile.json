@@ -11312,7 +11312,7 @@
         {
           "name": "Rapier",
           "wcid": 6853,
-          "elementalVariants": [],
+          "elementalVariants": [45104, 45105, 45106, 45107],
           "weaponSkill": "FinesseWeapons"
         }
       ]
