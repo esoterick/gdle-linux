@@ -19,6 +19,7 @@ class CVendor : public CMonsterWeenie
 public:
 	CVendor();
 	virtual ~CVendor() override;
+	virtual void Tick() override;
 
 	virtual class CVendor *AsVendor() { return this; }
 
@@ -43,6 +44,11 @@ public:
 
 	VendorProfile profile;
 	std::list<CVendorItem *> m_Items;
+
+protected:
+	void CheckRange();
+	std::set<DWORD> m_ActiveBuyers;
+	double m_VendorCycleTime = 0.0;
 };
 
 class CAvatarVendor : public CVendor

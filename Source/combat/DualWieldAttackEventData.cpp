@@ -13,34 +13,38 @@ void CDualWieldAttackEvent::CalculateAtt(CWeenieObject *weapon, STypeSkill& weap
 	CWeenieObject *main = _weenie->GetWieldedCombat(COMBAT_USE_MELEE);
 	CWeenieObject *left = _weenie->GetWieldedCombat(COMBAT_USE_OFFHAND);
 
-	float mainMod = main->GetOffenseMod();
-	float leftMod = left->GetOffenseMod();
-	
-	float offenseMod = max(mainMod, leftMod);
-
-	weaponSkillLevel = 0;
-
-	if (_left_hand)
+	if (left && main)
 	{
-		DWORD dualSkillLevel = 0;
-		_weenie->InqSkill(STypeSkill::DUAL_WIELD_SKILL, dualSkillLevel, FALSE);
-		
-		weaponSkill = SkillTable::OldToNewSkill((STypeSkill)left->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
-		_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE);
 
-		if (dualSkillLevel < weaponSkillLevel)
+		float mainMod = main->GetOffenseMod();
+		float leftMod = left->GetOffenseMod();
+
+		float offenseMod = max(mainMod, leftMod);
+
+		weaponSkillLevel = 0;
+
+		if (_left_hand)
 		{
-			weaponSkill = STypeSkill::DUAL_WIELD_SKILL;
-			weaponSkillLevel = dualSkillLevel;
-		}
-	}
-	else
-	{
-		weaponSkill = SkillTable::OldToNewSkill((STypeSkill)main->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
-		_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE);
-	}
+			DWORD dualSkillLevel = 0;
+			_weenie->InqSkill(STypeSkill::DUAL_WIELD_SKILL, dualSkillLevel, FALSE);
 
-	weaponSkillLevel = (DWORD)(weaponSkillLevel * offenseMod);
+			weaponSkill = SkillTable::OldToNewSkill((STypeSkill)left->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
+			_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE);
+
+			if (dualSkillLevel < weaponSkillLevel)
+			{
+				weaponSkill = STypeSkill::DUAL_WIELD_SKILL;
+				weaponSkillLevel = dualSkillLevel;
+			}
+		}
+		else
+		{
+			weaponSkill = SkillTable::OldToNewSkill((STypeSkill)main->InqIntQuality(WEAPON_SKILL_INT, LIGHT_WEAPONS_SKILL, TRUE));
+			_weenie->InqSkill(weaponSkill, weaponSkillLevel, FALSE);
+		}
+
+		weaponSkillLevel = (DWORD)(weaponSkillLevel * offenseMod);
+	}
 }
 
 //float CDualWieldAttackEvent::CalculateDef()

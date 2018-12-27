@@ -1150,12 +1150,12 @@ enum WErrorType
 	WERROR_PK_NPK_TARGET_PASSIVE, //  fails to affect you because you are not a player killer!\n
 	WERROR_PK_WRONG_KIND_PASSIVE, //  fails to affect you because you are not the same sort of player killer as 
 	WERROR_PK_CROSS_HOUSE_BOUNDARY_PASSIVE, //  fails to affect you across a house boundary!\n
-	WERROR_MAGIC_INVALID_TARGET, //  is an invalid target.\n
+	WERROR_MAGIC_INVALID_TARGET, // %s is an invalid target.\n
 	WERROR_MAGIC_INVALID_TARGET_PASSIVE, // You are an invalid target for the spell of %s.\n
 	WERROR_HEAL_NOT_TRAINED, // You aren't trained in healing!
 	WERROR_HEAL_DONT_OWN_KIT, // You don't own that healing kit!
 	WERROR_HEAL_CANT_HEAL_THAT, // You can't heal that!
-	WERROR_HEAL_FULL_HEALTH, //  is already at full health!
+	WERROR_HEAL_FULL_HEALTH, // %s is already at full health!
 	WERROR_HEAL_NOT_READY, // You aren't ready to heal!
 	WERROR_HEAL_PLAYERS_ONLY, // You can only use Healing Kits on player characters.
 	WERROR_LIFESTONE_PROTECTION, // The Lifestone's magic protects you from the attack!\n

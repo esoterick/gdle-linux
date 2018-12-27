@@ -1381,7 +1381,7 @@ void MoveToManager::CleanUpAndCallWeenie(DWORD retval)
 		physics_obj->StopCompletely(WERROR_NONE);
 
 	// custom
-	if (weenie_obj) 
+	if (weenie_obj)
 		weenie_obj->HandleMoveToDone(retval);
 	//
 }

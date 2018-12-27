@@ -72,8 +72,12 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 							{
 								if (i->second._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
 								{	
+									// Salvaging and tinkering skills all have > 999 spec cost.
+									if (pSkillTable->GetSkillBase(i->first)->_specialized_cost >= 999)
+										continue;
+
 									//Arcane technically costs 4 credits to train even though you can't unspec it. Should only count as 2 toward number of spec credits.
-									if (i->first != ARCANE_LORE_SKILL)
+									if (i->first != ARCANE_LORE_SKILL) 
 										speccCount += (pSkillTable->GetSkillBase(i->first)->_specialized_cost);
 									else
 										speccCount += (pSkillTable->GetSkillBase(i->first)->_specialized_cost - pSkillTable->GetSkillBase(i->first)->_trained_cost);

@@ -20,7 +20,13 @@ TradeManager::TradeManager(CPlayerWeenie *initiator, CPlayerWeenie *partner)
 	openTrade.Write<DWORD>(partner->GetID());
 	openTrade.Write<double>(stamp); // "some kind of stamp"?
 	initiator->SendNetMessage(&openTrade, PRIVATE_MSG, TRUE, FALSE);
-	partner->SendNetMessage(&openTrade, PRIVATE_MSG, TRUE, FALSE);
+
+	BinaryWriter openTradePartner;
+	openTradePartner.Write<DWORD>(0x1FD);
+	openTradePartner.Write<DWORD>(initiator->GetID());
+	openTradePartner.Write<DWORD>(initiator->GetID());
+	openTradePartner.Write<double>(stamp); // "some kind of stamp"?
+	partner->SendNetMessage(&openTradePartner, PRIVATE_MSG, TRUE, FALSE);
 	
 	// it's possible for users to have items in the trade window before starting so clear it
 	ResetTrade(initiator);

@@ -1537,6 +1537,7 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 		return false; // we only know how to mutate the above types.
 	}
 
+	INVENTORY_LOC coveredAreas = (INVENTORY_LOC)newItem->InqIntQuality(LOCATIONS_INT, NONE_LOC, TRUE);
 
 	if (itemType == TYPE_MELEE_WEAPON ||
 		itemType == TYPE_MISSILE_WEAPON ||
@@ -1599,7 +1600,7 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 				MutateGem(newItem, wieldTier, creationInfo, tier, category, entry);
 		}
 	}
-	else if (itemType == TYPE_ARMOR)
+	else if (itemType == TYPE_ARMOR || (itemType == TYPE_CLOTHING && (coveredAreas & HEAD_WEAR_LOC || coveredAreas & FOOT_WEAR_LOC || coveredAreas & HAND_WEAR_LOC)))
 	{
 		std::vector<CWieldTier> *wieldTiers;
 		if (!category->wieldTiers.empty())
@@ -1619,7 +1620,6 @@ bool CTreasureFactory::MutateItem(CWeenieObject *newItem, sItemCreationInfo &cre
 					(wieldTierEntry.missileDefenseSkillRequired != 0 && wieldTierEntry.missileDefenseSkillRequired >= tier->minArmorMissileWieldTier && wieldTierEntry.missileDefenseSkillRequired <= tier->maxArmorMissileWieldTier) &&
 					(wieldTierEntry.magicDefenseSkillRequired != 0 && wieldTierEntry.magicDefenseSkillRequired >= tier->minArmorMagicWieldTier && wieldTierEntry.magicDefenseSkillRequired <= tier->maxArmorMagicWieldTier))
 				{
-					INVENTORY_LOC coveredAreas = (INVENTORY_LOC)newItem->InqIntQuality(LOCATIONS_INT, NONE_LOC, TRUE);
 					if (coveredAreas & SHIELD_LOC)
 					{
 						//if both shieldMinArmorBonus and shieldMaxArmorBonus are 0 it means there's no shield in this wieldTier.

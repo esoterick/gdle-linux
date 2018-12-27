@@ -79,7 +79,7 @@ void CWorldLandBlock::ClearOldDatabaseEntries()
 			{
 				try
 				{
-					if (entity->GetID() == entry)
+					if (entity && entity->GetID() == entry)
 					{
 						stillExists = true;
 						break;

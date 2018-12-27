@@ -363,6 +363,8 @@ public:
 	virtual void GivePerksForKill(CWeenieObject *pKilled);
 	void GiveSharedXP(long long amount, bool showText);
 	void GiveXP(long long amount, bool showText = false, bool allegianceXP = false);
+	void GiveSharedLum(long long amount, bool showText);
+	void GiveLum(long long amount, bool showText);
 	virtual void OnGivenXP(long long amount, bool allegianceXP) { }
 	DWORD GiveAttributeXP(STypeAttribute key, DWORD amount);
 	DWORD GiveAttribute2ndXP(STypeAttribute2nd key, DWORD amount);
@@ -578,7 +580,7 @@ public:
 	
 	virtual bool ImmuneToDamage(class CWeenieObject *other);
 	virtual bool IsBusy();
-	bool IsMovingTo();
+	bool IsMovingTo(MovementTypes key = Invalid);
 	bool IsCompletelyIdle();
 	bool HasInterpActions();
 	bool IsBusyOrInAction();
