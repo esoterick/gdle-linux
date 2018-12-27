@@ -209,7 +209,7 @@ private:
 class mysql_statement_base
 {
 protected:
-	mysql_statement_base(MYSQL *dbc) : m_statement(mysql_stmt_init(dbc))
+	mysql_statement_base(MYSQL *dbc) : m_dbc(dbc), m_statement(mysql_stmt_init(dbc))
 	{  }
 
 public:
@@ -230,7 +230,10 @@ public:
 		return true;
 	}
 
+	inline std::string error() const { return mysql_error(m_dbc); }
+
 protected:
+	MYSQL *m_dbc;
 	mysql_stmt_ptr_t m_statement;
 };
 

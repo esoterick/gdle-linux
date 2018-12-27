@@ -404,65 +404,78 @@ bool CDatabaseIO::IDRangeTableExistsAndValid()
 
 std::list<unsigned int> CDatabaseIO::GetNextIDRange(unsigned int rangeStart, unsigned int count)
 {
-	std::list< unsigned int> result;
+	mysql_statement<2> statement = g_pDB2->QueryEx(
+		"SELECT unused FROM idranges WHERE unused > ? limit ?;",
+		rangeStart, count);
 
-	const char *szQuery = "SELECT unused FROM idranges WHERE unused > %u limit %u;";
-
-	if (g_pDB2->Query(szQuery, rangeStart, count))
+	std::list< unsigned int> found;
+	if (statement)
 	{
-		CSQLResult *pRes = g_pDB2->GetResult();
-		if (pRes)
+		unsigned int current = 0;
+		mysql_statement_results<1> result;
+		result.bind(0, current);
+
+		if (statement.bindResults(result))
 		{
-			while (SQLResultRow_t row = pRes->FetchRow())
+			if (result.next())
 			{
-				unsigned int newId = strtoul(row[0], NULL, 10);
-
-				result.push_back(newId);
+				found.push_back(current);
 			}
-
-			delete pRes;
 		}
 	}
 
-	return result;
+	return found;
 }
 
 unsigned int CDatabaseIO::GetHighestWeenieID(unsigned int min_range, unsigned int max_range)
 {
-	unsigned int result = min_range;
+	mysql_statement<2> statement = g_pDB2->QueryEx(
+		"SELECT id FROM weenies WHERE id >= ? AND id < ? ORDER BY id DESC LIMIT 1",
+		min_range, max_range);
 
-	if (g_pDB2->Query(csprintf("SELECT id FROM weenies WHERE id >= %u AND id < %u ORDER BY id DESC LIMIT 1", min_range, max_range)))
+	unsigned int found = 0;
+	if (statement)
 	{
-		CSQLResult *pQueryResult = g_pDB2->GetResult();
-		if (pQueryResult)
-		{
-			if (SQLResultRow_t Row = pQueryResult->FetchRow())
-				result = strtoul(Row[0], NULL, 10);
+		mysql_statement_results<1> result;
+		result.bind(0, found);
 
-			delete pQueryResult;
-			return result;
+		if (statement.bindResults(result))
+		{
+			if (result.next())
+			{
+				return found;
+			}
 		}
 	}
 
-	SERVER_ERROR << "Could not get highest weenie ID for range" << min_range << "-" << max_range << ", returning" << min_range;
-	return result;
+	SERVER_ERROR << "Count not get highest weenie ID for range" << min_range << "-" << max_range << " : " << statement.error();
+	return min_range;
 }
 
 bool CDatabaseIO::IsCharacterNameOpen(const char *name)
 {
-	bool bIsOpen = false;
+	mysql_statement<1> statement = g_pDB2->QueryEx(
+		"SELECT weenie_id FROM characters WHERE name = ?",
+		name);
 
-	if (g_pDB2->Query("SELECT weenie_id FROM characters WHERE name='%s'", g_pDB2->EscapeString(name).c_str()))
+	if (statement)
 	{
-		CSQLResult *pQueryResult = g_pDB2->GetResult();
-		if (pQueryResult)
+		unsigned int id = 0;
+		mysql_statement_results<1> result;
+		result.bind(0, id);
+
+		if (statement.bindResults(result))
 		{
-			bIsOpen = (pQueryResult->ResultRows() == 0);
-			delete pQueryResult;
+			if (result.next())
+			{
+				return false;
+			}
+			return true;
 		}
 	}
 
-	return bIsOpen;
+	SERVER_ERROR << "Error on IsCharacterNameOpen:" << statement.error();
+	return false;
 }
 
 bool CDatabaseIO::IsPlayerCharacter(unsigned int weenie_id)
@@ -591,8 +604,7 @@ bool CDatabaseIO::GetWeenie(unsigned int weenie_id, unsigned int *top_level_obje
 		}
 	}
 
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	SERVER_ERROR << "Error on GetWeenie:" << mysql_error(sql);
+	SERVER_ERROR << "Error on GetWeenie:" << statement.error();
 	return false;
 }
 
