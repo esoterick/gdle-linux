@@ -4033,11 +4033,11 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 
-		if (m_pPlayer->m_bChangingStance)
+		/*if (m_pPlayer->m_bChangingStance)
 		{
 			DEBUG_DATA << "Player changing stance during 0xF61C. Ignoring.";
 			break;
-		}
+		}*/
 
 		if (m_pPlayer->IsDead())
 		{
