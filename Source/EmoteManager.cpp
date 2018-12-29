@@ -321,10 +321,10 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 		DWORD amount = emote.amount;
 	
-		const DWORD amountNeededForMaxXp = skill.GetXpNeededForMaxXp();
-		amount = min(amount, amountNeededForMaxXp);
+		//const DWORD amountNeededForMaxXp = skill.GetXpNeededForMaxXp();
+		//amount = min(amount, amountNeededForMaxXp);
 
-		if (amount > 0)
+		//if (amount > 0)
 			target->GiveSkillXP((STypeSkill)emote.stat, amount, false);
 		break;
 	}
@@ -353,10 +353,10 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (emote.max > 0)
 			xp_to_give = min(xp_to_give, emote.max64);
 
-		const DWORD64 amountNeededForMaxXp = skill.GetXpNeededForMaxXp();
-		xp_to_give = min(xp_to_give, amountNeededForMaxXp);
+		//const DWORD64 amountNeededForMaxXp = skill.GetXpNeededForMaxXp();
+		//xp_to_give = min(xp_to_give, amountNeededForMaxXp);
 
-		if (xp_to_give > 0)
+		//if (xp_to_give > 0)
 			target->GiveSkillXP((STypeSkill)emote.stat, xp_to_give, false);
 		break;
 	}
