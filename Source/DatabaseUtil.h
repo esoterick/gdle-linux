@@ -92,6 +92,10 @@ public:
 	{
 		bind(index, val, val.length());
 	}
+	inline virtual void bind(int index, std::string *val)
+	{
+		bind(index, val, val->length());
+	}
 	inline virtual void bind(int index, std::string &val, size_t length, unsigned long *result_length = nullptr)
 	{
 		_ASSERT(index < m_count);

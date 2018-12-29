@@ -454,9 +454,10 @@ unsigned int CDatabaseIO::GetHighestWeenieID(unsigned int min_range, unsigned in
 
 bool CDatabaseIO::IsCharacterNameOpen(const char *name)
 {
+	std::string tmp(name);
 	mysql_statement<1> statement = g_pDB2->QueryEx(
 		"SELECT weenie_id FROM characters WHERE name = ?",
-		name);
+		tmp);
 
 	if (statement)
 	{
