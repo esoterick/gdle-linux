@@ -44,23 +44,27 @@ void CObjectIDGenerator::LoadState()
 {
 	if (!g_pConfig->UseIncrementalID())
 	{
-		queryInProgress = true;
-		std::list<unsigned int> startupRange = g_pDBIO->GetNextIDRange(m_dwHintDynamicGUID, IDQUEUEMAX);
-		m_dwHintDynamicGUID += IDQUEUEMAX;
+		g_pDB2->QueueAsyncQuery(
+			new AvailableIdQuery(
+				m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState));
+
+		//queryInProgress = true;
+		//std::list<unsigned int> startupRange = g_pDBIO->GetNextIDRange(m_dwHintDynamicGUID, IDQUEUEMAX);
+		//m_dwHintDynamicGUID += IDQUEUEMAX;
 		SaveRangeStart();
 
-		DEBUG_DATA << "New Group count:" << startupRange.size();
+		//DEBUG_DATA << "New Group count:" << startupRange.size();
 
-		for (std::list<unsigned int>::iterator it = startupRange.begin(); it != startupRange.end(); ++it)
-			listOfIdsForWeenies.push(*it);
+		//for (std::list<unsigned int>::iterator it = startupRange.begin(); it != startupRange.end(); ++it)
+		//	listOfIdsForWeenies.push(*it);
 
-		if (listOfIdsForWeenies.empty())
-			outOfIds = true;
+		//if (listOfIdsForWeenies.empty())
+		//	outOfIds = true;
 
-		startupRange.clear();
+		//startupRange.clear();
 
-		m_bLoadingState = false;
-		queryInProgress = false;
+		//m_bLoadingState = false;
+		//queryInProgress = false;
 	}
 	else
 		m_dwHintDynamicGUID = g_pDBIO->GetHighestWeenieID(IDRANGESTART, IDRANGEEND);
@@ -83,10 +87,13 @@ DWORD CObjectIDGenerator::GenerateGUID(eGUIDClass type)
 				return 0;
 			}
 
-			result = listOfIdsForWeenies.front();
-			listOfIdsForWeenies.pop();
+			{
+				std::scoped_lock lock(m_lock);
+				result = listOfIdsForWeenies.front();
+				listOfIdsForWeenies.pop();
+			}
 
-			if (!m_bLoadingState && !queryInProgress && listOfIdsForWeenies.size() < IDQUEUEMIN)
+			if (!m_bLoadingState /*&& !queryInProgress*/ && listOfIdsForWeenies.size() < IDQUEUEMIN)
 			{
 				m_bLoadingState = true;
 				LoadState();
@@ -135,5 +142,72 @@ void CObjectIDGenerator::LoadRangeStart()
 		m_dwHintDynamicGUID = reader.ReadDWORD() + IDQUEUEMIN;
 		if (m_dwHintDynamicGUID < IDRANGESTART)
 			m_dwHintDynamicGUID = IDRANGESTART;
+
+		AvailableIdQuery query(m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState);
+		query.PerformQuery((MYSQL*)g_pDB2->GetInternalConnection());
 	}
+}
+
+bool AvailableIdQuery::PerformQuery(MYSQL *c)
+{
+	if (!c)
+		return false;
+
+	MYSQL_STMT *statement = mysql_stmt_init(c);
+	bool failed = false;
+
+	if (statement)
+	{
+		std::string query = "SELECT unused FROM idranges WHERE unused > ? limit 250000" ;
+		mysql_stmt_prepare(statement, query.c_str(), query.length());
+
+		MYSQL_BIND params = { 0 };
+		params.buffer = &m_start;
+		params.buffer_length = sizeof(uint32_t);
+		params.buffer_type = MYSQL_TYPE_LONG;
+		params.is_unsigned = true;
+
+		failed = mysql_stmt_bind_param(statement, &params);
+		if (!failed)
+		{
+			failed = mysql_stmt_execute(statement);
+			if (!failed)
+			{
+				uint32_t value = 0;
+				MYSQL_BIND result = { 0 };
+				result.buffer = &value;
+				result.buffer_length = sizeof(uint32_t);
+				result.buffer_type = MYSQL_TYPE_LONG;
+				result.is_unsigned = true;
+
+				failed = mysql_stmt_bind_result(statement, &result);
+				bool done = failed;
+
+				while (!done)
+				{
+					std::scoped_lock lock(m_lock);
+
+					for (int i = 0; i < 5000 && !failed; i++)
+					{
+						if (!(done = mysql_stmt_fetch(statement)))
+						{
+							m_queue.push(value);
+							m_start = value;
+						}
+					}
+					std::this_thread::yield();
+				}
+			}
+		}
+
+		mysql_stmt_close(statement);
+	}
+
+	m_busy = false;
+
+	if (failed)
+		SERVER_ERROR << "Error in AvailableIdQuery::PerformQuery: " << mysql_error(c);
+
+	return !failed;
+
 }
