@@ -44,9 +44,24 @@ void CObjectIDGenerator::LoadState()
 {
 	if (!g_pConfig->UseIncrementalID())
 	{
-		g_pDB2->QueueAsyncQuery(
-			new AvailableIdQuery(
-				m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState));
+		CMYSQLQuery *query = nullptr;
+
+		switch (g_pConfig->IDScanType())
+		{
+		case 0:
+			query = new IdRangeTableQuery(
+				m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState);
+			break;
+
+		case 1:
+			query = new ScanWeenieTableQuery(
+				m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState);
+			break;
+		}
+
+		DEBUG_DATA << "Queue ID Scan Type: " << g_pConfig->IDScanType();
+
+		g_pDB2->QueueAsyncQuery(query);
 
 		//queryInProgress = true;
 		//std::list<unsigned int> startupRange = g_pDBIO->GetNextIDRange(m_dwHintDynamicGUID, IDQUEUEMAX);
@@ -143,12 +158,12 @@ void CObjectIDGenerator::LoadRangeStart()
 		if (m_dwHintDynamicGUID < IDRANGESTART)
 			m_dwHintDynamicGUID = IDRANGESTART;
 
-		AvailableIdQuery query(m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState);
+		IdRangeTableQuery query(m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState);
 		query.PerformQuery((MYSQL*)g_pDB2->GetInternalConnection());
 	}
 }
 
-bool AvailableIdQuery::PerformQuery(MYSQL *c)
+bool IdRangeTableQuery::PerformQuery(MYSQL *c)
 {
 	if (!c)
 		return false;
@@ -187,7 +202,7 @@ bool AvailableIdQuery::PerformQuery(MYSQL *c)
 				{
 					std::scoped_lock lock(m_lock);
 
-					for (int i = 0; i < 5000 && !failed; i++)
+					for (int i = 0; i < 2500 && !failed; i++)
 					{
 						if (!(done = mysql_stmt_fetch(statement)))
 						{
@@ -207,6 +222,99 @@ bool AvailableIdQuery::PerformQuery(MYSQL *c)
 
 	if (failed)
 		SERVER_ERROR << "Error in AvailableIdQuery::PerformQuery: " << mysql_error(c);
+
+	return !failed;
+
+}
+
+bool ScanWeenieTableQuery::PerformQuery(MYSQL *c)
+{
+	if (!c)
+		return false;
+
+	MYSQL_STMT *statement = mysql_stmt_init(c);
+	bool failed = false;
+
+	if (statement)
+	{
+		std::string query =
+			"SELECT w.id + 1 AS l, "
+			"(SELECT IFNULL(id, 4278190080) FROM weenies WHERE id > w.id ORDER BY id LIMIT 1) AS u "
+			"FROM weenies w LEFT JOIN weenies l ON l.id = w.id + 1 "
+			"WHERE w.id > ? and l.id is null "
+			"ORDER BY w.id "
+			"LIMIT 100;";
+
+		mysql_stmt_prepare(statement, query.c_str(), query.length());
+
+		MYSQL_BIND params = { 0 };
+		params.buffer = &m_start;
+		params.buffer_length = sizeof(uint32_t);
+		params.buffer_type = MYSQL_TYPE_LONG;
+		params.is_unsigned = true;
+
+		failed = mysql_stmt_bind_param(statement, &params);
+		if (!failed)
+		{
+			DEBUG_DATA << "ScanWeenieTableQuery, start: " << m_start;
+			failed = mysql_stmt_execute(statement);
+			if (!failed)
+			{
+				uint32_t l = 0;
+				uint32_t u = -1;
+				MYSQL_BIND result[2] = { 0 };
+				result[0].buffer = &l;
+				result[0].buffer_length = sizeof(uint32_t);
+				result[0].buffer_type = MYSQL_TYPE_LONG;
+				result[0].is_unsigned = true;
+
+				result[1].buffer = &u;
+				result[1].buffer_length = sizeof(uint32_t);
+				result[1].buffer_type = MYSQL_TYPE_LONG;
+				result[1].is_unsigned = true;
+
+				failed = mysql_stmt_bind_result(statement, result);
+				bool done = failed;
+
+				while (!done)
+				{
+					if (!(done = mysql_stmt_fetch(statement)))
+					{
+						DEBUG_DATA << "ScanWeenieTableQuery, result: " << l << " - " << u;
+						
+						// we need to save the lower bound
+						// that way if this range is ever revisited by the query,
+						// it won't be skipped entirely
+						m_start = l;
+
+						// we need to keep reading results even it we met our target
+						//   to ensure the buffers are all flushed
+						while (l < u && m_queue.size() < IDQUEUEMAX)
+						{
+							{
+								std::scoped_lock lock(m_lock);
+								for (int i = 0; i < 2500 && l < u; i++, l++)
+								{
+									m_queue.push(l);
+								}
+							}
+							// we want to yield after releasing the lock
+							std::this_thread::yield();
+						}
+					}
+				}
+
+				DEBUG_DATA << "ScanWeenieTableQuery, complete";
+			}
+		}
+
+		mysql_stmt_close(statement);
+	}
+
+	m_busy = false;
+
+	if (failed)
+		SERVER_ERROR << "Error in ScanWeenieTableQuery::PerformQuery: " << mysql_error(c);
 
 	return !failed;
 

@@ -12,20 +12,40 @@ enum eGUIDClass {
 	eEphemeral = 4
 };
 
-class AvailableIdQuery : public CMYSQLQuery
+class IdRangeTableQuery : public CMYSQLQuery
 {
 public:
-	AvailableIdQuery(uint32_t &start, uint32_t end, idqueue_t &queue, std::mutex &lock, bool &busy)
+	IdRangeTableQuery(uint32_t &start, uint32_t end, idqueue_t &queue, std::mutex &lock, bool &busy)
 		: m_start(start), m_end(end), m_queue(queue), m_lock(lock), m_busy(busy)
 	{
 	}
 
-	virtual ~AvailableIdQuery() override { };
+	virtual ~IdRangeTableQuery() override { };
 
 	virtual bool PerformQuery(MYSQL *c) override;
 
 protected:
 	uint32_t &m_start;
+	uint32_t m_end;
+	idqueue_t &m_queue;
+	std::mutex &m_lock;
+	bool &m_busy;
+};
+
+class ScanWeenieTableQuery : public CMYSQLQuery
+{
+public:
+	ScanWeenieTableQuery(uint32_t &start, uint32_t end, idqueue_t &queue, std::mutex &lock, bool &busy)
+		: m_start(start), m_end(end), m_queue(queue), m_lock(lock), m_busy(busy)
+	{
+	}
+
+	virtual ~ScanWeenieTableQuery() override { };
+
+	virtual bool PerformQuery(MYSQL *c) override;
+
+protected:
+	uint32_t & m_start;
 	uint32_t m_end;
 	idqueue_t &m_queue;
 	std::mutex &m_lock;
