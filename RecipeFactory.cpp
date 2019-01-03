@@ -17,6 +17,8 @@ void RecipeFactory::Reset()
 
 void RecipeFactory::Initialize()
 {
+	clock_t t = clock();
+
 	WINLOG(Data, Normal, "Loading recipes...\n");
 	SERVER_INFO << "Loading recipes...";
 
@@ -41,17 +43,30 @@ void RecipeFactory::Initialize()
 	if(precursorData.size() > 0)
 		_jsonPrecursorMap.UnPackJson(precursorData);
 
-	if(recipeData.size() > 0)
-		_jsonRecipes.UnPackJson(recipeData);
+	if (recipeData.size() > 0)
+	{
+		PackableListWithJson<JsonCraftOperation> jsonRecipes;
 
-	if(_jsonPrecursorMap.size() > 0 || _jsonRecipes.size() > 0)
+		jsonRecipes.UnPackJson(recipeData);
+
+		for (auto item : jsonRecipes)
+		{
+			m_recipes.emplace(item._recipeID, item);
+		}
+	}
+
+	if(_jsonPrecursorMap.size() > 0 || m_recipes.size() > 0)
 		UpdateCraftTableData();
 
-	if (_jsonRecipes.size() > 0)
+	if (m_recipes.size() > 0)
 		UpdateExitingRecipes();
 
-	WINLOG(Data, Normal, "Finished loading recipes.\n");
-	SERVER_INFO << "Finished loading recipes";
+	t = clock() - t;
+	float s = (float)t / CLOCKS_PER_SEC;
+	//LOG_PRIVATE(Data, Normal, "LocalStorage loaded in %fs\n", (float)t / CLOCKS_PER_SEC);
+
+	WINLOG(Data, Normal, "Finished loading recipes in %fs\n", s);
+	SERVER_INFO << "Finished loading recipes in " << s;
 }
 
 void RecipeFactory::UpdateCraftTableData()
@@ -101,18 +116,19 @@ void RecipeFactory::UpdateCraftTableData()
 
 void RecipeFactory::UpdateExitingRecipes()
 {
-	for (auto pc : _jsonRecipes)
+	for (auto pc : m_recipes)
 	{
-		DWORD recipeIdToUpdate = pc._recipeID;
+		DWORD recipeIdToUpdate = pc.first;
 		bool alreadyAdded = false;
 		for (auto rp : _jsonPrecursorMap)
 		{
-			if (pc._recipeID == rp.RecipeID)
+			if (pc.first == rp.RecipeID)
 			{
 				alreadyAdded = true;
-			}
-			else
 				break;
+			}
+			//else
+			//	break;
 		}
 
 		if (!alreadyAdded)
@@ -121,7 +137,7 @@ void RecipeFactory::UpdateExitingRecipes()
 
 			if (currentRecipe) // recipe found so update it
 			{
-				g_pPortalDataEx->_craftTableData._operations[recipeIdToUpdate] = GetCraftOpertionFromNewRecipe(&pc);
+				g_pPortalDataEx->_craftTableData._operations[recipeIdToUpdate] = GetCraftOpertionFromNewRecipe(&pc.second);
 			}
 		}
 	}
@@ -129,14 +145,20 @@ void RecipeFactory::UpdateExitingRecipes()
 
 bool RecipeFactory::RecipeInJson(DWORD recipeid, JsonCraftOperation *recipe)
 {
-	for (auto rp : _jsonRecipes)
+	recipe_map_t::iterator itr = m_recipes.find(recipeid);
+	if (itr != m_recipes.end())
 	{
-		if (rp._recipeID == recipeid)
-		{
-			*recipe = rp;
-			return true;
-		}
+		*recipe = itr->second;
+		return true;
 	}
+	//for (auto rp : _jsonRecipes)
+	//{
+	//	if (rp._recipeID == recipeid)
+	//	{
+	//		*recipe = rp;
+	//		return true;
+	//	}
+	//}
 
 	return false;
 }
