@@ -33,35 +33,43 @@ CObjectIDGenerator::CObjectIDGenerator()
 		}
 	}
 	LoadRangeStart();
-	LoadState();
+	//LoadState();
 }
 
 CObjectIDGenerator::~CObjectIDGenerator()
 {
 }
 
+CMYSQLQuery* CObjectIDGenerator::GetQuery()
+{
+	CMYSQLQuery *query = nullptr;
+
+	switch (g_pConfig->IDScanType())
+	{
+	case 0:
+		query = new IdRangeTableQuery(
+			m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState);
+		break;
+
+	case 1:
+		query = new ScanWeenieTableQuery(
+			m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState);
+		break;
+	}
+
+	return query;
+}
+
 void CObjectIDGenerator::LoadState()
 {
+	if (m_bLoadingState)
+		return;
+
 	if (!g_pConfig->UseIncrementalID())
 	{
-		CMYSQLQuery *query = nullptr;
-
-		switch (g_pConfig->IDScanType())
-		{
-		case 0:
-			query = new IdRangeTableQuery(
-				m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState);
-			break;
-
-		case 1:
-			query = new ScanWeenieTableQuery(
-				m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState);
-			break;
-		}
-
 		DEBUG_DATA << "Queue ID Scan Type: " << g_pConfig->IDScanType();
 
-		g_pDB2->QueueAsyncQuery(query);
+		g_pDB2->QueueAsyncQuery(GetQuery());
 
 		//queryInProgress = true;
 		//std::list<unsigned int> startupRange = g_pDBIO->GetNextIDRange(m_dwHintDynamicGUID, IDQUEUEMAX);
@@ -152,15 +160,22 @@ void CObjectIDGenerator::LoadRangeStart()
 	DWORD length = 0;
 	if (!g_pConfig->UseIncrementalID())
 	{
-		g_pDBIO->GetGlobalData(DBIO_GLOBAL_ID_RANGE_START, &data, &length);
-		BinaryReader reader(data, length);
-		m_dwHintDynamicGUID = reader.ReadDWORD() + IDQUEUEMIN;
-		if (m_dwHintDynamicGUID < IDRANGESTART)
-			m_dwHintDynamicGUID = IDRANGESTART;
+		if (g_pConfig->IDScanType() == 0)
+		{
+			g_pDBIO->GetGlobalData(DBIO_GLOBAL_ID_RANGE_START, &data, &length);
+			BinaryReader reader(data, length);
+			m_dwHintDynamicGUID = reader.ReadDWORD() + IDQUEUEMIN;
+			if (m_dwHintDynamicGUID < IDRANGESTART)
+				m_dwHintDynamicGUID = IDRANGESTART;
+		}
 
-		IdRangeTableQuery query(m_dwHintDynamicGUID, IDQUEUEMAX, listOfIdsForWeenies, m_lock, m_bLoadingState);
-		query.PerformQuery((MYSQL*)g_pDB2->GetInternalConnection());
+		m_bLoadingState = true;
+
+		std::unique_ptr<CMYSQLQuery> query(GetQuery());
+		query->PerformQuery((MYSQL*)g_pDB2->GetInternalConnection());
 	}
+	else
+		m_dwHintDynamicGUID = g_pDBIO->GetHighestWeenieID(IDRANGESTART, IDRANGEEND);
 }
 
 bool IdRangeTableQuery::PerformQuery(MYSQL *c)
@@ -185,6 +200,8 @@ bool IdRangeTableQuery::PerformQuery(MYSQL *c)
 		failed = mysql_stmt_bind_param(statement, &params);
 		if (!failed)
 		{
+			DEBUG_DATA << "IdRangeTableQuery, start: " << m_start;
+
 			failed = mysql_stmt_execute(statement);
 			if (!failed)
 			{
@@ -213,6 +230,8 @@ bool IdRangeTableQuery::PerformQuery(MYSQL *c)
 					std::this_thread::yield();
 				}
 			}
+
+			DEBUG_DATA << "IdRangeTableQuery, complete";
 		}
 
 		mysql_stmt_close(statement);
@@ -221,7 +240,7 @@ bool IdRangeTableQuery::PerformQuery(MYSQL *c)
 	m_busy = false;
 
 	if (failed)
-		SERVER_ERROR << "Error in AvailableIdQuery::PerformQuery: " << mysql_error(c);
+		SERVER_ERROR << "Error in IdRangeTableQuery::PerformQuery: " << mysql_error(c);
 
 	return !failed;
 
@@ -280,7 +299,7 @@ bool ScanWeenieTableQuery::PerformQuery(MYSQL *c)
 				{
 					if (!(done = mysql_stmt_fetch(statement)))
 					{
-						DEBUG_DATA << "ScanWeenieTableQuery, result: " << l << " - " << u;
+						//DEBUG_DATA << "ScanWeenieTableQuery, result: " << l << " - " << u;
 						
 						// we need to save the lower bound
 						// that way if this range is ever revisited by the query,

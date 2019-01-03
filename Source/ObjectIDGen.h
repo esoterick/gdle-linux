@@ -66,6 +66,9 @@ public:
 	DWORD GenerateGUID(eGUIDClass guidClass);
 
 protected:
+	virtual CMYSQLQuery* GetQuery();
+
+protected:
 	std::mutex m_lock;
 
 	uint32_t m_dwHintDynamicGUID = 0x80000000;
