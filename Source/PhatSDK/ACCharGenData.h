@@ -112,6 +112,15 @@ public:
 	SmartArray<Style_CG> mPantsList;
 	SmartArray<Style_CG> mFootwearList;
 	SmartArray<DWORD> mClothingColorsList;
+
+	inline HairStyle_CG* FindHairStyle(DWORD head_did)
+	{
+		for (int i = 0; i < mHairStyleList.num_used; i++)
+		{
+			if (mHairStyleList.array_data[i].objDesc.firstAPChange->part_id == head_did)
+				return &(mHairStyleList.array_data[i]);
+		}
+	}
 };
 
 class HeritageGroup_CG : public PackObj
