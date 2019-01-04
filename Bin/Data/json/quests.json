@@ -34,8 +34,7 @@
   {
     "key": "mosswartidolitem",
     "value": {
-      "fullname":
-        "You have picked up the Mosswart Item Enchantment teaching idol.",
+      "fullname": "You have picked up the Mosswart Item Enchantment teaching idol.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -58,7 +57,11 @@
   },
   {
     "key": "bestowerbow2",
-    "value": { "fullname": "Deadeye", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Deadeye",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "noteregicideholtburgpickup",
@@ -183,8 +186,7 @@
   {
     "key": "heatoneawacompleted",
     "value": {
-      "fullname":
-        "Hea Toneawa and Aun Mariona quest.  Toneawa sends players on this quest only once a day.",
+      "fullname": "Hea Toneawa and Aun Mariona quest.  Toneawa sends players on this quest only once a day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -216,15 +218,18 @@
   {
     "key": "bunnyslippergiven",
     "value": {
-      "fullname":
-        "CragstoneSlipperCrafter stamps players with this questflag after giving them SlipperBunny or SlipperBunnyWhite",
+      "fullname": "CragstoneSlipperCrafter stamps players with this questflag after giving them SlipperBunny or SlipperBunnyWhite",
       "maxsolves": -1,
       "mindelta": 72000
     }
   },
   {
     "key": "shadowarmorsho3",
-    "value": { "fullname": "Sho Shadow Armor 3", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Sho Shadow Armor 3",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "shardturshtotemassaultmidacquired0105",
@@ -301,8 +306,7 @@
   {
     "key": "axebattlestatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -333,7 +337,11 @@
   },
   {
     "key": "bestowerxbow1",
-    "value": { "fullname": "Sniper", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Sniper",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "empyreanscalemailshirt",
@@ -434,8 +442,7 @@
   {
     "key": "coilzharalimgiven",
     "value": {
-      "fullname":
-        "Player has given this coil and cannot give another for one day.",
+      "fullname": "Player has given this coil and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -443,8 +450,7 @@
   {
     "key": "hizkrientrance1",
     "value": {
-      "fullname":
-        "So far so good you have one part of the entrance exam right!",
+      "fullname": "So far so good you have one part of the entrance exam right!",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -459,7 +465,11 @@
   },
   {
     "key": "mugoswaldtaken",
-    "value": { "fullname": "Took the mug", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "Took the mug",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "colorpuzzlegreenriddle",
@@ -479,11 +489,19 @@
   },
   {
     "key": "donewithhiypthetoad",
-    "value": { "fullname": "Done with Hiyp", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Done with Hiyp",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "bestowerspear1",
-    "value": { "fullname": "Spear Warrior", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Spear Warrior",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "gromnietoothbrushswamp",
@@ -520,8 +538,7 @@
   {
     "key": "axecragstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -616,7 +633,11 @@
   },
   {
     "key": "mowenwinner",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "aunkillerpendantaun",
@@ -741,8 +762,7 @@
   {
     "key": "pickedupburunfetish",
     "value": {
-      "fullname":
-        "You have taken a Burun Fetish from the corpse of a raiding Burun.",
+      "fullname": "You have taken a Burun Fetish from the corpse of a raiding Burun.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -805,7 +825,11 @@
   },
   {
     "key": "virindiisland",
-    "value": { "fullname": "Singularity Island", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Singularity Island",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "caocaoright",
@@ -826,8 +850,7 @@
   {
     "key": "morningstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -859,8 +882,7 @@
   {
     "key": "atlatlstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -964,8 +986,7 @@
   {
     "key": "housestatueshadowgiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -996,7 +1017,11 @@
   },
   {
     "key": "questrumubaspear",
-    "value": { "fullname": "Spear Quest", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "Spear Quest",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "provinggroundslow",
@@ -1105,8 +1130,7 @@
   {
     "key": "shieldkitestatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this shield and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this shield and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -1114,8 +1138,7 @@
   {
     "key": "gaerlandefeated",
     "value": {
-      "fullname":
-        "Player has finished the Gaerlan quest and can receive a reward.",
+      "fullname": "Player has finished the Gaerlan quest and can receive a reward.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -1235,8 +1258,7 @@
   {
     "key": "magicitemtraining6",
     "value": {
-      "fullname":
-        "You have been blessed by Bleeargh to learn item enchantment.",
+      "fullname": "You have been blessed by Bleeargh to learn item enchantment.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -1252,8 +1274,7 @@
   {
     "key": "strongholdtumerokbuilder",
     "value": {
-      "fullname":
-        "Your status for donations to the Tumerok Stronghold Collector.",
+      "fullname": "Your status for donations to the Tumerok Stronghold Collector.",
       "maxsolves": 201,
       "mindelta": 0
     }
@@ -1333,8 +1354,7 @@
   {
     "key": "boygrubfedwrongapple",
     "value": {
-      "fullname":
-        "Has the player fed an apple to the grub without first being infested?",
+      "fullname": "Has the player fed an apple to the grub without first being infested?",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -1454,8 +1474,7 @@
   {
     "key": "geardrudgegiven",
     "value": {
-      "fullname":
-        "Player has given this gear and cannot give another for one day.",
+      "fullname": "Player has given this gear and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -1615,8 +1634,7 @@
   {
     "key": "springskeletongiven",
     "value": {
-      "fullname":
-        "Player has given this spring and cannot give another for one day.",
+      "fullname": "Player has given this spring and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -1680,8 +1698,7 @@
   {
     "key": "witheredatollsword0105",
     "value": {
-      "fullname":
-        "You have acquired the Sterile Sword! Now go out and kill something!",
+      "fullname": "You have acquired the Sterile Sword! Now go out and kill something!",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -1689,8 +1706,7 @@
   {
     "key": "grievversilk",
     "value": {
-      "fullname":
-        "Player has picked up some Grievver Silk and cannot pick up more for 2 weeks.",
+      "fullname": "Player has picked up some Grievver Silk and cannot pick up more for 2 weeks.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -1705,7 +1721,11 @@
   },
   {
     "key": "bestowercooking2",
-    "value": { "fullname": "Iron Chef", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Iron Chef",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "crimsonbrokenhaft2",
@@ -1741,11 +1761,19 @@
   },
   {
     "key": "novquest2",
-    "value": { "fullname": "Novemeber Quest 2", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Novemeber Quest 2",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "bestowerthrownweapons1",
-    "value": { "fullname": "Ballisteer", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Ballisteer",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "chestquestunlockednewbiepoia",
@@ -1877,7 +1905,11 @@
   },
   {
     "key": "shadowarmorsho1",
-    "value": { "fullname": "Sho Shadow Armor 1", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Sho Shadow Armor 1",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "pickedupmapauberean",
@@ -1994,8 +2026,7 @@
   {
     "key": "sanctumxiruenter",
     "value": {
-      "fullname":
-        "You have been acknowledged as one who may enter Xi Ru's temple.",
+      "fullname": "You have been acknowledged as one who may enter Xi Ru's temple.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -2059,8 +2090,7 @@
   {
     "key": "palenqualhoeroagiven",
     "value": {
-      "fullname":
-        "This stamp will alert Aun Imeitanua upon give that they have already spoken with him and should return the item.",
+      "fullname": "This stamp will alert Aun Imeitanua upon give that they have already spoken with him and should return the item.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -2244,8 +2274,7 @@
   {
     "key": "springsclavus",
     "value": {
-      "fullname":
-        "Player has picked up a Sclavus spring and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Sclavus spring and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -2261,8 +2290,7 @@
   {
     "key": "witheredatollaxe0105",
     "value": {
-      "fullname":
-        "You have acquired the Insensate Axe! Now go out and kill something!",
+      "fullname": "You have acquired the Insensate Axe! Now go out and kill something!",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -2366,8 +2394,7 @@
   {
     "key": "recruitsent",
     "value": {
-      "fullname":
-        "Player has finished all quests in Area B Senior Guard has sent him to Area C.",
+      "fullname": "Player has finished all quests in Area B Senior Guard has sent him to Area C.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -2519,8 +2546,7 @@
   {
     "key": "housestatuebanderlinggiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -2568,15 +2594,18 @@
   {
     "key": "gaveunframedderethmap",
     "value": {
-      "fullname":
-        "Player has given unframed Dereth Map to Gharu Furniture Master.",
+      "fullname": "Player has given unframed Dereth Map to Gharu Furniture Master.",
       "maxsolves": 1,
       "mindelta": 0
     }
   },
   {
     "key": "bestowerfletching2",
-    "value": { "fullname": "MasterFletcher", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "MasterFletcher",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "keyrewardpickedup",
@@ -2597,8 +2626,7 @@
   {
     "key": "shieldcragstonestatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this shield and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this shield and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -2606,8 +2634,7 @@
   {
     "key": "geargromnie",
     "value": {
-      "fullname":
-        "Player has picked up a Gromnie Gear and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Gromnie Gear and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -2695,8 +2722,7 @@
   {
     "key": "nutboltgrievver",
     "value": {
-      "fullname":
-        "Player has picked up a Griever nuts and bolts and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Griever nuts and bolts and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -2720,8 +2746,7 @@
   {
     "key": "magicitemtraining2",
     "value": {
-      "fullname":
-        "You have been blessed by Bleeargh to learn item enchantment.",
+      "fullname": "You have been blessed by Bleeargh to learn item enchantment.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -2729,8 +2754,7 @@
   {
     "key": "vendortimarushaman",
     "value": {
-      "fullname":
-        "Timaru NPCs will recognize players who return to them within the next 60 minutes",
+      "fullname": "Timaru NPCs will recognize players who return to them within the next 60 minutes",
       "maxsolves": -1,
       "mindelta": 3600
     }
@@ -2834,8 +2858,7 @@
   {
     "key": "swordshortstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -2907,8 +2930,7 @@
   {
     "key": "springtumerok",
     "value": {
-      "fullname":
-        "Player has picked up a Tumerok spring and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Tumerok spring and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3003,7 +3025,11 @@
   },
   {
     "key": "mowenfighter",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "eyekiviklirhaven3",
@@ -3072,8 +3098,7 @@
   {
     "key": "spoketofadsahil",
     "value": {
-      "fullname":
-        "Player has spoken to Fadsahil al-Tashbi and been given the info on the quest.",
+      "fullname": "Player has spoken to Fadsahil al-Tashbi and been given the info on the quest.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -3193,8 +3218,7 @@
   {
     "key": "tachistatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3274,8 +3298,7 @@
   {
     "key": "emberinvokingpickup",
     "value": {
-      "fullname":
-        "Players can pick up EmberInvoking in 1 month. Added for the March 2004 revision.",
+      "fullname": "Players can pick up EmberInvoking in 1 month. Added for the March 2004 revision.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3283,8 +3306,7 @@
   {
     "key": "tanuacompleted",
     "value": {
-      "fullname":
-        "Once players complete the Tanua quest Bachus Flufens will stamp them so they can only go on the quest once/week.",
+      "fullname": "Once players complete the Tanua quest Bachus Flufens will stamp them so they can only go on the quest once/week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3308,8 +3330,7 @@
   {
     "key": "hizkrientrance3",
     "value": {
-      "fullname":
-        "So far so good you have one part of the entrance exam right!",
+      "fullname": "So far so good you have one part of the entrance exam right!",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -3348,7 +3369,11 @@
   },
   {
     "key": "bestowermace1",
-    "value": { "fullname": "Mace Warrior", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Mace Warrior",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "collectoralchemyghalow",
@@ -3361,8 +3386,7 @@
   {
     "key": "nutboltshadow",
     "value": {
-      "fullname":
-        "Player has picked up a Shadow nuts and bolts and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Shadow nuts and bolts and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3457,7 +3481,11 @@
   },
   {
     "key": "shimshimfirstspeak",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "uniformregicidepickup",
@@ -3478,8 +3506,7 @@
   {
     "key": "vendortimarujeweler",
     "value": {
-      "fullname":
-        "Timaru NPCs will recognize players who return to them within the next 60 minutes",
+      "fullname": "Timaru NPCs will recognize players who return to them within the next 60 minutes",
       "maxsolves": -1,
       "mindelta": 3600
     }
@@ -3511,8 +3538,7 @@
   {
     "key": "audetaungagiven",
     "value": {
-      "fullname":
-        "Aun Shimauri will give players permission to enter the Palenqual dungeon only once per month.",
+      "fullname": "Aun Shimauri will give players permission to enter the Palenqual dungeon only once per month.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3575,7 +3601,11 @@
   },
   {
     "key": "bestowercreature2",
-    "value": { "fullname": "Evoker", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Evoker",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "healingkitpickup",
@@ -3596,8 +3626,7 @@
   {
     "key": "axesicklestatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3685,8 +3714,7 @@
   {
     "key": "illgottenrewards3",
     "value": {
-      "fullname":
-        "Player has handed a reward gem to Kai and has two more trips.",
+      "fullname": "Player has handed a reward gem to Kai and has two more trips.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3782,8 +3810,7 @@
   {
     "key": "notemarionapickup",
     "value": {
-      "fullname":
-        "Hea Toneawa and Aun Mariona quest You can only pickup up NoteMariona once a day.",
+      "fullname": "Hea Toneawa and Aun Mariona quest You can only pickup up NoteMariona once a day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3807,8 +3834,7 @@
   {
     "key": "xbowstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3855,7 +3881,11 @@
   },
   {
     "key": "bestoweraxe2",
-    "value": { "fullname": "Skullsplitter", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Skullsplitter",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "shiveringstoneminor",
@@ -3868,8 +3898,7 @@
   {
     "key": "housestatuemosswartgiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -3949,8 +3978,7 @@
   {
     "key": "portalregicidewitshirepermissiongiven",
     "value": {
-      "fullname":
-        "Player has permission to enter the portal to the bottom of the Witshire Dungeon",
+      "fullname": "Player has permission to enter the portal to the bottom of the Witshire Dungeon",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -4022,8 +4050,7 @@
   {
     "key": "magicitemtraining1",
     "value": {
-      "fullname":
-        "You have been blessed by Bleeargh to learn item enchantment.",
+      "fullname": "You have been blessed by Bleeargh to learn item enchantment.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -4046,7 +4073,11 @@
   },
   {
     "key": "rehirkilled",
-    "value": { "fullname": "You killed Rehir.", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "You killed Rehir.",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "pickedupbookmoarsmiduntranslated",
@@ -4106,13 +4137,16 @@
   },
   {
     "key": "bestowerstaff2",
-    "value": { "fullname": "Master of Staves", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Master of Staves",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "menhirrubblebpickup",
     "value": {
-      "fullname":
-        "Player has picked up MenhirRubbleB_xp and cannot pick it up again for one day",
+      "fullname": "Player has picked up MenhirRubbleB_xp and cannot pick it up again for one day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -4120,8 +4154,7 @@
   {
     "key": "magicitemtraining3",
     "value": {
-      "fullname":
-        "You have been blessed by Bleeargh to learn item enchantment.",
+      "fullname": "You have been blessed by Bleeargh to learn item enchantment.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -4193,8 +4226,7 @@
   {
     "key": "sanctumxiruhevk",
     "value": {
-      "fullname":
-        "You have been given Hevk Loz's blessing to enter Xi Ru's Temple.",
+      "fullname": "You have been given Hevk Loz's blessing to enter Xi Ru's Temple.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -4250,8 +4282,7 @@
   {
     "key": "emptysoulfirebird",
     "value": {
-      "fullname":
-        "You've been allowed to enter the Dungeon for the Firebird part of Empty Soul.",
+      "fullname": "You've been allowed to enter the Dungeon for the Firebird part of Empty Soul.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -4467,8 +4498,7 @@
   {
     "key": "illgottenrewards1",
     "value": {
-      "fullname":
-        "Player has handed a reward gem to Kai and has two more trips.",
+      "fullname": "Player has handed a reward gem to Kai and has two more trips.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -4588,21 +4618,23 @@
   {
     "key": "clonekillerlow",
     "value": {
-      "fullname":
-        "Player has killed a low replica statue and can enter the low statue dungeon.",
+      "fullname": "Player has killed a low replica statue and can enter the low statue dungeon.",
       "maxsolves": 1,
       "mindelta": 0
     }
   },
   {
     "key": "bestoweraxe1",
-    "value": { "fullname": "Axe Warrior", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Axe Warrior",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "portalspacepermissiongiven",
     "value": {
-      "fullname":
-        "Player has received permission to enter the Portal Space dungeon. Created for the March 2004 revision.",
+      "fullname": "Player has received permission to enter the Portal Space dungeon. Created for the March 2004 revision.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -4634,8 +4666,7 @@
   {
     "key": "housestatuesclavusgiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -4714,7 +4745,11 @@
   },
   {
     "key": "mumufirstspeak",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "feb01clquest7",
@@ -4742,7 +4777,11 @@
   },
   {
     "key": "housedeedultra",
-    "value": { "fullname": "House Deed Ultra", "maxsolves": 10, "mindelta": 0 }
+    "value": {
+      "fullname": "House Deed Ultra",
+      "maxsolves": 10,
+      "mindelta": 0
+    }
   },
   {
     "key": "lessershadowarmoraluvian1",
@@ -4787,8 +4826,7 @@
   {
     "key": "receivedarcanepedestal",
     "value": {
-      "fullname":
-        "Player has been given Arcane Pedestal and cannot pick up more for 2 weeks.",
+      "fullname": "Player has been given Arcane Pedestal and cannot pick up more for 2 weeks.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -4852,8 +4890,7 @@
   {
     "key": "gearmosswart",
     "value": {
-      "fullname":
-        "Player has picked up a Mosswart Gear and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Mosswart Gear and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -4876,7 +4913,11 @@
   },
   {
     "key": "kireekilled",
-    "value": { "fullname": "You killed Kiree.", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "You killed Kiree.",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "virindimanacles",
@@ -4928,7 +4969,11 @@
   },
   {
     "key": "hopeslayerobsidiankey",
-    "value": { "fullname": "Obsidian Key", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "Obsidian Key",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "shadowarmoraluvian3",
@@ -4981,7 +5026,7 @@
   {
     "key": "championkillquest1",
     "value": {
-      "fullname": "Kill Aun Ralirea",
+      "fullname": "PERMANENT - Kill Aun Ralirea",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -4997,15 +5042,18 @@
   {
     "key": "bowstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
   },
   {
     "key": "bestowerfletching1",
-    "value": { "fullname": "Fletcher", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Fletcher",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "shoushibraidtrident1204",
@@ -5017,11 +5065,19 @@
   },
   {
     "key": "bestowercooking1",
-    "value": { "fullname": "Chef", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Chef",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "bestowerthrownweapons2",
-    "value": { "fullname": "Projectilist", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Projectilist",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "chestquestunlockednewbiepoib",
@@ -5033,7 +5089,11 @@
   },
   {
     "key": "testhookerquest",
-    "value": { "fullname": "Hookin ain't easy.", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Hookin ain't easy.",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "siraluunclawscissorsuntamed1204",
@@ -5069,7 +5129,11 @@
   },
   {
     "key": "bestoweralchemy1",
-    "value": { "fullname": "Apothecary", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Apothecary",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "gaerlanstave",
@@ -5090,8 +5154,7 @@
   {
     "key": "witheredatollatlatl0105",
     "value": {
-      "fullname":
-        "You have acquired the Anemic Atlatl! Now go out and kill something!",
+      "fullname": "You have acquired the Anemic Atlatl! Now go out and kill something!",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -5122,7 +5185,11 @@
   },
   {
     "key": "bestowerbow1",
-    "value": { "fullname": "Sharpshooter", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Sharpshooter",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "virindikillerdrudgecharm",
@@ -5151,8 +5218,7 @@
   {
     "key": "simistatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -5288,8 +5354,7 @@
   {
     "key": "krankcollectiongolem",
     "value": {
-      "fullname":
-        "You have been given a quest to collect Golem hearts by Captain K'rank.",
+      "fullname": "You have been given a quest to collect Golem hearts by Captain K'rank.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -5313,8 +5378,7 @@
   {
     "key": "housestatueskeletongiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -5426,8 +5490,7 @@
   {
     "key": "housestatuegrievvergiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -5435,8 +5498,7 @@
   {
     "key": "turnedinimagingcrystal",
     "value": {
-      "fullname":
-        "Player has given Slithe the imaging crystal with the required image",
+      "fullname": "Player has given Slithe the imaging crystal with the required image",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -5500,8 +5562,7 @@
   {
     "key": "aunkiller",
     "value": {
-      "fullname":
-        "Timaru Collector will stamp players who bring him Aun Pendants and refuse to trade with them again.",
+      "fullname": "Timaru Collector will stamp players who bring him Aun Pendants and refuse to trade with them again.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -5564,7 +5625,11 @@
   },
   {
     "key": "bestowerxbow2",
-    "value": { "fullname": "Sureshot", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Sureshot",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "collectorfletchingghanewbie",
@@ -5585,8 +5650,7 @@
   {
     "key": "hizkrientrance2",
     "value": {
-      "fullname":
-        "So far so good you have one part of the entrance exam right!",
+      "fullname": "So far so good you have one part of the entrance exam right!",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -5786,8 +5850,7 @@
   {
     "key": "vendortimarubarkeep",
     "value": {
-      "fullname":
-        "Timaru NPCs will recognize players who return to them within the next 60 minutes",
+      "fullname": "Timaru NPCs will recognize players who return to them within the next 60 minutes",
       "maxsolves": -1,
       "mindelta": 3600
     }
@@ -5819,8 +5882,7 @@
   {
     "key": "strongholdbuilder",
     "value": {
-      "fullname":
-        "Your status for donations to all of the Stronghold Collectors.",
+      "fullname": "Your status for donations to all of the Stronghold Collectors.",
       "maxsolves": 100,
       "mindelta": 0
     }
@@ -5828,8 +5890,7 @@
   {
     "key": "bethelcompleted",
     "value": {
-      "fullname":
-        "Bethel of Butterflies once players have brought the amulet to Aun Papileona he will stamp them so he will not send them on the quest again for one week.",
+      "fullname": "Bethel of Butterflies once players have brought the amulet to Aun Papileona he will stamp them so he will not send them on the quest again for one week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -5852,7 +5913,11 @@
   },
   {
     "key": "lubziklancoveapplequest",
-    "value": { "fullname": "DEPRECATED", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "DEPRECATED",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "chestquestlockedextremepoib",
@@ -5913,8 +5978,7 @@
   {
     "key": "housestatuethorstengiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -6025,7 +6089,11 @@
   },
   {
     "key": "bestoweralchemy2",
-    "value": { "fullname": "Alchemist", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Alchemist",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "yaraqbakingpancoveapple1204",
@@ -6158,8 +6226,7 @@
   {
     "key": "housestatuetumerokgiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -6247,8 +6314,7 @@
   {
     "key": "illgottenrewards2",
     "value": {
-      "fullname":
-        "Player has handed a reward gem to Kai and has two more trips.",
+      "fullname": "Player has handed a reward gem to Kai and has two more trips.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -6336,8 +6402,7 @@
   {
     "key": "hizkrientrance4",
     "value": {
-      "fullname":
-        "So far so good you have one part of the entrance exam right!",
+      "fullname": "So far so good you have one part of the entrance exam right!",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -6369,8 +6434,7 @@
   {
     "key": "hizkrientrance",
     "value": {
-      "fullname":
-        "You've been given the entrance exam for Hizk Ri's temple; go pass it!",
+      "fullname": "You've been given the entrance exam for Hizk Ri's temple; go pass it!",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -6394,8 +6458,7 @@
   {
     "key": "springtumerokgiven",
     "value": {
-      "fullname":
-        "Player has given this spring and cannot give another for one day.",
+      "fullname": "Player has given this spring and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -6410,7 +6473,11 @@
   },
   {
     "key": "lubziklanwarmapplepiequest",
-    "value": { "fullname": "DEPRECATED", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "DEPRECATED",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "newbiequeststampyanshi",
@@ -6423,8 +6490,7 @@
   {
     "key": "coilsclavusgiven",
     "value": {
-      "fullname":
-        "Player has given this coil and cannot give another for one day.",
+      "fullname": "Player has given this coil and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -6432,8 +6498,7 @@
   {
     "key": "shieldroundstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this shield and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this shield and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -6456,7 +6521,11 @@
   },
   {
     "key": "asteliarygem",
-    "value": { "fullname": "Asteliary Gem", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "Asteliary Gem",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "virindikillercarenzipeltrabid",
@@ -6517,8 +6586,7 @@
   {
     "key": "bethelcompleted02",
     "value": {
-      "fullname":
-        "Bethel of Butterflies players may pick the key off the boss monster only once a week",
+      "fullname": "Bethel of Butterflies players may pick the key off the boss monster only once a week",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -6526,8 +6594,7 @@
   {
     "key": "ringquest01",
     "value": {
-      "fullname":
-        "Give MenhirBell to any of the five Tumerok drummers on the Marae Plateau",
+      "fullname": "Give MenhirBell to any of the five Tumerok drummers on the Marae Plateau",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -6591,8 +6658,7 @@
   {
     "key": "krankcollectionsclavus",
     "value": {
-      "fullname":
-        "You have been given a quest to collect Sclavus parts by Captain K'rank.",
+      "fullname": "You have been given a quest to collect Sclavus parts by Captain K'rank.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -6680,8 +6746,7 @@
   {
     "key": "vendortimarushopkeep",
     "value": {
-      "fullname":
-        "Timaru NPCs will recognize players who return to them within the next 60 minutes",
+      "fullname": "Timaru NPCs will recognize players who return to them within the next 60 minutes",
       "maxsolves": -1,
       "mindelta": 3600
     }
@@ -6768,7 +6833,11 @@
   },
   {
     "key": "orbasteliary",
-    "value": { "fullname": "Asteliary Orb", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "Asteliary Orb",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "siraluunclawhairpinkithless1204",
@@ -6781,8 +6850,7 @@
   {
     "key": "menhirrubbledpickup",
     "value": {
-      "fullname":
-        "Player has picked up MenhirRubbleD_xp and cannot pick it up again for one day",
+      "fullname": "Player has picked up MenhirRubbleD_xp and cannot pick it up again for one day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -6854,8 +6922,7 @@
   {
     "key": "vendortimaruhealer",
     "value": {
-      "fullname":
-        "Timaru NPCs will recognize players who return to them within the next 60 minutes",
+      "fullname": "Timaru NPCs will recognize players who return to them within the next 60 minutes",
       "maxsolves": -1,
       "mindelta": 3600
     }
@@ -7022,7 +7089,11 @@
   },
   {
     "key": "spokenbobo",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "changedsurveyorsettings",
@@ -7066,7 +7137,11 @@
   },
   {
     "key": "housedeedlow",
-    "value": { "fullname": "House Deed Low", "maxsolves": 4, "mindelta": 0 }
+    "value": {
+      "fullname": "House Deed Low",
+      "maxsolves": 4,
+      "mindelta": 0
+    }
   },
   {
     "key": "chestquestlockednewbiepoic",
@@ -7175,8 +7250,7 @@
   {
     "key": "krankdeliverystonehold",
     "value": {
-      "fullname":
-        "You have been given a quest to deliver something to Stonehold by Captain K'rank.",
+      "fullname": "You have been given a quest to deliver something to Stonehold by Captain K'rank.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -7208,8 +7282,7 @@
   {
     "key": "housestatuegolemgiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -7265,8 +7338,7 @@
   {
     "key": "clonekillermid",
     "value": {
-      "fullname":
-        "Player has killed a midreplica statue and can enter the low statue dungeon.",
+      "fullname": "Player has killed a midreplica statue and can enter the low statue dungeon.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -7281,7 +7353,11 @@
   },
   {
     "key": "housedeedhigh",
-    "value": { "fullname": "House Deed High", "maxsolves": 6, "mindelta": 0 }
+    "value": {
+      "fullname": "House Deed High",
+      "maxsolves": 6,
+      "mindelta": 0
+    }
   },
   {
     "key": "gromnietoothpasteash",
@@ -7301,7 +7377,11 @@
   },
   {
     "key": "bestowerspear2",
-    "value": { "fullname": "Impaler", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Impaler",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "collectoralchemyalulow",
@@ -7402,8 +7482,7 @@
   {
     "key": "springgolem",
     "value": {
-      "fullname":
-        "Player has picked up a Golem spring and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Golem spring and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -7451,8 +7530,7 @@
   {
     "key": "spokewithslithe",
     "value": {
-      "fullname":
-        "Player has spoken with Slithe Tradittor and may go thru portal",
+      "fullname": "Player has spoken with Slithe Tradittor and may go thru portal",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -7467,7 +7545,11 @@
   },
   {
     "key": "bestowersword1",
-    "value": { "fullname": "Swordfighter", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Swordfighter",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "chestquestunlockedlowpoie",
@@ -7512,8 +7594,7 @@
   {
     "key": "philterhizkritaken",
     "value": {
-      "fullname":
-        "You've picked up the ancient philter. Now go collect the blood from the well of bloody tears.",
+      "fullname": "You've picked up the ancient philter. Now go collect the blood from the well of bloody tears.",
       "maxsolves": -1,
       "mindelta": 300
     }
@@ -7569,8 +7650,7 @@
   {
     "key": "menhirrubbleapickup",
     "value": {
-      "fullname":
-        "Player has picked up MenhirRubbleA_xp and cannot pick it up again for one day",
+      "fullname": "Player has picked up MenhirRubbleA_xp and cannot pick it up again for one day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -7666,8 +7746,7 @@
   {
     "key": "witheredatollbow0105",
     "value": {
-      "fullname":
-        "You have acquired the Barren Bow! Now go out and kill something!",
+      "fullname": "You have acquired the Barren Bow! Now go out and kill something!",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -7738,7 +7817,11 @@
   },
   {
     "key": "broodukilled",
-    "value": { "fullname": "You killed Broodu.", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "You killed Broodu.",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "gotatlatlrenegaderaids",
@@ -7775,8 +7858,7 @@
   {
     "key": "nutboltshadowgiven",
     "value": {
-      "fullname":
-        "Player has given this spring and cannot give another for one day.",
+      "fullname": "Player has given this spring and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -7904,8 +7986,7 @@
   {
     "key": "magicitemtraining4",
     "value": {
-      "fullname":
-        "You have been blessed by Bleeargh to learn item enchantment.",
+      "fullname": "You have been blessed by Bleeargh to learn item enchantment.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -7945,15 +8026,18 @@
   {
     "key": "questreconnaissancecompleted0105",
     "value": {
-      "fullname":
-        "Player has given the Flying Machine Plans to Aludi and completed the quest.",
+      "fullname": "Player has given the Flying Machine Plans to Aludi and completed the quest.",
       "maxsolves": -1,
       "mindelta": 72000
     }
   },
   {
     "key": "regaliamask",
-    "value": { "fullname": "Regalia Quest", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "Regalia Quest",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "hizkrifinished",
@@ -8045,7 +8129,11 @@
   },
   {
     "key": "bestowerlife2",
-    "value": { "fullname": "Theurgist", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Theurgist",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "collectoralchemyghamid",
@@ -8082,8 +8170,7 @@
   {
     "key": "strongholdhumanbuilder",
     "value": {
-      "fullname":
-        "Your status for donations to the Human Stronghold Collector.",
+      "fullname": "Your status for donations to the Human Stronghold Collector.",
       "maxsolves": 201,
       "mindelta": 0
     }
@@ -8179,8 +8266,7 @@
   {
     "key": "clonekillerhigh",
     "value": {
-      "fullname":
-        "Player has killed a high replica statue and can enter the low statue dungeon.",
+      "fullname": "Player has killed a high replica statue and can enter the low statue dungeon.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -8212,8 +8298,7 @@
   {
     "key": "tanuacompleted02",
     "value": {
-      "fullname":
-        "Players may pick the key to the figurine altar off the Tumerok Shaman only once per week",
+      "fullname": "Players may pick the key to the figurine altar off the Tumerok Shaman only once per week",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8237,8 +8322,7 @@
   {
     "key": "buruncontact",
     "value": {
-      "fullname":
-        "You have learned that the Renegades mean to make contact with the Burun.",
+      "fullname": "You have learned that the Renegades mean to make contact with the Burun.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -8254,8 +8338,7 @@
   {
     "key": "springskeleton",
     "value": {
-      "fullname":
-        "Player has picked up a Skeleton spring and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Skeleton spring and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8366,7 +8449,11 @@
   },
   {
     "key": "mowenwait",
-    "value": { "fullname": "TBD", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "writingjhongmiaquest",
@@ -8483,8 +8570,7 @@
   {
     "key": "shieldtowerstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this shield and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this shield and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8499,7 +8585,11 @@
   },
   {
     "key": "housedeedmid",
-    "value": { "fullname": "House Deed Mid", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "House Deed Mid",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "templeenlightenmentvervain",
@@ -8528,8 +8618,7 @@
   {
     "key": "palenqualtaiahagiven",
     "value": {
-      "fullname":
-        "This stamp will alert Aun Imeitanua upon give that they have already spoken with him and should return the item.",
+      "fullname": "This stamp will alert Aun Imeitanua upon give that they have already spoken with him and should return the item.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8537,8 +8626,7 @@
   {
     "key": "volkamagiven",
     "value": {
-      "fullname":
-        "Aun Shimauri will give players permission to enter the Palenqual dungeon only once per month.",
+      "fullname": "Aun Shimauri will give players permission to enter the Palenqual dungeon only once per month.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8562,8 +8650,7 @@
   {
     "key": "vendortimaruarmorer",
     "value": {
-      "fullname":
-        "Timaru NPCs will recognize players who return to them within the next 60 minutes",
+      "fullname": "Timaru NPCs will recognize players who return to them within the next 60 minutes",
       "maxsolves": -1,
       "mindelta": 3600
     }
@@ -8587,8 +8674,7 @@
   {
     "key": "staffstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8596,8 +8682,7 @@
   {
     "key": "housestatuebentengiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8621,8 +8706,7 @@
   {
     "key": "palenqualcompleted",
     "value": {
-      "fullname":
-        "This stamp will alert Aun Imeitanua upon use that they have already spoken with him and exchanged their talisman for a weapon.",
+      "fullname": "This stamp will alert Aun Imeitanua upon use that they have already spoken with him and exchanged their talisman for a weapon.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8646,8 +8730,7 @@
   {
     "key": "nutboltgrievvergiven",
     "value": {
-      "fullname":
-        "Player has given this spring and cannot give another for one day.",
+      "fullname": "Player has given this spring and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8671,8 +8754,7 @@
   {
     "key": "nutboltvirindi",
     "value": {
-      "fullname":
-        "Player has picked up a Virindi nuts and bolts and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Virindi nuts and bolts and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8712,8 +8794,7 @@
   {
     "key": "emptysoulzen",
     "value": {
-      "fullname":
-        "You are allowed to use the buffing aspect of the Empy Soul reward.",
+      "fullname": "You are allowed to use the buffing aspect of the Empy Soul reward.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -8857,8 +8938,7 @@
   {
     "key": "questbanderlinghauntcompleted0105",
     "value": {
-      "fullname":
-        "Player has given the Murky Gem to Cyphis and completed quest",
+      "fullname": "Player has given the Murky Gem to Cyphis and completed quest",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -8874,8 +8954,7 @@
   {
     "key": "portalpalenqualpermissiongiven",
     "value": {
-      "fullname":
-        "This flag will alert the portal that players are allowed entry to the dungeon.",
+      "fullname": "This flag will alert the portal that players are allowed entry to the dungeon.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -8947,8 +9026,7 @@
   {
     "key": "krankdeliverywaijhou",
     "value": {
-      "fullname":
-        "You have been given a quest to deliver something to WaiJhou by Captain K'rank.",
+      "fullname": "You have been given a quest to deliver something to WaiJhou by Captain K'rank.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -8988,8 +9066,7 @@
   {
     "key": "magicitemtraining5",
     "value": {
-      "fullname":
-        "You have been blessed by Bleeargh to learn item enchantment.",
+      "fullname": "You have been blessed by Bleeargh to learn item enchantment.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -9053,8 +9130,7 @@
   {
     "key": "swordlongstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9134,8 +9210,7 @@
   {
     "key": "palenqualtewhategiven",
     "value": {
-      "fullname":
-        "This stamp will alert Aun Imeitanua upon give that they have already spoken with him and should return the item.",
+      "fullname": "This stamp will alert Aun Imeitanua upon give that they have already spoken with him and should return the item.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9166,7 +9241,11 @@
   },
   {
     "key": "nuhmudiratokenquestcomplete",
-    "value": { "fullname": "Nuhmudiras Token", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Nuhmudiras Token",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "fenmalaincrystal",
@@ -9195,8 +9274,7 @@
   {
     "key": "invokingauntanuacomplete",
     "value": {
-      "fullname":
-        "Players have completed the Invoker Quest and can do it again in 4 weeks for experience.",
+      "fullname": "Players have completed the Invoker Quest and can do it again in 4 weeks for experience.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9204,8 +9282,7 @@
   {
     "key": "sclavusslayer",
     "value": {
-      "fullname":
-        "Players has collected and worn the flesh of several sclavus.",
+      "fullname": "Players has collected and worn the flesh of several sclavus.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -9213,8 +9290,7 @@
   {
     "key": "coilskeleton",
     "value": {
-      "fullname":
-        "Player has picked up a Skeleton coil and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Skeleton coil and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9222,8 +9298,7 @@
   {
     "key": "housestatuesclavushighgiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9271,8 +9346,7 @@
   {
     "key": "sanctumxirujif",
     "value": {
-      "fullname":
-        "You have been given Jif Loz's blessing to enter Xi Ru's Temple.",
+      "fullname": "You have been given Jif Loz's blessing to enter Xi Ru's Temple.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -9368,8 +9442,7 @@
   {
     "key": "coilthorstengiven",
     "value": {
-      "fullname":
-        "Player has given this coil and cannot give another for one day.",
+      "fullname": "Player has given this coil and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9561,8 +9634,7 @@
   {
     "key": "coilbanderling",
     "value": {
-      "fullname":
-        "Player has picked up a banderling coil and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a banderling coil and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9594,8 +9666,7 @@
   {
     "key": "coilbanderlinggiven",
     "value": {
-      "fullname":
-        "Player has given this coil and cannot give another for one day.",
+      "fullname": "Player has given this coil and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9635,8 +9706,7 @@
   {
     "key": "sanctumxirukir",
     "value": {
-      "fullname":
-        "You have been given Kir Loz's blessing to enter Xi Ru's Temple.",
+      "fullname": "You have been given Kir Loz's blessing to enter Xi Ru's Temple.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -9739,7 +9809,11 @@
   },
   {
     "key": "bestowermace2",
-    "value": { "fullname": "Skullcrusher", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Skullcrusher",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "pickedupbroodqueenhead",
@@ -9768,8 +9842,7 @@
   {
     "key": "coilskeletongiven",
     "value": {
-      "fullname":
-        "Player has given this coil and cannot give another for one day.",
+      "fullname": "Player has given this coil and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9809,8 +9882,7 @@
   {
     "key": "fishingdelay",
     "value": {
-      "fullname":
-        "Player must wait for fishing delay to expire before fishing again.",
+      "fullname": "Player must wait for fishing delay to expire before fishing again.",
       "maxsolves": -1,
       "mindelta": 5
     }
@@ -9826,8 +9898,7 @@
   {
     "key": "menhirrubbleepickup",
     "value": {
-      "fullname":
-        "Player has picked up MenhirRubbleE_xp and cannot pick it up again for one day",
+      "fullname": "Player has picked up MenhirRubbleE_xp and cannot pick it up again for one day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9923,8 +9994,7 @@
   {
     "key": "menhirrubblecpickup",
     "value": {
-      "fullname":
-        "Player has picked up MenhirRubbleC_xp and cannot pick it up again for one day",
+      "fullname": "Player has picked up MenhirRubbleC_xp and cannot pick it up again for one day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -9972,8 +10042,7 @@
   {
     "key": "centralhiveportalok",
     "value": {
-      "fullname":
-        "Kill special Eviscerator in Mt Elyrii Wastland Hive or N Dam to go through the portal to Royal Hive",
+      "fullname": "Kill special Eviscerator in Mt Elyrii Wastland Hive or N Dam to go through the portal to Royal Hive",
       "maxsolves": -1,
       "mindelta": 5400
     }
@@ -9981,8 +10050,7 @@
   {
     "key": "krankdeliverymacniall",
     "value": {
-      "fullname":
-        "You have been given a quest to deliver something to MacNiall by Captain K'rank.",
+      "fullname": "You have been given a quest to deliver something to MacNiall by Captain K'rank.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -10013,7 +10081,11 @@
   },
   {
     "key": "feb01clquest11",
-    "value": { "fullname": "Sasalia's Key", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "Sasalia's Key",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "aunkillersiraluunclawlittoral",
@@ -10042,8 +10114,7 @@
   {
     "key": "vendortimarubowyer",
     "value": {
-      "fullname":
-        "Timaru NPCs will recognize players who return to them within the next 60 minutes",
+      "fullname": "Timaru NPCs will recognize players who return to them within the next 60 minutes",
       "maxsolves": -1,
       "mindelta": 3600
     }
@@ -10051,8 +10122,7 @@
   {
     "key": "gearreedshark",
     "value": {
-      "fullname":
-        "Player has picked up a Reedshark Gear and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Reedshark Gear and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10084,15 +10154,18 @@
   {
     "key": "emptysoulunicorn",
     "value": {
-      "fullname":
-        "You've been allowed to enter the Dungeon for the Unicorn part of Empty Soul.",
+      "fullname": "You've been allowed to enter the Dungeon for the Unicorn part of Empty Soul.",
       "maxsolves": 1,
       "mindelta": 0
     }
   },
   {
     "key": "bestowersword2",
-    "value": { "fullname": "Duelist", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Duelist",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "chestquestunlockedlowpoif",
@@ -10168,7 +10241,11 @@
   },
   {
     "key": "spokenbrighteyes",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "gaerlanfight",
@@ -10205,8 +10282,7 @@
   {
     "key": "housestatuezharalimgiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10214,8 +10290,7 @@
   {
     "key": "housestatuedrudgegiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10223,8 +10298,7 @@
   {
     "key": "springgolemgiven",
     "value": {
-      "fullname":
-        "Player has given this spring and cannot give another for one day.",
+      "fullname": "Player has given this spring and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10240,8 +10314,7 @@
   {
     "key": "springsclavusgiven",
     "value": {
-      "fullname":
-        "Player has given this spring and cannot give another for one day.",
+      "fullname": "Player has given this spring and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10257,8 +10330,7 @@
   {
     "key": "gearmosswartgiven",
     "value": {
-      "fullname":
-        "Player has given this gear and cannot give another for one day.",
+      "fullname": "Player has given this gear and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10314,8 +10386,7 @@
   {
     "key": "tanaegiven",
     "value": {
-      "fullname":
-        "Aun Shimauri will give players permission to enter the Palenqual dungeon only once per month.",
+      "fullname": "Aun Shimauri will give players permission to enter the Palenqual dungeon only once per month.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10323,8 +10394,7 @@
   {
     "key": "asheronemissaryspoken2",
     "value": {
-      "fullname":
-        "Player has visited and conversed with the Emissary after talking to the Arcanum Alchemist a swcond time.",
+      "fullname": "Player has visited and conversed with the Emissary after talking to the Arcanum Alchemist a swcond time.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -10332,8 +10402,7 @@
   {
     "key": "krankcollectionarmoredillo",
     "value": {
-      "fullname":
-        "You have been given a quest to collect Armoredillo hides by Captain K'rank.",
+      "fullname": "You have been given a quest to collect Armoredillo hides by Captain K'rank.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -10364,20 +10433,27 @@
   },
   {
     "key": "knorrgem1",
-    "value": { "fullname": "Received Knorr Gem", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Received Knorr Gem",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "palenqualokanegiven",
     "value": {
-      "fullname":
-        "This stamp will alert Aun Imeitanua upon give that they have already spoken with him and should return the item.",
+      "fullname": "This stamp will alert Aun Imeitanua upon give that they have already spoken with him and should return the item.",
       "maxsolves": -1,
       "mindelta": 72000
     }
   },
   {
     "key": "bestoweritem2",
-    "value": { "fullname": "Artifex", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Artifex",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "mosswarttornshroud",
@@ -10446,8 +10522,7 @@
   {
     "key": "totemgiven",
     "value": {
-      "fullname":
-        "Aun Shimauri has given players permission to enter the Palenqual Caverns",
+      "fullname": "Aun Shimauri has given players permission to enter the Palenqual Caverns",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -10503,8 +10578,7 @@
   {
     "key": "clonekillerextreme",
     "value": {
-      "fullname":
-        "Player has killed a extreme replica statue and can enter the low statue dungeon.",
+      "fullname": "Player has killed a extreme replica statue and can enter the low statue dungeon.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -10576,8 +10650,7 @@
   {
     "key": "spearstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10585,8 +10658,7 @@
   {
     "key": "daggerstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10594,8 +10666,7 @@
   {
     "key": "cestusstatuepickup",
     "value": {
-      "fullname":
-        "Player has picked up this weapons and cannot pick up another one for 1 day",
+      "fullname": "Player has picked up this weapons and cannot pick up another one for 1 day",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10618,7 +10689,11 @@
   },
   {
     "key": "bestowerunarmed1",
-    "value": { "fullname": "Unarmed Brawler", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Unarmed Brawler",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "harbingercompletednuhmudira",
@@ -10726,7 +10801,11 @@
   },
   {
     "key": "shadowarmorsho2",
-    "value": { "fullname": "Sho Shadow Armor 2", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Sho Shadow Armor 2",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "finishednoir1",
@@ -10787,8 +10866,7 @@
   {
     "key": "asheronemissaryspoken1",
     "value": {
-      "fullname":
-        "Player has visited and conversed with the Emissary after talking to the Arcanum Alchemist.",
+      "fullname": "Player has visited and conversed with the Emissary after talking to the Arcanum Alchemist.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -10828,8 +10906,7 @@
   {
     "key": "tanuacompleted01",
     "value": {
-      "fullname":
-        "Players may pick the key to the spear altar off the Tumerok Gladiator only once per week",
+      "fullname": "Players may pick the key to the spear altar off the Tumerok Gladiator only once per week",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10852,11 +10929,19 @@
   },
   {
     "key": "bestowerwar1",
-    "value": { "fullname": "War Magic Adept", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "War Magic Adept",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "bestowerlife1",
-    "value": { "fullname": "Life Magic Adept", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Life Magic Adept",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "bestoweritem1",
@@ -10868,17 +10953,24 @@
   },
   {
     "key": "bestowerstaff1",
-    "value": { "fullname": "Staff Warrior", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Staff Warrior",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "bestowerdagger1",
-    "value": { "fullname": "Dagger Fighter", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Dagger Fighter",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "housestatuereedsharkgiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -10933,7 +11025,11 @@
   },
   {
     "key": "bestowerdagger2",
-    "value": { "fullname": "Slicer", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Slicer",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "emptysoulorb",
@@ -11010,8 +11106,7 @@
   {
     "key": "strongholdlugianbuilder",
     "value": {
-      "fullname":
-        "Your status for donations to the Lugian Stronghold Collector.",
+      "fullname": "Your status for donations to the Lugian Stronghold Collector.",
       "maxsolves": 201,
       "mindelta": 0
     }
@@ -11179,8 +11274,7 @@
   {
     "key": "housestatueskeletonhighgiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -11220,8 +11314,7 @@
   {
     "key": "virindikiller",
     "value": {
-      "fullname":
-        "Ahurenga Collector will stamp players who bring him Virindi jewels and refuse to trade with them again",
+      "fullname": "Ahurenga Collector will stamp players who bring him Virindi jewels and refuse to trade with them again",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -11229,8 +11322,7 @@
   {
     "key": "nutboltvirindigiven",
     "value": {
-      "fullname":
-        "Player has given this spring and cannot give another for one day.",
+      "fullname": "Player has given this spring and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -11245,11 +11337,19 @@
   },
   {
     "key": "bestowerwar2",
-    "value": { "fullname": "Warlock", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Warlock",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "bestowerunarmed2",
-    "value": { "fullname": "Pugilist", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Pugilist",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "gromnietoothpickazure",
@@ -11413,7 +11513,11 @@
   },
   {
     "key": "barkoswaldtaken",
-    "value": { "fullname": "Took the bark", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "Took the bark",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "chestquestunlockedmidpoic",
@@ -11434,8 +11538,7 @@
   {
     "key": "arcanumalchemistspoken3",
     "value": {
-      "fullname":
-        "Player has completed the Isparian Arms quest and is starting again.",
+      "fullname": "Player has completed the Isparian Arms quest and is starting again.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -11443,8 +11546,7 @@
   {
     "key": "coilsclavus",
     "value": {
-      "fullname":
-        "Player has picked up a Sclavus coil and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Sclavus coil and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -11460,8 +11562,7 @@
   {
     "key": "coilbenten",
     "value": {
-      "fullname":
-        "Player has picked up a Ben Ten coil and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Ben Ten coil and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -11493,8 +11594,7 @@
   {
     "key": "nightclubentrance1204",
     "value": {
-      "fullname":
-        "Player has received permission to enter the Night Club duneon! Created for the December 2004 revision.",
+      "fullname": "Player has received permission to enter the Night Club duneon! Created for the December 2004 revision.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -11589,7 +11689,11 @@
   },
   {
     "key": "keerikkilled",
-    "value": { "fullname": "You killed Keerik.", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "You killed Keerik.",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "shellgamecompleted",
@@ -11626,8 +11730,7 @@
   {
     "key": "deservesrollbackrecompense0704",
     "value": {
-      "fullname":
-        "You deserve a free level of XP because you lost two days of gameplay on July 25",
+      "fullname": "You deserve a free level of XP because you lost two days of gameplay on July 25",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -11707,8 +11810,7 @@
   {
     "key": "geardrudge",
     "value": {
-      "fullname":
-        "Player has picked up a Drudge Gear and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Drudge Gear and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -11811,13 +11913,16 @@
   },
   {
     "key": "gotspeargivenheart",
-    "value": { "fullname": "got the spear", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "got the spear",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "pickedupmosswartstonedeath",
     "value": {
-      "fullname":
-        "You have taken a Mosswart Mourning Stone from a Mosswart Corpse.",
+      "fullname": "You have taken a Mosswart Mourning Stone from a Mosswart Corpse.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -11856,11 +11961,19 @@
   },
   {
     "key": "speakcorrect",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "speakincorrect",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "gotolthoiatlatl",
@@ -11881,8 +11994,7 @@
   {
     "key": "receiveddecorationderethmapunframed",
     "value": {
-      "fullname":
-        "Player has been given unframed Dereth Map and cannot pick up more for 2 weeks.",
+      "fullname": "Player has been given unframed Dereth Map and cannot pick up more for 2 weeks.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -11914,8 +12026,7 @@
   {
     "key": "emberbrightgivennew",
     "value": {
-      "fullname":
-        "Player has received the Bright Ember from Aun Tanua. Created for the March 2004 revision.",
+      "fullname": "Player has received the Bright Ember from Aun Tanua. Created for the March 2004 revision.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -12211,8 +12322,7 @@
   {
     "key": "forgeessencexprewardreceived0105",
     "value": {
-      "fullname":
-        "You handed a Western Forge Essence to an Agent of the Arcanum.",
+      "fullname": "You handed a Western Forge Essence to an Agent of the Arcanum.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -12460,8 +12570,7 @@
   {
     "key": "housestatuegromniegiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -12508,7 +12617,11 @@
   },
   {
     "key": "novquest6",
-    "value": { "fullname": "Novemeber Quest 6", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Novemeber Quest 6",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "renegadehealing",
@@ -12633,8 +12746,7 @@
   {
     "key": "krankdeliverydryreach",
     "value": {
-      "fullname":
-        "You have been given a quest to deliver something to Dryreach by Captain K'rank.",
+      "fullname": "You have been given a quest to deliver something to Dryreach by Captain K'rank.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -12777,15 +12889,27 @@
   },
   {
     "key": "popofirstspeak",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "caocaofirstspeak",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "tuskermask",
-    "value": { "fullname": "TBD", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "TBD",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "renegademanaoil",
@@ -12878,8 +13002,7 @@
   {
     "key": "coilzharalim",
     "value": {
-      "fullname":
-        "Player has picked up a Zharalim coil and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Zharalim coil and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -12911,8 +13034,7 @@
   {
     "key": "emptysouldragon",
     "value": {
-      "fullname":
-        "You've been allowed to enter the Dungeon for the Dragon part of Empty Soul.",
+      "fullname": "You've been allowed to enter the Dungeon for the Dragon part of Empty Soul.",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -12943,7 +13065,11 @@
   },
   {
     "key": "arikasspoken",
-    "value": { "fullname": "Spoken to Arikas", "maxsolves": 1, "mindelta": 0 }
+    "value": {
+      "fullname": "Spoken to Arikas",
+      "maxsolves": 1,
+      "mindelta": 0
+    }
   },
   {
     "key": "ashbaneturnedin",
@@ -12972,8 +13098,7 @@
   {
     "key": "housestatuevirindigiven",
     "value": {
-      "fullname":
-        "Player has given received this house statue and can't get another one for a week.",
+      "fullname": "Player has given received this house statue and can't get another one for a week.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -12981,8 +13106,7 @@
   {
     "key": "coilbentengiven",
     "value": {
-      "fullname":
-        "Player has given this coil and cannot give another for one day.",
+      "fullname": "Player has given this coil and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -12990,8 +13114,7 @@
   {
     "key": "geargromniegiven",
     "value": {
-      "fullname":
-        "Player has given this gear and cannot give another for one day.",
+      "fullname": "Player has given this gear and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -12999,8 +13122,7 @@
   {
     "key": "gearreedsharkgiven",
     "value": {
-      "fullname":
-        "Player has given this gear and cannot give another for one day.",
+      "fullname": "Player has given this gear and cannot give another for one day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -13008,8 +13130,7 @@
   {
     "key": "coilthorsten",
     "value": {
-      "fullname":
-        "Player has picked up a Thorsten coil and cannot pick up another for 1 day.",
+      "fullname": "Player has picked up a Thorsten coil and cannot pick up another for 1 day.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -13025,8 +13146,7 @@
   {
     "key": "palenqualwaaikagiven",
     "value": {
-      "fullname":
-        "This stamp will alert Aun Imeitanua upon give that they have already spoken with him and should return the item.",
+      "fullname": "This stamp will alert Aun Imeitanua upon give that they have already spoken with him and should return the item.",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -13041,7 +13161,11 @@
   },
   {
     "key": "turshscalp",
-    "value": { "fullname": "Tursh Scalp", "maxsolves": -1, "mindelta": 72000 }
+    "value": {
+      "fullname": "Tursh Scalp",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   },
   {
     "key": "polarursuin",
@@ -13076,7 +13200,7 @@
     }
   },
   {
-    "key": "polardillo",
+    "key": "PolarDilloTask",
     "value": {
       "fullname": "Polar Dillo Kill Task Main Flag",
       "maxsolves": -1,
@@ -13084,7 +13208,7 @@
     }
   },
   {
-    "key": "polardillokillcount",
+    "key": "PolarDilloKills",
     "value": {
       "fullname": "Polar Dillo Kill Counter",
       "maxsolves": 10,
@@ -13368,7 +13492,7 @@
     "value": {
       "fullname": "Insatiable Eater Jaw",
       "maxsolves": -1,
-      "mindelta": 72000
+      "mindelta": 518400
     }
   },
   {
@@ -13892,7 +14016,7 @@
     }
   },
   {
-    "key": "EbonGromnieKillTask",
+    "key": "EbonGromnieTask",
     "value": {
       "fullname": "Ebon Gromnie Kill Task",
       "maxsolves": -1,
@@ -13900,7 +14024,7 @@
     }
   },
   {
-    "key": "ebongromniekillcount",
+    "key": "EbonGromnieKills",
     "value": {
       "fullname": "Ebon Gromnie Kill Counter",
       "maxsolves": 25,
@@ -14436,7 +14560,7 @@
     }
   },
   {
-    "key": "IronSpinedChittickKillTask",
+    "key": "IronSpinedChittickTask",
     "value": {
       "fullname": "Iron Spined Chittick Kill Task",
       "maxsolves": -1,
@@ -14444,7 +14568,7 @@
     }
   },
   {
-    "key": "ironspinedchittickkillcount",
+    "key": "IronSpinedChittickKills",
     "value": {
       "fullname": "Iron Spined Chittick Kill Counter",
       "maxsolves": 50,
@@ -15966,7 +16090,7 @@
   {
     "key": "ChasingOswaldDone",
     "value": {
-      "fullname": "Chasing Oswald Quest",
+      "fullname": "PERMANENT - Chasing Oswald Quest",
       "maxsolves": 1,
       "mindelta": -1
     }
@@ -16015,6 +16139,70 @@
     "key": "GearKnightParts",
     "value": {
       "fullname": "Gear Knight Parts Collected Initiate Society",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "LesserBenedictionAug",
+    "value": {
+      "fullname": "PERMANENT - Completion check for Asheron's Lesser Benediction Augment",
+      "maxsolves": 1,
+      "mindelta": -1
+    }
+  },
+  {
+    "key": "tothebarkeep",
+    "value": {
+      "fullname": "PERMANENT - Lifestone Greeter Complete",
+      "maxsolves": 1,
+      "mindelta": -1
+    }
+  },
+  {
+    "key": "topathwarden",
+    "value": {
+      "fullname": "PERMANENT - Contract Greeter Complete",
+      "maxsolves": 1,
+      "mindelta": -1
+    }
+  },
+  {
+    "key": "pathwardencomplete",
+    "value": {
+      "fullname": "PERMANENT - Pathwarden Complete",
+      "maxsolves": 1,
+      "mindelta": -1
+    }
+  },
+  {
+    "key": "PlatinumInvaderLordHelm",
+    "value": {
+      "fullname": "Timer for Platinum Lord Helm",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "SilverInvaderLordHelm",
+    "value": {
+      "fullname": "Timer for Silver Lord Helm",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "CopperInvaderLordHelm",
+    "value": {
+      "fullname": "Timer for Copper Lord Helm",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "GoldInvaderLordHelm",
+    "value": {
+      "fullname": "Timer for Gold Lord Helm",
       "maxsolves": -1,
       "mindelta": 72000
     }
