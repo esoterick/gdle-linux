@@ -15,9 +15,7 @@ public:
 
 
 private:
-	//PackableHashTableWithJson<DWORD, JsonCraftOperation> *_recipesFromJson = NULL;
 	PackableListWithJson<CraftPrecursor> _jsonPrecursorMap;
-	//PackableListWithJson<JsonCraftOperation> _jsonRecipes;
 
 	recipe_map_t m_recipes;
 

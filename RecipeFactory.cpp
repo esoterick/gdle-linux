@@ -23,7 +23,7 @@ void RecipeFactory::Initialize()
 	SERVER_INFO << "Loading recipes...";
 
 	json precursorData;
-	std::ifstream rpcStream("data\\json\\recipeprecursors.json");
+	std::ifstream rpcStream(g_pGlobals->GetGameFile("data\\json\\recipeprecursors.json"));
 	if (rpcStream.is_open())
 	{
 
@@ -33,7 +33,7 @@ void RecipeFactory::Initialize()
 	}
 
 	json recipeData;
-	std::ifstream rcStream("data\\json\\recipes.json");
+	std::ifstream rcStream(g_pGlobals->GetGameFile("data\\json\\recipes.json"));
 	if (rcStream.is_open())
 	{
 		rcStream >> recipeData;
@@ -63,7 +63,6 @@ void RecipeFactory::Initialize()
 
 	t = clock() - t;
 	float s = (float)t / CLOCKS_PER_SEC;
-	//LOG_PRIVATE(Data, Normal, "LocalStorage loaded in %fs\n", (float)t / CLOCKS_PER_SEC);
 
 	WINLOG(Data, Normal, "Finished loading recipes in %fs\n", s);
 	SERVER_INFO << "Finished loading recipes in " << s;
@@ -127,8 +126,6 @@ void RecipeFactory::UpdateExitingRecipes()
 				alreadyAdded = true;
 				break;
 			}
-			//else
-			//	break;
 		}
 
 		if (!alreadyAdded)
@@ -151,14 +148,6 @@ bool RecipeFactory::RecipeInJson(DWORD recipeid, JsonCraftOperation *recipe)
 		*recipe = itr->second;
 		return true;
 	}
-	//for (auto rp : _jsonRecipes)
-	//{
-	//	if (rp._recipeID == recipeid)
-	//	{
-	//		*recipe = rp;
-	//		return true;
-	//	}
-	//}
 
 	return false;
 }
