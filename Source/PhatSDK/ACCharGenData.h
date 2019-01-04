@@ -120,6 +120,7 @@ public:
 			if (mHairStyleList.array_data[i].objDesc.firstAPChange->part_id == head_did)
 				return &(mHairStyleList.array_data[i]);
 		}
+		return nullptr;
 	}
 };
 
