@@ -2357,6 +2357,13 @@ void CWeenieObject::GiveSkillCredits(DWORD amount, bool showText)
 	}
 }
 
+DWORD CWeenieObject::GetSkillCredits()
+{
+	DWORD unassignedCredits = 0;
+	m_Qualities.InqInt(AVAILABLE_SKILL_CREDITS_INT, *(int *)&unassignedCredits);
+	return unassignedCredits;
+}
+
 void CWeenieObject::SendText(const char* szText, long lColor)
 {
 	SendNetMessage(ServerText(szText, lColor), PRIVATE_MSG, FALSE, TRUE);
