@@ -115,12 +115,6 @@ DWORD CObjectIDGenerator::GenerateGUID(eGUIDClass type)
 				result = listOfIdsForWeenies.front();
 				listOfIdsForWeenies.pop();
 			}
-
-			if (!m_bLoadingState /*&& !queryInProgress*/ && listOfIdsForWeenies.size() < IDQUEUEMIN)
-			{
-				m_bLoadingState = true;
-				LoadState();
-			}
 		}
 		else
 		{
@@ -176,6 +170,15 @@ void CObjectIDGenerator::LoadRangeStart()
 	}
 	else
 		m_dwHintDynamicGUID = g_pDBIO->GetHighestWeenieID(IDRANGESTART, IDRANGEEND);
+}
+
+void CObjectIDGenerator::Think()
+{
+	if (!m_bLoadingState && listOfIdsForWeenies.size() < IDQUEUEMIN)
+	{
+		m_bLoadingState = true;
+		LoadState();
+	}
 }
 
 bool IdRangeTableQuery::PerformQuery(MYSQL *c)

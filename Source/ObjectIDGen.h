@@ -65,6 +65,8 @@ public:
 
 	DWORD GenerateGUID(eGUIDClass guidClass);
 
+	void Think();
+
 protected:
 	virtual CMYSQLQuery* GetQuery();
 
