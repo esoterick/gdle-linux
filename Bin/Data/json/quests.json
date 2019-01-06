@@ -5026,7 +5026,7 @@
   {
     "key": "championkillquest1",
     "value": {
-      "fullname": "PERMANENT - Kill Aun Ralirea",
+      "fullname": "Kill Aun Ralirea",
       "maxsolves": -1,
       "mindelta": 72000
     }
@@ -7738,7 +7738,7 @@
   {
     "key": "arantahkill1",
     "value": {
-      "fullname": "Give Hea Arantah FigurineRalirea",
+      "fullname": "PERMANENT - Give Hea Arantah FigurineRalirea",
       "maxsolves": 1,
       "mindelta": 0
     }
@@ -16205,6 +16205,30 @@
       "fullname": "Timer for Gold Lord Helm",
       "maxsolves": -1,
       "mindelta": 72000
+    }
+  },
+  {
+    "key": "fachubfolthid",
+    "value": {
+      "fullname": "PERMANENT - FC Dagger of Tikola Quest",
+      "maxsolves": 1,
+      "mindelta": -1
+    }
+  },
+  {
+    "key": "fachubglendenwood",
+    "value": {
+      "fullname": "PERMANENT - FC Glenden Wood Dungeon Quest",
+      "maxsolves": 1,
+      "mindelta": -1
+    }
+  },
+  {
+    "key": "fachubmosswartcamp",
+    "value": {
+      "fullname": "PERMANENT - FC Mosswart Ice Tachi Quest",
+      "maxsolves": 1,
+      "mindelta": -1
     }
   }
 ]
