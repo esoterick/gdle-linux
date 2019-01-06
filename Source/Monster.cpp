@@ -75,11 +75,7 @@ void CMonsterWeenie::ApplyQualityOverrides()
 	// hair/head
 	if (m_Qualities.InqDataID(HEAD_OBJECT_DID, tmp))
 	{
-		for (int i = 0; i < sex->mHairStyleList.num_used; i++)
-		{
-			if (sex->mHairStyleList.array_data[i].objDesc.firstAPChange->part_id == tmp)
-				hair = &(sex->mHairStyleList.array_data[i]);
-		}
+		hair = sex->FindHairStyle(tmp);
 	}
 	else
 	{
@@ -2247,55 +2243,34 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 	if (m_Qualities.InqDataID(EYES_PALETTE_DID, eye_palette_id))
 		objDesc.AddSubpalette(new Subpalette(eye_palette_id, 0x20 << 3, 0x8 << 3));
 
-	/*
-	std::list<CWeenieObject *> wieldedClothings;
-	Container_GetWieldedByMask(wieldedClothings, CLOTHING_LOC);
-	wieldedClothings.sort(ClothingPrioritySorter);
-
-	for (auto clothing : wieldedClothings)
-	{
-		if (clothing->IsHelm())
-		{
-			if (!ShowHelm())
-				continue;
-		}
-
-		DWORD clothing_table_id = clothing->InqDIDQuality(CLOTHINGBASE_DID, 0);
-		DWORD palette_template_key = clothing->InqIntQuality(PALETTE_TEMPLATE_INT, 0);
-
-		if (clothing_table_id && !clothing->IsAvatarJumpsuit())
-		{
-			ClothingTable *clothingTable = ClothingTable::Get(clothing_table_id);
-
-			if (clothingTable)
-			{
-				ObjDesc od;
-				ShadePackage shades(clothing->InqFloatQuality(SHADE_FLOAT, 0.0));
-
-				double shadeVal;
-				if (clothing->m_Qualities.InqFloat(SHADE2_FLOAT, shadeVal))
-					shades._val[1] = shadeVal;
-				if (clothing->m_Qualities.InqFloat(SHADE3_FLOAT, shadeVal))
-					shades._val[2] = shadeVal;
-				if (clothing->m_Qualities.InqFloat(SHADE4_FLOAT, shadeVal))
-					shades._val[3] = shadeVal;
-
-				clothingTable->BuildObjDesc(GetSetupID(), palette_template_key, &shades, &od);
-				objDesc += od;
-
-				ClothingTable::Release(clothingTable);
-			}
-		}
-		else
-		{
-			objDesc += clothing->m_WornObjDesc;
-		}
-	}
-	*/
 
 	std::list<CWeenieObject *> wieldedArmors;
 	Container_GetWieldedByMask(wieldedArmors, CLOTHING_LOC | ARMOR_LOC);
 	wieldedArmors.sort(ClothingPrioritySorter);
+
+	DWORD setup_id = 0;
+	m_Qualities.InqDataID(SETUP_DID, setup_id);
+
+	// some heritage groups have alternate setups (undead)
+	// we need to get the base gender setup or clothing tables won't work
+	int group = 1;
+	int gender = 1;
+	if (m_Qualities.InqInt(HERITAGE_GROUP_INT, group) && m_Qualities.InqInt(GENDER_INT, gender))
+	{
+		HeritageGroup_CG *heritage = CachedCharGenData->mHeritageGroupList.lookup(group);
+		Sex_CG *sex = heritage->mGenderList.lookup(gender);
+
+		DWORD tmp = 0;
+		HairStyle_CG *hair = nullptr;
+
+		if (m_Qualities.InqDataID(HEAD_OBJECT_DID, tmp))
+		{
+			hair = sex->FindHairStyle(tmp);
+		}
+
+		if (hair && hair->alternateSetup == setup_id)
+			setup_id = sex->setup;
+	}
 
 	for (auto armor : wieldedArmors)
 	{
@@ -2325,8 +2300,8 @@ void CMonsterWeenie::GetObjDesc(ObjDesc &objDesc)
 				if (armor->m_Qualities.InqFloat(SHADE4_FLOAT, shadeVal))
 					shades._val[3] = shadeVal;
 
-				clothingTable->BuildObjDesc(GetSetupID(), palette_template_key, &shades, &od);
-				objDesc += od;
+				if (clothingTable->BuildObjDesc(setup_id, palette_template_key, &shades, &od))
+					objDesc += od;
 
 				ClothingTable::Release(clothingTable);
 			}

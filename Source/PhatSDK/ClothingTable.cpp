@@ -46,7 +46,8 @@ BOOL ClothingTable::BuildObjDesc(DWORD setup, DWORD pt, ShadePackage *shades, Ob
 	{
 		// TODO: MISSING CODE HERE TO HANDLE OTHER RACES
 
-		pClothingBase = _cloBaseHash.lookup(0x02000001); // HUMAN MALE
+		//pClothingBase = _cloBaseHash.lookup(0x02000001); // HUMAN MALE
+		return FALSE;
 	}
 
 	if (!pClothingBase)
