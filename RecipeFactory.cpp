@@ -17,11 +17,13 @@ void RecipeFactory::Reset()
 
 void RecipeFactory::Initialize()
 {
+	clock_t t = clock();
+
 	WINLOG(Data, Normal, "Loading recipes...\n");
 	SERVER_INFO << "Loading recipes...";
 
 	json precursorData;
-	std::ifstream rpcStream("data\\json\\recipeprecursors.json");
+	std::ifstream rpcStream(g_pGlobals->GetGameFile("data\\json\\recipeprecursors.json"));
 	if (rpcStream.is_open())
 	{
 
@@ -31,7 +33,7 @@ void RecipeFactory::Initialize()
 	}
 
 	json recipeData;
-	std::ifstream rcStream("data\\json\\recipes.json");
+	std::ifstream rcStream(g_pGlobals->GetGameFile("data\\json\\recipes.json"));
 	if (rcStream.is_open())
 	{
 		rcStream >> recipeData;
@@ -41,17 +43,29 @@ void RecipeFactory::Initialize()
 	if(precursorData.size() > 0)
 		_jsonPrecursorMap.UnPackJson(precursorData);
 
-	if(recipeData.size() > 0)
-		_jsonRecipes.UnPackJson(recipeData);
+	if (recipeData.size() > 0)
+	{
+		PackableListWithJson<JsonCraftOperation> jsonRecipes;
 
-	if(_jsonPrecursorMap.size() > 0 || _jsonRecipes.size() > 0)
+		jsonRecipes.UnPackJson(recipeData);
+
+		for (auto item : jsonRecipes)
+		{
+			m_recipes.emplace(item._recipeID, item);
+		}
+	}
+
+	if(_jsonPrecursorMap.size() > 0 || m_recipes.size() > 0)
 		UpdateCraftTableData();
 
-	if (_jsonRecipes.size() > 0)
+	if (m_recipes.size() > 0)
 		UpdateExitingRecipes();
 
-	WINLOG(Data, Normal, "Finished loading recipes.\n");
-	SERVER_INFO << "Finished loading recipes";
+	t = clock() - t;
+	float s = (float)t / CLOCKS_PER_SEC;
+
+	WINLOG(Data, Normal, "Finished loading recipes in %fs\n", s);
+	SERVER_INFO << "Finished loading recipes in " << s;
 }
 
 void RecipeFactory::UpdateCraftTableData()
@@ -101,18 +115,17 @@ void RecipeFactory::UpdateCraftTableData()
 
 void RecipeFactory::UpdateExitingRecipes()
 {
-	for (auto pc : _jsonRecipes)
+	for (auto pc : m_recipes)
 	{
-		DWORD recipeIdToUpdate = pc._recipeID;
+		DWORD recipeIdToUpdate = pc.first;
 		bool alreadyAdded = false;
 		for (auto rp : _jsonPrecursorMap)
 		{
-			if (pc._recipeID == rp.RecipeID)
+			if (pc.first == rp.RecipeID)
 			{
 				alreadyAdded = true;
-			}
-			else
 				break;
+			}
 		}
 
 		if (!alreadyAdded)
@@ -121,7 +134,7 @@ void RecipeFactory::UpdateExitingRecipes()
 
 			if (currentRecipe) // recipe found so update it
 			{
-				g_pPortalDataEx->_craftTableData._operations[recipeIdToUpdate] = GetCraftOpertionFromNewRecipe(&pc);
+				g_pPortalDataEx->_craftTableData._operations[recipeIdToUpdate] = GetCraftOpertionFromNewRecipe(&pc.second);
 			}
 		}
 	}
@@ -129,13 +142,11 @@ void RecipeFactory::UpdateExitingRecipes()
 
 bool RecipeFactory::RecipeInJson(DWORD recipeid, JsonCraftOperation *recipe)
 {
-	for (auto rp : _jsonRecipes)
+	recipe_map_t::iterator itr = m_recipes.find(recipeid);
+	if (itr != m_recipes.end())
 	{
-		if (rp._recipeID == recipeid)
-		{
-			*recipe = rp;
-			return true;
-		}
+		*recipe = itr->second;
+		return true;
 	}
 
 	return false;

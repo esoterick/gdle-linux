@@ -18472,7 +18472,7 @@
       },
       {
         "category": "Footwear",
-        "possibleMaterials": ["cloth"],
+        "possibleMaterials": ["leather"],
         "entries": [
           {
             "name": "Loafers",
@@ -18480,6 +18480,7 @@
           },
           {
             "name": "Slippers",
+            "possibleMaterials": ["cloth"],
             "wcid": 133
           },
           {
@@ -18491,8 +18492,8 @@
             "wcid": 129
           },
           {
-            "name": "Boots",
-            "wcid": 115
+            "name": "Viamontian Laced Boots",
+            "wcid": 31249
           }
         ]
       }
