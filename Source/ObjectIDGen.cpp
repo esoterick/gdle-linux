@@ -260,22 +260,35 @@ bool ScanWeenieTableQuery::PerformQuery(MYSQL *c)
 	if (statement)
 	{
 		std::string query =
-			"SELECT w.id + 1 AS l, "
-			"(SELECT IFNULL(id, 4278190080) FROM weenies WHERE id > w.id ORDER BY id LIMIT 1) AS u "
-			"FROM weenies w LEFT JOIN weenies l ON l.id = w.id + 1 "
-			"WHERE w.id > ? and l.id is null "
-			"ORDER BY w.id "
-			"LIMIT 100;";
+			"SELECT wo.id + 1 AS l, "
+			"IFNULL((SELECT id FROM weenies WHERE id > wo.id ORDER BY id LIMIT 1), 4278190080) AS u "
+			"FROM ("
+			"SELECT w.id FROM weenies w LEFT JOIN weenies u ON u.id = w.id + 1 "
+			"WHERE w.id > ? AND u.id IS NULL "
+			"UNION SELECT ? id) wo "
+			"LIMIT 250;";
+
+		//std::string query =
+		//	"SELECT w.id + 1 AS l, "
+		//	"(SELECT IFNULL(id, 4278190080) FROM weenies WHERE id > w.id ORDER BY id LIMIT 1) AS u "
+		//	"FROM weenies w LEFT JOIN weenies l ON l.id = w.id + 1 "
+		//	"WHERE w.id > ? and l.id is null "
+		//	"ORDER BY w.id "
+		//	"LIMIT 100;";
 
 		mysql_stmt_prepare(statement, query.c_str(), query.length());
 
-		MYSQL_BIND params = { 0 };
-		params.buffer = &m_start;
-		params.buffer_length = sizeof(uint32_t);
-		params.buffer_type = MYSQL_TYPE_LONG;
-		params.is_unsigned = true;
+		MYSQL_BIND params[2] = { 0 };
+		params[0].buffer = &m_start;
+		params[0].buffer_length = sizeof(uint32_t);
+		params[0].buffer_type = MYSQL_TYPE_LONG;
+		params[0].is_unsigned = true;
+		params[1].buffer = &m_start;
+		params[1].buffer_length = sizeof(uint32_t);
+		params[1].buffer_type = MYSQL_TYPE_LONG;
+		params[1].is_unsigned = true;
 
-		failed = mysql_stmt_bind_param(statement, &params);
+		failed = mysql_stmt_bind_param(statement, params);
 		if (!failed)
 		{
 			DEBUG_DATA << "ScanWeenieTableQuery, start: " << m_start;
@@ -307,7 +320,7 @@ bool ScanWeenieTableQuery::PerformQuery(MYSQL *c)
 						// we need to save the lower bound
 						// that way if this range is ever revisited by the query,
 						// it won't be skipped entirely
-						m_start = l;
+						//m_start = l;
 
 						// we need to keep reading results even it we met our target
 						//   to ensure the buffers are all flushed
@@ -318,6 +331,7 @@ bool ScanWeenieTableQuery::PerformQuery(MYSQL *c)
 								for (int i = 0; i < 2500 && l < u; i++, l++)
 								{
 									m_queue.push(l);
+									m_start = l;
 								}
 							}
 							// we want to yield after releasing the lock
