@@ -41,6 +41,7 @@ public:
 	CVendorItem *FindVendorItem(DWORD item_id);
 	int TrySellItemsToPlayer(CPlayerWeenie *buyer, const std::list<class ItemProfile *> &desiredItems);
 	int TryBuyItemsFromPlayer(CPlayerWeenie *seller, const std::list<ItemProfile *> &desiredItems);
+	const std::list<ItemProfile *> GetFilteredItems(std::list<ItemProfile *> desiredItems, CPlayerWeenie *seller);
 
 	VendorProfile profile;
 	std::list<CVendorItem *> m_Items;
