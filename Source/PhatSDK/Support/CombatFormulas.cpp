@@ -74,8 +74,8 @@ void CalculateAttributeDamageBonus(DamageEventData *dmgEvent)
 		return;
 	if (!dmgEvent->source)
 		return;
-	if (!dmgEvent->source->GetWielded(MELEE_WEAPON_LOC) && !dmgEvent->source->AsPlayer())
-		return;
+	/*if (!dmgEvent->source->GetWielded(MELEE_WEAPON_LOC) && !dmgEvent->source->AsPlayer())
+		return;*/
 
 	
 	switch (dmgEvent->damage_form)
@@ -372,11 +372,16 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		}
 	}
 
-	if (dmgEvent->weapon->InqIntQuality(RESISTANCE_MODIFIER_TYPE_INT, 0, FALSE))
+	int resistanceMod;
+
+	if (dmgEvent->weapon->m_Qualities.InqInt(RESISTANCE_MODIFIER_TYPE_INT, resistanceMod))
 		dmgEvent->isResistanceCleaving = TRUE;
 
 	if (dmgEvent->isResistanceCleaving)
 	{
+		if (resistanceMod == dmgEvent->damage_type)
+			dmgEvent->isElementalRending = true;
+
 		switch (dmgEvent->damage_form)
 		{
 		case DF_MELEE:
@@ -399,6 +404,7 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		{
 		case DF_MELEE:
 			dmgEvent->armorRendingMultiplier = 1.0 / max(GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 400, 2.5), 1.0);
+			break;
 		case DF_MISSILE:
 			dmgEvent->armorRendingMultiplier = 1.0 / max(0.25 + GetImbueMultiplier(dmgEvent->attackSkillLevel, 0, 360, 2.25), 1.0);
 			break;

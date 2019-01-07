@@ -1030,7 +1030,7 @@ enum WErrorType
 	WERROR_INVALID_AMMO_TYPE,
 	WERROR_SKILL_TOO_LOW,
 	WERROR_HOUSE_MAX_NUMBER_HOOKS_USED, // You have used all the hooks you are allowed to use for this house.\n
-	WERROR_TRADE_AI_DOESNT_WANT, //  doesn't know what to do with that.\n
+	WERROR_TRADE_AI_DOESNT_WANT, //  %s doesn't know what to do with that.\n
 	WERROR_HOOK_HOUSE_NOTE_OWNED,
 	WERROR_PORTAL_QUEST_RESTRICTED = 1140, // You must complete a quest to interact with that portal.\n
 	WERROR_HOUSE_NO_ALLEGIANCE = 1150,
@@ -1150,12 +1150,12 @@ enum WErrorType
 	WERROR_PK_NPK_TARGET_PASSIVE, //  fails to affect you because you are not a player killer!\n
 	WERROR_PK_WRONG_KIND_PASSIVE, //  fails to affect you because you are not the same sort of player killer as 
 	WERROR_PK_CROSS_HOUSE_BOUNDARY_PASSIVE, //  fails to affect you across a house boundary!\n
-	WERROR_MAGIC_INVALID_TARGET, //  is an invalid target.\n
+	WERROR_MAGIC_INVALID_TARGET, // %s is an invalid target.\n
 	WERROR_MAGIC_INVALID_TARGET_PASSIVE, // You are an invalid target for the spell of %s.\n
 	WERROR_HEAL_NOT_TRAINED, // You aren't trained in healing!
 	WERROR_HEAL_DONT_OWN_KIT, // You don't own that healing kit!
 	WERROR_HEAL_CANT_HEAL_THAT, // You can't heal that!
-	WERROR_HEAL_FULL_HEALTH, //  is already at full health!
+	WERROR_HEAL_FULL_HEALTH, // %s is already at full health!
 	WERROR_HEAL_NOT_READY, // You aren't ready to heal!
 	WERROR_HEAL_PLAYERS_ONLY, // You can only use Healing Kits on player characters.
 	WERROR_LIFESTONE_PROTECTION, // The Lifestone's magic protects you from the attack!\n
@@ -1727,6 +1727,7 @@ enum COMBAT_USE
 	COMBAT_USE_AMMO = 0x3,
 	COMBAT_USE_SHIELD = 0x4,
 	COMBAT_USE_TWO_HANDED = 0x5,
+	COMBAT_USE_OFFHAND = 0x6,
 	FORCE_COMBAT_USE_32_BIT = 0x7FFFFFFF,
 };
 

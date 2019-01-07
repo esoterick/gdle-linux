@@ -51,6 +51,8 @@ public:
 	void Identify(DWORD dwObjectID);
 	void LifestoneRecall();
 	void MarketplaceRecall();
+	void PKArenaRecall();
+	void PKLArenaRecall();
 	void Ping();
 	void RequestHealthUpdate(DWORD dwGUID);
 	void SendTellByGUID(const char *text, DWORD dwGUID);

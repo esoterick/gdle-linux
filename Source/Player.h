@@ -119,11 +119,12 @@ public:
 
 	//cmoski -- remove last assessed item
 	void SetLastAssessed(DWORD guid);
-	std::string RemoveLastAssessed();
+	std::string RemoveLastAssessed(bool forced = false);
 
 	CClient *GetClient() { return m_pClient; }
 
 	DWORD m_LastAssessed;
+	DWORD m_dwLastSpawnedObjectID;
 	
 	DWORD GetCharacterOptions() { return _playerModule.options_; }
 	DWORD GetCharacterOptions2() { return _playerModule.options2_; }
@@ -154,6 +155,7 @@ public:
 
 	bool m_bAdminVision = false;
 	bool m_bPrivacyMode = false;
+	bool m_bChangingStance = false;
 
 	void UpdateModuleFromClient(PlayerModule &module);
 	virtual void SaveEx(class CWeenieSave &save) override;
@@ -229,7 +231,7 @@ public:
 
 	CCraftOperation *TryGetAlternativeOperation(CWeenieObject *target, CWeenieObject *tool, CCraftOperation *op);
 
-
+	void SetSanctuaryAsLogin();
 
 protected:
 	CClient *m_pClient;
@@ -293,6 +295,20 @@ public:
 };
 
 class CMarketplaceRecallUseEvent : public CUseEventData
+{
+public:
+	virtual void OnReadyToUse() override;
+	virtual void OnUseAnimSuccess(DWORD motion) override;
+};
+
+class CPKArenaUseEvent : public CUseEventData
+{
+public:
+	virtual void OnReadyToUse() override;
+	virtual void OnUseAnimSuccess(DWORD motion) override;
+};
+
+class CPKLArenaUseEvent : public CUseEventData
 {
 public:
 	virtual void OnReadyToUse() override;

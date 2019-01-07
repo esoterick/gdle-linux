@@ -24,9 +24,10 @@ int CFoodWeenie::Use(CPlayerWeenie *pOther)
 	if (!pOther->FindContainedItem(GetID()))
 		return WERROR_OBJECT_GONE;
 
-	CGenericUseEvent *useEvent = new CGenericUseEvent;
+	CFoodUseEvent *useEvent = new CFoodUseEvent;
 	useEvent->_target_id = GetID();
 	useEvent->_do_use_animation = Motion_Eat;
+	useEvent->_initial_use_position = pOther->m_Position;
 	pOther->ExecuteUseEvent(useEvent);
 
 	return WERROR_NONE;
@@ -126,5 +127,14 @@ int CFoodWeenie::DoUseResponse(CWeenieObject *other)
 
 	DecrementStackOrStructureNum(true);
 	return WERROR_NONE;
+}
+
+void CFoodUseEvent::OnUseAnimSuccess(DWORD motion)
+{
+	CWeenieObject *item = GetTarget();
+	if (item && item->InqIntQuality(BOOSTER_ENUM_INT, 0) == HEALTH_ATTRIBUTE_2ND && _weenie->AsPlayer() && _weenie->m_Position.distance(_initial_use_position) > 5.0)
+		return Cancel(WERROR_MOVED_TOO_FAR);
+
+	Finish();
 }
 

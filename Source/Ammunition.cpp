@@ -182,7 +182,7 @@ BOOL CAmmunitionWeenie::DoCollision(const class AtkCollisionProfile &prof)
 
 					bool isThrownWeapon = (weapon->InqIntQuality(DEFAULT_COMBAT_STYLE_INT, 0) == ThrownWeapon_CombatStyle);
 					int weaponDamage = !isThrownWeapon ? weapon->GetAttackDamage() : 0;
-					int elementalDamageBonus = weapon->InqDamageType() == InqDamageType() ? weapon->InqIntQuality(ELEMENTAL_DAMAGE_BONUS_INT, 0) : 0;
+					int elementalDamageBonus = weapon->InqDamageType() == InqDamageType() || InqDamageType() == BASE_DAMAGE_TYPE ? weapon->InqIntQuality(ELEMENTAL_DAMAGE_BONUS_INT, 0) : 0;
 					double damageMod = weapon->InqFloatQuality(DAMAGE_MOD_FLOAT, 1.0);
 
 					preVarianceDamage += weaponDamage + elementalDamageBonus;

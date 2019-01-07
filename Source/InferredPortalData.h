@@ -15,16 +15,23 @@ public:
 	Position *GetHousePortalDest(DWORD house_id, DWORD ignore_cell_id);
 	CMutationFilter *GetMutationFilter(DWORD id);
 	std::vector<std::string> GetBannedWords();
+	std::set<DWORD> GetRestrictedLandblocks();
+
+	using position_list_t = PackableListWithJson<Position>;
+	using house_portal_table_t = PackableHashTableWithJson<DWORD, position_list_t>;
+	//using mutation_table_t = PackableHashTableWithJson<DWORD, CMutationFilter *>;
+	using mutation_table_t = std::unordered_map<DWORD, CMutationFilter *>;
 
 	CRegionDescExtendedDataTable _regionData;
 	CSpellTableExtendedDataTable _spellTableData;
 	TreasureTable _treasureTableData;
 	CCraftTable _craftTableData;
-	PackableHashTable<DWORD, PackableList<Position>> _housePortalDests;
+	house_portal_table_t _housePortalDests;
 	CQuestDefDB _questDefDB;
-	std::unordered_map<DWORD, CMutationFilter *> _mutationFilters;
+	mutation_table_t _mutationFilters;
 	GameEventDefDB _gameEvents;
 	std::vector<std::string> _bannedWords;
+	std::set<DWORD> _restrictedLBData;
 };
 
 
