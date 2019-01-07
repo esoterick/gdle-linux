@@ -83,6 +83,15 @@ void RecipeFactory::UpdateCraftTableData()
 			opKey = g_pPortalDataEx->_craftTableData._precursorMap.lookup(targetTool);
 		}
 
+		if (opKey)
+		{
+			JsonCraftOperation existingrecipe;
+			if (RecipeInJson(pc.RecipeID, &existingrecipe))
+			{
+				g_pPortalDataEx->_craftTableData._operations[existingrecipe._recipeID] = GetCraftOpertionFromNewRecipe(&existingrecipe);
+			}
+		}
+
 		if (!opKey) // New recipe 
 		{
 			JsonCraftOperation newrecipe;
