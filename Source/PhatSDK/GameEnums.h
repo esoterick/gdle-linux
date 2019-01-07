@@ -1030,7 +1030,7 @@ enum WErrorType
 	WERROR_INVALID_AMMO_TYPE,
 	WERROR_SKILL_TOO_LOW,
 	WERROR_HOUSE_MAX_NUMBER_HOOKS_USED, // You have used all the hooks you are allowed to use for this house.\n
-	WERROR_TRADE_AI_DOESNT_WANT, //  doesn't know what to do with that.\n
+	WERROR_TRADE_AI_DOESNT_WANT, //  %s doesn't know what to do with that.\n
 	WERROR_HOOK_HOUSE_NOTE_OWNED,
 	WERROR_PORTAL_QUEST_RESTRICTED = 1140, // You must complete a quest to interact with that portal.\n
 	WERROR_HOUSE_NO_ALLEGIANCE = 1150,
