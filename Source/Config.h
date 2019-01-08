@@ -44,6 +44,7 @@ public:
 
 	virtual bool FastTick() { return m_bFastTick; }
 	virtual bool UseIncrementalID() { return m_bUseIncrementalIDs; }
+	virtual int32_t IDScanType() { return m_idScanType; }
 
 	virtual bool HardcoreMode() { return m_bHardcoreMode; }
 	virtual bool HardcoreModePlayersOnly() { return m_bHardcoreModePlayersOnly; }
@@ -124,6 +125,7 @@ protected:
 
 	bool m_bFastTick = false;
 	bool m_bUseIncrementalIDs = false;
+	int32_t m_idScanType = 0;
 
 	bool m_bHardcoreMode = false;
 	bool m_bHardcoreModePlayersOnly = false;
