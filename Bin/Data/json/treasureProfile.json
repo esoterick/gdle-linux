@@ -11312,7 +11312,7 @@
         {
           "name": "Rapier",
           "wcid": 6853,
-          "elementalVariants": [],
+          "elementalVariants": [45104, 45105, 45106, 45107],
           "weaponSkill": "FinesseWeapons"
         }
       ]
@@ -18472,7 +18472,7 @@
       },
       {
         "category": "Footwear",
-        "possibleMaterials": ["cloth"],
+        "possibleMaterials": ["leather"],
         "entries": [
           {
             "name": "Loafers",
@@ -18480,6 +18480,7 @@
           },
           {
             "name": "Slippers",
+            "possibleMaterials": ["cloth"],
             "wcid": 133
           },
           {
@@ -18491,8 +18492,8 @@
             "wcid": 129
           },
           {
-            "name": "Boots",
-            "wcid": 115
+            "name": "Viamontian Laced Boots",
+            "wcid": 31249
           }
         ]
       }
@@ -18554,10 +18555,6 @@
         {
           "name": "Tunic",
           "wcid": 134
-        },
-        {
-          "name": "Toga",
-          "wcid": 28616
         },
         {
           "name": "Vest",

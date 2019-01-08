@@ -738,14 +738,24 @@ void CGiveEvent::OnReadyToUse()
 
 void CGiveEvent::OnUseAnimSuccess(DWORD motion)
 {
-	CContainerWeenie *target = GetTarget()->AsContainer();
-	if (!target)
+	CWeenieObject *giveTarget = GetTarget();
+
+	if (giveTarget)
+	{
+		CContainerWeenie *target = giveTarget->AsContainer();
+		if (!target)
+		{
+			_weenie->NotifyInventoryFailedEvent(_source_item_id, WERROR_NONE);
+			return Done(WERROR_OBJECT_GONE);
+		}
+		_weenie->AsMonster()->FinishGiveItem(target, GetSourceItem(), _transfer_amount);
+		Done();
+	}
+	else
 	{
 		_weenie->NotifyInventoryFailedEvent(_source_item_id, WERROR_NONE);
 		return Done(WERROR_OBJECT_GONE);
-	}		
-	_weenie->AsMonster()->FinishGiveItem(target, GetSourceItem(), _transfer_amount);
-	Done();
+	}
 }
 
 void CGiveEvent::Cancel(DWORD error) //This override will capture all Use_Manger/Movement Errors and tack on an inventory failed event so we don't get stuck in a busy state if our give action is cancelled.

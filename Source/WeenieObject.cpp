@@ -2266,11 +2266,10 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 
 			SendText(csprintf("Your base %s is now %u!", skillName.c_str(), newLevel), LTT_ADVANCEMENT);
 		}
+
+		if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 226))
+			EmitEffect(PS_WeddingBliss, 1.0f);
 	}
-
-	if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 226))
-		EmitEffect(PS_WeddingBliss, 1.0f);
-
 
 	NotifySkillStatUpdated(key);
 
@@ -2356,6 +2355,13 @@ void CWeenieObject::GiveSkillCredits(DWORD amount, bool showText)
 
 		SendText(csprintf("You have earned %u skill %s!", amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
 	}
+}
+
+DWORD CWeenieObject::GetSkillCredits()
+{
+	DWORD unassignedCredits = 0;
+	m_Qualities.InqInt(AVAILABLE_SKILL_CREDITS_INT, *(int *)&unassignedCredits);
+	return unassignedCredits;
 }
 
 void CWeenieObject::SendText(const char* szText, long lColor)

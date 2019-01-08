@@ -372,11 +372,16 @@ void CalculateRendingAndMiscData(DamageEventData *dmgEvent)
 		}
 	}
 
-	if (dmgEvent->weapon->InqIntQuality(RESISTANCE_MODIFIER_TYPE_INT, 0, FALSE))
+	int resistanceMod;
+
+	if (dmgEvent->weapon->m_Qualities.InqInt(RESISTANCE_MODIFIER_TYPE_INT, resistanceMod))
 		dmgEvent->isResistanceCleaving = TRUE;
 
 	if (dmgEvent->isResistanceCleaving)
 	{
+		if (resistanceMod == dmgEvent->damage_type)
+			dmgEvent->isElementalRending = true;
+
 		switch (dmgEvent->damage_form)
 		{
 		case DF_MELEE:

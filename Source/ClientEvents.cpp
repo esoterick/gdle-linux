@@ -256,7 +256,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		}
 	}
 
-	if (!m_pPlayer->m_Qualities.GetInt(CREATION_TIMESTAMP_INT, 0))
+	if (!m_pPlayer->m_Qualities.GetFloat(GLOBAL_XP_MOD_FLOAT, 0.0))
 	{
 		m_pPlayer->m_Qualities.SetFloat(GLOBAL_XP_MOD_FLOAT, 1.0);
 		m_pPlayer->NotifyFloatStatUpdated(GLOBAL_XP_MOD_FLOAT);
@@ -352,7 +352,8 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	}
 	*/
 
-	g_pWorld->CreateEntity(m_pPlayer);
+	if (!g_pWorld->CreateEntity(m_pPlayer))
+		return;
 
 	time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
@@ -4033,11 +4034,11 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 
-		if (m_pPlayer->m_bChangingStance)
+		/*if (m_pPlayer->m_bChangingStance)
 		{
 			DEBUG_DATA << "Player changing stance during 0xF61C. Ignoring.";
 			break;
-		}
+		}*/
 
 		if (m_pPlayer->IsDead())
 		{

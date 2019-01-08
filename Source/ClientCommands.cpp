@@ -4772,6 +4772,80 @@ CLIENT_COMMAND(givexp, "[value]", "Gives you some XP for testing.", BASIC_ACCESS
 	return false;
 }
 
+CLIENT_COMMAND(getcreditother, "", "Gets the current unassigned skill credits of the last identified target.", BASIC_ACCESS, CHARACTER_CATEGORY)
+{
+	if (!g_pConfig->EnableXPCommands() && pPlayer->GetAccessLevel() < SENTINEL_ACCESS)
+	{
+		pPlayer->SendText("This command is not enabled on this server.", LTT_DEFAULT);
+		return false;
+	}
+
+	CWeenieObject *targetID = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!targetID)
+	{
+		pPlayer->SendText("You must asses a valid target.", LTT_DEFAULT);
+		return true;
+	}
+	if (!targetID->AsPlayer())
+	{
+		pPlayer->SendText("You must asses a player target.", LTT_DEFAULT);
+		return true;
+	}
+
+	auto targetName = targetID->GetName();
+	DWORD currentcredits = targetID->GetSkillCredits();
+	
+	pPlayer->SendText(csprintf("%s has %d skill credits unassigned.", targetName.c_str(), currentcredits), LTT_DEFAULT);
+
+
+	return false;
+}
+
+CLIENT_COMMAND(givecreditother, "<player name> [value]", "Gives your last assessed AND named target some skill credits.", BASIC_ACCESS, CHARACTER_CATEGORY)
+{
+	if (!g_pConfig->EnableXPCommands() && pPlayer->GetAccessLevel() < SENTINEL_ACCESS)
+	{
+		pPlayer->SendText("This command is not enabled on this server.", LTT_DEFAULT);
+		return false;
+	}
+
+	CWeenieObject *targetID = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!targetID)
+	{
+		pPlayer->SendText("You must asses a target", LTT_DEFAULT);
+		return true;
+	}
+	if (!targetID->AsPlayer())
+	{
+		pPlayer->SendText("You must asses a player target", LTT_DEFAULT);
+		return true;
+	}
+	auto targetName = targetID->GetName();
+	if (targetID->GetName() != string(argv[0]))
+	{
+		pPlayer->SendText("Last Assessed player target does not match named target!", LTT_DEFAULT);
+		return true;
+	}
+	DWORD initialcredits = targetID->GetSkillCredits();
+	DWORD amount = 0;
+	if (argc >= 1)
+	{
+		amount = strtoul(argv[1], NULL, 10);
+	}
+
+	amount = max(amount, (DWORD)1);
+	amount = min(amount, (DWORD)100);
+
+	targetID->GiveSkillCredits(amount, true);
+	DWORD postcredits = targetID->GetSkillCredits();
+	if (postcredits - amount == initialcredits)
+		pPlayer->SendText(csprintf("%s has been awarded %d skill credits! Initial skill credits were %d, post command credits are %d.", targetName.c_str(), amount, initialcredits, postcredits), LTT_DEFAULT);
+	else
+		pPlayer->SendText(csprintf("Failed to award %s %d skill credits. Initial skill credits were %d, post command credits are %d.", targetName.c_str(), amount, initialcredits, postcredits), LTT_DEFAULT);
+
+	return false;
+}
+
 CLIENT_COMMAND(givecredit, "[value]", "Gives you some skill credits for testing.", BASIC_ACCESS, CHARACTER_CATEGORY)
 {
 	if (!g_pConfig->EnableXPCommands() && pPlayer->GetAccessLevel() < SENTINEL_ACCESS)
