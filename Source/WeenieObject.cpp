@@ -2177,7 +2177,15 @@ DWORD CWeenieObject::GiveSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT
 	DWORD oldLevel = 0;
 	m_Qualities.InqSkill(key, oldLevel, TRUE);
 
-	skill._sac = sac;
+	bool skillSpecByAug = IsSkillAugmented(key);
+	if (skillSpecByAug) //If skill has been augmented for sac (tinkering skills), than we should immediately jump to specialized.
+	{
+		skill._sac = SPECIALIZED_SKILL_ADVANCEMENT_CLASS;
+		skill._init_level = 10;
+	}
+	else
+		skill._sac = sac;
+
 	skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
 
 	// after
@@ -2198,8 +2206,10 @@ DWORD CWeenieObject::GiveSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT
 			skillName = pSkillBase->_name;
 		}
 	}
-
-	SendText(csprintf("You are now trained in %s!", skillName.c_str()), LTT_ADVANCEMENT);
+	if (skillSpecByAug)
+		SendText(csprintf("You are now specialized in %s!", skillName.c_str()), LTT_ADVANCEMENT);
+	else
+		SendText(csprintf("You are now trained in %s!", skillName.c_str()), LTT_ADVANCEMENT);
 
 	DWORD raised = newLevel - oldLevel;
 	if (raised)
@@ -2209,6 +2219,42 @@ DWORD CWeenieObject::GiveSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT
 
 	NotifySkillStatUpdated(key);
 	return raised;
+}
+
+bool CWeenieObject::IsSkillAugmented(STypeSkill key)
+{
+	STypeInt augskillint = UNDEF_INT;
+	switch (key)
+	{
+	case ARMOR_APPRAISAL_SKILL:
+	{
+		augskillint = AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT;
+		break;
+	}
+	case ITEM_APPRAISAL_SKILL:
+	{
+		augskillint = AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT;
+		break;
+	}
+	case MAGIC_ITEM_APPRAISAL_SKILL:
+	{
+		augskillint = AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT;
+		break;
+	}
+	case WEAPON_APPRAISAL_SKILL:
+	{
+		augskillint = AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT;
+		break;
+	}
+	//salvaging is never unspecialized so it isn't needed here as we will never be advancing it again once spec'd.
+	default:
+		return false;
+	}
+
+	if (InqIntQuality(augskillint, 0) == 1)
+		return true;
+	else
+		return false;
 }
 
 DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)

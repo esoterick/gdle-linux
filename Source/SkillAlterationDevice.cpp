@@ -142,19 +142,11 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 							skillToAlter == MAGIC_ITEM_APPRAISAL_SKILL ||
 							skillToAlter == ITEM_APPRAISAL_SKILL);
 
-						if (isTinker)
-						{
-							switch (skillToAlter)
-							{
-							case WEAPON_APPRAISAL_SKILL: player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT, 0); break;
-							case ARMOR_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT, 0); break;
-							case ITEM_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT, 0); break;
-							case MAGIC_ITEM_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT, 0); break;
-							case SALVAGING_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_SALVAGING_INT, 0); break;
-							}
-						}
-						else
-						{
+						//Per Wiki, using gems of forgetfullness on specialized tinkering skills only returned XP and did not unspecialize the skill.
+						//Salvaging is NEVER unspec'd once spec'd (no credit skill - just xp).
+
+						if (!isTinker)
+						{   
 							numSkillCredits += (pSkillBase->_specialized_cost - pSkillBase->_trained_cost);
 							player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
 							player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
@@ -163,10 +155,20 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 						DWORD64 xpToAward = 0;
 
 						xpToAward = skill._pp;
-						skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
-						skill._pp = 0;
-						skill._init_level = 0;
-						skill._level_from_pp = 5;
+						if (isTinker) 
+						{
+							skill._init_level = 10;
+							skill._pp = 0;
+							skill._level_from_pp = 5;
+						}
+						else
+						{
+							skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
+							skill._pp = 0;
+							skill._init_level = 0;
+							skill._level_from_pp = 5;
+						}
+
 
 						player->m_Qualities.SetSkill(skillToAlter, skill);
 						player->NotifySkillStatUpdated(skillToAlter);
@@ -176,8 +178,11 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 							player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0) + xpToAward);
 							player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 						}
+						if (isTinker)
+							player->SendText(csprintf("Cannot raise or lower %s. All the experience that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_ADVANCEMENT);
+						else
+							player->SendText(csprintf("You are no longer specialized in %s!", pSkillBase->_name.c_str()), LTT_ADVANCEMENT);
 
-						player->SendText(csprintf("You are no longer specialized in %s!", pSkillBase->_name.c_str()), LTT_ADVANCEMENT);
 						player->EmitSound(Sound_RaiseTrait, 1.0, true);
 
 						DecrementStackOrStructureNum();
