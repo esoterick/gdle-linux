@@ -19,9 +19,12 @@ public:
 	double DistanceToTarget();
 	double HeadingDifferenceToTarget();
 	bool InUseRange();
+	bool InMoveRange();
 	CWeenieObject *GetTarget();
 	CWeenieObject *GetTool();
+	CWeenieObject *GetSourceItem();
 	void MoveToUse();
+	void SetupRecall();
 
 	virtual void HandleMoveToDone(DWORD error);
 	virtual void OnReadyToUse() = 0;
@@ -41,6 +44,10 @@ public:
 	double _max_use_distance = FLT_MAX;
 	double _timeout = FLT_MAX;
 	DWORD _active_use_anim = 0;
+	Position _initial_use_position;
+	DWORD _source_item_id = 0;
+	bool _give_event = false;
+	bool _recall_event = false;
 
 	bool QuestRestrictions(CWeenieObject *target);
 };
@@ -144,6 +151,22 @@ public:
 	DWORD _amountToTransfer = 0;
 };
 
+class CGiveEvent : public CUseEventData
+{
+public:
+	virtual void OnReadyToUse() override;
+	virtual void OnUseAnimSuccess(DWORD motion) override;
+	virtual void Cancel(DWORD error = 0) override;
+
+	DWORD _transfer_amount = 0;
+};
+
+class CTradeUseEvent : public CUseEventData
+{
+public:
+	virtual void OnReadyToUse() override;
+	virtual void OnUseAnimSuccess(DWORD motion) override;
+};
 
 class UseManager
 {
@@ -164,6 +187,7 @@ public:
 	void OnMotionDone(DWORD motion, BOOL success);
 
 	bool IsUsing();
+	bool IsMoving();
 
 	void MarkForCleanup(CUseEventData *data);
 	double _next_allowed_use = Timer::cur_time;

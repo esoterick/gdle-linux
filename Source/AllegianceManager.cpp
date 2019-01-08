@@ -935,7 +935,7 @@ void AllegianceManager::TryBreakAllegiance(DWORD source_id, DWORD target_id)
 	}
 
 	CWeenieObject *target = g_pWorld->FindPlayer(target_id);
-	if (target)
+	if (target && source)
 	{
 		target->SendText(csprintf("%s has broken their Allegiance to you!", source->GetName().c_str()), LTT_DEFAULT);
 	}

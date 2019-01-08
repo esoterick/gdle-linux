@@ -2,6 +2,7 @@
 #include "StdAfx.h"
 #include "UseManager.h"
 #include "WeenieObject.h"
+#include "Animate.h"
 #include "World.h"
 #include "Container.h"
 #include "Player.h"
@@ -15,12 +16,18 @@ CUseEventData::CUseEventData()
 void CUseEventData::Update()
 {
 	CheckTimeout();
+
+	if (_move_to && InUseRange())
+	{
+		_weenie->DoForcedMotion(Motion_Ready);
+		HandleMoveToDone(WERROR_NONE);
+	}
 }
 
 void CUseEventData::SetupUse()
 {	
 	CWeenieObject *target = GetTarget();
-	if (target)
+	if (target && _max_use_distance == FLT_MAX) //change max use distance only if still the initialized value. Otherwise this has already been defined.)
 	{
 		_max_use_distance = target->InqFloatQuality(USE_RADIUS_FLOAT, 0.0);
 	}
@@ -109,9 +116,29 @@ void CUseEventData::CheckTimeout()
 	{
 		if (_move_to)
 			Cancel(WERROR_MOVED_TOO_FAR);
+		else if (_recall_event)
+		{
+			// If you're in the max use range during a recall event, then the recall should still trigger. Otherwise you've moved too far.
+			if (InMoveRange())
+				OnUseAnimSuccess(_active_use_anim);
+			else
+				Cancel(WERROR_MOVED_TOO_FAR);
+		}
 		else
 			Cancel(0);
 	}
+}
+
+bool CUseEventData::InMoveRange()
+{
+	return _weenie->m_Position.distance(_initial_use_position) <= _max_use_distance ? true : false;
+}
+
+void CUseEventData::SetupRecall()
+{
+	_max_use_distance = 5.0f;
+	_initial_use_position = _weenie->m_Position;
+	_recall_event = true;
 }
 
 void CUseEventData::Cancel(DWORD error)
@@ -184,6 +211,11 @@ CWeenieObject *CUseEventData::GetTool()
 	return g_pWorld->FindObject(_tool_id);
 }
 
+CWeenieObject *CUseEventData::GetSourceItem()
+{
+	return g_pWorld->FindObject(_source_item_id);
+}
+
 void CUseEventData::HandleMoveToDone(DWORD error)
 {
 	_move_to = false;
@@ -218,7 +250,8 @@ void CUseEventData::OnMotionDone(DWORD motion, BOOL success)
 		}
 		else
 		{
-			Cancel();
+			if(!_recall_event) // Don't cancel recall events on motion interrupts, such as jumping.
+				Cancel();
 		}
 	}	
 }
@@ -256,8 +289,22 @@ void CUseEventData::ExecuteUseAnimation(DWORD motion, MovementParameters *params
 
 bool CUseEventData::QuestRestrictions(CWeenieObject *target)
 {
+	std::string restriction;
+	if (target->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction) && !restriction.empty()) //Allows for restrition of pickup if you are NOT flagged. (IE must have flag for use)
+	{
+		if (CPlayerWeenie *player = _weenie->AsPlayer())
+		{
+			if (!player->InqQuest(restriction.c_str()))
+			{
+				_weenie->DoForcedStopCompletely();
+				Cancel(WERROR_QUEST_RESRICTION_UNSOLVED); // Sends -> This item requires you to complete a specific quest before you can pick it up!
+				return true;
+			}
+		}
+	}
+
 	std::string questString;
-	if (target->m_Qualities.InqString(QUEST_STRING, questString) && !questString.empty()) //Used for restriction of pickup if quest is already solved. Common use is for timer restritions.
+	if (target->m_Qualities.InqString(QUEST_STRING, questString) && !questString.empty()) //Used for restriction of pickup if quest is already solved. Common use is for timer restrictions.
 	{
 		if (_weenie->InqQuest(questString.c_str()))
 		{
@@ -277,20 +324,6 @@ bool CUseEventData::QuestRestrictions(CWeenieObject *target)
 		_weenie->StampQuest(questString.c_str());
 		target->m_Qualities.SetString(QUEST_STRING, "");
 		
-	}
-
-	std::string restriction;
-	if (target->m_Qualities.InqString(QUEST_RESTRICTION_STRING, restriction)) //Allows for restrition of pickup if you are NOT flagged. (IE must have flag for use)
-	{
-		if (CPlayerWeenie *player = _weenie->AsPlayer())
-		{
-			if (!player->InqQuest(restriction.c_str()))
-			{
-				_weenie->DoForcedStopCompletely();
-				Cancel(WERROR_QUEST_RESRICTION_UNSOLVED); // Sends -> This item requires you to complete a specific quest before you can pick it up!
-				return true;
-			}
-		}
 	}
 	return false;
 }
@@ -335,6 +368,13 @@ void CGenericUseEvent::Finish()
 		if (!InUseRange())
 		{
 			Cancel(WERROR_TOO_FAR);
+			return;
+		}
+
+		// Prevent items like Head of the Homunculus, Wallbound Niffis, Tursh Totem, etc. from being used in packs.
+		if (target->InqIntQuality(HOOK_GROUP_INT, 0))
+		{
+			Cancel(WERROR_HOOKER_NOT_USEABLE_OFF_HOOK);
 			return;
 		}
 		
@@ -691,6 +731,62 @@ void CStackSplitToWieldInventoryUseEvent::OnUseAnimSuccess(DWORD motion)
 
 //-------------------------------------------------------------------------------------
 
+void CGiveEvent::OnReadyToUse()
+{
+	ExecuteUseAnimation(Motion_Ready);
+}
+
+void CGiveEvent::OnUseAnimSuccess(DWORD motion)
+{
+	CWeenieObject *giveTarget = GetTarget();
+
+	if (giveTarget)
+	{
+		CContainerWeenie *target = giveTarget->AsContainer();
+		if (!target)
+		{
+			_weenie->NotifyInventoryFailedEvent(_source_item_id, WERROR_NONE);
+			return Done(WERROR_OBJECT_GONE);
+		}
+		_weenie->AsMonster()->FinishGiveItem(target, GetSourceItem(), _transfer_amount);
+		Done();
+	}
+	else
+	{
+		_weenie->NotifyInventoryFailedEvent(_source_item_id, WERROR_NONE);
+		return Done(WERROR_OBJECT_GONE);
+	}
+}
+
+void CGiveEvent::Cancel(DWORD error) //This override will capture all Use_Manger/Movement Errors and tack on an inventory failed event so we don't get stuck in a busy state if our give action is cancelled.
+{
+	CancelMoveTo();
+	_weenie->NotifyInventoryFailedEvent(_source_item_id, WERROR_NONE);
+	_manager->OnUseCancelled(error);
+}
+
+//-------------------------------------------------------------------------------------
+
+void CTradeUseEvent::OnReadyToUse()
+{
+	ExecuteUseAnimation(Motion_Ready);
+}
+
+void CTradeUseEvent::OnUseAnimSuccess(DWORD motion)
+{
+	CPlayerWeenie *target = GetTarget()->AsPlayer();
+	if (!target)
+		return Done(WERROR_OBJECT_GONE);
+	
+	TradeManager *tm = TradeManager::RegisterTrade(_weenie->AsPlayer(), target);
+
+	_weenie->AsPlayer()->SetTradeManager(tm);
+	target->SetTradeManager(tm);
+	Done();
+}
+
+//-------------------------------------------------------------------------------------
+
 UseManager::UseManager(CWeenieObject *weenie)
 {
 	_weenie = weenie;
@@ -789,6 +885,11 @@ void UseManager::OnMotionDone(DWORD motion, BOOL success)
 bool UseManager::IsUsing()
 {
 	return _useData != NULL ? true : false;
+}
+
+bool UseManager::IsMoving()
+{
+	return IsUsing() && _useData->_move_to != 0 ? true : false;
 }
 
 void UseManager::BeginUse(CUseEventData *data)

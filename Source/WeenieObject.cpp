@@ -30,6 +30,7 @@
 #include "Config.h"
 #include "House.h"
 #include "FellowshipManager.h"
+#include "Ammunition.h"
 
 
 CWeenieObject::CWeenieObject()
@@ -890,6 +891,7 @@ void CWeenieObject::EnsureLink(CWeenieObject *source)
 void CWeenieObject::NotifyGeneratedDeath(CWeenieObject *weenie)
 {
 	OnGeneratedDeath(weenie);
+	m_GeneratorSpawns.erase(weenie->GetID());
 }
 
 void CWeenieObject::OnGeneratedDeath(CWeenieObject *weenie)
@@ -978,6 +980,7 @@ void CWeenieObject::NotifyGeneratedPickedUp(CWeenieObject *weenie)
 {
 	OnGeneratedPickedUp(weenie);
 	weenie->m_Qualities.RemoveInstanceID(GENERATOR_IID);
+	m_GeneratorSpawns.erase(weenie->GetID());
 }
 
 void CWeenieObject::OnGeneratedPickedUp(CWeenieObject *weenie)
@@ -1898,6 +1901,7 @@ void CWeenieObject::GivePerksForKill(CWeenieObject *pKilled)
 		return;
 
 	int xpForKill = 0;
+	int lumForKill = 0;
 
 	if (!pKilled->m_Qualities.InqInt(XP_OVERRIDE_INT, xpForKill, 0, FALSE))
 		xpForKill = (int)GetXPForKillLevel(level);
@@ -1907,7 +1911,11 @@ void CWeenieObject::GivePerksForKill(CWeenieObject *pKilled)
 	if (xpForKill < 0)
 		xpForKill = 0;
 
+	if(pKilled->m_Qualities.InqInt(LUMINANCE_AWARD_INT, lumForKill, 0, FALSE))
+		lumForKill = (int)(lumForKill * g_pConfig->KillXPMultiplier(level));	
+
 	GiveSharedXP(xpForKill, false);
+	GiveSharedLum(lumForKill, false);
 }
 
 void CWeenieObject::GiveSharedXP(long long amount, bool showText)
@@ -2007,6 +2015,50 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 	{
 		// let allegiance manager pass it up
 		g_pAllegianceManager->HandleAllegiancePassup(GetID(), amount, true);
+	}
+}
+
+void CWeenieObject::GiveSharedLum(long long amount, bool showText)
+{
+	if (amount <= 0)
+		return;
+
+	EnchantedQualityDetails buffDetails;
+	GetFloatEnchantmentDetails(GLOBAL_XP_MOD_FLOAT, 0.0, &buffDetails);
+
+	if (buffDetails.enchantedValue > 0.0)
+		amount *= buffDetails.valueIncreasingMultiplier;
+
+	Fellowship *f = GetFellowship();
+
+	if (f)
+		f->GiveLum(this, amount, showText);
+	else
+		GiveLum(amount, showText);
+}
+
+void CWeenieObject::GiveLum(long long amount, bool showText)
+{
+	if (amount <= 0)
+		return;
+
+	unsigned __int64 AvailableLum = (unsigned __int64)InqInt64Quality(AVAILABLE_LUMINANCE_INT64, 0);
+	unsigned __int64 MaxLum = (unsigned __int64)InqInt64Quality(MAXIMUM_LUMINANCE_INT64, 0);
+	unsigned __int64 newAvailableLum = (unsigned __int64)InqInt64Quality(AVAILABLE_LUMINANCE_INT64, 0) + amount;
+
+	if (AvailableLum < MaxLum || (MaxLum == 0 && AvailableLum < 1000000)) // Track lum before luminance flagging but cap at 1 million.
+	{
+		m_Qualities.SetInt64(AVAILABLE_LUMINANCE_INT64, min(newAvailableLum, (unsigned __int64)1000000)); // don't go over 1 million.
+		NotifyInt64StatUpdated(AVAILABLE_LUMINANCE_INT64);
+	}
+
+	if (showText)
+	{
+		const char *notice = csprintf(
+			"You've earned %s luminance.",
+			FormatNumberString(amount).c_str());
+
+		SendText(notice, LTT_DEFAULT);
 	}
 }
 
@@ -2196,8 +2248,8 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 		SendText(notice, LTT_ADVANCEMENT);
 	}
 
-	if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && oldLevel == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && oldLevel == 226))
-		return 0;
+	//if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && oldLevel == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && oldLevel == 226))
+		//return 0; //We already check if the skill is maxed before entering the function.
 
 	m_Qualities.SetSkill(key, skill);
 
@@ -2214,11 +2266,10 @@ DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
 
 			SendText(csprintf("Your base %s is now %u!", skillName.c_str(), newLevel), LTT_ADVANCEMENT);
 		}
+
+		if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 226))
+			EmitEffect(PS_WeddingBliss, 1.0f);
 	}
-
-	if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 208) || (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS && skill._level_from_pp == 226))
-		EmitEffect(PS_WeddingBliss, 1.0f);
-
 
 	NotifySkillStatUpdated(key);
 
@@ -2304,6 +2355,13 @@ void CWeenieObject::GiveSkillCredits(DWORD amount, bool showText)
 
 		SendText(csprintf("You have earned %u skill %s!", amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
 	}
+}
+
+DWORD CWeenieObject::GetSkillCredits()
+{
+	DWORD unassignedCredits = 0;
+	m_Qualities.InqInt(AVAILABLE_SKILL_CREDITS_INT, *(int *)&unassignedCredits);
+	return unassignedCredits;
 }
 
 void CWeenieObject::SendText(const char* szText, long lColor)
@@ -2497,6 +2555,8 @@ void CWeenieObject::ExecuteUseEvent(CUseEventData *useEvent)
 	if (m_UseManager && m_UseManager->IsUsing())
 	{
 		NotifyWeenieError(WERROR_ACTIONS_LOCKED);
+		if(useEvent->_give_event)
+			NotifyInventoryFailedEvent(useEvent->_source_item_id, WERROR_NONE);
 		return;
 	}
 
@@ -2504,6 +2564,8 @@ void CWeenieObject::ExecuteUseEvent(CUseEventData *useEvent)
 	{
 		SendText(csprintf("%s is busy.", target->GetName().c_str()), LTT_DEFAULT);
 		NotifyUseDone(WERROR_NONE);
+		if (useEvent->_give_event)
+			NotifyInventoryFailedEvent(useEvent->_source_item_id, WERROR_NONE);
 		return;
 	}
 
@@ -2511,6 +2573,8 @@ void CWeenieObject::ExecuteUseEvent(CUseEventData *useEvent)
 	{
 		NotifyWeenieError(WERROR_ACTIONS_LOCKED);
 		NotifyUseDone(WERROR_NONE);
+		if (useEvent->_give_event)
+			NotifyInventoryFailedEvent(useEvent->_source_item_id, WERROR_NONE);
 		return;
 	}
 
@@ -2716,7 +2780,7 @@ void CWeenieObject::WieldedTick()
 							wielder->SendText(csprintf("The %s will run out of mana soon.", GetName().c_str()), LTT_MAGIC); //todo: made up message, confirm if it's correct
 					}
 
-					_nextManaUse = Timer::cur_time + (-manaRate * 1000);
+					_nextManaUse = Timer::cur_time + (1 / -manaRate);
 				}
 				else
 				{
@@ -2845,6 +2909,42 @@ void CWeenieObject::InventoryTick()
 		m_EmoteManager->Tick();
 
 	CheckForExpiredEnchantments();
+
+	if (_timeToRot >= 0 && _timeToRot <= Timer::cur_time)
+	{
+		// only destroy items with a lifespan or that have already been flagged to rot.
+		if (_beganRot || m_Qualities.GetInt(LIFESPAN_INT, 0))
+		{
+			CWeenieObject *owner = GetWorldTopLevelOwner();
+
+			if (_beganRot)
+			{
+				if ((_timeToRot + 2.0) <= Timer::cur_time)
+				{
+					if (IsWielded())
+					{
+						if (owner->id == GetWielderID())
+						{
+							owner->DoForcedStopCompletely();
+							owner->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+						}
+					}
+
+					Remove();
+					RecalculateEncumbrance();
+					owner->SendText(csprintf("Its lifespan finished, your %s crumbles to dust.", GetName().c_str()), LTT_DEFAULT);
+
+					if (AsClothing() && m_bWorldIsAware)
+						owner->UpdateModel();
+				}
+			}
+			else
+			{
+				_beganRot = true;
+			}
+		}
+	}
+
 }
 
 void CWeenieObject::Tick()
@@ -2858,11 +2958,21 @@ void CWeenieObject::Tick()
 	if (m_EmoteManager)
 		m_EmoteManager->Tick();
 
+	if (m_UseManager)
+		m_UseManager->Update();
+
+	if (AsPlayer() && IsMovingTo(MovementTypes::MoveToObject))
+	{
+		CWeenieObject *target = g_pWorld->FindWithinPVS(this, movement_manager->moveto_manager->top_level_object_id);
+		if (!target)
+			movement_manager->CancelMoveTo(WERROR_OBJECT_GONE);
+	}
+
 	CheckForExpiredEnchantments();
 
 	if (_nextRegen >= 0 && _nextRegen <= Timer::cur_time)
 	{
-		int numSpawned = m_Qualities._generator_registry ? (DWORD)m_Qualities._generator_registry->_registry.size() : 0;
+		int numSpawned = m_GeneratorSpawns.size();
 
 		//check if the number spawned is higher than the max_generated_objects. Linkable generators have a max of 0, so check if there is an existing _generator_queue instead.
 		if (numSpawned < InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) || InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE) == 0 && m_Qualities._generator_queue)
@@ -2904,7 +3014,7 @@ void CWeenieObject::Tick()
 				}
 			}
 
-			g_pWeenieFactory->AddFromGeneratorTable(this, false);
+			numSpawned += g_pWeenieFactory->AddFromGeneratorTable(this, false);
 
 			//Linkable generators do not have a _nextRegen time when the generator_queue is empty and they have spawns in the world. Regular generators should not have a _nextRegen time if they have more spawns than MAX_GENERATED_OBJECTS_INT.
 			if ((!m_Qualities._generator_queue || m_Qualities._generator_queue->_queue.empty()) && numSpawned >= InqIntQuality(MAX_GENERATED_OBJECTS_INT, 0, TRUE))
@@ -2920,6 +3030,8 @@ void CWeenieObject::Tick()
 	{
 		if (!IsDead() && !IsInPortalSpace())
 		{
+			if (IsCompletelyIdle()) // Don't perform idle emotes unless you are completely idle, but allow vital regeneration.
+			{
 			if (_nextHeartBeatEmote != -1.0 && _nextHeartBeatEmote <= Timer::cur_time)
 			{
 				_nextHeartBeatEmote = Timer::cur_time + Random::GenUInt(2, 15); //add a little variation to avoid synchronization.
@@ -2954,11 +3066,15 @@ void CWeenieObject::Tick()
 					}
 				}
 			}
+			}
+			else
+				_nextHeartBeatEmote = Timer::cur_time + 30.0;
 
 			CheckRegeneration(InqFloatQuality(HEALTH_RATE_FLOAT, 0.0), HEALTH_ATTRIBUTE_2ND, MAX_HEALTH_ATTRIBUTE_2ND);
 			CheckRegeneration(InqFloatQuality(STAMINA_RATE_FLOAT, 0.0), STAMINA_ATTRIBUTE_2ND, MAX_STAMINA_ATTRIBUTE_2ND);
 			CheckRegeneration(InqFloatQuality(MANA_RATE_FLOAT, 0.0), MANA_ATTRIBUTE_2ND, MAX_MANA_ATTRIBUTE_2ND);
 		}
+
 
 		double heartbeatInterval;
 		if (m_Qualities.InqFloat(HEARTBEAT_INTERVAL_FLOAT, heartbeatInterval, TRUE))
@@ -2980,7 +3096,8 @@ void CWeenieObject::Tick()
 
 	if (_timeToRot >= 0 && _timeToRot <= Timer::cur_time)
 	{
-		if (!HasOwner())
+		// Allow items to rot if they have a predetermined lifespan.
+		if (!HasOwner() || m_Qualities.GetInt(LIFESPAN_INT,0))
 		{
 			if (_beganRot)
 			{
@@ -3142,7 +3259,6 @@ void CWeenieObject::PostSpawn()
 		SetLocked(FALSE);
 	}
 
-	if (!m_Qualities._generator_queue)// Prevents generators that have a generator_queue from reinitializing
 		InitCreateGenerator();
 
 	double heartbeatInterval;
@@ -3812,12 +3928,15 @@ bool CWeenieObject::IsBusy()
 	return false;
 }
 
-bool CWeenieObject::IsMovingTo()
+bool CWeenieObject::IsMovingTo(MovementTypes key)
 {
 	if (!movement_manager || !movement_manager->moveto_manager)
 		return false;
 
-	return movement_manager->moveto_manager->movement_type != MovementTypes::Invalid;
+	if (key == Invalid) 
+		return movement_manager->moveto_manager->movement_type != MovementTypes::Invalid; //default returns true if we are doing any type of positional movement.
+	else
+		return movement_manager->moveto_manager->movement_type == key; //are we doing a specific movement type?
 }
 
 bool CWeenieObject::IsBusyOrInAction()
@@ -3842,6 +3961,9 @@ bool CWeenieObject::ImmuneToDamage(CWeenieObject *other)
 		return true;
 
 	if (!IsCreature())
+		return true;
+
+	if (IsCreature() && !IsAttackable()) //no aoe spell collision damage on unattackable creatures (players, etc.)
 		return true;
 
 	if (IsDead())
@@ -4373,12 +4495,15 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 				if (reduction > 0.25)
 					reduction = 0.25;
 
-				bool isPvP = damageData.source->AsPlayer() && damageData.target->AsPlayer();
+				if (damageData.source && damageData.target)
+				{
+					bool isPvP = damageData.source->AsPlayer() && damageData.target->AsPlayer();
 
-				if (isPvP)
-					reduction *= 0.72;
-				
-				damageData.damageAfterMitigation *= 1.0 - reduction;
+					if (isPvP)
+						reduction *= 0.72;
+
+					damageData.damageAfterMitigation *= 1.0 - reduction;
+				}
 			}
 		}
 
@@ -4407,6 +4532,38 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 			damageData.damageAfterMitigation *= 1.0 - reduction;
 		}
 	}
+
+	if (damageData.damageAfterMitigation > 0 && damageData.damage_type < 0x80) // elemental damage types only
+	{
+		// calculate augmentation resistances
+		if (damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FAMILY_INT, 0) > 0)
+		{
+			double reduction = 0.0;
+
+			switch (damageData.damage_type)
+			{
+			case BLUDGEON_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_BLUNT_INT, 0); break;
+			case SLASH_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_SLASH_INT, 0); break;
+			case PIERCE_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_PIERCE_INT, 0); break;
+			case ACID_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_ACID_INT, 0); break;
+			case FIRE_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FIRE_INT, 0); break;
+			case COLD_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_FROST_INT, 0); break;
+			case ELECTRIC_DAMAGE_TYPE:
+				reduction = 0.1 * damageData.target->InqIntQuality(AUGMENTATION_RESISTANCE_LIGHTNING_INT, 0); break;
+			default:
+				break;
+			}
+
+			damageData.damageAfterMitigation *= 1.0 - reduction;
+		}
+	}
+
 
 	if (damageData.damageAfterMitigation < 0)
 	{
@@ -5255,10 +5412,10 @@ int CWeenieObject::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 
 void CWeenieObject::HandleMoveToDone(DWORD error)
 {
-	if (m_UseManager)
+	/*if (m_UseManager)
 	{
 		m_UseManager->HandleMoveToDone(error);
-	}
+	}*/
 	if (m_AttackManager)
 	{
 		m_AttackManager->HandleMoveToDone(error);
@@ -5605,9 +5762,30 @@ bool CWeenieObject::IsValidWieldLocation(DWORD location)
 
 bool CWeenieObject::CanEquipWith(CWeenieObject *other, DWORD otherLocation)
 {
-	if (InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE) & otherLocation)
+	int loc = InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE);
+	//int allLoc = InqIntQuality(LOCATIONS_INT, 0, TRUE);
+
+	//int otherAllLoc = other->InqIntQuality(LOCATIONS_INT, 0, TRUE);
+	//int otherLoc = other->InqIntQuality(CURRENT_WIELDED_LOCATION_INT, 0, TRUE);
+
+	//WINLOG(Object, Normal, "Can Equip %s => %s || %08x %08x => %08x %08x (%08x)\n",
+	//	GetName().c_str(), other->GetName().c_str(),
+	//	allLoc, loc, otherAllLoc, otherLoc, otherLocation);
+
+	// if this object covers other location, no
+	if ( loc & otherLocation)
 	{
 		return false;
+	}
+
+	// if the other item wants to be in the left hand slot
+	if (otherLocation == SHIELD_LOC)
+	{
+		// if this object is a bow/thrown item or two-hander
+		if (loc & (HELD_LOC | MISSILE_WEAPON_LOC | TWO_HANDED_LOC))
+		{
+			return false;
+		}
 	}
 
 	return true;
@@ -5635,7 +5813,7 @@ int CWeenieObject::SimulateGiveObject(CContainerWeenie *target_container, CWeeni
 		if (IsCreature())
 		{
 			int amount = object_weenie->InqIntQuality(STACK_SIZE_INT, 1);
-			if (amount > 1)
+			if (amount > 1 && !(m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->m_Qualities.id)))
 			{
 				SendText(csprintf("You give %s %s %s.", target_container->GetName().c_str(), FormatNumberString(amount).c_str(), object_weenie->GetPluralName().c_str()), LTT_DEFAULT);
 				target_container->SendText(csprintf("%s gives you %s %s.", GetName().c_str(), FormatNumberString(amount).c_str(), object_weenie->GetPluralName().c_str()), LTT_DEFAULT);
@@ -5729,7 +5907,7 @@ void CWeenieObject::SimulateGiveObject(class CContainerWeenie *target_container,
 		if (IsCreature())
 		{
 			int amount = object_weenie->InqIntQuality(STACK_SIZE_INT, 1);
-			if (amount > 1)
+			if (amount > 1 && !(m_Qualities._emote_table && HasEmoteForID(Refuse_EmoteCategory, object_weenie->m_Qualities.id)))
 			{
 				SendText(csprintf("You give %s %s %s.", target_container->GetName().c_str(), FormatNumberString(amount).c_str(), object_weenie->GetPluralName().c_str()), LTT_DEFAULT);
 				target_container->SendText(csprintf("%s gives you %s %s.", GetName().c_str(), FormatNumberString(amount).c_str(), object_weenie->GetPluralName().c_str()), LTT_DEFAULT);
@@ -6128,10 +6306,32 @@ int CWeenieObject::GetAttackTimeUsingWielded()
 int CWeenieObject::GetAttackDamage()
 {
 	int damage = InqIntQuality(DAMAGE_INT, 0, TRUE);
-	
-	// Don't enchant Ammunition
+
+	// Don't enchant Ammunition instead look up the damage of the launcher
 	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
-		return damage;
+	{
+		CAmmunitionWeenie *missile = AsAmmunition();
+
+		if (missile && missile->_launcherID)
+		{
+			CWeenieObject *launcher = g_pWorld->FindObject(missile->_launcherID);
+			if (launcher)
+			{
+				damage += launcher->GetAttackDamage();
+
+				int launcherElement = launcher->m_Qualities.GetInt(DAMAGE_TYPE_INT, 0);
+				int ammoElement = m_Qualities.GetInt(DAMAGE_TYPE_INT, 0);
+
+				if (ammoElement == launcherElement || ammoElement == BASE_DAMAGE_TYPE)
+				{
+					if (launcher->m_Qualities.GetInt(ELEMENTAL_DAMAGE_BONUS_INT, 0))
+						damage += launcher->GetElementalDamageBonus();
+				}
+
+				return damage;
+			}
+		}
+	}
 
 	if (m_Qualities._enchantment_reg)
 		m_Qualities._enchantment_reg->EnchantInt(DAMAGE_INT, &damage, FALSE);
@@ -6143,6 +6343,26 @@ int CWeenieObject::GetAttackDamage()
 	}
 
 	return damage;
+}
+
+int CWeenieObject::GetElementalDamageBonus()
+{
+	int damageBonus = InqIntQuality(ELEMENTAL_DAMAGE_BONUS_INT, 0, TRUE);
+
+	// Ammunition shouldn't have an elemental damage bonus.
+	if (m_Qualities.m_WeenieType == Ammunition_WeenieType)
+		return damageBonus;
+
+	if (m_Qualities._enchantment_reg)
+		m_Qualities._enchantment_reg->EnchantInt(ELEMENTAL_DAMAGE_BONUS_INT, &damageBonus, FALSE);
+
+	CWeenieObject *wielder = GetWorldWielder();
+	if (wielder && InqIntQuality(RESIST_MAGIC_INT, 0, FALSE) < 9999)
+	{
+		damageBonus += wielder->GetElementalDamageBonus();
+	}
+
+	return damageBonus;
 }
 
 bool CWeenieObject::IsInPeaceMode()
@@ -6158,7 +6378,7 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 	DWORD defenseSkill = 0;
 	InqSkill(MELEE_DEFENSE_SKILL, defenseSkill, FALSE);
 
-	double defenseMod = GetMeleeDefenseModUsingWielded();
+	double defenseMod = 1.0;
 
 	bool inCombatMode = true;
 	if (get_minterp()->interpreted_state.current_style == Motion_NonCombat)
@@ -6180,6 +6400,8 @@ bool CWeenieObject::TryMeleeEvade(DWORD attackSkill)
 			break;
 		}
 	}
+	else
+		defenseMod = GetMeleeDefenseModUsingWielded();
 	
 	defenseSkill = (int)round((double)defenseSkill * defenseMod * CalculateDefenseImpact());
 	bool success = ::TryMeleeEvade(attackSkill, defenseSkill);
@@ -6343,7 +6565,7 @@ void CWeenieObject::OnTeleported()
 	if (m_SpellcastingManager)
 		m_SpellcastingManager->Cancel();
 
-	if (m_EmoteManager)
+	if (m_EmoteManager && weenie_obj->_IsPlayer())
 		m_EmoteManager->Cancel();
 
 	if (m_AttackManager)

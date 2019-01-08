@@ -94,6 +94,7 @@ struct DamageEventData
 	DAMAGE_TYPE damage_type = UNDEF_DAMAGE_TYPE;
 	
 	int preVarianceDamage = 0;
+	float variance = 0.0f;
 	double baseDamage = 0;
 	double damageBeforeMitigation = 0;
 	double damageAfterMitigation = 0;
@@ -362,12 +363,15 @@ public:
 	virtual void GivePerksForKill(CWeenieObject *pKilled);
 	void GiveSharedXP(long long amount, bool showText);
 	void GiveXP(long long amount, bool showText = false, bool allegianceXP = false);
+	void GiveSharedLum(long long amount, bool showText);
+	void GiveLum(long long amount, bool showText);
 	virtual void OnGivenXP(long long amount, bool allegianceXP) { }
 	DWORD GiveAttributeXP(STypeAttribute key, DWORD amount);
 	DWORD GiveAttribute2ndXP(STypeAttribute2nd key, DWORD amount);
 	DWORD GiveSkillXP(STypeSkill key, DWORD amount, bool silent = true);
 	DWORD GiveSkillPoints(STypeSkill key, DWORD amount);
 	DWORD GiveSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CLASS sac);
+	DWORD GetSkillCredits();
 	void GiveSkillCredits(DWORD amount, bool showText);
 
 	void TryToUnloadAllegianceXP(bool bShowText);
@@ -577,7 +581,7 @@ public:
 	
 	virtual bool ImmuneToDamage(class CWeenieObject *other);
 	virtual bool IsBusy();
-	bool IsMovingTo();
+	bool IsMovingTo(MovementTypes key = Invalid);
 	bool IsCompletelyIdle();
 	bool HasInterpActions();
 	bool IsBusyOrInAction();
@@ -654,6 +658,7 @@ public:
 	virtual double GetElementalDamage();
 	virtual int GetAttackTimeUsingWielded();
 	virtual int GetAttackDamage();
+	virtual int GetElementalDamageBonus();
 
 	double GetCrushingBlowMultiplier();
 	double GetBitingStrikeFrequency();
@@ -735,6 +740,8 @@ public:
 	virtual bool CanTarget(CWeenieObject* target) { return false; }
 
 	virtual void NotifyRemoveFromWorld() { }
+
+	std::unordered_map<DWORD, DWORD> m_GeneratorSpawns;
 
 protected:
 	CWorldLandBlock *m_pBlock = NULL;

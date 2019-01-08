@@ -69,6 +69,7 @@ bool CKeyValueConfig::Load()
 	f.close();
 	
 	PostLoad();
+
 	return true;
 }
 
@@ -165,15 +166,26 @@ void CPhatACServerConfig::PostLoad()
 	m_YaraqStartPosition = GetValue("yaraq_start_position", "");
 	m_ShoushiStartPosition = GetValue("shoushi_start_position", "");
 	m_SanamarStartPosition = GetValue("sanamar_start_position", "");
+	m_OlthoiStartPosition = GetValue("olthoi_start_position", "");
 
 	m_PKRespiteTime = atoi(GetValue("pk_respite_time", "300"));
 	m_bSpellPurgeOnLogin = atoi(GetValue("spell_purge_on_login", "0")) != 0;
 	m_bUpdateAllegianceData = atoi(GetValue("update_allegiance_blob", "0")) != 0;
+	m_bInventoryPurgeOnLogin = atoi(GetValue("inventory_purge_on_login", "0")) != 0;
+
+	m_WcidForPurge = (unsigned int)max(0, atoi(GetValue("wcid_for_purge", "100000")));
 
 	m_bAllowGeneralChat = atoi(GetValue("allow_general_chat", "1")) != 0;
 
 	m_fRareDropMultiplier = max(0.0, atof(GetValue("rare_drop_multiplier", "0.0")));
 	m_bRealTimeRares = atoi(GetValue("real_time_rare_drops", "0")) != 0;
+
+	m_bLoginAtLS = (atoi(GetValue("force_users_to_login_at_lifestone", "0"))) != 0;
+
+	m_bCreateTemplates = (atoi(GetValue("spawn_template_weenies", "0"))) != 0;
+	m_bAllowPKCommands = (atoi(GetValue("allow_pk_commands", "0"))) != 0;
+	m_bAllowOlthoi = (atoi(GetValue("allow_olthoi", "0"))) != 0;
+	m_bFixOldChars = (atoi(GetValue("fix_old_chars", "0"))) != 0;
 }
 
 double CPhatACServerConfig::GetMultiplierForQuestTime(int questTime)
@@ -235,4 +247,3 @@ double CPhatACServerConfig::RewardXPMultiplier(int level)
 	else
 		return m_fRewardXPMultiplierT6;
 }
-

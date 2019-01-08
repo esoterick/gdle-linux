@@ -33,7 +33,7 @@ public:
 	WORD GetHeader();
 	BOOL Think();
 
-	void ClearSpawns();
+	void ClearSpawns(bool forced = false);
 
 	void Insert(CWeenieObject *pEntity, WORD wOld = 0, BOOL bNew = FALSE, bool bMakeAware = true);
 	void Destroy(CWeenieObject *pEntity, bool bDoRelease = true);

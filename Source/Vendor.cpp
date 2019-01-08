@@ -27,6 +27,19 @@ CVendor::~CVendor()
 	ResetItems();
 }
 
+void CVendor::Tick()
+{
+	if (m_EmoteManager)
+		m_EmoteManager->Tick();
+
+	if (m_VendorCycleTime <= Timer::cur_time)
+	{
+		CheckRange();
+		m_VendorCycleTime = (Timer::cur_time + 3);
+	}
+
+}
+
 void CVendor::ResetItems()
 {
 	for (auto item : m_Items)
@@ -187,7 +200,9 @@ int CVendor::TryBuyItemsFromPlayer(CPlayerWeenie *seller, const std::list<ItemPr
 
 	// check price of items
 	UINT64 totalValue = 0;
-	for (auto desiredItem : desiredItems)
+
+	const std::list<ItemProfile *> filteredItems = GetFilteredItems(desiredItems, seller);
+	for (auto desiredItem : filteredItems)
 	{
 		CWeenieObject *sellerItem = seller->FindContainedItem(desiredItem->iid);
 		if (!sellerItem)
@@ -235,7 +250,7 @@ int CVendor::TryBuyItemsFromPlayer(CPlayerWeenie *seller, const std::list<ItemPr
 	seller->EmitSound(Sound_PickUpItem, 1.0f);
 
 	// take away the items purchased...
-	for (auto desiredItem : desiredItems)
+	for (auto desiredItem : filteredItems)
 	{
 		//The client won't allow selling partial stacks
 		//In fact it will request an item split in inventory before adding partial stacks and once in the sell list 
@@ -246,13 +261,47 @@ int CVendor::TryBuyItemsFromPlayer(CPlayerWeenie *seller, const std::list<ItemPr
 			continue;
 		weenie->Remove(); //todo: maybe add vendors relisting loot items like they used to way back.
 	}
-
-	DoVendorEmote(Sell_VendorTypeEmote, seller->GetID());
+	if (filteredItems.size()>0)
+		DoVendorEmote(Sell_VendorTypeEmote, seller->GetID());
 
 	//and add the coins.
 	seller->SpawnInContainer(W_COINSTACK_CLASS, totalValue);
 
+	if (filteredItems.size() < desiredItems.size())
+		seller->NotifyWeenieErrorWithString(WERROR_TRADE_AI_DOESNT_WANT, GetName().c_str());
+
 	return WERROR_NONE;
+}
+
+const std::list<ItemProfile *> CVendor::GetFilteredItems(std::list<ItemProfile *> desiredItems, CPlayerWeenie *seller)
+{
+	for (std::list<ItemProfile *>::iterator i = desiredItems.begin(); i != desiredItems.end();)
+	{
+		auto desiredItem = *i;
+		CWeenieObject *sellerItem = seller->FindContainedItem(desiredItem->iid);
+		if (!sellerItem)
+		{
+			i = desiredItems.erase(i);
+			continue;
+		}	
+
+		auto sellerItemValue = sellerItem->GetValue();
+		auto sellerItemType = sellerItem->InqIntQuality(ITEM_TYPE_INT, 0, TRUE);
+		auto sellerItemHasMana = sellerItem->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
+
+		if (sellerItemType != TYPE_PROMISSORY_NOTE && 
+			(profile.min_value > sellerItemValue ||
+			profile.max_value < sellerItemValue ||
+			!(profile.item_types & sellerItemType) ||
+			(!profile.magic && sellerItemHasMana) ||
+			(profile.trade_id && profile.trade_id != sellerItem->m_Qualities.id)))
+		{
+			i = desiredItems.erase(i);
+		}
+		else
+			++i;
+	}
+	return desiredItems;
 }
 
 void CVendor::AddVendorItemByAllMatchingNames(const char *name)
@@ -382,6 +431,7 @@ int CVendor::DoUseResponse(CWeenieObject *player)
 		
 	SendVendorInventory(player);
 	DoVendorEmote(Open_VendorTypeEmote, player->GetID());
+	m_ActiveBuyers.insert(player->GetID());
 	return WERROR_NONE;
 }
 
@@ -394,5 +444,26 @@ void CAvatarVendor::PreSpawnCreate()
 	for (DWORD i = 0; i < g_pWeenieFactory->m_NumAvatars; i++)
 	{
 		AddVendorItem(g_pWeenieFactory->m_FirstAvatarWCID + i, -1);
+	}
+}
+
+void CVendor::CheckRange()
+{
+	double UseDist = InqFloatQuality(USE_RADIUS_FLOAT, 0, TRUE);
+	for (std::set<DWORD>::iterator i = m_ActiveBuyers.begin(); i != m_ActiveBuyers.end();)
+	{
+		CWeenieObject *player = g_pWorld->FindPlayer(*i);
+		if(player)
+		{
+			if (DistanceTo(player, true) > UseDist)
+			{
+				DoVendorEmote(Close_VendorTypeEmote, player->GetID());
+				i = m_ActiveBuyers.erase(i);
+			}
+			else
+				++i;
+		}
+		else
+			i = m_ActiveBuyers.erase(i);
 	}
 }

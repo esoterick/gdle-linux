@@ -112,8 +112,12 @@ CWeenieObject *CContainerWeenie::GetWieldedCombat(COMBAT_USE combatUse)
 	// The first entry is "Undef" so we omit that.
 	int index = combatUse - 1;
 
-	if (index < 0 || index >= MAX_WIELDED_COMBAT)
+	if (index < 0 || index > MAX_WIELDED_COMBAT)
 		return NULL;
+
+	// OFFHAND is the shield slot
+	if (combatUse == COMBAT_USE_OFFHAND)
+		index = COMBAT_USE_SHIELD - 1;
 
 	return m_WieldedCombat[index];
 }
@@ -123,8 +127,12 @@ void CContainerWeenie::SetWieldedCombat(CWeenieObject *wielded, COMBAT_USE comba
 	// The first entry is "Undef" so we omit that.
 	int index = combatUse - 1;
 
-	if (index < 0 || index >= MAX_WIELDED_COMBAT)
+	if (index < 0 || index > MAX_WIELDED_COMBAT)
 		return;
+
+	// OFFHAND is the shield slot
+	if (combatUse == COMBAT_USE_OFFHAND)
+		index = COMBAT_USE_SHIELD - 1;
 
 	m_WieldedCombat[index] = wielded;
 }
@@ -250,8 +258,18 @@ BOOL CContainerWeenie::Container_CanEquip(CWeenieObject *item, DWORD location)
 	if (!item)
 		return FALSE;
 
-	if (!item->IsValidWieldLocation(location))
+	int possible = item->InqIntQuality(LOCATIONS_INT, 0, TRUE);
+
+	// weapons (right-hand) can go in the shield (left-hand) slot, too
+	if ((possible & location) == 0 && !(location == SHIELD_LOC && possible == MELEE_WEAPON_LOC))
 		return FALSE;
+
+	// Don't check Valid Wield Location for Dual Wield
+	if (!(location == SHIELD_LOC && possible == MELEE_WEAPON_LOC))
+	{
+		if (!item->IsValidWieldLocation(location))
+			return FALSE;
+	}
 
 	for (auto wielded : m_Wielded)
 	{
@@ -267,8 +285,13 @@ BOOL CContainerWeenie::Container_CanEquip(CWeenieObject *item, DWORD location)
 
 void CContainerWeenie::Container_EquipItem(DWORD dwCell, CWeenieObject *item, DWORD inv_loc, DWORD child_location, DWORD placement)
 {
-	if (int combatUse = item->InqIntQuality(COMBAT_USE_INT, 0, TRUE))
+	int combatUse = item->InqIntQuality(COMBAT_USE_INT, 0, TRUE);
+	if (combatUse)
+	{
+		if (combatUse == COMBAT_USE_MELEE && placement == LeftWeapon)
+			combatUse = COMBAT_USE_OFFHAND;
 		SetWieldedCombat(item, (COMBAT_USE)combatUse);
+	}
 
 	bool bAlreadyEquipped = false;
 	for (auto entry : m_Wielded)
@@ -487,7 +510,8 @@ void CContainerWeenie::Container_DeleteItem(DWORD item_id)
 	
 	if (bWielded && item->AsClothing())
 	{
-		UpdateModel();
+		if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) != Gearknight_HeritageGroup) // TODO: Update JUST cloak on gearknight unequip rather than whole model.
+			UpdateModel();
 	}
 
 	DWORD RemoveObject[3];
@@ -714,49 +738,54 @@ bool CContainerWeenie::SpawnCloneInContainer(CWeenieObject *itemToClone, int amo
 
 bool CContainerWeenie::SpawnInContainer(CWeenieObject *item, bool sendEnvent, bool deleteItemOnFailure)
 {
-	item->SetID(g_pWorld->GenerateGUID(eDynamicGUID));
-	if (!Container_CanStore(item))
+	if (item)
 	{
-		if(sendEnvent)
-			NotifyInventoryFailedEvent(item->GetID(), WERROR_GIVE_NOT_ALLOWED);
-
-		if(deleteItemOnFailure)
-			delete item;
-		return false;
-	}
-
-	if (!g_pWorld->CreateEntity(item))
-	{
-		if (sendEnvent)
-			NotifyInventoryFailedEvent(item->GetID(), WERROR_GIVE_NOT_ALLOWED);
-		if (deleteItemOnFailure)
-			delete item;
-		return false;
-	}
-
-	if (sendEnvent)
-	{
-		SendNetMessage(InventoryMove(item->GetID(), GetID(), 0, item->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
-		if (item->AsContainer())
-			item->AsContainer()->MakeAwareViewContent(this);
-		MakeAware(item, true);
-
-		if (_openedById != 0)
+		item->SetID(g_pWorld->GenerateGUID(eDynamicGUID));
+		if (!Container_CanStore(item))
 		{
-			CWeenieObject *openedBy = g_pWorld->FindObject(_openedById);
+			if (sendEnvent)
+				NotifyInventoryFailedEvent(item->GetID(), WERROR_GIVE_NOT_ALLOWED);
 
-			if (openedBy)
+			if (deleteItemOnFailure)
+				delete item;
+			return false;
+		}
+
+		if (!g_pWorld->CreateEntity(item))
+		{
+			if (sendEnvent)
+				NotifyInventoryFailedEvent(item->GetID(), WERROR_GIVE_NOT_ALLOWED);
+			if (deleteItemOnFailure)
+				delete item;
+			return false;
+		}
+
+		if (sendEnvent)
+		{
+			SendNetMessage(InventoryMove(item->GetID(), GetID(), 0, item->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
+			if (item->AsContainer())
+				item->AsContainer()->MakeAwareViewContent(this);
+			MakeAware(item, true);
+
+			if (_openedById != 0)
 			{
-				openedBy->SendNetMessage(InventoryMove(item->GetID(), GetID(), 0, item->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
-				if (item->AsContainer())
-					item->AsContainer()->MakeAwareViewContent(this);
-				openedBy->MakeAware(item, true);
+				CWeenieObject *openedBy = g_pWorld->FindObject(_openedById);
+
+				if (openedBy)
+				{
+					openedBy->SendNetMessage(InventoryMove(item->GetID(), GetID(), 0, item->RequiresPackSlot() ? 1 : 0), PRIVATE_MSG, TRUE);
+					if (item->AsContainer())
+						item->AsContainer()->MakeAwareViewContent(this);
+					openedBy->MakeAware(item, true);
+				}
 			}
 		}
-	}
 
-	OnReceiveInventoryItem(this, item, 0);
-	return true;
+		OnReceiveInventoryItem(this, item, 0);
+		return true;
+	}
+	else
+		return false;
 }
 
 DWORD CContainerWeenie::OnReceiveInventoryItem(CWeenieObject *source, CWeenieObject *item, DWORD desired_slot)
@@ -876,7 +905,12 @@ void CContainerWeenie::LoadEx(class CWeenieSave &save)
 				m_Wielded.push_back(weenie);
 
 				if (int combatUse = weenie->InqIntQuality(COMBAT_USE_INT, 0, TRUE))
+				{
+					int frame = weenie->InqIntQuality(PLACEMENT_POSITION_INT, 0, TRUE);
+					if (combatUse == COMBAT_USE_MELEE && frame == LeftWeapon)
+						combatUse = COMBAT_USE_OFFHAND;
 					SetWieldedCombat(weenie, (COMBAT_USE)combatUse);
+				}
 
 				assert(weenie->IsWielded());
 				assert(!weenie->IsContained());
@@ -1156,6 +1190,9 @@ void CContainerWeenie::ResetToInitialState()
 								i++;
 						}
 					}
+
+					if (m_GeneratorSpawns.size() > 0)
+						m_GeneratorSpawns.clear();
 				}
 			}
 		}
@@ -1165,6 +1202,8 @@ void CContainerWeenie::ResetToInitialState()
 				m_Qualities._generator_registry->_registry.clear();
 			if (m_Qualities._generator_queue)
 				m_Qualities._generator_queue->_queue.clear();
+			if (m_GeneratorSpawns.size() > 0)
+				m_GeneratorSpawns.clear();
 		}
 	}
 
@@ -1507,6 +1546,14 @@ void CContainerWeenie::RecalculateEncumbrance()
 
 	if (oldValue != newValue)
 	{
+		if (m_Qualities.m_WeenieType == Corpse_WeenieType || m_Qualities.m_WeenieType == Chest_WeenieType)
+		{
+			CWeenieDefaults *defaults = g_pWeenieFactory->GetWeenieDefaults(m_Qualities.id);
+
+			if (defaults)
+				newValue += defaults->m_Qualities.GetInt(ENCUMB_VAL_INT, 0);
+		}
+
 		m_Qualities.SetInt(ENCUMB_VAL_INT, newValue);
 		NotifyIntStatUpdated(ENCUMB_VAL_INT, true);
 	}

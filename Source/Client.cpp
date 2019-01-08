@@ -352,7 +352,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 	}
 
 	//if (cg.heritageGroup <= 0 || cg.heritageGroup >= 14)
-	if (cg.heritageGroup <= 0 || cg.heritageGroup >= 12)
+	if (cg.heritageGroup <= 0 || cg.heritageGroup >= 12 && !g_pConfig->AllowOlthoi())
 	{
 		BinaryWriter response;
 		response.Write<DWORD>(0xF643);
@@ -514,6 +514,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 						weenie->m_Qualities.SetDataID(COMBAT_TABLE_DID, scg->combatTable);
 						weenie->m_Qualities.SetDataID(PHYSICS_EFFECT_TABLE_DID, scg->physicsTable);
 						weenie->m_Qualities.SetDataID(SETUP_DID, scg->setup);
+						weenie->m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, scg->scaling / 100);
 						//weenie->m_ObjDesc = scg->objDesc;
 						//weenie->m_ObjDesc.paletteID = scg->basePalette;
 
@@ -523,6 +524,17 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 						if (hairStyle->objDesc.firstAPChange)
 							weenie->m_Qualities.SetDataID(HEAD_OBJECT_DID, hairStyle->objDesc.firstAPChange->part_id);
+
+						if (hairStyle->alternateSetup)
+							weenie->m_Qualities.SetDataID(SETUP_DID, hairStyle->alternateSetup);
+
+						// fix Gearknight and olthoi head_object_did
+						if (cg.heritageGroup == Gearknight_HeritageGroup) 
+							weenie->m_Qualities.SetDataID(HEAD_OBJECT_DID, hairStyle->objDesc.lastAPChange->part_id);
+						if (cg.heritageGroup == Olthoi_HeritageGroup)
+							weenie->m_Qualities.SetDataID(HEAD_OBJECT_DID, 0x010045f0);
+						if (cg.heritageGroup == OlthoiAcid_HeritageGroup)
+							weenie->m_Qualities.SetDataID(HEAD_OBJECT_DID, 0x01004616);
 
 						if (cg.eyesStrip != -1)
 						{
@@ -614,7 +626,16 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 					if (cg.skillAdvancementClasses[i] == SKILL_ADVANCEMENT_CLASS::SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
 						weenie->m_Qualities.SetSkillLevel((STypeSkill)i, 10);
 					else if (cg.skillAdvancementClasses[i] == SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-						weenie->m_Qualities.SetSkillLevel((STypeSkill)i, 5);
+					{
+						Skill trained;
+						weenie->m_Qualities.InqSkill((STypeSkill)i, trained);
+
+						trained._init_level = 0;
+						trained._level_from_pp = 5;
+						trained._pp = 526;
+
+						weenie->m_Qualities.SetSkill((STypeSkill)i, trained);
+					}
 				}
 
 				time_t t = chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -686,8 +707,18 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 
 					if (!startPos.objcell_id)
 					{
-						startPos = Position(0x720301AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0, 0, 0.948985f));
+						startPos = Position(0x7203026C, Vector(11.66688f, -28.831614f, 0.005f), Quaternion(0, 0, 0, 1.0f));
 						//startPos = Position(0xA9B00006, Vector(24.258204f, 123.777000f, 63.060749f), Quaternion(1, 0, 0, 0));
+					}
+
+					break;
+				case 4:
+					// Olthoi Island
+					startPos = Position(g_pConfig->OlthoiStartPosition());
+
+					if (!startPos.objcell_id)
+					{
+						startPos = Position(0xE6D3000E, Vector(40.57f, 138.16f, 218.00f), Quaternion(0, 0, 0, 1));
 					}
 
 					break;
@@ -704,15 +735,66 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				if (!g_pWorld->CreateEntity(weenie))
 					return;; //Briefly add the weenie to the world so we don't get errors when adding the starting gear.
 
-				//set scale on Lugian and Empyrean characters
-				if (cg.heritageGroup == Lugian_HeritageGroup)
-					weenie->m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.3);
-
-				if (cg.heritageGroup == Empyrean_HeritageGroup)
-					weenie->m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
-
 				//add starter gear
 				GenerateStarterGear(weenie, cg, scg);
+
+				// Set Olthoi starting stats/skills
+				if (cg.heritageGroup == Olthoi_HeritageGroup)
+				{
+					weenie->m_Qualities.SetInt(LEVEL_INT, 180);
+					weenie->m_Qualities.SetAttribute(STRENGTH_ATTRIBUTE, 350);
+					weenie->m_Qualities.SetAttribute(ENDURANCE_ATTRIBUTE, 350);
+					weenie->m_Qualities.SetAttribute(COORDINATION_ATTRIBUTE, 300);
+					weenie->m_Qualities.SetAttribute(QUICKNESS_ATTRIBUTE, 350);
+					weenie->m_Qualities.SetAttribute(FOCUS_ATTRIBUTE, 200);
+					weenie->m_Qualities.SetAttribute(SELF_ATTRIBUTE, 200);
+					weenie->m_Qualities.SetAttribute2nd(HEALTH_ATTRIBUTE_2ND, 325);
+					weenie->m_Qualities.SetAttribute2nd(STAMINA_ATTRIBUTE_2ND, 325);
+
+					weenie->m_Qualities.SetInt(PLAYER_KILLER_STATUS_INT, PK_PKStatus); // Olthoi are always Red
+				}
+
+				if (cg.heritageGroup == OlthoiAcid_HeritageGroup)
+				{
+					weenie->m_Qualities.SetInt(LEVEL_INT, 180);
+					weenie->m_Qualities.SetAttribute(STRENGTH_ATTRIBUTE, 200);
+					weenie->m_Qualities.SetAttribute(ENDURANCE_ATTRIBUTE, 200);
+					weenie->m_Qualities.SetAttribute(COORDINATION_ATTRIBUTE, 300);
+					weenie->m_Qualities.SetAttribute(QUICKNESS_ATTRIBUTE, 250);
+					weenie->m_Qualities.SetAttribute(FOCUS_ATTRIBUTE, 400);
+					weenie->m_Qualities.SetAttribute(SELF_ATTRIBUTE, 400);
+					weenie->m_Qualities.SetAttribute2nd(HEALTH_ATTRIBUTE_2ND, 400);
+					weenie->m_Qualities.SetAttribute2nd(STAMINA_ATTRIBUTE_2ND, 400);
+					weenie->m_Qualities.SetAttribute2nd(MANA_ATTRIBUTE_2ND, 400);
+
+					weenie->m_Qualities.SetInt(PLAYER_KILLER_STATUS_INT, PK_PKStatus); // Olthoi are always Red
+				}
+
+				// add racial augmentations
+				switch (cg.heritageGroup)
+				{
+				case Shadowbound_HeritageGroup:
+				case Penumbraen_HeritageGroup:
+					weenie->m_Qualities.SetInt(AUGMENTATION_CRITICAL_EXPERTISE_INT, 1); break;
+				case Gearknight_HeritageGroup:
+					weenie->m_Qualities.SetInt(AUGMENTATION_DAMAGE_REDUCTION_INT, 1); break;
+				case Tumerok_HeritageGroup:
+					weenie->m_Qualities.SetInt(AUGMENTATION_CRITICAL_POWER_INT, 1); break;
+				case Lugian_HeritageGroup:
+					weenie->m_Qualities.SetInt(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, 1); break;
+				case Empyrean_HeritageGroup:
+					weenie->m_Qualities.SetInt(AUGMENTATION_INFUSED_LIFE_MAGIC_INT, 1); break;
+				case Undead_HeritageGroup:
+					weenie->m_Qualities.SetInt(AUGMENTATION_CRITICAL_DEFENSE_INT, 1); break;
+				case Olthoi_HeritageGroup:
+				case OlthoiAcid_HeritageGroup:
+					break; // none
+				default: // sho, aluv, gharu, viamont
+					weenie->m_Qualities.SetInt(AUGMENTATION_JACK_OF_ALL_TRADES_INT, 1); break;
+				}
+
+				if (cg.heritageGroup < Olthoi_HeritageGroup) // Olthoi don't go to the training academy.
+					weenie->m_Qualities.SetBool(RECALLS_DISABLED_BOOL, 1); // Cannot use recalls out of the training academy.
 
 				weenie->Save();
 
@@ -746,6 +828,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 		}
 
 	}
+	SafeDelete(cg.skillAdvancementClasses);
 	return;
 
 BadData:
@@ -765,17 +848,28 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 	if (weenie == NULL)
 		return;
 
-	if (cg.headgearStyle != UINT_MAX)
-		weenie->SpawnWielded(cg.headgearStyle, scg->mHeadgearList, cg.headgearColor, scg->mClothingColorsList, cg.headgearShade);	
-	weenie->SpawnWielded(cg.shirtStyle, scg->mShirtList, cg.shirtColor, scg->mClothingColorsList, cg.shirtShade);
-	weenie->SpawnWielded(cg.trousersStyle, scg->mPantsList, cg.trousersColor, scg->mClothingColorsList, cg.trousersShade);
-	weenie->SpawnWielded(cg.footwearStyle, scg->mFootwearList, cg.footwearColor, scg->mClothingColorsList, cg.footwearShade);
+	if (cg.heritageGroup != Gearknight_HeritageGroup && cg.heritageGroup < 12) // Gearknights and olthoi don't get clothes to start.
+	{
+		if (cg.headgearStyle != UINT_MAX)
+			weenie->SpawnWielded(cg.headgearStyle, scg->mHeadgearList, cg.headgearColor, scg->mClothingColorsList, cg.headgearShade);
 
-	//weenie->m_Qualities.SetInt(COIN_VALUE_INT, GetAccessLevel() >= ADMIN_ACCESS ? 500000000 : 10000);
-	weenie->SpawnInContainer(W_COINSTACK_CLASS, 500);
-	//weenie->SpawnInContainer(W_TUTORIALBOOK_CLASS, 1); Temporary Removal
-	weenie->SpawnInContainer(W_TINKERINGTOOL_CLASS, 1);
+		weenie->SpawnWielded(cg.shirtStyle, scg->mShirtList, cg.shirtColor, scg->mClothingColorsList, cg.shirtShade);
+		weenie->SpawnWielded(cg.trousersStyle, scg->mPantsList, cg.trousersColor, scg->mClothingColorsList, cg.trousersShade);
+		weenie->SpawnWielded(cg.footwearStyle, scg->mFootwearList, cg.footwearColor, scg->mClothingColorsList, cg.footwearShade);
+	}
 
+	if (cg.heritageGroup < 12) // Olthoi get their own set of starting items.
+	{
+		//weenie->m_Qualities.SetInt(COIN_VALUE_INT, GetAccessLevel() >= ADMIN_ACCESS ? 500000000 : 10000);
+		weenie->SpawnInContainer(W_COINSTACK_CLASS, 500);
+		weenie->SpawnInContainer(W_TUTORIALBOOK_CLASS, 1);
+		weenie->SpawnInContainer(W_TINKERINGTOOL_CLASS, 1);
+		weenie->SpawnInContainer(W_SACK_CLASS, 1);
+		weenie->SpawnInContainer(W_CALLINGSTONE_CLASS, 1);
+		weenie->SpawnInContainer(33613, 1); // Pathwarden Token
+	}
+
+	weenie->SpawnInContainer(31000, 1); // Blackmoor's Favor
 
 	if (cg.skillAdvancementClasses[ALCHEMY_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 		weenie->SpawnInContainer(W_MORTARANDPESTLE_CLASS, 1);
@@ -1003,6 +1097,8 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 
 	case Gearknight_HeritageGroup:
 		weenie->SpawnInContainer(W_APPLE_CLASS, 1);
+		weenie->SpawnInContainer(43022, 1); // Core Plating Deintegrator
+		weenie->SpawnInContainer(42979, 1); // Core Plating Integrator
 		if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_TRAININGCLUB_CLASS, 1);
 		if (cg.skillAdvancementClasses[TWO_HANDED_COMBAT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
@@ -1071,12 +1167,18 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 			cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 			weenie->SpawnInContainer(W_WANDTRAINING_CLASS, 1);
 			
-
+		break;
+	case Olthoi_HeritageGroup:
+		weenie->SpawnInContainer(43701, 1); // Olthoi Fibrous Healing Tissue
+		weenie->SpawnInContainer(43634, 10); // Acidic Infusions
+	case OlthoiAcid_HeritageGroup:
+		weenie->SpawnInContainer(43701, 1); // Olthoi Fibrous Healing Tissue
+		weenie->SpawnInContainer(43634, 10); // Acidic Infusions
+		weenie->SpawnInContainer(43489, 1); // Salivatory Goo
+		weenie->SpawnInContainer(43637, 100); // Saliva Invigorator
+		weenie->SpawnInContainer(W_PACKWARESSENCE_CLASS, 1);
 		break;
 	}
-
-	weenie->SpawnInContainer(W_SACK_CLASS, 1);
-	weenie->SpawnInContainer(W_CALLINGSTONE_CLASS, 1);
 
 	CContainerWeenie *sack = NULL;
 	for (auto pack : weenie->m_Packs)
@@ -1091,17 +1193,18 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 	if (sack == NULL)
 		sack = weenie;
 
+	if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS || cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS || cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS || cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS || cg.skillAdvancementClasses[VOID_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+	{
+		sack->SpawnInContainer(W_SCARABLEAD_CLASS, 5);
+		weenie->SpawnInContainer(W_TAPERPRISMATIC_CLASS, 25);
+	}
+
 	if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 	{
-		sack->SpawnInContainer(W_SCARABLEAD_CLASS, 3);
-		
-
 		weenie->m_Qualities.AddSpell(StrengthOther1_SpellID);
 		
-
 		weenie->m_Qualities.AddSpell(InvulnerabilitySelf1_SpellID);
 		
-		weenie->SpawnInContainer(W_TAPERPRISMATIC_CLASS, 25);
 		weenie->SpawnInContainer(W_PACKCREATUREESSENCE_CLASS, 1);
 	}
 	if (cg.skillAdvancementClasses[CREATURE_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
@@ -1112,14 +1215,10 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 
 	if (cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 	{
-		sack->SpawnInContainer(W_SCARABLEAD_CLASS, 3);
-
-		weenie->m_Qualities.AddSpell(BloodDrinker1_SpellID);
-		
+		weenie->m_Qualities.AddSpell(BloodDrinker1_SpellID);		
 
 		weenie->m_Qualities.AddSpell(Impenetrability1_SpellID);
-		
-		weenie->SpawnInContainer(W_TAPERPRISMATIC_CLASS, 25);
+
 		weenie->SpawnInContainer(W_PACKITEMESSENCE_CLASS, 1);
 	}
 	if (cg.skillAdvancementClasses[ITEM_ENCHANTMENT_SKILL] >= SKILL_ADVANCEMENT_CLASS::SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
@@ -1130,15 +1229,12 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 
 	if (cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 	{
-		sack->SpawnInContainer(W_SCARABLEAD_CLASS, 3);
-
 		weenie->m_Qualities.AddSpell(ArmorOther1_SpellID);
 		
-
 		weenie->m_Qualities.AddSpell(HealSelf1_SpellID);
 		
-		weenie->SpawnInContainer(W_TAPERPRISMATIC_CLASS, 25);
-		weenie->SpawnInContainer(W_PACKLIFEESSENCE_CLASS, 1);
+		if (cg.heritageGroup != Empyrean_HeritageGroup) // Empyreans get the Life magic aug on creation
+			weenie->SpawnInContainer(W_PACKLIFEESSENCE_CLASS, 1);
 	}
 	if (cg.skillAdvancementClasses[LIFE_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
 	{
@@ -1148,7 +1244,6 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 
 	if (cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
 	{
-		sack->SpawnInContainer(W_SCARABLEAD_CLASS, 3);
 		weenie->m_Qualities.AddSpell(FlameBolt1_SpellID);		
 		weenie->m_Qualities.AddSpell(ForceBolt1_SpellID);
 		weenie->m_Qualities.AddSpell(LightningBolt1_SpellID);
@@ -1157,13 +1252,90 @@ void CClient::GenerateStarterGear(CWeenieObject *weenieObject, ACCharGenResult c
 		weenie->m_Qualities.AddSpell(WhirlingBlade1_SpellID);
 		weenie->m_Qualities.AddSpell(AcidStream1_SpellID);
 
-		weenie->SpawnInContainer(W_TAPERPRISMATIC_CLASS, 25);
 		weenie->SpawnInContainer(W_PACKWARESSENCE_CLASS, 1);
 	}
 	if (cg.skillAdvancementClasses[WAR_MAGIC_SKILL] >= SKILL_ADVANCEMENT_CLASS::SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
 	{
 		
 	
+	}
+
+	if (cg.skillAdvancementClasses[DUAL_WIELD_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+	{
+		switch (cg.heritageGroup)
+		{
+		case Default:
+		case Aluvian_HeritageGroup:
+			if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGDAGGER_CLASS, 1);
+			if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_DAGGERTRAINING_CLASS, 1);
+			if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGKNIFE_CLASS, 1);
+			break;
+		case Gharundim_HeritageGroup:
+			if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGSTAFF_CLASS, 1);
+			if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_STAFFTRAINING_CLASS, 1);
+			if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGBASTONE_CLASS, 1);
+			break;
+		case Penumbraen_HeritageGroup:
+		case Shadowbound_HeritageGroup:
+		case Sho_HeritageGroup:
+			if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGKNUCKLES_CLASS, 1);
+			if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_CESTUSTRAINING_CLASS, 1);
+			if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGHANDWRAPS_CLASS, 1);
+			break;
+		case Empyrean_HeritageGroup:
+		case Viamontian_HeritageGroup:
+			if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGBROADSWORD_CLASS, 1);
+			if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_SWORDTRAINING_CLASS, 1);
+			if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGSHORTSWORD_CLASS, 1);
+			break;
+		case Gearknight_HeritageGroup:
+			if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGCLUB_CLASS, 1);
+			if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_MACETRAINING_CLASS, 1);
+			if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGDABUS_CLASS, 1);
+			break;
+		case Tumerok_HeritageGroup:
+			if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGSPEAR_CLASS, 1);
+			if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_SPEARTRAINING_CLASS, 1);
+			if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGBUDIAQ_CLASS, 1);
+			break;
+		case Lugian_HeritageGroup:
+			if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGCLUB_CLASS, 1);
+			if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_MACETRAINING_CLASS, 1);
+			if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGDABUS_CLASS, 1);
+			break;
+		case Undead_HeritageGroup:
+			if (cg.skillAdvancementClasses[LIGHT_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGHANDAXE_CLASS, 1);
+			if (cg.skillAdvancementClasses[HEAVY_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_AXETRAINING_CLASS, 1);
+			if (cg.skillAdvancementClasses[FINESSE_WEAPONS_SKILL] >= SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
+				weenie->SpawnInContainer(W_TRAININGTUNGI_CLASS, 1);
+			break;
+		case Olthoi_HeritageGroup:
+		case OlthoiAcid_HeritageGroup:
+			break; // none
+		}
 	}
 
 	weenie->RecalculateCoinAmount(W_COINSTACK_CLASS);
@@ -1354,7 +1526,7 @@ void CClient::ProcessMessage(BYTE *data, DWORD length, WORD group)
 		{
 			if (m_vars.bInWorld)
 			{
-				m_pEvents->BeginLogout();
+				m_pEvents->ForceLogout();
 			}
 
 			break;

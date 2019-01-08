@@ -155,7 +155,7 @@ void CPlayerWeenie::BeginLogout()
 	if (IsLoggingOut())
 		return;
 
-	_beginLogoutTime = max(Timer::cur_time, (double)m_iPKActivity);
+	_beginLogoutTime = max(Timer::cur_time + 5.0, (double)m_iPKActivity);
 	_logoutTime = _beginLogoutTime + 5.0;
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
@@ -426,17 +426,21 @@ void CPlayerWeenie::SetLastAssessed(DWORD guid)
 	m_LastAssessed = guid;
 }
 
-std::string CPlayerWeenie::RemoveLastAssessed()
+std::string CPlayerWeenie::RemoveLastAssessed(bool forced)
 {
 	if (m_LastAssessed != 0)
 	{
 		CWeenieObject *pObject = g_pWorld->FindWithinPVS(this, m_LastAssessed);
 
-		if (pObject != NULL && !pObject->AsPlayer() && !pObject->m_bDontClear) {
-			std::string name = pObject->GetName();
-			pObject->MarkForDestroy();
-			m_LastAssessed = 0;
-			return name;
+		if (pObject != NULL && !pObject->AsPlayer()) {
+
+			if (forced || !pObject->m_bDontClear)
+			{
+					std::string name = pObject->GetName();
+					pObject->MarkForDestroy();
+					m_LastAssessed = 0;
+					return name;
+			}
 		}
 	}
 
@@ -852,6 +856,8 @@ void CPlayerWeenie::NotifyCommenceAttack()
 void CPlayerWeenie::OnMotionDone(DWORD motion, BOOL success)
 {
 	CMonsterWeenie::OnMotionDone(motion, success);
+
+	m_bChangingStance = false;
 
 	//if (IsAttackMotion(motion) && success)
 	//{
@@ -1328,6 +1334,8 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 			if (op->_SkillCheckFormulaType == 2) // imbue
 			{
 				successChance /= 3;
+
+				successChance = min(successChance, 0.33);
 				
 				if (m_Qualities.GetInt(AUGMENTATION_BONUS_IMBUE_CHANCE_INT, 0))
 					successChance += 0.05;
@@ -2377,6 +2385,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 		for each (TYPEMod<STypeInt, int> intMod in op->_mods[index]._intMod)
 		{
 			bool applyToCreatedItem = false;
+			bool removeFromTarget = false;
 			CWeenieObject *modificationSource = NULL;
 			switch (intMod._unk) //this is a guess
 			{
@@ -2403,6 +2412,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			{
 			case 1: //=
 				value = intMod._value;
+				if (value == 0)
+					removeFromTarget = true;
 				break;
 			case 2: //+
 				value += intMod._value;
@@ -2437,6 +2448,10 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			{
 				pCreatedItem->m_Qualities.SetInt(intMod._stat, value);
 				pCreatedItem->NotifyIntStatUpdated(intMod._stat, false);
+			}
+			if (removeFromTarget)
+			{
+				pTarget->m_Qualities.RemoveInt(intMod._stat);
 			}
 			else
 			{
@@ -2581,6 +2596,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 		for each (TYPEMod<STypeString, std::string> stringMod in op->_mods[index]._stringMod)
 		{
 			bool applyToCreatedItem = false;
+			bool removeFromTarget = false;
 			CWeenieObject *modificationSource = NULL;
 			switch (stringMod._unk) //this is a guess
 			{
@@ -2602,6 +2618,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			{
 			case 1: //=
 				value = stringMod._value;
+				if (value == "")
+					removeFromTarget = true;
 				break;
 			case 2: //+
 				value += stringMod._value;
@@ -2656,6 +2674,10 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				pCreatedItem->m_Qualities.SetString(stringMod._stat, value);
 				pCreatedItem->NotifyStringStatUpdated(stringMod._stat, false);
 			}
+			if (removeFromTarget)
+			{
+				pTarget->m_Qualities.RemoveString(stringMod._stat);
+			}
 			else
 			{
 				pTarget->m_Qualities.SetString(stringMod._stat, value);
@@ -2669,6 +2691,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 		for each (TYPEMod<STypeDID, DWORD> didMod in op->_mods[index]._didMod)
 		{
 			bool applyToCreatedItem = false;
+			bool removeFromTarget = false;
 			CWeenieObject *modificationSource = NULL;
 			switch (didMod._unk) //this is a guess
 			{
@@ -2690,6 +2713,8 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			{
 			case 1: //=
 				value = didMod._value;
+				if (value == 0)
+					value = didMod._value;
 				break;
 			case 2: //+
 				value += didMod._value;
@@ -2719,6 +2744,10 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			{
 				pCreatedItem->m_Qualities.SetDataID(didMod._stat, value);
 				pCreatedItem->NotifyDIDStatUpdated(didMod._stat, false);
+			}
+			if (removeFromTarget)
+			{
+				pTarget->m_Qualities.RemoveDataID(didMod._stat);
 			}
 			else
 			{
@@ -3201,32 +3230,109 @@ bool CPlayerWeenie::SpawnSalvageBagInContainer(MaterialType material, int amount
 
 void CPlayerWeenie::SetLoginPlayerQualities()
 {
-	//Temporary as a way to fix existing characters
-	if (m_Qualities._skillStatsTable)
-	{
-		for (PackableHashTableWithJson<STypeSkill, Skill>::iterator entry = m_Qualities._skillStatsTable->begin(); entry != m_Qualities._skillStatsTable->end(); entry++)
-		{
-			Skill skill = entry->second;
-			if (skill._sac == SKILL_ADVANCEMENT_CLASS::SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
-				m_Qualities.SetSkillLevel(entry->first, 10);
-			else if (skill._sac == SKILL_ADVANCEMENT_CLASS::TRAINED_SKILL_ADVANCEMENT_CLASS)
-				m_Qualities.SetSkillLevel(entry->first, 5);
-			else
-				m_Qualities.SetSkillLevel(entry->first, 0);
-		}
-	}
-
 	if (m_Qualities.GetIID(CONTAINER_IID, 0))
 	{
 		m_Qualities.RemoveInstanceID(CONTAINER_IID);
 	}
 
-	//set scale on Lugian and Empyrean characters and Setup DID on Olthoi
-	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Lugian_HeritageGroup)
-		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.3);
 
-	if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Empyrean_HeritageGroup)
-		m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+	if (g_pConfig->FixOldChars())
+	{
+		int heritage = InqIntQuality(HERITAGE_GROUP_INT, 1);
+
+		// fix scale and other misc things for different heritage groups
+		switch (heritage)
+		{
+		case Lugian_HeritageGroup:
+		{
+			if (InqStringQuality(SEX_STRING, "") == "Male")
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.3);
+			else
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+		}
+		break;
+		case Empyrean_HeritageGroup:
+		{
+			if (InqStringQuality(SEX_STRING, "") == "Male")
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+			else
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.15);
+		}
+		break;
+		case Gearknight_HeritageGroup:
+		{
+			if (InqStringQuality(SEX_STRING, "") == "Male")
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.2);
+			else
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.1);
+
+			ObjDesc gk;
+			GetObjDesc(gk);
+
+			m_Qualities.SetDataID(HEAD_OBJECT_DID, gk.lastAPChange->part_id);
+		}
+		break;
+		case Tumerok_HeritageGroup:
+		{
+			if (InqStringQuality(SEX_STRING, "") == "Male")
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 1.1);
+		}
+		break;
+		case Olthoi_HeritageGroup:
+		case OlthoiAcid_HeritageGroup:
+		{
+			Position sanc = Position(g_pConfig->OlthoiStartPosition());
+
+			m_Qualities.SetPosition(SANCTUARY_POSITION, sanc);
+			m_Qualities.SetBool((STypeBool)LOGIN_AT_LIFESTONE_BOOL, 1);
+			m_Qualities.SetInt(PLAYER_KILLER_STATUS_INT, PK_PKStatus); // Olthoi are always Red
+
+			if (m_Qualities.GetInt(HERITAGE_GROUP_INT, 1) == Olthoi_HeritageGroup)
+			{
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 0.9);
+				m_Qualities.SetDataID(HEAD_OBJECT_DID, 0x010045f0);
+			}
+			else
+			{
+				m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 0.6);
+				m_Qualities.SetDataID(HEAD_OBJECT_DID, 0x01004616);
+			}
+		}
+		break;
+		default:
+			break;
+		}
+
+		// add racial augmentations
+		switch (heritage)
+		{
+		case Shadowbound_HeritageGroup:
+		case Penumbraen_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_CRITICAL_EXPERTISE_INT, 1); break;
+		case Gearknight_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_DAMAGE_REDUCTION_INT, 1); break;
+		case Tumerok_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_CRITICAL_POWER_INT, 1); break;
+		case Lugian_HeritageGroup:
+		{
+			if (!m_Qualities.GetInt(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, 0))
+				m_Qualities.SetInt(AUGMENTATION_INCREASED_CARRYING_CAPACITY_INT, 1); 
+
+			break;
+		}
+		case Empyrean_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_INFUSED_LIFE_MAGIC_INT, 1); break;
+		case Undead_HeritageGroup:
+			m_Qualities.SetInt(AUGMENTATION_CRITICAL_DEFENSE_INT, 1); break;
+		case Olthoi_HeritageGroup:
+		case OlthoiAcid_HeritageGroup:
+			break; // none
+		default: // sho, aluv, gharu, viamont
+			m_Qualities.SetInt(AUGMENTATION_JACK_OF_ALL_TRADES_INT, 1); break;
+		}
+	}
+
+	//End of temporary code
 
 	// Generate a random number of seconds between 1 second and 2 months of seconds and write int for the Real Time Rare drop system.
 	if (g_pConfig->RealTimeRares() && !m_Qualities.GetInt(RARES_LOGIN_TIMESTAMP_INT, 0))
@@ -3238,8 +3344,6 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 
 		m_Qualities.SetInt(RARES_LOGIN_TIMESTAMP_INT, t);
 	}
-
-	//End of temporary code
 
 	g_pAllegianceManager->SetWeenieAllegianceQualities(this);
 	auto loginTime = chrono::system_clock::to_time_t(chrono::system_clock::now());
@@ -3262,6 +3366,27 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		SetInitialPosition(g_StartPosition);
 		m_Qualities.SetPosition(SANCTUARY_POSITION, g_StartPosition);
 	}
+
+	Position m_initLocPosition;
+	if (m_Qualities.InqPosition(LOCATION_POSITION, m_initLocPosition) && m_initLocPosition.objcell_id) //governs whether or not to log player in at lifestone. NOTE: In the absence of a "location position" a player is already logged in at sanc or instantiation position.
+	{
+		if (InqBoolQuality(LOGIN_AT_LIFESTONE_BOOL, FALSE))
+		{
+			SetSanctuaryAsLogin();
+			m_Qualities.SetBool((STypeBool)LOGIN_AT_LIFESTONE_BOOL, 0);
+		}
+
+		else //If a player's location position matches the listed landblocks in restrictedlandblocks.json or login at lifestone is configured to true their login position will be changed (one time) to their sanctuary position.
+		{
+			DWORD LogoutLandBlock = (BLOCK_WORD(m_initLocPosition.objcell_id) * 65536);
+			auto NoLogLandBlocks = g_pPortalDataEx->GetRestrictedLandblocks();
+			if ((NoLogLandBlocks.find(LogoutLandBlock) != NoLogLandBlocks.end()) || g_pConfig->LoginAtLS())
+			{
+				SetSanctuaryAsLogin();
+			}
+		}
+	}
+
 
 	// should never be in a fellowship when logging in, but let's be sure
 	m_Qualities.RemoveString(FELLOWSHIP_STRING);
@@ -3346,6 +3471,15 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		CHouseData *houseData = g_pHouseManager->GetHouseData(houseId);
 		if (houseData->_ownerId != GetID())
 			m_Qualities.SetDataID(HOUSEID_DID, 0);
+	}
+}
+
+void CPlayerWeenie::SetSanctuaryAsLogin()
+{
+	Position m_StartPosition;
+	if (m_Qualities.InqPosition(SANCTUARY_POSITION, m_StartPosition) && m_StartPosition.objcell_id)
+	{
+		m_Qualities.SetPosition(LOCATION_POSITION, m_StartPosition);
 	}
 }
 
@@ -3613,6 +3747,8 @@ void CWandSpellUseEvent::Done(DWORD error)
 
 void CLifestoneRecallUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 15.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_LifestoneRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is recalling to the lifestone.", _weenie->GetName().c_str()));
@@ -3620,13 +3756,26 @@ void CLifestoneRecallUseEvent::OnReadyToUse()
 
 void CLifestoneRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	_weenie->AdjustMana(_weenie->GetMana() * -0.5);
-	_weenie->TeleportToLifestone();
-	Done();
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel(WERROR_INTERRUPTED);
+		return;
+	}
+
+	if (InMoveRange())
+	{
+		_weenie->AdjustMana(_weenie->GetMana() * -0.5);
+		_weenie->TeleportToLifestone();
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CHouseRecallUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 15.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_HouseRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is recalling home.", _weenie->GetName().c_str()));
@@ -3634,12 +3783,25 @@ void CHouseRecallUseEvent::OnReadyToUse()
 
 void CHouseRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	_weenie->TeleportToHouse();
-	Done();
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel(WERROR_INTERRUPTED);
+		return;
+	}
+
+	if (InMoveRange())
+	{
+		_weenie->TeleportToHouse();
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CMansionRecallUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 15.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_HouseRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is recalling to the Allegiance housing.", _weenie->GetName().c_str()));
@@ -3647,12 +3809,25 @@ void CMansionRecallUseEvent::OnReadyToUse()
 
 void CMansionRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	_weenie->TeleportToMansion();
-	Done();
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel(WERROR_INTERRUPTED);
+		return;
+	}
+
+	if (InMoveRange())
+	{
+		_weenie->TeleportToMansion();
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CMarketplaceRecallUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 18.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_MarketplaceRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the Marketplace.", _weenie->GetName().c_str()));
@@ -3660,18 +3835,95 @@ void CMarketplaceRecallUseEvent::OnReadyToUse()
 
 void CMarketplaceRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	if (_weenie->IsDead() || _weenie->IsInPortalSpace())
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
 	{
-		Cancel();
+		Cancel(WERROR_INTERRUPTED);
 		return;
 	}
 
-	_weenie->Movement_Teleport(Position(0x016C01BC, Vector(49.11f, -31.22f, 0.005f), Quaternion(0.7009f, 0, 0, -0.7132f)));
-	Done();
+	if (InMoveRange())
+	{
+		_weenie->Movement_Teleport(Position(0x016C01BC, Vector(49.11f, -31.22f, 0.005f), Quaternion(0.7009f, 0, 0, -0.7132f)));
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
+}
+
+void CPKArenaUseEvent::OnReadyToUse()
+{
+	SetupRecall();
+	_timeout = Timer::cur_time + 18.0;
+	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	ExecuteUseAnimation(Motion_PKArenaRecall);
+	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the PK Arena.", _weenie->GetName().c_str()));
+}
+
+void CPKArenaUseEvent::OnUseAnimSuccess(DWORD motion)
+{
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel(WERROR_INTERRUPTED);
+		return;
+	}
+
+	Position *positions = new Position[5];
+	positions[0] = (Position(0x00660117, Vector(30, -50, 0.005f), Quaternion(1, 0, 0, 0)));
+	positions[1] = (Position(0x00660106, Vector(10, 0, 0.005f), Quaternion(0.321023f, 0, 0, -0.947071f)));
+	positions[2] = (Position(0x00660103, Vector(0, -30, 0.005f), Quaternion(0.714424f, 0, 0, -0.699713f)));
+	positions[3] = (Position(0x0066011E, Vector(50, 0, 0.005f), Quaternion(-0.276474f, 0, 0, -0.961021f)));
+	positions[4] = (Position(0x00660127, Vector(60, -30, 0.005f), Quaternion(0.731689f, 0, 0, 0.681639f)));
+
+	int randomLoc = getRandomNumber(0, 4);
+
+	if (InMoveRange())
+	{
+		_weenie->Movement_Teleport(positions[randomLoc]);
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
+}
+
+void CPKLArenaUseEvent::OnReadyToUse()
+{
+	SetupRecall();
+	_timeout = Timer::cur_time + 18.0;
+	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	ExecuteUseAnimation(Motion_PKArenaRecall);
+	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the PKL Arena.", _weenie->GetName().c_str()));
+}
+
+void CPKLArenaUseEvent::OnUseAnimSuccess(DWORD motion)
+{
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel(WERROR_INTERRUPTED);
+		return;
+	}
+
+	Position *positions = new Position[5];
+	positions[0] = (Position(0x00670117, Vector(30, -50, 0.005f), Quaternion(1, 0, 0, 0)));
+	positions[1] = (Position(0x00670106, Vector(10, 0, 0.005f), Quaternion(0.321023f, 0, 0, -0.947071f)));
+	positions[2] = (Position(0x00670103, Vector(0, -30, 0.005f), Quaternion(0.714424f, 0, 0, -0.699713f)));
+	positions[3] = (Position(0x0067011e, Vector(50, 0, 0.005f), Quaternion(-0.276474f, 0, 0, -0.961021f)));
+	positions[4] = (Position(0x00670127, Vector(60, -30, 0.005f), Quaternion(0.731689f, 0, 0, 0.681639f)));
+
+	int randomLoc = getRandomNumber(0, 4);
+
+	if (InMoveRange())
+	{
+		_weenie->Movement_Teleport(positions[randomLoc]);
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CAllegianceHometownRecallUseEvent::OnReadyToUse()
 {
+	SetupRecall();
+	_timeout = Timer::cur_time + 18.0;
 	_weenie->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 	ExecuteUseAnimation(Motion_AllegianceHometownRecall);
 	g_pWorld->BroadcastLocal(_weenie->GetLandcell(), csprintf("%s is going to the Allegiance hometown.", _weenie->GetName().c_str()));
@@ -3679,8 +3931,19 @@ void CAllegianceHometownRecallUseEvent::OnReadyToUse()
 
 void CAllegianceHometownRecallUseEvent::OnUseAnimSuccess(DWORD motion)
 {
-	_weenie->TeleportToAllegianceHometown();
-	Done();
+	if (_weenie->IsDead() || _weenie->IsInPortalSpace() || _weenie->get_minterp()->interpreted_state.forward_command != Motion_Ready)
+	{
+		Cancel(WERROR_INTERRUPTED);
+		return;
+	}
+
+	if (InMoveRange())
+	{
+		_weenie->TeleportToAllegianceHometown();
+		Done();
+	}
+	else
+		Cancel(WERROR_MOVED_TOO_FAR);
 }
 
 void CPlayerWeenie::BeginRecall(const Position &targetPos)
@@ -3911,6 +4174,8 @@ void CPlayerWeenie::UpdatePKActivity()
 
 CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target, CWeenieObject *tool, CCraftOperation *op)
 {
+	int coverage = target->m_Qualities.GetInt(LOCATIONS_INT, 0);
+
 	switch (tool->m_Qualities.id)
 	{
 	case W_DYERAREETERNALFOOLPROOFBLUE_CLASS:
@@ -3989,6 +4254,246 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 
 		break;
 	}
+	case W_MATERIALIVORY_CLASS:
+	{
+		//Check if the item is Ivoryable
+		if (!target->m_Qualities.GetBool(IVORYABLE_BOOL, 0))
+			return NULL;
+
+		//Grab ivory recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3977);
+		break;
+	}
+	case W_MATERIALLEATHER_CLASS:
+	{
+		//Check if the item is already retained or if it is not sellable.
+		if (target->m_Qualities.GetBool(RETAINED_BOOL, 0) || !target->m_Qualities.GetBool(IS_SELLABLE_BOOL, 1))
+			return NULL;
+
+		//Grab leather recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(4426);
+		break;
+	}
+	case W_MATERIALGOLD_CLASS:
+	{
+		//Check if the item has value and workmanship.
+		if (!target->m_Qualities.GetInt(VALUE_INT, 0) || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab gold recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3851);
+		break;
+	}
+	case W_MATERIALLINEN_CLASS:
+	{
+		//Check if the item has burden and workmanship.
+		if (!target->m_Qualities.GetInt(ENCUMB_VAL_INT, 0) || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab linen recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3854);
+		break;
+	}
+	case W_MATERIALMOONSTONE_CLASS:
+	{
+		//Check if the item has mana and workmanship.
+		if (!target->m_Qualities.GetInt(ITEM_MAX_MANA_INT, 0) || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab moonstone recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3978);
+		break;
+	}
+	case W_MATERIALPINE_CLASS:
+	{
+		//Check if the item has value and workmanship.
+		if (!target->m_Qualities.GetInt(VALUE_INT, 0) || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab pine recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3858);
+		break;
+	}
+	case W_MATERIALIRON_CLASS:
+	case W_MATERIALGRANITE_CLASS:
+	case W_MATERIALVELVET_CLASS:
+	{
+		//Check if the item is a melee weapon and has workmanship.
+		if (target->m_Qualities.m_WeenieType != MeleeWeapon_WeenieType || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab correct recipe to use as a base.
+		switch (tool->m_Qualities.id)
+		{
+		case W_MATERIALIRON_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3853); break;
+		case W_MATERIALGRANITE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3852); break;
+		case W_MATERIALVELVET_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3861); break;
+		}
+
+		break;
+
+	}
+	case W_MATERIALMAHOGANY_CLASS:
+	{
+		//Check if the item is a missile weapon and has workmanship.
+		if (target->m_Qualities.m_WeenieType != MissileLauncher_WeenieType || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab mahog recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3855);
+		break;
+	}
+	case W_MATERIALOPAL_CLASS:
+	{
+		//Check if the item is a caster and has workmanship.
+		if (target->m_Qualities.m_WeenieType != Caster_WeenieType || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab opal recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3979);
+		break;
+	}
+	case W_MATERIALGREENGARNET_CLASS:
+	{
+		//Check if the item is a caster and has workmanship.
+		if (target->m_Qualities.m_WeenieType != Caster_WeenieType || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab green garnet recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(5202);
+		break;
+	}
+	case W_MATERIALBRASS_CLASS:
+	{
+		//Check if the item has workmanship.
+		if (!target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab brass recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3848);
+		break;
+	}
+	case W_MATERIALROSEQUARTZ_CLASS:
+	case W_MATERIALREDJADE_CLASS:
+	case W_MATERIALMALACHITE_CLASS:
+	case W_MATERIALLAVENDERJADE_CLASS:
+	case W_MATERIALHEMATITE_CLASS:
+	case W_MATERIALBLOODSTONE_CLASS:
+	case W_MATERIALAZURITE_CLASS:
+	case W_MATERIALAGATE_CLASS:
+	case W_MATERIALSMOKYQUARTZ_CLASS:
+	case W_MATERIALCITRINE_CLASS:
+	case W_MATERIALCARNELIAN_CLASS:
+	{
+		//Check if the item is a generic weenietype, jewelry item type, and has workmanship.
+		if (target->m_Qualities.m_WeenieType != Generic_WeenieType || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0) || target->m_Qualities.GetInt(ITEM_TYPE_INT, 0) != TYPE_JEWELRY)
+			return NULL;
+
+		//Grab correct recipe to use as a base.
+		switch (tool->m_Qualities.id)
+		{
+		case W_MATERIALROSEQUARTZ_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4446); break;
+		case W_MATERIALREDJADE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4442); break;
+		case W_MATERIALMALACHITE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4438); break;
+		case W_MATERIALLAVENDERJADE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4441); break;
+		case W_MATERIALHEMATITE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4440); break;
+		case W_MATERIALBLOODSTONE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4448); break;
+		case W_MATERIALAZURITE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4437); break;
+		case W_MATERIALAGATE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4445); break;
+		case W_MATERIALSMOKYQUARTZ_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4447); break;
+		case W_MATERIALCITRINE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4439); break;
+		case W_MATERIALCARNELIAN_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4443); break;
+		}
+
+		break;
+
+	}
+	case W_MATERIALSTEEL_CLASS:
+	case W_MATERIALALABASTER_CLASS:
+	case W_MATERIALBRONZE_CLASS:
+	case W_MATERIALMARBLE_CLASS:
+	case W_MATERIALARMOREDILLOHIDE_CLASS:
+	case W_MATERIALCERAMIC_CLASS:
+	case W_MATERIALWOOL_CLASS:
+	case W_MATERIALREEDSHARKHIDE_CLASS:
+	case W_MATERIALSILVER_CLASS:
+	case W_MATERIALCOPPER_CLASS:
+	{
+		//Armor and shields
+		//Check if the item is armor item type, has AL, and has workmanship.
+		if (target->m_Qualities.GetInt(ITEM_TYPE_INT, 0) != TYPE_ARMOR || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0) || !target->m_Qualities.GetInt(ARMOR_LEVEL_INT, 0))
+			return NULL;
+
+		//Grab correct recipe to use as a base.
+		switch (tool->m_Qualities.id)
+		{
+		case W_MATERIALSTEEL_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3860); break;
+		case W_MATERIALALABASTER_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3846); break;
+		case W_MATERIALBRONZE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3849); break;
+		case W_MATERIALMARBLE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3856); break;
+		case W_MATERIALARMOREDILLOHIDE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3847); break;
+		case W_MATERIALCERAMIC_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3850); break;
+		case W_MATERIALWOOL_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3862); break;
+		case W_MATERIALREEDSHARKHIDE_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(3859); break;
+		case W_MATERIALSILVER_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4427); break;
+		case W_MATERIALCOPPER_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4428); break;
+		}
+
+		break;
+	}
+	case W_MATERIALPERIDOT_CLASS:
+	case W_MATERIALYELLOWTOPAZ_CLASS:
+	case W_MATERIALZIRCON_CLASS:
+	case W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
+	case W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
+	case W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
+	{
+		//Armor only
+		//Check if the item is clothing weenietype, armor item type, has AL, and has workmanship.
+		if (target->m_Qualities.m_WeenieType != Clothing_WeenieType || target->m_Qualities.GetInt(ITEM_TYPE_INT, 0) != TYPE_ARMOR || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0) || !target->m_Qualities.GetInt(ARMOR_LEVEL_INT, 0))
+			return NULL;
+
+		//Grab correct recipe to use as a base.
+		switch (tool->m_Qualities.id)
+		{
+		case W_MATERIALPERIDOT_CLASS:
+		case W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4435); break;
+		case W_MATERIALYELLOWTOPAZ_CLASS:
+		case W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4434); break;
+		case W_MATERIALZIRCON_CLASS:
+		case W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
+			op = g_pPortalDataEx->_craftTableData._operations.lookup(4433); break;
+		}
+
+		break;
+
+	}
 	case W_POTDYEDARKGREEN_CLASS:
 	case W_POTDYEDARKRED_CLASS:
 	case W_POTDYEDARKYELLOW_CLASS:
@@ -4000,45 +4505,121 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 	case W_POTDYESPRINGPURPLE_CLASS:
 	{
 		//Check if the item is armor/clothing and is Dyeable.
-		if (target->m_Qualities.m_WeenieType != 2 || !target->m_Qualities.GetBool(DYABLE_BOOL, 0))
+		if (target->m_Qualities.m_WeenieType != Clothing_WeenieType || !target->m_Qualities.GetBool(DYABLE_BOOL, 0))
 			return NULL;
 
 		//Grab dye recipe to use as a base.
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(3844);
 		break;
 	}
-	//Foolproof tinks, use wcid to grab the operation. 100% chance is handled in Imbue code.
+	//Regular and Foolproof imbues, use wcid to grab the operation. 100% chance is handled in Imbue code for foolproof.
 	case W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS:
+	case W_MATERIALAQUAMARINE_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(4436); break;
 	case W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS:
+	case W_MATERIALBLACKGARNET_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(4449); break;
 	case W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS:
+	case W_MATERIALBLACKOPAL_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(3863); break;
 	case W_MATERIALRAREFOOLPROOFEMERALD_CLASS:
+	case W_MATERIALEMERALD_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(4450); break;
 	case W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS:
+	case W_MATERIALFIREOPAL_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(3864); break;
 	case W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS:
+	case W_MATERIALIMPERIALTOPAZ_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(4454); break;
 	case W_MATERIALRAREFOOLPROOFJET_CLASS:
+	case W_MATERIALJET_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(4451); break;
-	case W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
-		op = g_pPortalDataEx->_craftTableData._operations.lookup(4435); break;
 	case W_MATERIALRAREFOOLPROOFREDGARNET_CLASS:
+	case W_MATERIALREDGARNET_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(4452); break;
 	case W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS:
+	case W_MATERIALSUNSTONE_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(3865); break;
 	case W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
+	case W_MATERIALWHITESAPPHIRE_CLASS:
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(4453); break;
-	case W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
-		op = g_pPortalDataEx->_craftTableData._operations.lookup(4434); break;
-	case W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
-		op = g_pPortalDataEx->_craftTableData._operations.lookup(4433); break;
+
+	case 45683: // Left-hand tether
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(6798); break;
+	case 45684: // Left-hand tether remover
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(6799); break;
+
+	case 42979: // Core Plating Integrator
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(6800);
+		
+		if (op)
+		{
+			for (auto it = op->_mods[0]._stringMod.begin(); it != op->_mods[0]._stringMod.end(); it++)
+			{
+				if (it._Ptr->_Myval._stat64i32 == GEAR_PLATING_NAME_STRING)
+				{
+					switch (coverage)
+					{
+					case INVENTORY_LOC::HEAD_WEAR_LOC:
+						it._Ptr->_Myval._value = "Core Helm Plating"; break;
+					case INVENTORY_LOC::HAND_WEAR_LOC:
+						it._Ptr->_Myval._value = "Core Gauntlet Plating"; break;
+					case INVENTORY_LOC::FOOT_WEAR_LOC:
+						it._Ptr->_Myval._value = "Core Solleret Plating"; break;
+					case INVENTORY_LOC::UPPER_ARM_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Pauldron Plating"; break;
+					case INVENTORY_LOC::LOWER_ARM_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Bracer Plating"; break;
+					case INVENTORY_LOC::LOWER_LEG_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Greaves Plating"; break;
+					case INVENTORY_LOC::ABDOMEN_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Girth Plating"; break;
+					case INVENTORY_LOC::CHEST_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Chest Plating"; break;
+					case INVENTORY_LOC::UPPER_LEG_ARMOR_LOC:
+						it._Ptr->_Myval._value = "Core Tasset Plating"; break;
+					case 0x0E: // Tunic - Abdomen, Chest, Upper Arms
+					case 0x1E: // Shirt - Abdomen, Chest, Upper/Lower Arms
+						it._Ptr->_Myval._value = "Core Upper Body Underplating"; break;
+					case 0xC4: // Pants - Upper/Lower Legs
+						it._Ptr->_Myval._value = "Core Lower Body Underplating"; break;
+					case 0xDE: // Raiment - Abdomen, Upper/Lower Arms, Upper/Lower Legs
+						it._Ptr->_Myval._value = "Core Raiment Underplating"; break;
+					case 0x600: // Cuirass - Chest, Abdomen
+						it._Ptr->_Myval._value = "Core Cuirass Plating"; break;
+					case 0xE00: // Chainmail Shirt - Chest, Upper Arms, Abdomen
+					case 0xA00: // Jaleh's Chain Shirt - Chest, Upper Arms
+						it._Ptr->_Myval._value = "Core Shirt Plating"; break;
+					case 0x1A00: // Amuli Coat - Chest, Upper/Lower Arms
+						it._Ptr->_Myval._value = "Core Coat Plating"; break;
+					case 0x1E00: // Hauberk - Chest, Upper/Lower Arms, Abdomen
+						it._Ptr->_Myval._value = "Core Hauberk Plating"; break;
+					case 0x6000: // Celdon Leggings - Upper/Lower Leg
+					case 0x6400: // Amuli Leggings - Abdomen, Upper/Lower Leg
+						it._Ptr->_Myval._value = "Core Leg Plating"; break;
+					case 0x7F00: // Faran Robe - Chest, Abdomen, Upper/Lower Arms, Upper/Lower Legs, Feet
+					case 0x7F01: // Faran Robe with Hood - Head + Robe
+					case 0x7A00: // Swamp Lord's War Paint - Robe - Feet
+						it._Ptr->_Myval._value = "Core Body Plating"; break;
+					case 0x7F20: // Guise - All parts - Head
+					case 0x7F21: // Full Guise - All parts
+						it._Ptr->_Myval._value = "Core Guise Plating"; break;
+					default:
+						if (coverage < 0x100) // Clothing
+							it._Ptr->_Myval._value = "Core Underplating";
+						else
+							it._Ptr->_Myval._value = "Core Armor Plating"; break;
+					}
+				}
+			}
+		}
+		break;
+
+	case 43022: // Core Plating Deintegrator
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(6801); break;
 	default:
 		return NULL;
 	}
-
-
 
 	return op;
 }

@@ -126,6 +126,13 @@ void CTownCrier::HandleMoveToDone(DWORD error)
 			m_SpellcastingManager->CastSpellInstant(pOther->GetID(), BowMasteryOther7_SpellID);
 			m_SpellcastingManager->CastSpellInstant(pOther->GetID(), ThrownWeaponMasteryOther7_SpellID);
 
+			m_SpellcastingManager->CastSpellInstant(pOther->GetID(), FletchingMasteryOther7_SpellID);
+			m_SpellcastingManager->CastSpellInstant(pOther->GetID(), ArmorExpertiseOther7_SpellID);
+			m_SpellcastingManager->CastSpellInstant(pOther->GetID(), WeaponExpertiseOther7_SpellID);
+			m_SpellcastingManager->CastSpellInstant(pOther->GetID(), ItemExpertiseOther7_SpellID);
+			m_SpellcastingManager->CastSpellInstant(pOther->GetID(), MagicItemExpertiseOther7_SpellID);
+			m_SpellcastingManager->CastSpellInstant(pOther->GetID(), AlchemyMasteryOther7_SpellID);
+
 			pOther->MakeSpellcastingManager();			
 			pOther->m_SpellcastingManager->CastSpellInstant(pOther->GetID(), BloodDrinker7_SpellID);
 			pOther->m_SpellcastingManager->CastSpellInstant(pOther->GetID(), Heartseeker7_SpellID);

@@ -22,16 +22,41 @@ void CInferredPortalData::Init()
 	SERVER_INFO << "Loading inferred portal data...";
 #endif
 
+	std::filesystem::path dataPath("data/json");
+
+	std::filesystem::create_directories(dataPath);
+
 	{
 		_regionData.Destroy();
 
-		BYTE *data = NULL;
-		DWORD length = 0;
-		if (LoadDataFromPhatDataBin(1, &data, &length, 0xe8b00434, 0x82092270)) // rded.bin
+		std::ifstream fileStream(dataPath / "region.json");
+
+		if (fileStream.is_open())
 		{
-			BinaryReader reader(data, length);
-			_regionData.UnPack(&reader);
-			delete[] data;
+			json data;
+			fileStream >> data;
+			fileStream.close();
+			_regionData.UnPackJson(data);
+		}
+		else
+		{
+
+			BYTE *data = NULL;
+			DWORD length = 0;
+			if (LoadDataFromPhatDataBin(1, &data, &length, 0xe8b00434, 0x82092270)) // rded.bin
+			{
+				BinaryReader reader(data, length);
+				_regionData.UnPack(&reader);
+				delete[] data;
+			}
+
+			//json test;
+			//_regionData.PackJson(test);
+
+			//std::ofstream out(dataPath / "region.json");
+			//out << std::setw(4) << test << std::endl;
+			//out.flush();
+			//out.close();
 		}
 	}
 
@@ -321,13 +346,33 @@ void CInferredPortalData::Init()
 	}
 
 	{
-		BYTE *data = NULL;
-		DWORD length = 0;
-		if (LoadDataFromPhatDataBin(5, &data, &length, 0x887aef9c, 0xa92ec9ac)) // hpd.bin
+		std::ifstream fileStream(dataPath / "housePortalDestinations.json");
+
+		if (fileStream.is_open())
 		{
-			BinaryReader reader(data, length);
-			_housePortalDests.UnPack(&reader);
-			delete[] data;
+			json data;
+			fileStream >> data;
+			fileStream.close();
+			_housePortalDests.UnPackJson(data);
+		}
+		else
+		{
+			BYTE *data = NULL;
+			DWORD length = 0;
+			if (LoadDataFromPhatDataBin(5, &data, &length, 0x887aef9c, 0xa92ec9ac)) // hpd.bin
+			{
+				BinaryReader reader(data, length);
+				_housePortalDests.UnPack(&reader);
+				delete[] data;
+			}
+
+			//json test;
+			//_housePortalDests.PackJson(test);
+
+			//std::ofstream out(dataPath / "housePortalDestinations.json");
+			//out << std::setw(4) << test << std::endl;
+			//out.flush();
+			//out.close();
 		}
 	}
 
@@ -443,6 +488,20 @@ void CInferredPortalData::Init()
 		}
 	}
 
+	{
+		std::ifstream fileStream("data\\json\\restrictedlandblocks.json");
+
+		if (fileStream.is_open())
+		{
+			json jsonrestricLBData;
+			fileStream >> jsonrestricLBData;
+			fileStream.close();
+			
+			if (jsonrestricLBData.size() > 0)
+				_restrictedLBData = jsonrestricLBData.at("restrictedlandblocks").get<std::set<DWORD>>();
+		}
+	}
+
 #ifndef PUBLIC_BUILD
 	SERVER_INFO << "Finished loading inferred cell data.";
 #endif
@@ -471,7 +530,7 @@ CCraftOperation *CInferredPortalData::GetCraftOperation(DWORD source_wcid, DWORD
 
 Position *CInferredPortalData::GetHousePortalDest(DWORD house_id, DWORD ignore_cell_id)
 {
-	PackableList<Position> *dests = _housePortalDests.lookup(house_id);
+	house_portal_table_t::mapped_type *dests = _housePortalDests.lookup(house_id);
 
 	if (dests)
 	{
@@ -487,7 +546,7 @@ Position *CInferredPortalData::GetHousePortalDest(DWORD house_id, DWORD ignore_c
 
 CMutationFilter *CInferredPortalData::GetMutationFilter(DWORD id)
 {
-	std::unordered_map<DWORD, CMutationFilter *>::iterator entry = _mutationFilters.find(id & 0xFFFFFF);
+	mutation_table_t::iterator entry = _mutationFilters.find(id & 0xFFFFFF);
 	
 	if (entry != _mutationFilters.end())
 	{
@@ -497,8 +556,14 @@ CMutationFilter *CInferredPortalData::GetMutationFilter(DWORD id)
 	return NULL;
 }
 
+ 
+
 std::vector<std::string> CInferredPortalData::GetBannedWords()
 {
 	return _bannedWords;
 }
 
+ std::set<DWORD> CInferredPortalData::GetRestrictedLandblocks()
+{
+	return _restrictedLBData;
+}

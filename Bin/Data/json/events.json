@@ -1,0 +1,1834 @@
+[
+    {
+        "key": "aerfallegen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "aerfallekeepstopgapgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "aerfalleubergen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "banderlingtest",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "boygrubpustuledeath1",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "boygrubpustuledeath2",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "boygrubpustuledeath3",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "broodnoblehive",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "butterflyswarmevent",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "ceremonydisruptedextreme",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "ceremonydisruptedhigh",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "ceremonydisruptedlow",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "ceremonydisruptedmid",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "cottageeventtest",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "cowtest",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires1fullinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires1swarma",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires1swarmb",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires1swarmc",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires2fullinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires2swarma",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires2swarmb",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires2swarmc",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires3fullinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires3swarma",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires3swarmb",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dires3swarmc",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "drudgetest",
+        "value": {
+            "endTime": 1065489322,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dryreachalert",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dryreachambush",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dryreachprisonquest",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "dryreachrescue",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptdungeonmagmagen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptesperbossgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptesperfxgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptespergen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptesperplumefxgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptlethebossgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptletheflarefxgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptlethefxgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptlethegen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptportbossgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eruptportgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "erupttenkarrdunbossgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "erupttenkarrdunflarefxgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "erupttenkarrdunfxgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "erupttenkarrdungen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventamarothcraftingforges",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventbroodustopgap",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventbrowerkeye1",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventbrowerkeye2",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventbrowerkeye3",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventbrowerkeye4",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventbrowerkfalatacot",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventbrowerkstopgap",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventbrowerkwave",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventburunkukuur",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventclutchbroodu",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventclutchbrowerk",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventclutchkeerik",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventclutchkingsprimary",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventclutchkiree",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventclutchreeshan",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventclutchrehir",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventcraftingforgesholtburg",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventcraftingforgesshoushi",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventcraftingforgesyaraq",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventcrownbrowerkstopgap",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventdefaultoff",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventdefaulton",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventfontbrowerkstopgap",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventheadmorgluukcragstone",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventheadmorgluukhebian",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventheadmorgluuklinvak",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventheadmorgluuktimaru",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventheadmorgluukzaikhal",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventheatfont1",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventheatfont2",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventheatfont3",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventheatfont4",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventhebiantovagrantsextreme",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventhebiantovagrantshigh",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventhebiantovagrantsuber",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventispkworld",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventizjiqoraid",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventizjiqostopgap",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventkeerikstopgap",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventkerrakcraftingforges",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventkireestopgap",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventkiviklirmorgluukalive",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventkiviklirmorgluukdead",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventmorgluukguruk",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventmorgluukshaman",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventmorgluuktough",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventmorgluukwait",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventmorgluukwarrior",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventmorgluukweak",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventportaloswalda",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventportaloswaldb",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventportaloswaldc",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventportaloswaldd",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventportaloswalde",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventportaloswaldf",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventpvphate20",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventpvphate40",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventpvphate60",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventpvphate80",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventreeshanstopgap",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventrehirstopgap",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventroadsbegin",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventroadsend",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventsawatovagrantsextreme",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventsawatovagrantshigh",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventsawatovagrantsuber",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventshoushivagrantsextreme",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventshoushivagrantshigh",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventshoushivagrantsuber",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventtestendonlyendfuture",
+        "value": {
+            "endTime": 1262365200,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventtestendonlyendpast",
+        "value": {
+            "endTime": 946746000,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventtestnormalstartfutureendfuture",
+        "value": {
+            "endTime": 31536000,
+            "eventState": 3,
+            "startTime": 1262365200
+        }
+    },
+    {
+        "key": "eventtestnormalstartpastendfuture",
+        "value": {
+            "endTime": 315619200,
+            "eventState": 3,
+            "startTime": 946746000
+        }
+    },
+    {
+        "key": "eventtestnormalstartpastendpast",
+        "value": {
+            "endTime": 31622400,
+            "eventState": 3,
+            "startTime": 946746000
+        }
+    },
+    {
+        "key": "eventteststartonlystartfuture",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": 1262365200
+        }
+    },
+    {
+        "key": "eventteststartonlystartpast",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": 946746000
+        }
+    },
+    {
+        "key": "eventtoutouvagrantsextreme",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventtoutouvagrantshigh",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventtoutouvagrantsuber",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventurlegcraftingforges",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventyanshivagrantsextreme",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventyanshivagrantshigh",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "eventyanshivagrantsuber",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "evisceratorsprayer",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "evissprayeralwayson",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "fireworks",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "forgegolemgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "holtburgregicidehollows",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "invokeauntanua",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "invokeauntanuatimaru",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "mansioneventtest",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "megamagmagen",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirbrokenn",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirbrokenne",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirbrokennw",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirbrokense",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirbrokensw",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirdrummern",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirdrummerne",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirdrummernw",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirdrummerse",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirdrummersw",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirintactn",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirintactne",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirintactnw",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirintactse",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "menhirintactsw",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "mowenassailer",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "mowendevastator",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "mowenfight",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "mowenrampager",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northeastfullinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northeastlocalinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northeastpeace",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northeastswarma",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northeastswarmb",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northeastswarmc",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northfullinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northlocalinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northpeace",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northswarma",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northswarmb",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northswarmc",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northwestfullinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northwestlocalinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northwestpeace",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northwestswarma",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northwestswarmb",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "northwestswarmc",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "queenmaraedynamic",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "queenmaraestatic",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "renegadecontact1",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "renegadecontact2",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "renegadecontact3",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "renegadecontact4",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "renegadecontact5",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "renegadegenerals",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "renegadeleaders",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "royalguard",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "sluicegolemgen",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southeastfullinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southeastlocalinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southeastpeace",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southeastswarma",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southeastswarmb",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southeastswarmc",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southwestfullinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southwestlocalinvasion",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southwestpeace",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southwestswarma",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southwestswarmb",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "southwestswarmc",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeapprenticefeeder",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeapprenticesummon",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeapprenticesummon1",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeapprenticesummon2",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeapprenticesummon3",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeapprenticesummon4",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeconsortfeeder",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeconsortsummon",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeconsortsummon1",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeconsortsummon2",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeconsortsummon3",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templeconsortsummon4",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templematriarchfeeder",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templematriarchsummon",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templematriarchsummon1",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templematriarchsummon2",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templematriarchsummon3",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "templematriarchsummon4",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "thistledownmonument",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "tumerokleaderlocal",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "tumerokleaderpeace",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "tumerokleaderwar",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "ursuinrugalivemonster1",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "ursuinrugalivemonster2",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "ursuinrugaliverug1",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "ursuinrugaliverug2",
+        "value": {
+            "endTime": -1,
+            "eventState": 4,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "villaeventtest",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "witshireregicidehollows",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    },
+    {
+        "key": "witshireregicidehollowsboss",
+        "value": {
+            "endTime": -1,
+            "eventState": 3,
+            "startTime": -1
+        }
+    }
+]

@@ -72,8 +72,12 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 							{
 								if (i->second._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
 								{	
+									// Salvaging and tinkering skills all have > 999 spec cost.
+									if (pSkillTable->GetSkillBase(i->first)->_specialized_cost >= 999)
+										continue;
+
 									//Arcane technically costs 4 credits to train even though you can't unspec it. Should only count as 2 toward number of spec credits.
-									if (i->first != ARCANE_LORE_SKILL)
+									if (i->first != ARCANE_LORE_SKILL) 
 										speccCount += (pSkillTable->GetSkillBase(i->first)->_specialized_cost);
 									else
 										speccCount += (pSkillTable->GetSkillBase(i->first)->_specialized_cost - pSkillTable->GetSkillBase(i->first)->_trained_cost);
@@ -161,9 +165,9 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 						xpToAward = skill._pp;
 						skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
 						skill._pp = 0;
-						skill._init_level = 5;
+						skill._init_level = 0;
+						skill._level_from_pp = 5;
 
-						skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
 						player->m_Qualities.SetSkill(skillToAlter, skill);
 						player->NotifySkillStatUpdated(skillToAlter);
 
@@ -203,8 +207,8 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 								{
 									DWORD64 xpToAward = skill._pp;
 									skill._pp = 0;
-									skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
-									skill._init_level = 5;
+									skill._level_from_pp = 5;
+									skill._init_level = 0;
 									player->m_Qualities.SetSkill(skillToAlter, skill);
 									player->NotifySkillStatUpdated(skillToAlter);
 
@@ -256,8 +260,8 @@ int CSkillAlterationDeviceWeenie::Use(CPlayerWeenie *player)
 							//player->SendText(csprintf("You cannot untrain %s!", pSkillBase->_name.c_str()), LTT_DEFAULT);
 							DWORD64 xpToAward = skill._pp;
 							skill._pp = 0;
-							skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
-							skill._init_level = 5;
+							skill._level_from_pp = 5;
+							skill._init_level = 0;
 							player->m_Qualities.SetSkill(skillToAlter, skill);
 							player->NotifySkillStatUpdated(skillToAlter);
 
