@@ -98,7 +98,7 @@ public:
 	virtual void *GetInternalAsyncConnection();
 
 	template<typename ...Args>
-	mysql_statement<sizeof...(Args)> QueryEx(const char * query, Args... args)
+	mysql_statement<sizeof...(Args)> QueryEx(const char * query, Args&... args)
 	{
 		MYSQL *sql = (MYSQL *)GetInternalConnection();
 
@@ -106,7 +106,7 @@ public:
 		if (statement)
 		{
 			if constexpr (sizeof...(args) > 0)
-				statement.bindargs(&args...);
+				statement.bindargs(args...);
 
 			if (statement.execute())
 			{
@@ -115,6 +115,31 @@ public:
 		}
 
 		return mysql_statement<sizeof...(args)>(nullptr, "");
+	}
+
+	mysql_statement<0> QueryEx(const char * query)
+	{
+		MYSQL *sql = (MYSQL *)GetInternalConnection();
+
+		mysql_statement<0> statement(sql, query);
+		if (statement)
+		{
+			if (statement.execute())
+			{
+				return statement;
+			}
+		}
+
+		return mysql_statement<0>(nullptr, "");
+	}
+
+	template<int _Count>
+	mysql_statement<_Count> CreateQuery(const char * query)
+	{
+		MYSQL *sql = (MYSQL *)GetInternalConnection();
+
+		mysql_statement<_Count> statement(sql, query);
+		return statement;
 	}
 
 protected:

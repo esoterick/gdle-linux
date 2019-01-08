@@ -55,6 +55,31 @@ public:
 		m_params_ptr[index].buffer_type = MYSQL_TYPE_BIT;
 	}
 
+	// short
+	inline virtual void bind(int index, int16_t &val)
+	{
+		bind(index, &val);
+	}
+	inline virtual void bind(int index, int16_t *val)
+	{
+		_ASSERT(index < m_count);
+		m_params_ptr[index].buffer = val;
+		m_params_ptr[index].buffer_type = MYSQL_TYPE_SHORT;
+	}
+
+	inline virtual void bind(int index, uint16_t &val)
+	{
+		bind(index, &val);
+	}
+	inline virtual void bind(int index, uint16_t *val)
+	{
+		_ASSERT(index < m_count);
+		m_params_ptr[index].buffer = val;
+		m_params_ptr[index].buffer_type = MYSQL_TYPE_SHORT;
+		m_params_ptr[index].is_unsigned = true;
+	}
+
+	// int
 	inline virtual void bind(int index, int32_t &val)
 	{
 		bind(index, &val);
@@ -71,6 +96,30 @@ public:
 		bind(index, &val);
 	}
 	inline virtual void bind(int index, uint32_t *val)
+	{
+		_ASSERT(index < m_count);
+		m_params_ptr[index].buffer = val;
+		m_params_ptr[index].buffer_type = MYSQL_TYPE_LONG;
+		m_params_ptr[index].is_unsigned = true;
+	}
+
+	// DWORDs...
+	inline virtual void bind(int index, long &val)
+	{
+		bind(index, &val);
+	}
+	inline virtual void bind(int index, long *val)
+	{
+		_ASSERT(index < m_count);
+		m_params_ptr[index].buffer = val;
+		m_params_ptr[index].buffer_type = MYSQL_TYPE_LONG;
+	}
+
+	inline virtual void bind(int index, unsigned long &val)
+	{
+		bind(index, &val);
+	}
+	inline virtual void bind(int index, unsigned long *val)
 	{
 		_ASSERT(index < m_count);
 		m_params_ptr[index].buffer = val;
@@ -128,16 +177,16 @@ public:
 	}
 
 	template<typename T>
-	inline void bindarg(int index, T arg) { bind(index, arg); }
+	inline void bindarg(int index, T& arg) { bind(index, arg); }
 
 	template<typename T>
-	inline void bindargs(T arg) { bindarg(0, arg); }
+	inline void bindargs(T& arg) { bindarg(m_count - 1, arg); }
 
 	template<typename T, typename ...Args>
-	inline void bindargs(T arg, Args... args)
+	inline void bindargs(T arg, Args&... args)
 	{
+		bindarg(m_count - (sizeof...(args) + 1), arg);
 		bindargs(args...);
-		bindarg(sizeof...(args), arg);
 	}
 };
 
@@ -222,7 +271,7 @@ public:
 
 	virtual ~mysql_statement_base() noexcept
 	{
-		if (m_buffered)
+		if (m_statement && m_buffered)
 			mysql_stmt_free_result(m_statement.get());
 	}
 
@@ -291,8 +340,7 @@ public:
 
 	virtual ~mysql_statement() noexcept override = default;
 
-	// not sure why the base class method isn't available
-	virtual bool execute() override { return execute(true); }
+	virtual bool execute() override { return mysql_statement_base::execute(); }
 
 	virtual bool execute(bool buffer) override
 	{
@@ -327,8 +375,7 @@ public:
 				m_statement.reset(nullptr);
 	}
 
-	// not sure why the base class method isn't available
-	virtual bool execute() override { return execute(true); }
+	virtual bool execute() override { return mysql_statement_base::execute(); }
 
 	virtual bool execute(bool buffer) override
 	{

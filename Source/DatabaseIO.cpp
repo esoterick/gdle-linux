@@ -210,23 +210,33 @@ std::list<CharacterDesc_t> CDatabaseIO::GetCharacterList(unsigned int account_id
 {
 	std::list<CharacterDesc_t> results;
 
-	if (g_pDB2->Query("SELECT account_id, weenie_id, name, date_created, instance_ts FROM characters WHERE account_id = %u", account_id))
+	mysql_statement<1> statement = g_pDB2->QueryEx(
+		"SELECT account_id, weenie_id, name, date_created, instance_ts FROM characters WHERE account_id = ?",
+		account_id);
+
+	if (statement)
 	{
-		CSQLResult *pQueryResult = g_pDB2->GetResult();
-		if (pQueryResult)
+		CharacterDesc_t desc = { 0, 0, "", 0, 0 };
+		
+		desc.name.resize(64);
+		unsigned long length = 0;
+
+		mysql_statement_results<5> row;
+		row.bind(0, desc.account_id);
+		row.bind(1, desc.weenie_id);
+		row.bind(2, desc.name, desc.name.capacity(), &length);
+		row.bind(3, desc.date_created);
+		row.bind(4, desc.instance_ts);
+
+		if (statement.bindResults(row))
 		{
-			while (SQLResultRow_t Row = pQueryResult->FetchRow())
+			while (row.next())
 			{
-				CharacterDesc_t entry;
-				entry.account_id = strtoul(Row[0], NULL, 10);
-				entry.weenie_id = strtoul(Row[1], NULL, 10);
-				entry.name = Row[2];
-				entry.date_created = strtoul(Row[3], NULL, 10);
-				entry.instance_ts = (WORD)strtoul(Row[4], NULL, 10);
+				CharacterDesc_t entry = desc;
+				entry.name.resize(length);
+				
 				results.push_back(entry);
 			}
-
-			delete pQueryResult;
 		}
 	}
 
@@ -312,22 +322,28 @@ CharacterDesc_t CDatabaseIO::GetCharacterInfo(unsigned int weenie_id)
 {
 	CharacterDesc_t result = { 0,0,"",0,0 };
 
-	if (g_pDB2->Query("SELECT account_id, weenie_id, name, date_created, instance_ts FROM characters WHERE weenie_id = %u;", weenie_id))
-	{
-		CSQLResult *pQueryResult = g_pDB2->GetResult();
-		if (pQueryResult)
-		{
-			SQLResultRow_t Row = pQueryResult->FetchRow();
-			if (Row)
-			{
-				result.account_id = strtoul(Row[0], NULL, 10);
-				result.weenie_id = strtoul(Row[1], NULL, 10);
-				result.name = Row[2];
-				result.date_created = strtoul(Row[3], NULL, 10);
-				result.instance_ts = (WORD)strtoul(Row[4], NULL, 10);
-			}
+	mysql_statement<1> statement = g_pDB2->QueryEx(
+		"SELECT account_id, weenie_id, name, date_created, instance_ts FROM characters WHERE weenie_id = ?;",
+		weenie_id);
 
-			delete pQueryResult;
+	if (statement)
+	{
+		result.name.resize(64);
+		unsigned long length = 0;
+		
+		mysql_statement_results<5> row;
+		row.bind(0, result.account_id);
+		row.bind(1, result.weenie_id);
+		row.bind(2, result.name, result.name.capacity(), &length);
+		row.bind(3, result.date_created);
+		row.bind(4, result.instance_ts);
+
+		if (statement.bindResults(row))
+		{
+			if (row.next())
+			{
+				result.name.resize(length);
+			}
 		}
 	}
 	return result;
@@ -349,52 +365,23 @@ bool CDatabaseIO::SetCharacterInstanceTS(unsigned int weenie_id, unsigned int in
 	return g_pDB2->Query("UPDATE characters SET instance_ts = %u WHERE weenie_id = %u", instance_ts, weenie_id);
 }
 
-std::list< std::pair<unsigned int, unsigned int> >
-CDatabaseIO::GetUnusedIdRanges(unsigned int min_range, unsigned int max_range)
-{
-	std::list< std::pair<unsigned int, unsigned int> > result;
-
-	const char *szQuery =
-		"SELECT w.id + 1 AS l, (SELECT id FROM weenies WHERE id > w.id ORDER BY id LIMIT 1) AS u "
-		"FROM weenies w "
-		"LEFT JOIN weenies l ON l.id = w.id + 1 "
-		"WHERE w.id > %u AND w.id < %u AND l.id IS NULL "
-		"ORDER BY w.id "
-		"LIMIT 1000;";
-
-	if (g_pDBDynamicIDs->Query(szQuery, min_range, max_range))
-	{
-		CSQLResult *pRes = g_pDBDynamicIDs->GetResult();
-		if (pRes)
-		{
-			while (SQLResultRow_t row = pRes->FetchRow())
-			{
-				unsigned int lower = strtoul(row[0], NULL, 10);
-				unsigned int upper = max_range;
-				if (row[1])
-					upper = strtoul(row[1], NULL, 10);
-
-				result.push_back(std::pair<unsigned int, unsigned int>(lower, upper));
-			}
-
-			delete pRes;
-		}
-	}
-
-	return result;
-}
-
 bool CDatabaseIO::IDRangeTableExistsAndValid()
 {
 	bool retval = false;
 
-	if (g_pDB2->Query("SELECT unused FROM idranges WHERE unused > 2147999999 LIMIT 1"))
+	mysql_statement<0> statement = g_pDB2->QueryEx("SELECT unused FROM idranges WHERE unused > 2147999999 LIMIT 1");
+	if (statement)
 	{
-		CSQLResult *pQueryResult = g_pDB2->GetResult();
-		if (pQueryResult)
+		unsigned int current = 0;
+		mysql_statement_results<1> result;
+		result.bind(0, current);
+
+		if (statement.bindResults(result))
 		{
-			delete pQueryResult;
-			retval = true;
+			if (result.next())
+			{
+				retval = true;
+			}
 		}
 	}
 
@@ -417,7 +404,7 @@ std::list<unsigned int> CDatabaseIO::GetNextIDRange(unsigned int rangeStart, uns
 
 		if (statement.bindResults(result))
 		{
-			if (result.next())
+			while (result.next())
 			{
 				found.push_back(current);
 			}
@@ -481,24 +468,21 @@ bool CDatabaseIO::IsCharacterNameOpen(const char *name)
 
 bool CDatabaseIO::IsPlayerCharacter(unsigned int weenie_id)
 {
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	mysql_statement<1> statement(sql, "SELECT weenie_id FROM characters WHERE weenie_id = ?");
+	mysql_statement<1> statement = g_pDB2->QueryEx(
+		"SELECT weenie_id FROM characters WHERE weenie_id = ?",
+		weenie_id);
+
 	if (statement)
 	{
-		statement.bind(0, weenie_id);
+		uint32_t result_id = 0;
+		mysql_statement_results<1> result;
+		result.bind(0, result_id);
 
-		if (statement.execute())
+		if (statement.bindResults(result))
 		{
-			uint32_t result_id = 0;
-			mysql_statement_results<1> result;
-			result.bind(0, result_id);
-
-			if (statement.bindResults(result))
+			if (result.next())
 			{
-				if (result.next())
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 	}
@@ -510,23 +494,18 @@ DWORD CDatabaseIO::GetPlayerCharacterId(const char *name)
 {
 	uint32_t id = 0;
 
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	mysql_statement<1> statement(sql, "SELECT weenie_id FROM characters WHERE name = ?");
+	mysql_statement<1> statement = g_pDB2->QueryEx(
+		"SELECT weenie_id FROM characters WHERE name = ?",
+		name);
+
 	if (statement)
 	{
-		std::string tmp(name);
+		mysql_statement_results<1> result;
+		result.bind(0, id);
 
-		statement.bind(0, tmp, tmp.length());
-
-		if (statement.execute())
+		if (statement.bindResults(result))
 		{
-			mysql_statement_results<1> result;
-			result.bind(0, id);
-
-			if (statement.bindResults(result))
-			{
-				result.next();
-			}
+			result.next();
 		}
 	}
 
@@ -537,25 +516,21 @@ std::string CDatabaseIO::GetPlayerCharacterName(DWORD weenie_id)
 {
 	std::string result;
 
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	mysql_statement<1> statement(sql, "SELECT name FROM characters WHERE weenie_id = ?");
+	mysql_statement<1> statement = g_pDB2->QueryEx(
+		"SELECT name FROM characters WHERE weenie_id = ?",
+		weenie_id);
+
 	if (statement)
 	{
-		uint32_t id = (uint32_t)weenie_id;
-		statement.bind(0, id);
+		unsigned long length = 0;
+		mysql_statement_results<1> results;
+		results.bind(0, result, 64, &length);
 
-		if (statement.execute())
+		if (statement.bindResults(results))
 		{
-			unsigned long length = 0;
-			mysql_statement_results<1> results;
-			results.bind(0, result, 64, &length);
-
-			if (statement.bindResults(results))
+			if (results.next())
 			{
-				if (results.next())
-				{
-					result.resize(length);
-				}
+				result.resize(length);
 			}
 		}
 	}
@@ -611,24 +586,16 @@ bool CDatabaseIO::GetWeenie(unsigned int weenie_id, unsigned int *top_level_obje
 
 bool CDatabaseIO::DeleteWeenie(unsigned int weenie_id)
 {
-	//return g_pDB2->Query("DELETE FROM weenies WHERE id = %u OR top_level_object_id = %u", weenie_id, weenie_id);
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	if (!sql)
-		return false;
+	mysql_statement<2> statement = g_pDB2->QueryEx(
+		"DELETE FROM weenies WHERE id = ? OR top_level_object_id = ?",
+		weenie_id, weenie_id);
 
-	mysql_statement<1> statement(sql, "DELETE FROM weenies WHERE id = ? OR top_level_object_id = ?");
 	if (statement)
 	{
-		statement.bind(0, weenie_id);
-		statement.bind(1, weenie_id);
-
-		if (statement.execute())
-		{
-			return true;
-		}
+		return true;
 	}
 
-	SERVER_ERROR << "Error on DeleteWeenie:" << mysql_error(sql);
+	SERVER_ERROR << "Error on DeleteWeenie: " << statement.error();
 	return false;
 
 }
@@ -655,48 +622,32 @@ bool CDatabaseIO::IsWeenieInDatabase(unsigned int weenie_id)
 	}
 
 	return false;
-
-	//bool isWeenieInDatabase = false;
-	//if (g_pDB2->Query("SELECT id FROM weenies WHERE id ='%u'", weenie_id))
-	//{
-	//	CSQLResult *pQueryResult = g_pDB2->GetResult();
-	//	if (pQueryResult)
-	//	{
-	//		isWeenieInDatabase = (pQueryResult->ResultRows() > 0);
-	//		delete pQueryResult;
-	//	}
-	//}
-
-	//return isWeenieInDatabase;
 }
 
 bool CDatabaseIO::CreateOrUpdateGlobalData(DBIOGlobalDataID id, void *data, unsigned long data_length)
 {
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	if (!sql)
-		return false;
-
-	mysql_statement<2> statement(sql, "REPLACE INTO globals (id, data) VALUES (?, ?)");
+	mysql_statement<2> statement = g_pDB2->CreateQuery<2>("REPLACE INTO globals (id, data) VALUES (?, ?)");
 	
 	if (statement)
 	{
-		uint32_t did = (uint32_t)id;
-		statement.bind(0, did);
+		uint32_t gid = (uint32_t)id;
+		statement.bind(0, gid);
 		statement.bind(1, data, data_length);
 
 		if (statement.execute())
 			return true;
 	}
 	
-	SERVER_ERROR << "Error on CreateOrUpdateGlobalData for" << id << ":" << mysql_error(sql);
+	SERVER_ERROR << "Error on CreateOrUpdateGlobalData for" << id << ":" << statement.error();
 	return false;
 }
 
 bool CDatabaseIO::GetGlobalData(DBIOGlobalDataID id, void **data, unsigned long *data_length)
 {
+	uint32_t gid = (uint32_t)id;
 	mysql_statement<1> statement = g_pDB2->QueryEx(
 		"SELECT data FROM globals WHERE id = ?",
-		(uint32_t)id);
+		gid);
 
 	if (statement)
 	{
@@ -713,8 +664,7 @@ bool CDatabaseIO::GetGlobalData(DBIOGlobalDataID id, void **data, unsigned long 
 		}
 	}
 
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	SERVER_ERROR << "Error on GetGlobalData:" << mysql_error(sql);
+	SERVER_ERROR << "Error on GetGlobalData:" << statement.error();
 	return false;
 }
 
@@ -731,32 +681,26 @@ bool CDatabaseIO::GetHouseData(unsigned int house_id, void **data, unsigned long
 	while (GetNumPendingSaves(house_id))
 		Sleep(0);
 
-	MYSQL *sql = (MYSQL *)g_pDB2->GetInternalConnection();
-	if (!sql)
-		return false;
+	mysql_statement<1> statement = g_pDB2->QueryEx(
+		"SELECT data FROM houses WHERE house_id = ?",
+		house_id);
 
-	mysql_statement<1> statement(sql, "SELECT data FROM houses WHERE house_id = ?");
 	if (statement)
 	{
-		statement.bind(0, house_id);
+		mysql_statement_results<1> result;
+		result.bind(0, blob_query_buffer, BLOB_QUERY_BUFFER_LENGTH, data_length);
 
-		if (statement.execute())
+		if (statement.bindResults(result))
 		{
-			mysql_statement_results<1> result;
-			result.bind(0, blob_query_buffer, BLOB_QUERY_BUFFER_LENGTH, data_length);
-
-			if (statement.bindResults(result))
+			if (result.next())
 			{
-				if (result.next())
-				{
-					*data = blob_query_buffer;
-					return true;
-				}
+				*data = blob_query_buffer;
+				return true;
 			}
 		}
 	}
 
-	SERVER_ERROR << "Error on GetHouseData:" << mysql_error(sql);
+	SERVER_ERROR << "Error on GetHouseData:" << statement.error();
 	return false;
 }
 
