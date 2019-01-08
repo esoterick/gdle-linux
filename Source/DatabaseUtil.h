@@ -213,12 +213,18 @@ private:
 class mysql_statement_base
 {
 protected:
-	mysql_statement_base(MYSQL *dbc) : m_dbc(dbc), m_statement(mysql_stmt_init(dbc))
+	mysql_statement_base(MYSQL *dbc) : m_dbc(dbc), m_statement(mysql_stmt_init(dbc)), m_buffered(false)
 	{  }
 
 public:
 	mysql_statement_base(mysql_statement_base&&) = default;
 	mysql_statement_base& operator=(mysql_statement_base&&) = default;
+
+	virtual ~mysql_statement_base() noexcept
+	{
+		if (m_buffered)
+			mysql_stmt_free_result(m_statement.get());
+	}
 
 	inline operator bool() { return (bool)m_statement; }
 	inline bool valid() { return (bool)m_statement; }
@@ -236,9 +242,29 @@ public:
 
 	inline std::string error() const { return mysql_error(m_dbc); }
 
+	virtual inline bool execute() { return execute(true); }
+
+	virtual bool execute(bool buffer)
+	{
+		if (mysql_stmt_execute(m_statement.get()))
+			return false;
+
+		if (buffer)
+		{
+			if (mysql_stmt_store_result(m_statement.get()))
+				return false;
+
+			m_buffered = true;
+		}
+
+		return true;
+	}
+
 protected:
 	MYSQL *m_dbc;
 	mysql_stmt_ptr_t m_statement;
+	bool m_buffered;
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -263,20 +289,23 @@ public:
 	mysql_statement(mysql_statement&&) = default;
 	mysql_statement& operator=(mysql_statement&&) = default;
 
-	bool execute()
+	virtual ~mysql_statement() noexcept override = default;
+
+	// not sure why the base class method isn't available
+	virtual bool execute() override { return execute(true); }
+
+	virtual bool execute(bool buffer) override
 	{
 		if (mysql_stmt_bind_param(m_statement.get(), m_params))
 			return false;
 
-		if (mysql_stmt_execute(m_statement.get()))
-			return false;
-
-		return true;
+		return mysql_statement_base::execute(buffer);
 	}
 
 protected:
 	std::string m_query;
 	mysql_statement_params<_Count> m_params;
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -298,12 +327,12 @@ public:
 				m_statement.reset(nullptr);
 	}
 
-	bool execute()
-	{
-		if (mysql_stmt_execute(m_statement.get()))
-			return false;
+	// not sure why the base class method isn't available
+	virtual bool execute() override { return execute(true); }
 
-		return true;
+	virtual bool execute(bool buffer) override
+	{
+		return mysql_statement_base::execute(buffer);
 	}
 
 protected:
