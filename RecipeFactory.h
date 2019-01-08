@@ -1,6 +1,7 @@
 #pragma once
 
-using recipe_map_t = std::unordered_map<uint32_t, JsonCraftOperation>;
+using precursor_list_t = PackableListWithJson<CraftPrecursor>;
+using recipe_list_t = PackableListWithJson<JsonCraftOperation>;
 
 class RecipeFactory
 {
@@ -10,16 +11,11 @@ public:
 
 	void Reset();
 	void Initialize();
-	void UpdateCraftTableData();
-	void UpdateExitingRecipes();
-
 
 private:
-	PackableListWithJson<CraftPrecursor> _jsonPrecursorMap;
+	void UpdateCraftTableData(precursor_list_t &precursors);
+	void UpdateExitingRecipes(recipe_list_t &recipes);
 
-	recipe_map_t m_recipes;
-
-	bool RecipeInJson(DWORD recipeid, JsonCraftOperation* recipe);
 	CCraftOperation GetCraftOpertionFromNewRecipe(JsonCraftOperation* recipe);
 };
 
