@@ -1554,21 +1554,14 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 						if (isTinker)
 						{
-							switch (skillToAlter)
-							{
-							case WEAPON_APPRAISAL_SKILL: player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT, 0); break;
-							case ARMOR_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT, 0); break;
-							case ITEM_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT, 0); break;
-							case MAGIC_ITEM_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT, 0); break;
-							case SALVAGING_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_SALVAGING_INT, 0); break;
-							}
+							numSkillCredits += pSkillBase->_trained_cost; // We only want to return the trained cost (as there was no credit cost to spec tinkering skills).
 						}
 						else
 						{
 							numSkillCredits += pSkillBase->_specialized_cost;
-							player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
-							player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
 						}
+						player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
+						player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
 
 						DWORD64 xpToAward = 0;
 
@@ -1591,11 +1584,21 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 					}
 					else
 					{
+						//Salvaging is NEVER unspec'd once spec'd (no credit skill - just xp. So only return xp on unspec).
 						DWORD64 xpToAward = skill._pp;
-						skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
-						skill._pp = 526;
-						skill._level_from_pp = 5;
-						skill._init_level = 0;
+						if (skillToAlter == SALVAGING_SKILL)
+						{
+							skill._init_level = 10;
+							skill._pp = 0;
+							skill._level_from_pp = 5;
+						}
+						else
+						{
+							skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
+							skill._pp = 526;
+							skill._level_from_pp = 5;
+							skill._init_level = 0;
+						}
 						player->m_Qualities.SetSkill(skillToAlter, skill);
 						player->NotifySkillStatUpdated(skillToAlter);
 
