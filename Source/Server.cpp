@@ -439,6 +439,8 @@ void CPhatServer::Tick(void)
 
 	ObjCaches::UseTime();
 
+	g_pObjectIDGen->Think();
+
 	g_pNetwork->Think();
 	g_pWorld->Think();
 

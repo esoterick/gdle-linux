@@ -40,26 +40,20 @@ void RecipeFactory::Initialize()
 		rcStream.close();
 	}
 
+	precursor_list_t jsonPrecursors;
+	recipe_list_t jsonRecipes;
+
 	if(precursorData.size() > 0)
-		_jsonPrecursorMap.UnPackJson(precursorData);
+		jsonPrecursors.UnPackJson(precursorData);
 
 	if (recipeData.size() > 0)
-	{
-		PackableListWithJson<JsonCraftOperation> jsonRecipes;
-
 		jsonRecipes.UnPackJson(recipeData);
 
-		for (auto item : jsonRecipes)
-		{
-			m_recipes.emplace(item._recipeID, item);
-		}
-	}
+	if(jsonPrecursors.size() > 0)
+		UpdateCraftTableData(jsonPrecursors);
 
-	if(_jsonPrecursorMap.size() > 0 || m_recipes.size() > 0)
-		UpdateCraftTableData();
-
-	if (m_recipes.size() > 0)
-		UpdateExitingRecipes();
+	if (jsonRecipes.size() > 0)
+		UpdateExitingRecipes(jsonRecipes);
 
 	t = clock() - t;
 	float s = (float)t / CLOCKS_PER_SEC;
@@ -68,88 +62,23 @@ void RecipeFactory::Initialize()
 	SERVER_INFO << "Finished loading recipes in " << s;
 }
 
-void RecipeFactory::UpdateCraftTableData()
+void RecipeFactory::UpdateCraftTableData(precursor_list_t &precursors)
 {
 	// for each precursor see if it exists in the table
-	for (auto pc : _jsonPrecursorMap)
+	for (auto pc : precursors)
 	{
 		DWORD64 toolTarget = ((DWORD64)pc.Tool << 32) | pc.Target;
-		DWORD64 targetTool = ((DWORD64)pc.Target << 32) | pc.Tool;
-
-		const DWORD *opKey = g_pPortalDataEx->_craftTableData._precursorMap.lookup(toolTarget);
-
-		if (!opKey) // Check backwards
-		{
-			opKey = g_pPortalDataEx->_craftTableData._precursorMap.lookup(targetTool);
-		}
-
-		if (!opKey) // New recipe 
-		{
-			JsonCraftOperation newrecipe;
-			if (RecipeInJson(pc.RecipeID, &newrecipe))
-			{
-				g_pPortalDataEx->_craftTableData._precursorMap[toolTarget] = pc.RecipeID;
-				g_pPortalDataEx->_craftTableData._operations[newrecipe._recipeID] = GetCraftOpertionFromNewRecipe(&newrecipe);
-			}
-			else
-			{
-				if (g_pPortalDataEx->_craftTableData._operations.lookup(pc.RecipeID))
-				{
-					g_pPortalDataEx->_craftTableData._precursorMap[toolTarget] = pc.RecipeID;
-				}
-				else
-				{
-					SERVER_ERROR << "Recipe" << pc.RecipeID << "missing from json recipe file - not added";
-				}
-			}
-		}
-		else 
-		{
-			if (g_pPortalDataEx->_craftTableData._operations.lookup(*opKey))
-			{
-				g_pPortalDataEx->_craftTableData._precursorMap[*opKey] = pc.RecipeID;
-			}
-		}
+		g_pPortalDataEx->_craftTableData._precursorMap[toolTarget] = pc.RecipeID;
 	}
 }
 
-void RecipeFactory::UpdateExitingRecipes()
+void RecipeFactory::UpdateExitingRecipes(recipe_list_t &recipes)
 {
-	for (auto pc : m_recipes)
+	for (auto pc : recipes)
 	{
-		DWORD recipeIdToUpdate = pc.first;
-		bool alreadyAdded = false;
-		for (auto rp : _jsonPrecursorMap)
-		{
-			if (pc.first == rp.RecipeID)
-			{
-				alreadyAdded = true;
-				break;
-			}
-		}
-
-		if (!alreadyAdded)
-		{
-			CCraftOperation *currentRecipe = g_pPortalDataEx->_craftTableData._operations.lookup(recipeIdToUpdate);
-
-			if (currentRecipe) // recipe found so update it
-			{
-				g_pPortalDataEx->_craftTableData._operations[recipeIdToUpdate] = GetCraftOpertionFromNewRecipe(&pc.second);
-			}
-		}
+		DWORD recipeIdToUpdate = pc._recipeID;
+		g_pPortalDataEx->_craftTableData._operations[recipeIdToUpdate] = GetCraftOpertionFromNewRecipe(&pc);
 	}
-}
-
-bool RecipeFactory::RecipeInJson(DWORD recipeid, JsonCraftOperation *recipe)
-{
-	recipe_map_t::iterator itr = m_recipes.find(recipeid);
-	if (itr != m_recipes.end())
-	{
-		*recipe = itr->second;
-		return true;
-	}
-
-	return false;
 }
 
 CCraftOperation RecipeFactory::GetCraftOpertionFromNewRecipe(JsonCraftOperation * recipe)

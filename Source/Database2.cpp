@@ -650,7 +650,7 @@ void CMYSQLDatabase::ProcessAsyncQueries()
 			std::scoped_lock lock(m_lock);
 			_asyncQueries.push_front(queuedQuery);
 
-			SERVER_ERROR << "Errro while performing query:" << queuedQuery;
+			SERVER_ERROR << "Error while performing query:" << queuedQuery;
 
 			// there was an error, stop for now
 			break;

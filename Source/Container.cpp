@@ -264,8 +264,12 @@ BOOL CContainerWeenie::Container_CanEquip(CWeenieObject *item, DWORD location)
 	if ((possible & location) == 0 && !(location == SHIELD_LOC && possible == MELEE_WEAPON_LOC))
 		return FALSE;
 
-	//if (!item->IsValidWieldLocation(location))
-	//	return FALSE;
+	// Don't check Valid Wield Location for Dual Wield
+	if (!(location == SHIELD_LOC && possible == MELEE_WEAPON_LOC))
+	{
+		if (!item->IsValidWieldLocation(location))
+			return FALSE;
+	}
 
 	for (auto wielded : m_Wielded)
 	{
