@@ -1546,7 +1546,7 @@ int CSpellcastingManager::LaunchSpellEffect(bool bFizzled)
 				}
 				else
 				{
-					m_pWeenie->SendText("Your sould is not bound to a lifestone.", LTT_MAGIC);
+					m_pWeenie->SendText("Your soul is not bound to a lifestone.", LTT_MAGIC);
 				}
 
 				bSpellPerformed = true;
@@ -3251,7 +3251,7 @@ int CSpellcastingManager::CheckTargetValidity()
 			return WERROR_MAGIC_BAD_TARGET_TYPE;
 	}
 
-	if (!(m_SpellCastData.spell->_bitfield & Beneficial_SpellIndex))
+	if (!(m_SpellCastData.spell->_bitfield & (Beneficial_SpellIndex | NotResearchable_SpellIndex | SelfTargeted_SpellIndex))) //Not researchable bitmask to allow sending spells to function properly. SelfTargeted to allow portal summon gems to function.
 	{
 		if (!pTarget)
 			return WERROR_OBJECT_GONE;

@@ -185,32 +185,14 @@ void ObjDesc::RemoveTextureMapChange(TextureMapChange *toRemove)
 void ObjDesc::RemoveDuplicateTextureMapChange(TextureMapChange *newGuy)
 {
 	TextureMapChange *pIterator = firstTMChange;
-	if (pIterator)
+
+	while (pIterator)
 	{
-		while (!newGuy->replaces(pIterator))
-		{
-			pIterator = pIterator->next;
-			if (!pIterator)
-				return;
-		}
+		TextureMapChange *next = pIterator->next;
+		if (newGuy->replaces(pIterator))
+			RemoveTextureMapChange(pIterator);
 
-		if (pIterator)
-		{
-			TextureMapChange *pNext = pIterator->next;
-			if (pNext)
-				pNext->prev = pIterator->prev;
-			else
-				lastTMChange = pIterator->prev;
-
-			TextureMapChange *pPrev = pIterator->prev;
-			if (pPrev)
-				pPrev->next = pIterator->next;
-			else
-				firstTMChange = pIterator->next;
-
-			delete pIterator;
-			num_texture_map_changes--;
-		}
+		pIterator = next;
 	}
 }
 
@@ -269,19 +251,14 @@ void ObjDesc::RemoveDuplicateAnimPartChange(AnimPartChange *newGuy)
 {
 	AnimPartChange *pIterator = firstAPChange;
 
-	if (pIterator)
+	while (pIterator)
 	{
-		while (pIterator->part_index != newGuy->part_index)
-		{
-			pIterator = pIterator->next;
-			if (!pIterator)
-				return;
-		}
-
-		if (pIterator)
-		{
+		AnimPartChange *next = pIterator->next;
+		if (pIterator->part_index == newGuy->part_index)
 			RemoveAnimPartChange(pIterator);
-		}
+
+		pIterator = next;
+
 	}
 }
 
