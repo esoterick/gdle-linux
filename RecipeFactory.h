@@ -1,4 +1,8 @@
 #pragma once
+
+using precursor_list_t = PackableListWithJson<CraftPrecursor>;
+using recipe_list_t = PackableListWithJson<JsonCraftOperation>;
+
 class RecipeFactory
 {
 public:
@@ -7,16 +11,11 @@ public:
 
 	void Reset();
 	void Initialize();
-	void UpdateCraftTableData();
-	void UpdateExitingRecipes();
-
 
 private:
-	PackableHashTableWithJson<DWORD, JsonCraftOperation> *_recipesFromJson = NULL;
-	PackableListWithJson<CraftPrecursor> _jsonPrecursorMap;
-	PackableListWithJson<JsonCraftOperation> _jsonRecipes;
+	void UpdateCraftTableData(precursor_list_t &precursors);
+	void UpdateExitingRecipes(recipe_list_t &recipes);
 
-	bool RecipeInJson(DWORD recipeid, JsonCraftOperation* recipe);
 	CCraftOperation GetCraftOpertionFromNewRecipe(JsonCraftOperation* recipe);
 };
 

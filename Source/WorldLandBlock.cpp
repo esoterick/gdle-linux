@@ -190,8 +190,8 @@ void CWorldLandBlock::SpawnDynamics()
 				if (!encounterIndex && !wcid)
 					continue;
 
-				float x_shift = 24.0f * cell_x;
-				float y_shift = 24.0f * cell_y;
+				float x_shift = std::clamp(cell_x * 24.0f, 0.5f, 191.5f);
+				float y_shift = std::clamp(cell_y * 24.0f, 0.5f, 191.5f);
 
 				Position pos;
 				pos.objcell_id = ((DWORD)m_wHeader << 16) | 1;

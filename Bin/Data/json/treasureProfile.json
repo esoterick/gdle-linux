@@ -1533,14 +1533,14 @@
           "lowVariance": 0.4,
           "slowSpeedMod": 1,
           "fastSpeedMod": 0.75,
-          "minAttackSkillBonus": 0,
-          "maxAttackSkillBonus": 9,
-          "minMeleeDefenseBonus": 0,
-          "maxMeleeDefenseBonus": 7,
-          "maxMissileDefenseBonus": 1.5,
-          "maxMagicDefenseBonus": 1.5,
-          "attackSkillBonusChance": 1,
-          "meleeDefenseBonusChance": 1,
+          "minAttackSkillBonus": 2.0,
+          "maxAttackSkillBonus": 15.0,
+          "minMeleeDefenseBonus": 0.0,
+          "maxMeleeDefenseBonus": 15.0,
+          "maxMissileDefenseBonus": 2.5,
+          "maxMagicDefenseBonus": 2.5,
+          "attackSkillBonusChance": 1.0,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.8,
@@ -13930,10 +13930,10 @@
           "minElementalDamageBonus": 0,
           "maxElementalDamageBonus": 0,
           "minMeleeDefenseBonus": 0,
-          "maxMeleeDefenseBonus": 4,
+          "maxMeleeDefenseBonus": 10,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 1,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.0,
@@ -13971,10 +13971,10 @@
           "minElementalDamageBonus": 0,
           "maxElementalDamageBonus": 0,
           "minMeleeDefenseBonus": 0,
-          "maxMeleeDefenseBonus": 8,
+          "maxMeleeDefenseBonus": 15,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 1,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.0,
@@ -14034,16 +14034,16 @@
         {
           "weaponSkillRequired": 270,
           "minDamageModBonus": 0.71,
-          "maxDamageModBonus": 0.74,
+          "maxDamageModBonus": 0.8,
           "slowSpeedMod": 1,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 0,
           "maxElementalDamageBonus": 0,
           "minMeleeDefenseBonus": 2,
-          "maxMeleeDefenseBonus": 12,
+          "maxMeleeDefenseBonus": 15,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 1,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.0,
@@ -14102,8 +14102,8 @@
         },
         {
           "weaponSkillRequired": 290,
-          "minDamageModBonus": 0.75,
-          "maxDamageModBonus": 0.79,
+          "minDamageModBonus": 0.81,
+          "maxDamageModBonus": 0.9,
           "slowSpeedMod": 1,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 0,
@@ -14112,7 +14112,7 @@
           "maxMeleeDefenseBonus": 15,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 1,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.0,
@@ -14214,16 +14214,17 @@
       "wieldTiers": [
         {
           "weaponSkillRequired": 315,
-          "minDamageModBonus": 0.65,
-          "maxDamageModBonus": 0.75,
+          "minDamageModBonus": 0.81,
+          "maxDamageModBonus": 0.9,
           "slowSpeedMod": 1.0,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 2,
           "maxElementalDamageBonus": 5,
+          "minMeleeDefenseBonus": 2.0,
           "maxMeleeDefenseBonus": 15.0,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 0.25,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.25,
           "magicDefenseBonusChance": 0.25,
           "elementalChance": 1.0,
@@ -14286,16 +14287,17 @@
         },
         {
           "weaponSkillRequired": 335,
-          "minDamageModBonus": 0.65,
-          "maxDamageModBonus": 0.75,
+          "minDamageModBonus": 0.81,
+          "maxDamageModBonus": 0.9,
           "slowSpeedMod": 1.0,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 5,
           "maxElementalDamageBonus": 9,
+          "minMeleeDefenseBonus": 2.0,
           "maxMeleeDefenseBonus": 15.0,
-          "maxMissileDefenseBonus": 2.5,
-          "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 0.25,
+          "maxMissileDefenseBonus": 4.0,
+          "maxMagicDefenseBonus": 4.0,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.25,
           "magicDefenseBonusChance": 0.25,
           "elementalChance": 1.0,
@@ -14360,16 +14362,92 @@
         },
         {
           "weaponSkillRequired": 360,
-          "minDamageModBonus": 0.65,
-          "maxDamageModBonus": 0.75,
+          "minDamageModBonus": 0.81,
+          "maxDamageModBonus": 0.9,
           "slowSpeedMod": 1.0,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 9,
           "maxElementalDamageBonus": 16,
-          "maxMeleeDefenseBonus": 15.0,
-          "maxMissileDefenseBonus": 2.5,
-          "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 0.25,
+          "minMeleeDefenseBonus": 13.0,
+          "maxMeleeDefenseBonus": 20.0,
+          "maxMissileDefenseBonus": 4.0,
+          "maxMagicDefenseBonus": 4.0,
+          "meleeDefenseBonusChance": 1.0,
+          "missileDefenseBonusChance": 0.25,
+          "magicDefenseBonusChance": 0.25,
+          "elementalChance": 1.0,
+
+          "maxPropertyAmount": 3,
+
+          "slayer_Chance": 0.02,
+          "slayer_MinDamageBonus": 1.25,
+          "slayer_MaxDamageBonus": 2.0,
+          "slayer_Types": [
+            "olthoi",
+            "banderling",
+            "drudge",
+            "mosswart",
+            "lugian",
+            "tumerok",
+            "mite",
+            "tusker",
+            "phyntosWasp",
+            "rat",
+            "golem",
+            "undead",
+            "gromnie",
+            "reedshark",
+            "armoredillo",
+            "virindi",
+            "wisp",
+            "shadow",
+            "mattekar",
+            "mumiyah",
+            "sclavus",
+            "shallowsShark",
+            "monouga",
+            "zefir",
+            "skeleton",
+            "shreth",
+            "moarsman",
+            "grievver",
+            "niffis",
+            "ursuin",
+            "crystal",
+            "hollowMinion",
+            "scarecrow",
+            "doll",
+            "marionette",
+            "carenzi",
+            "siraluun",
+            "simulacrum",
+            "elemental",
+            "statue",
+            "margul",
+            "burun"
+          ],
+
+          "crushingBlow_Chance": 0.05,
+          "crushingBlow_MinCriticalMultiplier": 0.6,
+          "crushingBlow_MaxCriticalMultiplier": 2.2,
+
+          "bitingStrike_Chance": 0.05,
+          "bitingStrike_MinCriticalFrequency": 0.15,
+          "bitingStrike_MaxCriticalFrequency": 0.35
+        },
+        {
+          "weaponSkillRequired": 375,
+          "minDamageModBonus": 0.81,
+          "maxDamageModBonus": 0.9,
+          "slowSpeedMod": 1.0,
+          "fastSpeedMod": 0.75,
+          "minElementalDamageBonus": 17,
+          "maxElementalDamageBonus": 19,
+          "minMeleeDefenseBonus": 13.0,
+          "maxMeleeDefenseBonus": 20.0,
+          "maxMissileDefenseBonus": 4.0,
+          "maxMagicDefenseBonus": 4.0,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.25,
           "magicDefenseBonusChance": 0.25,
           "elementalChance": 1.0,
@@ -14500,11 +14578,11 @@
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 0,
           "maxElementalDamageBonus": 0,
-          "minMeleeDefenseBonus": 0,
-          "maxMeleeDefenseBonus": 4,
+          "minMeleeDefenseBonus": 0.0,
+          "maxMeleeDefenseBonus": 10.0,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 1,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.0,
@@ -14541,11 +14619,11 @@
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 0,
           "maxElementalDamageBonus": 0,
-          "minMeleeDefenseBonus": 0,
-          "maxMeleeDefenseBonus": 8,
+          "minMeleeDefenseBonus": 2.0,
+          "maxMeleeDefenseBonus": 15.0,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 1,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.0,
@@ -14605,16 +14683,16 @@
         {
           "weaponSkillRequired": 270,
           "minDamageModBonus": 0.71,
-          "maxDamageModBonus": 0.74,
+          "maxDamageModBonus": 0.75,
           "slowSpeedMod": 1,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 0,
           "maxElementalDamageBonus": 0,
-          "minMeleeDefenseBonus": 2,
-          "maxMeleeDefenseBonus": 12,
+          "minMeleeDefenseBonus": 2.0,
+          "maxMeleeDefenseBonus": 15.0,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 1,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.0,
@@ -14673,14 +14751,14 @@
         },
         {
           "weaponSkillRequired": 290,
-          "minDamageModBonus": 0.75,
+          "minDamageModBonus": 0.76,
           "maxDamageModBonus": 0.85,
           "slowSpeedMod": 1,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 0,
           "maxElementalDamageBonus": 0,
-          "minMeleeDefenseBonus": 2,
-          "maxMeleeDefenseBonus": 15,
+          "minMeleeDefenseBonus": 2.0,
+          "maxMeleeDefenseBonus": 15.0,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
           "meleeDefenseBonusChance": 1,
@@ -14764,16 +14842,17 @@
       "wieldTiers": [
         {
           "weaponSkillRequired": 315,
-          "minDamageModBonus": 0.65,
-          "maxDamageModBonus": 0.75,
+          "minDamageModBonus": 0.76,
+          "maxDamageModBonus": 0.85,
           "slowSpeedMod": 1.0,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 2,
           "maxElementalDamageBonus": 5,
+          "minMeleeDefenseBonus": 2.0,
           "maxMeleeDefenseBonus": 15.0,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 0.25,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.25,
           "magicDefenseBonusChance": 0.25,
           "elementalChance": 1.0,
@@ -14836,16 +14915,17 @@
         },
         {
           "weaponSkillRequired": 335,
-          "minDamageModBonus": 0.65,
-          "maxDamageModBonus": 0.75,
+          "minDamageModBonus": 0.76,
+          "maxDamageModBonus": 0.85,
           "slowSpeedMod": 1.0,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 5,
           "maxElementalDamageBonus": 9,
+          "minMeleeDefenseBonus": 2.0,
           "maxMeleeDefenseBonus": 15.0,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 0.25,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.25,
           "magicDefenseBonusChance": 0.25,
           "elementalChance": 1.0,
@@ -14910,16 +14990,92 @@
         },
         {
           "weaponSkillRequired": 360,
-          "minDamageModBonus": 0.65,
-          "maxDamageModBonus": 0.75,
+          "minDamageModBonus": 0.76,
+          "maxDamageModBonus": 0.85,
           "slowSpeedMod": 1.0,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 9,
           "maxElementalDamageBonus": 16,
-          "maxMeleeDefenseBonus": 15.0,
-          "maxMissileDefenseBonus": 2.5,
-          "maxMagicDefenseBonus": 2.5,
-          "meleeDefenseBonusChance": 0.25,
+          "minMeleeDefenseBonus": 13.0,
+          "maxMeleeDefenseBonus": 20.0,
+          "maxMissileDefenseBonus": 4.0,
+          "maxMagicDefenseBonus": 4.0,
+          "meleeDefenseBonusChance": 1.0,
+          "missileDefenseBonusChance": 0.25,
+          "magicDefenseBonusChance": 0.25,
+          "elementalChance": 1.0,
+
+          "maxPropertyAmount": 3,
+
+          "slayer_Chance": 0.02,
+          "slayer_MinDamageBonus": 1.25,
+          "slayer_MaxDamageBonus": 2.0,
+          "slayer_Types": [
+            "olthoi",
+            "banderling",
+            "drudge",
+            "mosswart",
+            "lugian",
+            "tumerok",
+            "mite",
+            "tusker",
+            "phyntosWasp",
+            "rat",
+            "golem",
+            "undead",
+            "gromnie",
+            "reedshark",
+            "armoredillo",
+            "virindi",
+            "wisp",
+            "shadow",
+            "mattekar",
+            "mumiyah",
+            "sclavus",
+            "shallowsShark",
+            "monouga",
+            "zefir",
+            "skeleton",
+            "shreth",
+            "moarsman",
+            "grievver",
+            "niffis",
+            "ursuin",
+            "crystal",
+            "hollowMinion",
+            "scarecrow",
+            "doll",
+            "marionette",
+            "carenzi",
+            "siraluun",
+            "simulacrum",
+            "elemental",
+            "statue",
+            "margul",
+            "burun"
+          ],
+
+          "crushingBlow_Chance": 0.05,
+          "crushingBlow_MinCriticalMultiplier": 0.6,
+          "crushingBlow_MaxCriticalMultiplier": 2.2,
+
+          "bitingStrike_Chance": 0.05,
+          "bitingStrike_MinCriticalFrequency": 0.15,
+          "bitingStrike_MaxCriticalFrequency": 0.35
+        },
+        {
+          "weaponSkillRequired": 375,
+          "minDamageModBonus": 0.76,
+          "maxDamageModBonus": 0.85,
+          "slowSpeedMod": 1.0,
+          "fastSpeedMod": 0.75,
+          "minElementalDamageBonus": 17,
+          "maxElementalDamageBonus": 19,
+          "minMeleeDefenseBonus": 13.0,
+          "maxMeleeDefenseBonus": 20.0,
+          "maxMissileDefenseBonus": 4.0,
+          "maxMagicDefenseBonus": 4.0,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.25,
           "magicDefenseBonusChance": 0.25,
           "elementalChance": 1.0,
@@ -16841,15 +16997,15 @@
         {
           "weaponSkillRequired": 290,
           "minElementalDamageMod": 0.1,
-          "maxElementalDamageMod": 2,
-          "minManaConversionBonus": 2,
-          "maxManaConversionBonus": 10,
-          "minMeleeDefenseBonus": 0,
-          "maxMeleeDefenseBonus": 15,
+          "maxElementalDamageMod": 2.0,
+          "minManaConversionBonus": 0.0,
+          "maxmanaconversionbonus": 5.0,
+          "minMeleeDefenseBonus": 1.0,
+          "maxMeleeDefenseBonus": 15.0,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "manaConversionBonusChance": 1,
-          "meleeDefenseBonusChance": 1,
+          "manaConversionBonusChance": 1.0,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.8,
@@ -16909,16 +17065,16 @@
         },
         {
           "weaponSkillRequired": 310,
-          "minElementalDamageMod": 2,
-          "maxElementalDamageMod": 5,
-          "minManaConversionBonus": 2,
-          "maxManaConversionBonus": 10,
-          "minMeleeDefenseBonus": 2,
-          "maxMeleeDefenseBonus": 15,
+          "minElementalDamageMod": 2.0,
+          "maxElementalDamageMod": 5.0,
+          "minManaConversionBonus": 0.0,
+          "maxmanaconversionbonus": 5.0,
+          "minMeleeDefenseBonus": 2.0,
+          "maxMeleeDefenseBonus": 15.0,
           "maxMissileDefenseBonus": 2.5,
           "maxMagicDefenseBonus": 2.5,
-          "manaConversionBonusChance": 1,
-          "meleeDefenseBonusChance": 1,
+          "manaConversionBonusChance": 1.0,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.8,
@@ -16978,16 +17134,16 @@
         },
         {
           "weaponSkillRequired": 330,
-          "minElementalDamageMod": 5,
-          "maxElementalDamageMod": 8,
-          "minManaConversionBonus": 2,
-          "maxManaConversionBonus": 10,
-          "minMeleeDefenseBonus": 4,
-          "maxMeleeDefenseBonus": 15,
-          "maxMissileDefenseBonus": 2.5,
-          "maxMagicDefenseBonus": 2.5,
-          "manaConversionBonusChance": 1,
-          "meleeDefenseBonusChance": 1,
+          "minElementalDamageMod": 5.0,
+          "maxElementalDamageMod": 8.0,
+          "minManaConversionBonus": 0.0,
+          "maxmanaconversionbonus": 5.0,
+          "minMeleeDefenseBonus": 13.0,
+          "maxMeleeDefenseBonus": 20.0,
+          "maxMissileDefenseBonus": 4.0,
+          "maxMagicDefenseBonus": 4.0,
+          "manaConversionBonusChance": 1.0,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.8,
@@ -17047,16 +17203,16 @@
         },
         {
           "weaponSkillRequired": 355,
-          "minElementalDamageMod": 9,
-          "maxElementalDamageMod": 13,
-          "minManaConversionBonus": 3,
-          "maxManaConversionBonus": 10,
-          "minMeleeDefenseBonus": 5,
-          "maxMeleeDefenseBonus": 15,
-          "maxMissileDefenseBonus": 3,
-          "maxMagicDefenseBonus": 3,
-          "manaConversionBonusChance": 1,
-          "meleeDefenseBonusChance": 1,
+          "minElementalDamageMod": 9.0,
+          "maxElementalDamageMod": 13.0,
+          "minManaConversionBonus": 0.0,
+          "maxmanaconversionbonus": 5.0,
+          "minMeleeDefenseBonus": 13.0,
+          "maxMeleeDefenseBonus": 20.0,
+          "maxMissileDefenseBonus": 4.0,
+          "maxMagicDefenseBonus": 4.0,
+          "manaConversionBonusChance": 1.0,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.8,
@@ -17116,14 +17272,16 @@
         },
         {
           "weaponSkillRequired": 375,
-          "minElementalDamageMod": 14,
-          "maxElementalDamageMod": 16,
-          "minManaConversionBonus": 4,
-          "maxManaConversionBonus": 10,
-          "minMeleeDefenseBonus": 5,
-          "maxMeleeDefenseBonus": 18,
-          "maxMissileDefenseBonus": 3.5,
-          "maxMagicDefenseBonus": 3.5,
+          "minElementalDamageMod": 14.0,
+          "maxElementalDamageMod": 16.0,
+          "minManaConversionBonus": 0.0,
+          "maxmanaconversionbonus": 5.0,
+          "minMeleeDefenseBonus": 13.0,
+          "maxMeleeDefenseBonus": 20.0,
+          "maxMissileDefenseBonus": 4.0,
+          "maxMagicDefenseBonus": 4.0,
+          "manaConversionBonusChance": 1.0,
+          "meleeDefenseBonusChance": 1.0,
           "manaConversionBonusChance": 1,
           "meleeDefenseBonusChance": 1,
           "missileDefenseBonusChance": 0.1,
@@ -17185,16 +17343,16 @@
         },
         {
           "weaponSkillRequired": 385,
-          "minElementalDamageMod": 17,
-          "maxElementalDamageMod": 18,
-          "minManaConversionBonus": 4,
-          "maxManaConversionBonus": 10,
-          "minMeleeDefenseBonus": 5,
-          "maxMeleeDefenseBonus": 20,
-          "maxMissileDefenseBonus": 4,
-          "maxMagicDefenseBonus": 4,
-          "manaConversionBonusChance": 1,
-          "meleeDefenseBonusChance": 1,
+          "minElementalDamageMod": 17.0,
+          "maxElementalDamageMod": 18.0,
+          "minManaConversionBonus": 0.0,
+          "maxmanaconversionbonus": 5.0,
+          "minMeleeDefenseBonus": 13.0,
+          "maxMeleeDefenseBonus": 20.0,
+          "maxMissileDefenseBonus": 4.0,
+          "maxMagicDefenseBonus": 4.0,
+          "manaConversionBonusChance": 1.0,
+          "meleeDefenseBonusChance": 1.0,
           "missileDefenseBonusChance": 0.1,
           "magicDefenseBonusChance": 0.1,
           "elementalChance": 0.8,
@@ -18472,7 +18630,7 @@
       },
       {
         "category": "Footwear",
-        "possibleMaterials": ["cloth"],
+        "possibleMaterials": ["leather"],
         "entries": [
           {
             "name": "Loafers",
@@ -18480,6 +18638,7 @@
           },
           {
             "name": "Slippers",
+            "possibleMaterials": ["cloth"],
             "wcid": 133
           },
           {
@@ -18491,8 +18650,8 @@
             "wcid": 129
           },
           {
-            "name": "Boots",
-            "wcid": 115
+            "name": "Viamontian Laced Boots",
+            "wcid": 31249
           }
         ]
       }
@@ -19412,188 +19571,272 @@
           "wcid": 37361
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Endurance",
           "wcid": 37300
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Flame",
           "wcid": 37301
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37303
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37304
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37305
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37307
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37309
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37311
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37312
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37313
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37314
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37315
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37316
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37317
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37318
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37319
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37321
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37323
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37324
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37327
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37328
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37329
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37331
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37332
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37333
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37336
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37337
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37338
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37339
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37340
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37342
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37344
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37345
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37347
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37348
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37350
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37351
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37369
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37373
-        },
-        {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Fletching",
           "wcid": 37302
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 38760
+          "name": "Glyph of Focus",
+          "wcid": 37303
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37349
+          "name": "Glyph of Healing",
+          "wcid": 37304
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37346
+          "name": "Glyph of Health",
+          "wcid": 37305
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37343
+          "name": "Glyph of Regeneration",
+          "wcid": 37307
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Item Enchantment",
+          "wcid": 37309
+        },
+        {
+          "name": "Glyph of Item Tinkering",
+          "wcid": 37310
+        },
+        {
+          "name": "Glyph of Jump",
+          "wcid": 37311
+        },
+        {
+          "name": "Glyph of Leadership",
+          "wcid": 37312
+        },
+        {
+          "name": "Glyph of Life Magic",
+          "wcid": 37313
+        },
+        {
+          "name": "Glyph of Lightning",
+          "wcid": 37314
+        },
+        {
+          "name": "Glyph of Lockpick",
+          "wcid": 37315
+        },
+        {
+          "name": "Glyph of Loyalty",
+          "wcid": 37316
+        },
+        {
+          "name": "Glyph of Magic Defense",
+          "wcid": 37317
+        },
+        {
+          "name": "Glyph of Mana",
+          "wcid": 37318
+        },
+        {
+          "name": "Glyph of Mana Conversion",
+          "wcid": 37319
+        },
+        {
+          "name": "Glyph of Mana Regeneration",
+          "wcid": 37321
+        },
+        {
+          "name": "Glyph of Melee Defense",
+          "wcid": 37323
+        },
+        {
+          "name": "Glyph of Missile Defense",
+          "wcid": 37324
+        },
+        {
+          "name": "Glyph of Monster Appraisal",
+          "wcid": 37325
+        },
+        {
+          "name": "Glyph of Person Appraisal",
+          "wcid": 37326
+        },
+        {
+          "name": "Glyph of Piercing",
+          "wcid": 37327
+        },
+        {
+          "name": "Glyph of Quickness",
+          "wcid": 37328
+        },
+        {
+          "name": "Glyph of Run",
+          "wcid": 37329
+        },
+        {
+          "name": "Glyph of Salvaging",
+          "wcid": 37330
+        },
+        {
+          "name": "Glyph of Self",
+          "wcid": 37331
+        },
+        {
+          "name": "Glyph of Slashing",
+          "wcid": 37332
+        },
+        {
+          "name": "Glyph of Stamina",
+          "wcid": 37333
+        },
+        {
+          "name": "Glyph of Stamina Regeneration",
+          "wcid": 37336
+        },
+        {
+          "name": "Glyph of Strength",
+          "wcid": 37337
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37338
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37339
+        },
+        {
+          "name": "Glyph of War Magic",
+          "wcid": 37340
+        },
+        {
+          "name": "Glyph of Weapon Tinkering",
           "wcid": 37341
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37310
+          "name": "Glyph of Corrosion",
+          "wcid": 37342
+        },
+        {
+          "name": "Glyph of Alchemy",
+          "wcid": 37343
+        },
+        {
+          "name": "Glyph of Arcane Lore",
+          "wcid": 37344
+        },
+        {
+          "name": "Glyph of Armor",
+          "wcid": 37345
+        },
+        {
+          "name": "Glyph of Armor Tinkering",
+          "wcid": 37346
+        },
+        {
+          "name": "Glyph of Bludgeoning",
+          "wcid": 37347
+        },
+        {
+          "name": "Glyph of Frost",
+          "wcid": 37348
+        },
+        {
+          "name": "Glyph of Cooking",
+          "wcid": 37349
+        },
+        {
+          "name": "Glyph of Coordination",
+          "wcid": 37350
+        },
+        {
+          "name": "Glyph of Creature Enchantment",
+          "wcid": 37351
+        },
+        {
+          "name": "Glyph of Deception",
+          "wcid": 37352
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37366
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37367
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37368
+        },
+        {
+          "name": "Glyph of Heavy Weapons",
+          "wcid": 37369
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37370
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37371
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37372
+        },
+        {
+          "name": "Glyph of Finesse Weapons",
+          "wcid": 37373
+        },
+        {
+          "name": "Glyph of Magic Item Tinkering",
+          "wcid": 38760
+        },
+        {
+          "name": "Glyph of Item Tinkering",
+          "wcid": 41746
+        },
+        {
+          "name": "Glyph of Two Handed Combat",
+          "wcid": 41747
+        },
+        {
+          "name": "Glyph of Damage",
+          "wcid": 43379
+        },
+        {
+          "name": "Glyph of Void Magic",
+          "wcid": 43380
+        },
+        {
+          "name": "Glyph of Nether",
+          "wcid": 43387
+        },
+        {
+          "name": "Glyph of Dirty Fighting",
+          "wcid": 45370
+        },
+        {
+          "name": "Glyph of Dual Wield",
+          "wcid": 45371
+        },
+        {
+          "name": "Glyph of Recklessness",
+          "wcid": 45372
+        },
+        {
+          "name": "Glyph of Shield",
+          "wcid": 45373
+        },
+        {
+          "name": "Glyph of Sneak Attack",
+          "wcid": 45374
+        },
+        {
+          "name": "Glyph of Summoning",
+          "wcid": 49455
         }
       ]
     },
@@ -19657,188 +19900,272 @@
           "wcid": 37361
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Endurance",
           "wcid": 37300
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Flame",
           "wcid": 37301
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37303
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37304
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37305
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37307
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37309
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37311
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37312
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37313
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37314
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37315
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37316
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37317
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37318
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37319
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37321
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37323
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37324
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37327
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37328
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37329
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37331
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37332
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37333
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37336
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37337
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37338
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37339
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37340
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37342
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37344
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37345
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37347
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37348
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37350
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37351
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37369
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37373
-        },
-        {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Fletching",
           "wcid": 37302
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 38760
+          "name": "Glyph of Focus",
+          "wcid": 37303
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37349
+          "name": "Glyph of Healing",
+          "wcid": 37304
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37346
+          "name": "Glyph of Health",
+          "wcid": 37305
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37343
+          "name": "Glyph of Regeneration",
+          "wcid": 37307
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Item Enchantment",
+          "wcid": 37309
+        },
+        {
+          "name": "Glyph of Item Tinkering",
+          "wcid": 37310
+        },
+        {
+          "name": "Glyph of Jump",
+          "wcid": 37311
+        },
+        {
+          "name": "Glyph of Leadership",
+          "wcid": 37312
+        },
+        {
+          "name": "Glyph of Life Magic",
+          "wcid": 37313
+        },
+        {
+          "name": "Glyph of Lightning",
+          "wcid": 37314
+        },
+        {
+          "name": "Glyph of Lockpick",
+          "wcid": 37315
+        },
+        {
+          "name": "Glyph of Loyalty",
+          "wcid": 37316
+        },
+        {
+          "name": "Glyph of Magic Defense",
+          "wcid": 37317
+        },
+        {
+          "name": "Glyph of Mana",
+          "wcid": 37318
+        },
+        {
+          "name": "Glyph of Mana Conversion",
+          "wcid": 37319
+        },
+        {
+          "name": "Glyph of Mana Regeneration",
+          "wcid": 37321
+        },
+        {
+          "name": "Glyph of Melee Defense",
+          "wcid": 37323
+        },
+        {
+          "name": "Glyph of Missile Defense",
+          "wcid": 37324
+        },
+        {
+          "name": "Glyph of Monster Appraisal",
+          "wcid": 37325
+        },
+        {
+          "name": "Glyph of Person Appraisal",
+          "wcid": 37326
+        },
+        {
+          "name": "Glyph of Piercing",
+          "wcid": 37327
+        },
+        {
+          "name": "Glyph of Quickness",
+          "wcid": 37328
+        },
+        {
+          "name": "Glyph of Run",
+          "wcid": 37329
+        },
+        {
+          "name": "Glyph of Salvaging",
+          "wcid": 37330
+        },
+        {
+          "name": "Glyph of Self",
+          "wcid": 37331
+        },
+        {
+          "name": "Glyph of Slashing",
+          "wcid": 37332
+        },
+        {
+          "name": "Glyph of Stamina",
+          "wcid": 37333
+        },
+        {
+          "name": "Glyph of Stamina Regeneration",
+          "wcid": 37336
+        },
+        {
+          "name": "Glyph of Strength",
+          "wcid": 37337
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37338
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37339
+        },
+        {
+          "name": "Glyph of War Magic",
+          "wcid": 37340
+        },
+        {
+          "name": "Glyph of Weapon Tinkering",
           "wcid": 37341
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37310
+          "name": "Glyph of Corrosion",
+          "wcid": 37342
+        },
+        {
+          "name": "Glyph of Alchemy",
+          "wcid": 37343
+        },
+        {
+          "name": "Glyph of Arcane Lore",
+          "wcid": 37344
+        },
+        {
+          "name": "Glyph of Armor",
+          "wcid": 37345
+        },
+        {
+          "name": "Glyph of Armor Tinkering",
+          "wcid": 37346
+        },
+        {
+          "name": "Glyph of Bludgeoning",
+          "wcid": 37347
+        },
+        {
+          "name": "Glyph of Frost",
+          "wcid": 37348
+        },
+        {
+          "name": "Glyph of Cooking",
+          "wcid": 37349
+        },
+        {
+          "name": "Glyph of Coordination",
+          "wcid": 37350
+        },
+        {
+          "name": "Glyph of Creature Enchantment",
+          "wcid": 37351
+        },
+        {
+          "name": "Glyph of Deception",
+          "wcid": 37352
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37366
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37367
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37368
+        },
+        {
+          "name": "Glyph of Heavy Weapons",
+          "wcid": 37369
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37370
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37371
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37372
+        },
+        {
+          "name": "Glyph of Finesse Weapons",
+          "wcid": 37373
+        },
+        {
+          "name": "Glyph of Magic Item Tinkering",
+          "wcid": 38760
+        },
+        {
+          "name": "Glyph of Item Tinkering",
+          "wcid": 41746
+        },
+        {
+          "name": "Glyph of Two Handed Combat",
+          "wcid": 41747
+        },
+        {
+          "name": "Glyph of Damage",
+          "wcid": 43379
+        },
+        {
+          "name": "Glyph of Void Magic",
+          "wcid": 43380
+        },
+        {
+          "name": "Glyph of Nether",
+          "wcid": 43387
+        },
+        {
+          "name": "Glyph of Dirty Fighting",
+          "wcid": 45370
+        },
+        {
+          "name": "Glyph of Dual Wield",
+          "wcid": 45371
+        },
+        {
+          "name": "Glyph of Recklessness",
+          "wcid": 45372
+        },
+        {
+          "name": "Glyph of Shield",
+          "wcid": 45373
+        },
+        {
+          "name": "Glyph of Sneak Attack",
+          "wcid": 45374
+        },
+        {
+          "name": "Glyph of Summoning",
+          "wcid": 49455
         }
       ]
     },
@@ -30285,42 +30612,42 @@
       "maxGemCount": 0
     },
     "3": {
-      "valueMultiplier": 4,
+      "valueMultiplier": 3,
       "gemChance": 0,
       "maxGemCount": 0
     },
     "4": {
-      "valueMultiplier": 6,
+      "valueMultiplier": 4,
       "gemChance": 0,
       "maxGemCount": 0
     },
     "5": {
-      "valueMultiplier": 8,
+      "valueMultiplier": 5,
       "gemChance": 0.25,
       "maxGemCount": 1
     },
     "6": {
-      "valueMultiplier": 10,
+      "valueMultiplier": 6,
       "gemChance": 0.25,
       "maxGemCount": 2
     },
     "7": {
-      "valueMultiplier": 14,
+      "valueMultiplier": 7,
       "gemChance": 0.25,
       "maxGemCount": 4
     },
     "8": {
-      "valueMultiplier": 18,
+      "valueMultiplier": 8,
       "gemChance": 0.25,
       "maxGemCount": 6
     },
     "9": {
-      "valueMultiplier": 22,
+      "valueMultiplier": 9,
       "gemChance": 0.25,
       "maxGemCount": 8
     },
     "10": {
-      "valueMultiplier": 26,
+      "valueMultiplier": 10,
       "gemChance": 0.25,
       "maxGemCount": 10
     }

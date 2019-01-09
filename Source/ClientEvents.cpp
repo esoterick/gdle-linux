@@ -352,7 +352,8 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 	}
 	*/
 
-	g_pWorld->CreateEntity(m_pPlayer);
+	if (!g_pWorld->CreateEntity(m_pPlayer))
+		return;
 
 	time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
