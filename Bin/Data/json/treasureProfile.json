@@ -14034,7 +14034,7 @@
         {
           "weaponSkillRequired": 270,
           "minDamageModBonus": 0.71,
-          "maxDamageModBonus": 0.80,
+          "maxDamageModBonus": 0.8,
           "slowSpeedMod": 1,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 0,
@@ -14103,7 +14103,7 @@
         {
           "weaponSkillRequired": 290,
           "minDamageModBonus": 0.81,
-          "maxDamageModBonus": 0.90,
+          "maxDamageModBonus": 0.9,
           "slowSpeedMod": 1,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 0,
@@ -14215,7 +14215,7 @@
         {
           "weaponSkillRequired": 315,
           "minDamageModBonus": 0.81,
-          "maxDamageModBonus": 0.90,
+          "maxDamageModBonus": 0.9,
           "slowSpeedMod": 1.0,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 2,
@@ -14288,7 +14288,7 @@
         {
           "weaponSkillRequired": 335,
           "minDamageModBonus": 0.81,
-          "maxDamageModBonus": 0.90,
+          "maxDamageModBonus": 0.9,
           "slowSpeedMod": 1.0,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 5,
@@ -14363,7 +14363,7 @@
         {
           "weaponSkillRequired": 360,
           "minDamageModBonus": 0.81,
-          "maxDamageModBonus": 0.90,
+          "maxDamageModBonus": 0.9,
           "slowSpeedMod": 1.0,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 9,
@@ -14438,7 +14438,7 @@
         {
           "weaponSkillRequired": 375,
           "minDamageModBonus": 0.81,
-          "maxDamageModBonus": 0.90,
+          "maxDamageModBonus": 0.9,
           "slowSpeedMod": 1.0,
           "fastSpeedMod": 0.75,
           "minElementalDamageBonus": 17,
@@ -19571,188 +19571,272 @@
           "wcid": 37361
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Endurance",
           "wcid": 37300
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Flame",
           "wcid": 37301
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37303
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37304
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37305
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37307
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37309
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37311
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37312
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37313
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37314
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37315
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37316
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37317
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37318
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37319
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37321
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37323
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37324
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37327
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37328
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37329
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37331
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37332
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37333
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37336
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37337
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37338
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37339
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37340
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37342
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37344
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37345
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37347
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37348
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37350
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37351
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37369
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37373
-        },
-        {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Fletching",
           "wcid": 37302
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 38760
+          "name": "Glyph of Focus",
+          "wcid": 37303
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37349
+          "name": "Glyph of Healing",
+          "wcid": 37304
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37346
+          "name": "Glyph of Health",
+          "wcid": 37305
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37343
+          "name": "Glyph of Regeneration",
+          "wcid": 37307
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Item Enchantment",
+          "wcid": 37309
+        },
+        {
+          "name": "Glyph of Item Tinkering",
+          "wcid": 37310
+        },
+        {
+          "name": "Glyph of Jump",
+          "wcid": 37311
+        },
+        {
+          "name": "Glyph of Leadership",
+          "wcid": 37312
+        },
+        {
+          "name": "Glyph of Life Magic",
+          "wcid": 37313
+        },
+        {
+          "name": "Glyph of Lightning",
+          "wcid": 37314
+        },
+        {
+          "name": "Glyph of Lockpick",
+          "wcid": 37315
+        },
+        {
+          "name": "Glyph of Loyalty",
+          "wcid": 37316
+        },
+        {
+          "name": "Glyph of Magic Defense",
+          "wcid": 37317
+        },
+        {
+          "name": "Glyph of Mana",
+          "wcid": 37318
+        },
+        {
+          "name": "Glyph of Mana Conversion",
+          "wcid": 37319
+        },
+        {
+          "name": "Glyph of Mana Regeneration",
+          "wcid": 37321
+        },
+        {
+          "name": "Glyph of Melee Defense",
+          "wcid": 37323
+        },
+        {
+          "name": "Glyph of Missile Defense",
+          "wcid": 37324
+        },
+        {
+          "name": "Glyph of Monster Appraisal",
+          "wcid": 37325
+        },
+        {
+          "name": "Glyph of Person Appraisal",
+          "wcid": 37326
+        },
+        {
+          "name": "Glyph of Piercing",
+          "wcid": 37327
+        },
+        {
+          "name": "Glyph of Quickness",
+          "wcid": 37328
+        },
+        {
+          "name": "Glyph of Run",
+          "wcid": 37329
+        },
+        {
+          "name": "Glyph of Salvaging",
+          "wcid": 37330
+        },
+        {
+          "name": "Glyph of Self",
+          "wcid": 37331
+        },
+        {
+          "name": "Glyph of Slashing",
+          "wcid": 37332
+        },
+        {
+          "name": "Glyph of Stamina",
+          "wcid": 37333
+        },
+        {
+          "name": "Glyph of Stamina Regeneration",
+          "wcid": 37336
+        },
+        {
+          "name": "Glyph of Strength",
+          "wcid": 37337
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37338
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37339
+        },
+        {
+          "name": "Glyph of War Magic",
+          "wcid": 37340
+        },
+        {
+          "name": "Glyph of Weapon Tinkering",
           "wcid": 37341
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37310
+          "name": "Glyph of Corrosion",
+          "wcid": 37342
+        },
+        {
+          "name": "Glyph of Alchemy",
+          "wcid": 37343
+        },
+        {
+          "name": "Glyph of Arcane Lore",
+          "wcid": 37344
+        },
+        {
+          "name": "Glyph of Armor",
+          "wcid": 37345
+        },
+        {
+          "name": "Glyph of Armor Tinkering",
+          "wcid": 37346
+        },
+        {
+          "name": "Glyph of Bludgeoning",
+          "wcid": 37347
+        },
+        {
+          "name": "Glyph of Frost",
+          "wcid": 37348
+        },
+        {
+          "name": "Glyph of Cooking",
+          "wcid": 37349
+        },
+        {
+          "name": "Glyph of Coordination",
+          "wcid": 37350
+        },
+        {
+          "name": "Glyph of Creature Enchantment",
+          "wcid": 37351
+        },
+        {
+          "name": "Glyph of Deception",
+          "wcid": 37352
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37366
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37367
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37368
+        },
+        {
+          "name": "Glyph of Heavy Weapons",
+          "wcid": 37369
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37370
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37371
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37372
+        },
+        {
+          "name": "Glyph of Finesse Weapons",
+          "wcid": 37373
+        },
+        {
+          "name": "Glyph of Magic Item Tinkering",
+          "wcid": 38760
+        },
+        {
+          "name": "Glyph of Item Tinkering",
+          "wcid": 41746
+        },
+        {
+          "name": "Glyph of Two Handed Combat",
+          "wcid": 41747
+        },
+        {
+          "name": "Glyph of Damage",
+          "wcid": 43379
+        },
+        {
+          "name": "Glyph of Void Magic",
+          "wcid": 43380
+        },
+        {
+          "name": "Glyph of Nether",
+          "wcid": 43387
+        },
+        {
+          "name": "Glyph of Dirty Fighting",
+          "wcid": 45370
+        },
+        {
+          "name": "Glyph of Dual Wield",
+          "wcid": 45371
+        },
+        {
+          "name": "Glyph of Recklessness",
+          "wcid": 45372
+        },
+        {
+          "name": "Glyph of Shield",
+          "wcid": 45373
+        },
+        {
+          "name": "Glyph of Sneak Attack",
+          "wcid": 45374
+        },
+        {
+          "name": "Glyph of Summoning",
+          "wcid": 49455
         }
       ]
     },
@@ -19816,188 +19900,272 @@
           "wcid": 37361
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Endurance",
           "wcid": 37300
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Flame",
           "wcid": 37301
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37303
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37304
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37305
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37307
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37309
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37311
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37312
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37313
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37314
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37315
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37316
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37317
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37318
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37319
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37321
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37323
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37324
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37327
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37328
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37329
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37331
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37332
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37333
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37336
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37337
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37338
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37339
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37340
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37342
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37344
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37345
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37347
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37348
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37350
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37351
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37369
-        },
-        {
-          "name": "lvl 8 glyph",
-          "wcid": 37373
-        },
-        {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Fletching",
           "wcid": 37302
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 38760
+          "name": "Glyph of Focus",
+          "wcid": 37303
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37349
+          "name": "Glyph of Healing",
+          "wcid": 37304
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37346
+          "name": "Glyph of Health",
+          "wcid": 37305
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37343
+          "name": "Glyph of Regeneration",
+          "wcid": 37307
         },
         {
-          "name": "lvl 8 glyph",
+          "name": "Glyph of Item Enchantment",
+          "wcid": 37309
+        },
+        {
+          "name": "Glyph of Item Tinkering",
+          "wcid": 37310
+        },
+        {
+          "name": "Glyph of Jump",
+          "wcid": 37311
+        },
+        {
+          "name": "Glyph of Leadership",
+          "wcid": 37312
+        },
+        {
+          "name": "Glyph of Life Magic",
+          "wcid": 37313
+        },
+        {
+          "name": "Glyph of Lightning",
+          "wcid": 37314
+        },
+        {
+          "name": "Glyph of Lockpick",
+          "wcid": 37315
+        },
+        {
+          "name": "Glyph of Loyalty",
+          "wcid": 37316
+        },
+        {
+          "name": "Glyph of Magic Defense",
+          "wcid": 37317
+        },
+        {
+          "name": "Glyph of Mana",
+          "wcid": 37318
+        },
+        {
+          "name": "Glyph of Mana Conversion",
+          "wcid": 37319
+        },
+        {
+          "name": "Glyph of Mana Regeneration",
+          "wcid": 37321
+        },
+        {
+          "name": "Glyph of Melee Defense",
+          "wcid": 37323
+        },
+        {
+          "name": "Glyph of Missile Defense",
+          "wcid": 37324
+        },
+        {
+          "name": "Glyph of Monster Appraisal",
+          "wcid": 37325
+        },
+        {
+          "name": "Glyph of Person Appraisal",
+          "wcid": 37326
+        },
+        {
+          "name": "Glyph of Piercing",
+          "wcid": 37327
+        },
+        {
+          "name": "Glyph of Quickness",
+          "wcid": 37328
+        },
+        {
+          "name": "Glyph of Run",
+          "wcid": 37329
+        },
+        {
+          "name": "Glyph of Salvaging",
+          "wcid": 37330
+        },
+        {
+          "name": "Glyph of Self",
+          "wcid": 37331
+        },
+        {
+          "name": "Glyph of Slashing",
+          "wcid": 37332
+        },
+        {
+          "name": "Glyph of Stamina",
+          "wcid": 37333
+        },
+        {
+          "name": "Glyph of Stamina Regeneration",
+          "wcid": 37336
+        },
+        {
+          "name": "Glyph of Strength",
+          "wcid": 37337
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37338
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37339
+        },
+        {
+          "name": "Glyph of War Magic",
+          "wcid": 37340
+        },
+        {
+          "name": "Glyph of Weapon Tinkering",
           "wcid": 37341
         },
         {
-          "name": "lvl 8 glyph",
-          "wcid": 37310
+          "name": "Glyph of Corrosion",
+          "wcid": 37342
+        },
+        {
+          "name": "Glyph of Alchemy",
+          "wcid": 37343
+        },
+        {
+          "name": "Glyph of Arcane Lore",
+          "wcid": 37344
+        },
+        {
+          "name": "Glyph of Armor",
+          "wcid": 37345
+        },
+        {
+          "name": "Glyph of Armor Tinkering",
+          "wcid": 37346
+        },
+        {
+          "name": "Glyph of Bludgeoning",
+          "wcid": 37347
+        },
+        {
+          "name": "Glyph of Frost",
+          "wcid": 37348
+        },
+        {
+          "name": "Glyph of Cooking",
+          "wcid": 37349
+        },
+        {
+          "name": "Glyph of Coordination",
+          "wcid": 37350
+        },
+        {
+          "name": "Glyph of Creature Enchantment",
+          "wcid": 37351
+        },
+        {
+          "name": "Glyph of Deception",
+          "wcid": 37352
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37366
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37367
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37368
+        },
+        {
+          "name": "Glyph of Heavy Weapons",
+          "wcid": 37369
+        },
+        {
+          "name": "Glyph of Light Weapons",
+          "wcid": 37370
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37371
+        },
+        {
+          "name": "Glyph of Missile Weapons",
+          "wcid": 37372
+        },
+        {
+          "name": "Glyph of Finesse Weapons",
+          "wcid": 37373
+        },
+        {
+          "name": "Glyph of Magic Item Tinkering",
+          "wcid": 38760
+        },
+        {
+          "name": "Glyph of Item Tinkering",
+          "wcid": 41746
+        },
+        {
+          "name": "Glyph of Two Handed Combat",
+          "wcid": 41747
+        },
+        {
+          "name": "Glyph of Damage",
+          "wcid": 43379
+        },
+        {
+          "name": "Glyph of Void Magic",
+          "wcid": 43380
+        },
+        {
+          "name": "Glyph of Nether",
+          "wcid": 43387
+        },
+        {
+          "name": "Glyph of Dirty Fighting",
+          "wcid": 45370
+        },
+        {
+          "name": "Glyph of Dual Wield",
+          "wcid": 45371
+        },
+        {
+          "name": "Glyph of Recklessness",
+          "wcid": 45372
+        },
+        {
+          "name": "Glyph of Shield",
+          "wcid": 45373
+        },
+        {
+          "name": "Glyph of Sneak Attack",
+          "wcid": 45374
+        },
+        {
+          "name": "Glyph of Summoning",
+          "wcid": 49455
         }
       ]
     },
