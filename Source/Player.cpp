@@ -2386,6 +2386,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 		for each (TYPEMod<STypeInt, int> intMod in op->_mods[index]._intMod)
 		{
 			bool applyToCreatedItem = false;
+			bool applyToTool = false;
 			bool removeFromTarget = false;
 			CWeenieObject *modificationSource = NULL;
 			switch (intMod._unk) //this is a guess
@@ -2395,6 +2396,10 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				break;
 			case 1:
 				modificationSource = pTool;
+				break;
+			case 2:
+				modificationSource = pTool;
+				applyToTool = true;
 				break;
 			case 60:
 				//dying armor entries have a second entry to armor reduction that has -30 armor and _unk value of 60
@@ -2408,7 +2413,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				break; //should never happen
 			}
 
-			int value = pTarget->InqIntQuality(intMod._stat, 0, true);
+			int value = applyToTool ? pTool->InqIntQuality(intMod._stat, 0, true): pTarget->InqIntQuality(intMod._stat, 0, true);
 			switch (intMod._operationType)
 			{
 			case 1: //=
@@ -2453,6 +2458,11 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			if (removeFromTarget)
 			{
 				pTarget->m_Qualities.RemoveInt(intMod._stat);
+			}
+			if (applyToTool)
+			{
+				pTool->m_Qualities.SetInt(intMod._stat, value);
+				pTool->NotifyIntStatUpdated(intMod._stat, false);
 			}
 			else
 			{
