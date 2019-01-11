@@ -16230,5 +16230,29 @@
       "maxsolves": 1,
       "mindelta": -1
     }
+  },
+  {
+    "key": "FineMetalScrapsPickup",
+    "value": {
+      "fullname": "FineMetalScraps Timer",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "FineLeatherScrapsPickup",
+    "value": {
+      "fullname": "FineLeatherScraps Timer",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "HaleatanCamp",
+    "value": {
+      "fullname": "NPC Timer for Halaetan Beach Camps",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   }
 ]
