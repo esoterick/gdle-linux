@@ -4555,7 +4555,7 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 
 		CWeenieObject *shield = GetWieldedCombat(COMBAT_USE::COMBAT_USE_SHIELD);
 
-		if (shield)
+		if (shield && !IsInPeaceMode())
 		{
 			SKILL_ADVANCEMENT_CLASS sac = SKILL_ADVANCEMENT_CLASS::UNTRAINED_SKILL_ADVANCEMENT_CLASS;
 			damageData.target->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac);
@@ -4565,7 +4565,7 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 			unsigned long shieldSkill;
 			damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
 
-			float capPercent = (static_cast<float>(shieldSkill) / 433.0) * cap * st;
+			float capPercent = min((static_cast<float>(shieldSkill) / 433.0), 1.0) * cap * st;
 			float reduction = 0;
 			
 			if (cap > 0.0 && shieldSkill >= 100)
