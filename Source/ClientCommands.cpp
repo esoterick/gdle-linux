@@ -174,6 +174,20 @@ CLIENT_COMMAND(myloc, "", "Info on your current location.", BASIC_ACCESS, EXPLOR
 	return false;
 }
 
+CLIENT_COMMAND(loc_other, "", "Info on your last assessed target's location.", SENTINEL_ACCESS, EXPLORE_CATEGORY)
+{
+	CWeenieObject *other = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!other)
+		return false;
+
+	pPlayer->SendText(csprintf("%08X %.2f %.2f %.2f %.2f %.2f %.2f %.2f",
+		other->m_Position.objcell_id,
+		other->m_Position.frame.m_origin.x, other->m_Position.frame.m_origin.y, other->m_Position.frame.m_origin.z,
+		other->m_Position.frame.m_angles.w, other->m_Position.frame.m_angles.x, other->m_Position.frame.m_angles.y, other->m_Position.frame.m_angles.z), LTT_DEFAULT);
+
+	return false;
+}
+
 #if 0
 CLIENT_COMMAND(startgame, "[gameid]", "Spawns something by name (right now works for monsters, NPCs, players.)", ADMIN_ACCESS)
 {
@@ -1055,11 +1069,13 @@ CLIENT_COMMAND(getinfo, "", "Get Info from targetted object.", BASIC_ACCESS, GEN
 		return false;
 
 	std::string info;
-	info += csprintf("WCID: %u \nWClass: %s @ %08X",
+	info += csprintf("WCID: %u \nWClass: %s Name: %s \n Loc: %08X %.2f %.2f %.2f %.2f %.2f %.2f %.2f",
 
 		target->m_Qualities.id,
 		GetWCIDName(target->m_Qualities.id),
-		target->m_Position.objcell_id);
+		target->m_Qualities.GetString(NAME_STRING,""), target->m_Position.objcell_id,
+		target->m_Position.frame.m_origin.x, target->m_Position.frame.m_origin.y, target->m_Position.frame.m_origin.z,
+		target->m_Position.frame.m_angles.w, target->m_Position.frame.m_angles.x, target->m_Position.frame.m_angles.y, target->m_Position.frame.m_angles.z);
 
 	pPlayer->SendText(info.c_str(), LTT_DEFAULT);
 
