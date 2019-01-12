@@ -784,6 +784,8 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 	m_bReviveAfterAnim = true;
 	CMonsterWeenie::OnDeath(killer_id);
 
+	m_bChangingStance = false;
+
 	m_Qualities.SetFloat(DEATH_TIMESTAMP_FLOAT, Timer::cur_time);
 	NotifyFloatStatUpdated(DEATH_TIMESTAMP_FLOAT);
 
