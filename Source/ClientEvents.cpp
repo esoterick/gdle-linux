@@ -905,11 +905,11 @@ void CClientEvents::ActionComplete(int error)
 
 void CClientEvents::Identify(DWORD target_id)
 {
-	if (_next_allowed_identify > Timer::cur_time)
+	/*if (_next_allowed_identify > Timer::cur_time)
 	{
 		// do not allow to ID too fast
 		return;
-	}
+	}*/
 
 	/*
 	CWeenieObject *pTarget = g_pWorld->FindWithinPVS(m_pPlayer, target_id);
@@ -934,7 +934,7 @@ void CClientEvents::Identify(DWORD target_id)
 		m_pPlayer->SetLastAssessed(pTarget->GetID());
 	}
 
-	_next_allowed_identify = Timer::cur_time + 0.5;
+	//_next_allowed_identify = Timer::cur_time + 0.5;
 }
 
 void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD exp)
