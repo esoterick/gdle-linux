@@ -3358,7 +3358,8 @@ void CWeenieObject::GenerateOnDemand(int amount) //Called by Emote_Type 72 Gener
 {
 	if (amount != 0)
 	{
-		g_pWeenieFactory->AddFromGeneratorTable(this, true);
+		for (int i = 0; i < amount; i++)
+			g_pWeenieFactory->AddFromGeneratorTable(this, true);
 	}
 
 	else (m_Qualities._generator_registry);
