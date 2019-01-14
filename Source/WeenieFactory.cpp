@@ -1082,37 +1082,6 @@ void CWeenieFactory::AddWeenieToDestination(CWeenieObject *weenie, CWeenieObject
 		}
 		break;
 	case Scatter_RegenLocationType:
-		if ((pos.objcell_id & 0xFFFF) < 0x100)
-		{
-			// outdoors
-			double genRadius = parent->InqFloatQuality(GENERATOR_RADIUS_FLOAT, 0.0f);
-			double random_x = Random::GenFloat(-genRadius, genRadius);
-			double random_y = Random::GenFloat(-genRadius, genRadius);
-
-			pos.frame.m_origin += Vector(random_x, random_y, 0.0f);
-			pos.frame.m_origin.z = CalcSurfaceZ(pos.objcell_id, pos.frame.m_origin.x, pos.frame.m_origin.y, true);
-			pos.frame.m_origin.z += 0.5f; // add a little fudge factor to ensure mobs don't spawn in ground.
-
-			if (pos.frame.m_origin.x < 0.5f)
-				pos.frame.m_origin.x = 0.5f;
-			if (pos.frame.m_origin.y < 0.5f)
-				pos.frame.m_origin.y = 0.5f;
-		}
-		else
-		{
-			double genRadius = parent->InqFloatQuality(GENERATOR_RADIUS_FLOAT, 0.0f);
-			double random_x = Random::GenFloat(-genRadius, genRadius);
-			double random_y = Random::GenFloat(-genRadius, genRadius);
-			pos.frame.m_origin += Vector(random_x, random_y, 0.0f);
-		}
-
-		weenie->SetInitialPosition(pos);
-		if (!g_pWorld->CreateEntity(weenie))
-		{
-			SERVER_ERROR << "Failed creating generated spawn" << GetWCIDName(profile->type);
-			return;
-		}
-		break;
 	case ScatterTreasure_RegenLocationType:
 		if ((pos.objcell_id & 0xFFFF) < 0x100)
 		{
