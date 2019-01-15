@@ -314,7 +314,9 @@ void CPlayerWeenie::MakeAware(CWeenieObject *pEntity, bool bForceUpdate)
 {
 #ifndef PUBLIC_BUILD
 	int vis;
-	if (pEntity->m_Qualities.InqBool(VISIBILITY_BOOL, vis) && !m_bAdminVision)
+
+	// Admins should always be aware of themselves. Allows logging in while invisible.
+	if (pEntity != this && pEntity->m_Qualities.InqBool(VISIBILITY_BOOL, vis) && !m_bAdminVision)
 		return;
 #else
 	int vis;

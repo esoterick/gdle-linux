@@ -2436,17 +2436,49 @@ CLIENT_COMMAND(setmodel, "[monster]", "Changes your model to a monster.", ADMIN_
 #endif
 
 
-CLIENT_COMMAND(invisible, "", "Go Invisible", ADMIN_ACCESS, CHARACTER_CATEGORY)
+CLIENT_COMMAND(invis, "<on/off>", "Turn invisibility on or off", ADMIN_ACCESS, CHARACTER_CATEGORY)
 {
-	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	pPlayer->EmitEffect(PS_Hidden, fSpeed);
+	if (argc < 1)
+		return true;
+
+	if (!_stricmp(argv[0], "on") || !_stricmp(argv[0], "1"))
+	{
+		pPlayer->SendText("You are now invisible.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetBool(VISIBILITY_BOOL, false);
+		pPlayer->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
+	}
+	else if (!_stricmp(argv[0], "off") || !_stricmp(argv[0], "0"))
+	{
+		pPlayer->SendText("You are now visible.", LTT_DEFAULT);
+		pPlayer->m_Qualities.RemoveBool(VISIBILITY_BOOL);
+		pPlayer->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
+	}
+	else
+		return true;
+
 	return false;
 }
 
-CLIENT_COMMAND(visible, "", "Go Visible", ADMIN_ACCESS, CHARACTER_CATEGORY)
+CLIENT_COMMAND(radar, "<on/off>", "Turn Radar visibility on or off.", ADMIN_ACCESS, CHARACTER_CATEGORY)
 {
-	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	pPlayer->EmitEffect(PS_UnHide, fSpeed);
+	if (argc < 1)
+		return true;
+
+	if (!_stricmp(argv[0], "on") || !_stricmp(argv[0], "1"))
+	{
+		pPlayer->SendText("You are now visible on radar.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetInt(SHOWABLE_ON_RADAR_INT, 4);
+		pPlayer->NotifyIntStatUpdated(SHOWABLE_ON_RADAR_INT, false);
+	}
+	else if (!_stricmp(argv[0], "off") || !_stricmp(argv[0], "0"))
+	{
+		pPlayer->SendText("You are no longer visible on radar.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetInt(SHOWABLE_ON_RADAR_INT, 1);
+		pPlayer->NotifyIntStatUpdated(SHOWABLE_ON_RADAR_INT, false);
+	}
+	else
+		return true;
+
 	return false;
 }
 
