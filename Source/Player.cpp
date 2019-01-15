@@ -3495,6 +3495,7 @@ void CPlayerWeenie::SetSanctuaryAsLogin()
 	if (m_Qualities.InqPosition(SANCTUARY_POSITION, m_StartPosition) && m_StartPosition.objcell_id)
 	{
 		m_Qualities.SetPosition(LOCATION_POSITION, m_StartPosition);
+		SendNetMessage(ServerText("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", LTT_DEFAULT), PRIVATE_MSG, TRUE);
 	}
 }
 
