@@ -20,7 +20,7 @@ CObjectIDGenerator::CObjectIDGenerator()
 	{
 		WINLOG(Data, Normal, "Using Incremental ID system.....\n");
 	}
-	else
+	else if (g_pConfig->IDScanType() == 0)
 	{
 		// Verify IDRanges tables exists and has values
 		if (g_pDBIO->IDRangeTableExistsAndValid())

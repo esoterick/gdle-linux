@@ -146,10 +146,10 @@ DEFINE_UNPACK(AllegianceTreeNode)
 		node->UnPack(pReader);
 		_vassals[node->_charID] = node;
 
-		assert(node->_charID >= 0x50000000 && node->_charID < 0x70000000);
+		assert(node->_charID >= 0x50000000 && node->_charID < 0x60000000);
 	}
 
-	assert(_charID >= 0x50000000 && _charID < 0x70000000);
+	assert(_charID >= 0x50000000 && _charID < 0x60000000);
 	return true;
 }
 
@@ -178,30 +178,20 @@ void AllegianceManager::Load()
 	DWORD length = 0;
 	if (g_pDBIO->GetGlobalData(DBIO_GLOBAL_ALLEGIANCE_DATA, &data, &length))
 	{
+		// convert to new table schema
+
 		BinaryReader reader(data, length);
 		UnPack(&reader);
-		for (auto alleg : _allegInfos) {
-			if (g_pConfig->UpdateAllegianceData() && !allAllegiancesUpdated)
-			{
-				alleg.second->_info.m_oldVersion = ApprovedVassal_AllegianceVersion;
-				alleg.second->_info.m_officerList = {};
-				alleg.second->_info.m_BanList = {};
-				alleg.second->_info.m_chatGagList = {};
-				alleg.second->_info.m_officerTitleList = { "Speaker", "Seneschal", "Castellan" };
-				alleg.second->_info.m_storedMOTD = "";
-				alleg.second->_info.m_storedMOTDSetBy = "";
-			}
-		}
+
 		int count = 0;
 		for (auto alleg : _allegInfos) {
 			if (alleg.second->_info.m_officerTitleList.empty()) {
+				alleg.second->_info.m_officerTitleList = { "Speaker", "Seneschal", "Castellan" };
 				count++;
 			}
 		}
+
 		if (!count) {
-			for (auto alleg : _allegInfos) {
-				alleg.second->_info.allAllegiancesUpdated = true;
-			}
 			allAllegiancesUpdated = true;
 			Save();
 			WINLOG(Temp, Normal, "Successfully updated all allegiances!\n");
@@ -289,9 +279,11 @@ DEFINE_UNPACK(AllegianceManager)
 	for (DWORD i = 0; i < numMonarchs; i++)
 	{
 		AllegianceTreeNode *node = new AllegianceTreeNode();
-		node->UnPack(pReader);
-		_monarchs[node->_charID] = node;
-		CacheInitialDataRecursively(node, NULL);
+		if (node->UnPack(pReader))
+		{
+			_monarchs[node->_charID] = node;
+			CacheInitialDataRecursively(node, NULL);
+		}
 	}
 
 	DWORD numInfos = pReader->Read<DWORD>();
