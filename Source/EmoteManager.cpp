@@ -1755,10 +1755,10 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 	case DeleteSelf_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!_weenie->m_Qualities._emote_table || _weenie->AsPlayer()) //don't know how we'd find ourselves deleting a player weenie...but just in case.
 			break;
 
-		_weenie->MarkForDestroy();
+		_weenie->Remove();
 		break;
 	}
 
