@@ -934,7 +934,7 @@ void CClientEvents::Identify(DWORD target_id)
 		m_pPlayer->SetLastAssessed(pTarget->GetID());
 	}
 
-	_next_allowed_identify = Timer::cur_time + 0.5;
+	//_next_allowed_identify = Timer::cur_time + 0.5;
 }
 
 void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD exp)
@@ -4036,7 +4036,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 
 		if (m_pPlayer->m_bChangingStance)
 		{
-			DEBUG_DATA << "Player changing stance during 0xF61C. Ignoring.";
+			//DEBUG_DATA << "Player changing stance during 0xF61C. Ignoring.";
 			break;
 		}
 

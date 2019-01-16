@@ -314,7 +314,9 @@ void CPlayerWeenie::MakeAware(CWeenieObject *pEntity, bool bForceUpdate)
 {
 #ifndef PUBLIC_BUILD
 	int vis;
-	if (pEntity->m_Qualities.InqBool(VISIBILITY_BOOL, vis) && !m_bAdminVision)
+
+	// Admins should always be aware of themselves. Allows logging in while invisible.
+	if (pEntity != this && pEntity->m_Qualities.InqBool(VISIBILITY_BOOL, vis) && !m_bAdminVision)
 		return;
 #else
 	int vis;
@@ -784,6 +786,8 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 	m_bReviveAfterAnim = true;
 	m_bChangingStance = false;
 	CMonsterWeenie::OnDeath(killer_id);
+
+	m_bChangingStance = false;
 
 	m_Qualities.SetFloat(DEATH_TIMESTAMP_FLOAT, Timer::cur_time);
 	NotifyFloatStatUpdated(DEATH_TIMESTAMP_FLOAT);
@@ -2387,6 +2391,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 		for each (TYPEMod<STypeInt, int> intMod in op->_mods[index]._intMod)
 		{
 			bool applyToCreatedItem = false;
+			bool applyToTool = false;
 			bool removeFromTarget = false;
 			CWeenieObject *modificationSource = NULL;
 			switch (intMod._unk) //this is a guess
@@ -2396,6 +2401,10 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				break;
 			case 1:
 				modificationSource = pTool;
+				break;
+			case 2:
+				modificationSource = pTool;
+				applyToTool = true;
 				break;
 			case 60:
 				//dying armor entries have a second entry to armor reduction that has -30 armor and _unk value of 60
@@ -2409,7 +2418,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				break; //should never happen
 			}
 
-			int value = pTarget->InqIntQuality(intMod._stat, 0, true);
+			int value = applyToTool ? pTool->InqIntQuality(intMod._stat, 0, true): pTarget->InqIntQuality(intMod._stat, 0, true);
 			switch (intMod._operationType)
 			{
 			case 1: //=
@@ -2454,6 +2463,11 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			if (removeFromTarget)
 			{
 				pTarget->m_Qualities.RemoveInt(intMod._stat);
+			}
+			if (applyToTool)
+			{
+				pTool->m_Qualities.SetInt(intMod._stat, value);
+				pTool->NotifyIntStatUpdated(intMod._stat, false);
 			}
 			else
 			{
@@ -3482,6 +3496,7 @@ void CPlayerWeenie::SetSanctuaryAsLogin()
 	if (m_Qualities.InqPosition(SANCTUARY_POSITION, m_StartPosition) && m_StartPosition.objcell_id)
 	{
 		m_Qualities.SetPosition(LOCATION_POSITION, m_StartPosition);
+		SendNetMessage(ServerText("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", LTT_DEFAULT), PRIVATE_MSG, TRUE);
 	}
 }
 

@@ -673,6 +673,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 					{
 						startPos = Position(0x870301AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0, 0, 0.948985f));
 						//startPos = Position(0xA9B00006, Vector(24.258204f, 123.777000f, 63.060749f), Quaternion(1, 0, 0, 0));
+						weenie->m_Qualities.SetBool(RECALLS_DISABLED_BOOL, 1); // Cannot use recalls out of the training academy.
 					}
 
 					break;
@@ -685,6 +686,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 					{
 						startPos = Position(0x800401AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0.0, 0.0, 0.948985f));
 						//startPos = Position(0xDE51000C, Vector(26.712753f, 89.279999f, 17.778936f), Quaternion(0.931082f, 0.0, 0.0, -0.364811f));
+						weenie->m_Qualities.SetBool(RECALLS_DISABLED_BOOL, 1);
 					}
 
 					break;
@@ -697,6 +699,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 					{
 						startPos = Position(0x8C0401AD, Vector(12.319900f, -28.482000f, 0.005000f), Quaternion(0.315322f, 0.0, 0.0, 0.948985f));
 						//startPos = Position(0x7D680019, Vector(79.102280f, 19.573767f, 12.821287f), Quaternion(-0.656578f, 0.0, 0.0, 0.754258f));
+						weenie->m_Qualities.SetBool(RECALLS_DISABLED_BOOL, 1);
 					}
 
 					break;
@@ -709,6 +712,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 					{
 						startPos = Position(0x7203026C, Vector(11.66688f, -28.831614f, 0.005f), Quaternion(0, 0, 0, 1.0f));
 						//startPos = Position(0xA9B00006, Vector(24.258204f, 123.777000f, 63.060749f), Quaternion(1, 0, 0, 0));
+						weenie->m_Qualities.SetBool(RECALLS_DISABLED_BOOL, 1);
 					}
 
 					break;
@@ -792,9 +796,6 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				default: // sho, aluv, gharu, viamont
 					weenie->m_Qualities.SetInt(AUGMENTATION_JACK_OF_ALL_TRADES_INT, 1); break;
 				}
-
-				if (cg.heritageGroup < Olthoi_HeritageGroup) // Olthoi don't go to the training academy.
-					weenie->m_Qualities.SetBool(RECALLS_DISABLED_BOOL, 1); // Cannot use recalls out of the training academy.
 
 				weenie->Save();
 

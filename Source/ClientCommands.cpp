@@ -174,6 +174,20 @@ CLIENT_COMMAND(myloc, "", "Info on your current location.", BASIC_ACCESS, EXPLOR
 	return false;
 }
 
+CLIENT_COMMAND(loc_other, "", "Info on your last assessed target's location.", SENTINEL_ACCESS, EXPLORE_CATEGORY)
+{
+	CWeenieObject *other = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!other)
+		return false;
+
+	pPlayer->SendText(csprintf("%08X %.2f %.2f %.2f %.2f %.2f %.2f %.2f",
+		other->m_Position.objcell_id,
+		other->m_Position.frame.m_origin.x, other->m_Position.frame.m_origin.y, other->m_Position.frame.m_origin.z,
+		other->m_Position.frame.m_angles.w, other->m_Position.frame.m_angles.x, other->m_Position.frame.m_angles.y, other->m_Position.frame.m_angles.z), LTT_DEFAULT);
+
+	return false;
+}
+
 #if 0
 CLIENT_COMMAND(startgame, "[gameid]", "Spawns something by name (right now works for monsters, NPCs, players.)", ADMIN_ACCESS)
 {
@@ -1055,11 +1069,13 @@ CLIENT_COMMAND(getinfo, "", "Get Info from targetted object.", BASIC_ACCESS, GEN
 		return false;
 
 	std::string info;
-	info += csprintf("WCID: %u \nWClass: %s @ %08X",
+	info += csprintf("WCID: %u \nWClass: %s Name: %s \n Loc: %08X %.2f %.2f %.2f %.2f %.2f %.2f %.2f",
 
 		target->m_Qualities.id,
 		GetWCIDName(target->m_Qualities.id),
-		target->m_Position.objcell_id);
+		target->m_Qualities.GetString(NAME_STRING,""), target->m_Position.objcell_id,
+		target->m_Position.frame.m_origin.x, target->m_Position.frame.m_origin.y, target->m_Position.frame.m_origin.z,
+		target->m_Position.frame.m_angles.w, target->m_Position.frame.m_angles.x, target->m_Position.frame.m_angles.y, target->m_Position.frame.m_angles.z);
 
 	pPlayer->SendText(info.c_str(), LTT_DEFAULT);
 
@@ -1990,6 +2006,7 @@ CLIENT_COMMAND(fixbusy, "", "Makes you unbusy if you are stuck.", BASIC_ACCESS, 
 	pPlayer->m_bChangingStance = false;
 
 	pPlayer->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	pPlayer->m_bChangingStance = false;
 
 	return false;
 }
@@ -2420,17 +2437,49 @@ CLIENT_COMMAND(setmodel, "[monster]", "Changes your model to a monster.", ADMIN_
 #endif
 
 
-CLIENT_COMMAND(invisible, "", "Go Invisible", ADMIN_ACCESS, CHARACTER_CATEGORY)
+CLIENT_COMMAND(invis, "<on/off>", "Turn invisibility on or off", ADMIN_ACCESS, CHARACTER_CATEGORY)
 {
-	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	pPlayer->EmitEffect(PS_Hidden, fSpeed);
+	if (argc < 1)
+		return true;
+
+	if (!_stricmp(argv[0], "on") || !_stricmp(argv[0], "1"))
+	{
+		pPlayer->SendText("You are now invisible.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetBool(VISIBILITY_BOOL, false);
+		pPlayer->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
+	}
+	else if (!_stricmp(argv[0], "off") || !_stricmp(argv[0], "0"))
+	{
+		pPlayer->SendText("You are now visible.", LTT_DEFAULT);
+		pPlayer->m_Qualities.RemoveBool(VISIBILITY_BOOL);
+		pPlayer->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
+	}
+	else
+		return true;
+
 	return false;
 }
 
-CLIENT_COMMAND(visible, "", "Go Visible", ADMIN_ACCESS, CHARACTER_CATEGORY)
+CLIENT_COMMAND(radar, "<on/off>", "Turn Radar visibility on or off.", ADMIN_ACCESS, CHARACTER_CATEGORY)
 {
-	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	pPlayer->EmitEffect(PS_UnHide, fSpeed);
+	if (argc < 1)
+		return true;
+
+	if (!_stricmp(argv[0], "on") || !_stricmp(argv[0], "1"))
+	{
+		pPlayer->SendText("You are now visible on radar.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetInt(SHOWABLE_ON_RADAR_INT, 4);
+		pPlayer->NotifyIntStatUpdated(SHOWABLE_ON_RADAR_INT, false);
+	}
+	else if (!_stricmp(argv[0], "off") || !_stricmp(argv[0], "0"))
+	{
+		pPlayer->SendText("You are no longer visible on radar.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetInt(SHOWABLE_ON_RADAR_INT, 1);
+		pPlayer->NotifyIntStatUpdated(SHOWABLE_ON_RADAR_INT, false);
+	}
+	else
+		return true;
+
 	return false;
 }
 
