@@ -784,6 +784,7 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 	_recallTime = -1.0; // cancel any portal recalls
 
 	m_bReviveAfterAnim = true;
+	m_bChangingStance = false;
 	CMonsterWeenie::OnDeath(killer_id);
 
 	m_bChangingStance = false;

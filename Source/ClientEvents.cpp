@@ -905,11 +905,11 @@ void CClientEvents::ActionComplete(int error)
 
 void CClientEvents::Identify(DWORD target_id)
 {
-	/*if (_next_allowed_identify > Timer::cur_time)
-	{
-		// do not allow to ID too fast
-		return;
-	}*/
+	//if (_next_allowed_identify > Timer::cur_time)
+	//{
+	//	// do not allow to ID too fast
+	//	return;
+	//}
 
 	/*
 	CWeenieObject *pTarget = g_pWorld->FindWithinPVS(m_pPlayer, target_id);

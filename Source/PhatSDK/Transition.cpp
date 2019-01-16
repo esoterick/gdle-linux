@@ -206,9 +206,9 @@ void OBJECTINFO::init(CPhysicsObj *_object, int object_state)
 			state |= IS_PK;
 		if (pWeenie->IsPKLite()) // 24 IsPKLite
 			state |= IS_PKLITE;
-	}
 
-	targetID = pWeenie->GetPhysicsTargetID();
+		targetID = pWeenie->GetPhysicsTargetID();
+	}
 }
 
 void CTransition::init_object(CPhysicsObj *object, int object_state)

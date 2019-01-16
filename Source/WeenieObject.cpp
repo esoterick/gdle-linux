@@ -2978,10 +2978,13 @@ void CWeenieObject::InventoryTick()
 
 					Remove();
 					RecalculateEncumbrance();
-					owner->SendText(csprintf("Its lifespan finished, your %s crumbles to dust.", GetName().c_str()), LTT_DEFAULT);
+					if (owner)
+					{
+						owner->SendText(csprintf("Its lifespan finished, your %s crumbles to dust.", GetName().c_str()), LTT_DEFAULT);
 
-					if (AsClothing() && m_bWorldIsAware)
-						owner->UpdateModel();
+						if (AsClothing() && m_bWorldIsAware)
+							owner->UpdateModel();
+					}
 				}
 			}
 			else
