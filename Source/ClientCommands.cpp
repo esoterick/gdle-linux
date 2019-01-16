@@ -1987,6 +1987,7 @@ CLIENT_COMMAND(fixbusy, "", "Makes you unbusy if you are stuck.", BASIC_ACCESS, 
 		pPlayer->m_UseManager->Cancel();
 	pPlayer->NotifyUseDone(0);
 	pPlayer->NotifyWeenieError(0);
+	pPlayer->m_bChangingStance = false;
 
 	pPlayer->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
 
