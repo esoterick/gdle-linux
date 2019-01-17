@@ -851,6 +851,11 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 
 		for (auto &spell : pEntity->m_Qualities._spell_book->_spellbook)
 			profile._spellBook->add((DWORD *)&spell.first);
+
+		DWORD spelldid = pEntity->InqDIDQuality(SPELL_DID, 0);
+
+		if (spelldid)
+			profile._spellBook->add(&spelldid);
 	}
 
 	if (pEntity->IsCreature() && !pEntity->m_Qualities.GetBool(NPC_LOOKS_LIKE_OBJECT_BOOL, false))
