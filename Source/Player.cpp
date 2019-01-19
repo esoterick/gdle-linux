@@ -3254,6 +3254,13 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 
 	if (g_pConfig->FixOldChars())
 	{
+		//Refund Credits for those who lost them at Asheron's Castle.
+		DWORD currentcredits = GetTotalSkillCredits();
+		DWORD expectedCredits = GetExpectedSkillCredits();
+
+		if (currentcredits < expectedCredits)
+			GiveSkillCredits(expectedCredits - currentcredits, true);
+
 		int heritage = InqIntQuality(HERITAGE_GROUP_INT, 1);
 
 		// fix scale and other misc things for different heritage groups
