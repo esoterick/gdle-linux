@@ -16254,5 +16254,13 @@
       "maxsolves": -1,
       "mindelta": 72000
     }
+  },
+  {
+    "key": "HeroToken",
+    "value": {
+      "fullname": "Pickup timer for Hero Tokens",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
   }
 ]
