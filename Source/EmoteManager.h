@@ -31,6 +31,8 @@ public:
 
 	std::map<DWORD, std::string> _confirmMsgList;
 
+	void SkillRefundValidationLog(DWORD target_id, STypeSkill skillToAlter, SKILL_ADVANCEMENT_CLASS debugSkillSacInit, int debugInitAvailCredits); //Validation Debug
+
 protected:
 	class CWeenieObject *_weenie = NULL;
 

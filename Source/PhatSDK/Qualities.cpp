@@ -600,6 +600,26 @@ const char *Emote::EmoteTypeToName(EmoteType type) // custom
 	return "Unknown";
 }
 
+const char *Skill::SkillSacToName(SKILL_ADVANCEMENT_CLASS type) // custom
+{
+	switch (type)
+	{
+#ifndef PUBLIC_BUILD
+	case 0: return "UNDEF";
+	case 1: return "UNTRAINED";
+	case 2: return "TRAINED";
+	case 3: return "SPECIALIZED";
+	case 4: return "NUM_SKILL";
+	case 5: return "FORCE_SKILL";
+
+#else
+	default: return "";
+#endif
+	}
+
+	return "Unknown";
+}
+
 DEFINE_PACK(Emote)
 {
 	pWriter->Write<DWORD>(type);

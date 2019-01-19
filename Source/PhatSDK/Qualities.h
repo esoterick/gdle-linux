@@ -107,6 +107,7 @@ public:
 	DECLARE_PACKABLE()
 	DECLARE_PACKABLE_JSON()
 
+	static const char *SkillSacToName(SKILL_ADVANCEMENT_CLASS type); // custom
 	void SetSkillAdvancementClass(SKILL_ADVANCEMENT_CLASS val);
 	bool IsMaxed();
 	DWORD GetMaxXP();
