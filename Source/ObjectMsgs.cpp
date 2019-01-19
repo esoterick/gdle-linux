@@ -1005,7 +1005,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		if (!pEntity->AsCaster())
 		{
 			int baseWeaponDamage = pEntity->InqIntQuality(DAMAGE_INT, 0, TRUE);
-			profile.weapon_profile->weapon_damage = pEntity->GetAttackDamage();
+			profile.weapon_profile->weapon_damage = pEntity->m_Qualities.m_WeenieType == Ammunition_WeenieType ? baseWeaponDamage : pEntity->GetAttackDamage();
 
 			// Don't enchant Ammunition
 			if ((baseWeaponDamage != profile.weapon_profile->weapon_damage) && pEntity->m_Qualities.m_WeenieType != Ammunition_WeenieType)
