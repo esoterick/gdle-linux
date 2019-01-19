@@ -4640,3 +4640,91 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 
 	return op;
 }
+
+DWORD CPlayerWeenie::GetTotalSkillCredits(bool removeCreditQuests) //Total current credits on player in all skills.
+{
+	int totalCredits = InqIntQuality(AVAILABLE_SKILL_CREDITS_INT, 0, TRUE);
+
+	for (int i = 1; i < 55; ++i) //54 usable skills
+	{
+		STypeSkill skillName = (STypeSkill)i;
+
+		SkillTable *pSkillTable = SkillSystem::GetSkillTable();
+		const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skillName);
+		if (pSkillBase != NULL)
+		{
+			Skill skill;
+			if (!m_Qualities.InqSkill(skillName, skill))
+				continue;
+
+			if (skillName == SALVAGING_SKILL) //No credit skill. Ignore.
+				continue;
+
+			//no spec cost for tinker skills.
+			if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS || skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS) &&
+				(skillName == WEAPON_APPRAISAL_SKILL ||
+					skillName == ARMOR_APPRAISAL_SKILL ||
+					skillName == MAGIC_ITEM_APPRAISAL_SKILL ||
+					skillName == ITEM_APPRAISAL_SKILL))
+			{
+				totalCredits += pSkillBase->_trained_cost;
+				continue;
+			}
+
+			if (skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && skillName == ARCANE_LORE_SKILL) //ignore the 4 points to train arcane lore. We start with it and it cannot be untrained.
+				continue;
+
+			//these are base skills. Can't be untrianed/have no training cost. Lore needs an extra catch due to the errant training cost.
+			if (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS &&
+				(pSkillBase->_trained_cost <= 0 || skillName == ARCANE_LORE_SKILL))
+				//skills of this nature -> ARCANE_LORE_SKILL, RUN_SKILL, JUMP_SKILL, MAGIC_DEFENSE_SKILL, LOYALTY_SKILL
+			{
+				totalCredits += pSkillBase->_specialized_cost - pSkillBase->_trained_cost;
+				continue;
+			}
+
+			//all the rest
+			if (skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS)
+				totalCredits += pSkillBase->_trained_cost;
+
+			if (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+				totalCredits += pSkillBase->_specialized_cost;
+		}
+	}
+	if (removeCreditQuests) //defaults to including these.
+	{
+		if (InqQuest("arantahkill1")) //Aun Ralirea
+			totalCredits -= 1;
+
+		if (InqQuest("ChasingOswaldDone")) //Oswald
+			totalCredits -= 1;
+
+		//todo add Luminance Skill Credit Checks (2 credits).
+	}
+	return totalCredits;
+}
+
+DWORD CPlayerWeenie::GetExpectedSkillCredits(bool countCreditQuests)
+{
+	DWORD expectedCredits = 52; //Base starting credits. 102 credits is the MAX # credits attainable.
+	if (countCreditQuests) //default true
+	{
+		if (InqQuest("arantahkill1")) //Aun Ralirea
+			expectedCredits += 1;
+
+		if (InqQuest("ChasingOswaldDone")) //Oswald
+			expectedCredits += 1;
+
+		//todo add Luminance Skill Credit Checks (2 credits).
+	}
+
+	int currentLevel = InqIntQuality(LEVEL_INT, 0, TRUE);
+	int testLevel = 1; //first credit gain occurs at level 2
+
+	while (testLevel <= currentLevel && testLevel < ExperienceSystem::GetMaxLevel())
+	{
+		testLevel++;
+		expectedCredits += ExperienceSystem::GetCreditsForLevel(testLevel);
+	}
+	return expectedCredits;
+}
