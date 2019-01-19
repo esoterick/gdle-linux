@@ -888,6 +888,38 @@ void CWeenieObject::EnsureLink(CWeenieObject *source)
 	}
 }
 
+void CWeenieObject::NotifyGeneratedFailure(CWeenieObject *weenie)
+{
+	// Don't erase entry from m_GeneratorSpawns here as NotifyGeneratedDeath still runs after this.
+	OnGeneratedFailure(weenie);
+}
+
+void CWeenieObject::OnGeneratedFailure(CWeenieObject *weenie)
+{
+	DWORD weenie_id = weenie->GetID();
+
+	GeneratorRegistryNode *node = m_Qualities._generator_registry->_registry.lookup(weenie_id);
+
+	if (node)
+	{
+		// Remove from the registry here as we don't want OnGeneratedDeath to trigger the respawn delay.
+		m_Qualities._generator_registry->_registry.remove(weenie->GetID());
+
+		if (!m_Qualities._generator_queue)
+			m_Qualities._generator_queue = new GeneratorQueue();
+
+		// Ensure this node is not stuck in queue
+		GeneratorQueueNode queueNode;
+		queueNode.slot = node->slot;
+		queueNode.when = Timer::cur_time;
+		m_Qualities._generator_queue->_queue.push_back(queueNode);
+	}
+
+	// Set next regen to try again.
+	_nextRegen = Timer::cur_time;
+}
+
+
 void CWeenieObject::NotifyGeneratedDeath(CWeenieObject *weenie)
 {
 	OnGeneratedDeath(weenie);

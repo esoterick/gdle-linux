@@ -381,6 +381,18 @@ void CWorldLandBlock::SpawnDynamics()
 						regNode.m_bTreasureType = false;
 						target_weenie->m_Qualities._generator_registry->_registry.add(source_weenie->id, &regNode);
 					}
+
+					if (source_weenie && source_weenie->AsMonster() && !source_weenie->cell)
+					{
+						//LOG_PRIVATE(World, Warning, "Trying to spawn a monster in an invalid position! Deleting instead.\n", source_id);
+
+						if (target_weenie)
+						{
+							target_weenie->NotifyGeneratedFailure(source_weenie);
+						}
+
+						g_pWorld->RemoveEntity(source_weenie);
+					}
 				}
 			}
 		}

@@ -245,6 +245,8 @@ public:
 	virtual void OnGeneratedDeath(CWeenieObject *weenie);
 	virtual void NotifyGeneratedPickedUp(CWeenieObject *weenie);
 	virtual void OnGeneratedPickedUp(CWeenieObject *weenie);
+	virtual void NotifyGeneratedFailure(CWeenieObject *weenie);
+	virtual void OnGeneratedFailure(CWeenieObject *weenie);
 
 	virtual void TryIdentify(CWeenieObject *other);
 	virtual void Identify(CWeenieObject *other, DWORD overrideId = 0);
