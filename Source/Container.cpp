@@ -1127,6 +1127,8 @@ void CContainerWeenie::OnContainerClosed(CWeenieObject *requestedBy)
 
 	_openedById = 0;
 
+	m_Qualities.RemoveInstanceID(LAST_UNLOCKER_IID);
+
 	if (InqStringQuality(QUEST_STRING, "") != "")
 		ResetToInitialState(); //quest chests reset instantly
 	else if (_nextReset < 0)
@@ -1147,9 +1149,10 @@ void CContainerWeenie::NotifyGeneratedPickedUp(CWeenieObject *weenie)
 void CContainerWeenie::ResetToInitialState()
 {
 	if (_openedById)
-		OnContainerClosed();
+		OnContainerClosed(g_pWorld->FindObject(_openedById));
 
 	m_Qualities.RemoveInstanceID(OWNER_IID);
+	m_Qualities.RemoveInstanceID(LAST_UNLOCKER_IID);
 
 	SetLocked(m_bInitiallyLocked ? TRUE : FALSE);
 
@@ -1245,6 +1248,15 @@ int CContainerWeenie::DoUseResponse(CWeenieObject *other)
 		}
 		else
 			return WERROR_CHEST_ALREADY_OPEN;
+	}
+
+	if (DWORD unlocker = InqIIDQuality(LAST_UNLOCKER_IID, 0))
+	{
+		if (unlocker != other->GetID())
+		{
+			other->SendText(csprintf("This chest is claimed by the person who unlocked it."), LTT_DEFAULT);
+			return WERROR_NONE;
+		}
 	}
 
 	std::string questString;

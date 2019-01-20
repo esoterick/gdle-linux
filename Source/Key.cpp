@@ -2,6 +2,7 @@
 #include "Key.h"
 #include "UseManager.h"
 #include "Player.h"
+#include "Config.h"
 
 CKeyWeenie::CKeyWeenie()
 {
@@ -41,6 +42,15 @@ int CKeyWeenie::DoUseWithResponse(CWeenieObject *player, CWeenieObject *with)
 				DecrementStackOrStructureNum();
 				with->SetLocked(FALSE);
 				with->EmitSound(Sound_LockSuccess, 1.0f);
+				with->m_Qualities.SetInstanceID(LAST_UNLOCKER_IID, player->id);
+
+				if (with->IsContainer() && with->_nextReset < 0)
+				{
+					if (double resetInterval = with->InqFloatQuality(RESET_INTERVAL_FLOAT, 0))
+						with->_nextReset = Timer::cur_time + (resetInterval * g_pConfig->RespawnTimeMultiplier());
+					else if (double regenInterval = with->InqFloatQuality(REGENERATION_INTERVAL_FLOAT, 0)) //if we don't have a reset interval, fall back to regen interval
+						with->_nextReset = Timer::cur_time + (regenInterval * g_pConfig->RespawnTimeMultiplier());
+				}
 
 				int structureNum = 0;
 				if (m_Qualities.InqInt(STRUCTURE_INT, structureNum, TRUE) && structureNum > 0)
