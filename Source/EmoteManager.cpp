@@ -278,7 +278,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 				target->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				break;
 			}
-				
+
 		}
 
 		target->GiveSharedXP(amount, true);
@@ -320,12 +320,12 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		target->m_Qualities.InqSkill((STypeSkill)emote.stat, skill);
 
 		DWORD amount = emote.amount;
-	
+
 		//const DWORD amountNeededForMaxXp = skill.GetXpNeededForMaxXp();
 		//amount = min(amount, amountNeededForMaxXp);
 
 		//if (amount > 0)
-			target->GiveSkillXP((STypeSkill)emote.stat, amount, false);
+		target->GiveSkillXP((STypeSkill)emote.stat, amount, false);
 		break;
 	}
 	case AwardLevelProportionalSkillXP_EmoteType:
@@ -357,7 +357,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		//xp_to_give = min(xp_to_give, amountNeededForMaxXp);
 
 		//if (xp_to_give > 0)
-			target->GiveSkillXP((STypeSkill)emote.stat, xp_to_give, false);
+		target->GiveSkillXP((STypeSkill)emote.stat, xp_to_give, false);
 		break;
 	}
 	case AwardSkillPoints_EmoteType:
@@ -862,6 +862,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	case Goto_EmoteType:
 	{
 		ChanceExecuteEmoteSet(GotoSet_EmoteCategory, emote.msg, target_id);
+		break;
 	}
 	case InqBoolStat_EmoteType:
 	{
@@ -1837,6 +1838,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 				target->NotifyFloatStatUpdated((STypeFloat)emote.stat, FALSE);
 			}
 		}
+		break;
 	}
 	case StartBarber_EmoteType:
 	{
@@ -2034,7 +2036,7 @@ void EmoteManager::SkillRefundValidationLog(DWORD target_id, STypeSkill skillToA
 	if (skillToAlter == 54) //Last skill tested by Fianhe (1-54). Will suffice as an end of skill reset trigger.
 	{
 		//Insure that the default skills are back at trained (or specialized in the case of salvaging)
-		std::list<STypeSkill> defaultSkillGroup = { ARCANE_LORE_SKILL, RUN_SKILL, JUMP_SKILL, MAGIC_DEFENSE_SKILL, LOYALTY_SKILL, SALVAGING_SKILL }; 
+		std::list<STypeSkill> defaultSkillGroup = { ARCANE_LORE_SKILL, RUN_SKILL, JUMP_SKILL, MAGIC_DEFENSE_SKILL, LOYALTY_SKILL, SALVAGING_SKILL };
 		std::string PassFail = "PASS";
 		for (auto skillName : defaultSkillGroup)
 		{
@@ -2051,7 +2053,7 @@ void EmoteManager::SkillRefundValidationLog(DWORD target_id, STypeSkill skillToA
 					break;
 				}
 
-				if ( skillName == SALVAGING_SKILL && !(skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS || skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS))
+				if (skillName == SALVAGING_SKILL && !(skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS || skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS))
 				{
 					PassFail = "FAIL";
 					break;
@@ -2060,7 +2062,7 @@ void EmoteManager::SkillRefundValidationLog(DWORD target_id, STypeSkill skillToA
 			}
 		}
 
-		 SERVER_INFO << "Char:" << player->GetName() << "DefaultSkills:" << PassFail << "Level:" << player->InqIntQuality(LEVEL_INT, 0, TRUE) << "Credits:" << player->GetTotalSkillCredits() << "Expected:" << player->GetExpectedSkillCredits();
+		SERVER_INFO << "Char:" << player->GetName() << "DefaultSkills:" << PassFail << "Level:" << player->InqIntQuality(LEVEL_INT, 0, TRUE) << "Credits:" << player->GetTotalSkillCredits() << "Expected:" << player->GetExpectedSkillCredits();
 	}
-		
+
 }
