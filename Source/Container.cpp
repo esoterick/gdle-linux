@@ -1127,16 +1127,18 @@ void CContainerWeenie::OnContainerClosed(CWeenieObject *requestedBy)
 
 	_openedById = 0;
 
-	m_Qualities.RemoveInstanceID(LAST_UNLOCKER_IID);
-
 	if (InqStringQuality(QUEST_STRING, "") != "")
 		ResetToInitialState(); //quest chests reset instantly
-	else if (_nextReset < 0)
+	else if (_nextReset < 0 || InqIIDQuality(LAST_UNLOCKER_IID, 0))
 	{
+		// Use the chest's built in regen or reset interval after it's been closed.
 		if (double resetInterval = InqFloatQuality(RESET_INTERVAL_FLOAT, 0))
 			_nextReset = Timer::cur_time + (resetInterval * g_pConfig->RespawnTimeMultiplier());
 		else if (double regenInterval = InqFloatQuality(REGENERATION_INTERVAL_FLOAT, 0)) //if we don't have a reset interval, fall back to regen interval
 			_nextReset = Timer::cur_time + (regenInterval * g_pConfig->RespawnTimeMultiplier());
+
+		// Open the chest for everyone.
+		m_Qualities.RemoveInstanceID(LAST_UNLOCKER_IID);
 	}
 }
 
@@ -1148,11 +1150,11 @@ void CContainerWeenie::NotifyGeneratedPickedUp(CWeenieObject *weenie)
 
 void CContainerWeenie::ResetToInitialState()
 {
-	if (_openedById)
-		OnContainerClosed(g_pWorld->FindObject(_openedById));
-
 	m_Qualities.RemoveInstanceID(OWNER_IID);
 	m_Qualities.RemoveInstanceID(LAST_UNLOCKER_IID);
+
+	if (_openedById)
+		OnContainerClosed(g_pWorld->FindObject(_openedById));
 
 	SetLocked(m_bInitiallyLocked ? TRUE : FALSE);
 
@@ -1252,7 +1254,8 @@ int CContainerWeenie::DoUseResponse(CWeenieObject *other)
 
 	if (DWORD unlocker = InqIIDQuality(LAST_UNLOCKER_IID, 0))
 	{
-		if (unlocker != other->GetID())
+		// Unopened and unlocked chests are open to everyone after 2 minutes.
+		if (unlocker != other->GetID() && _nextReset - 480 >= Timer::cur_time)
 		{
 			other->SendText(csprintf("This chest is claimed by the person who unlocked it."), LTT_DEFAULT);
 			return WERROR_NONE;

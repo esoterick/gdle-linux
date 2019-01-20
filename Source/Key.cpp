@@ -46,10 +46,8 @@ int CKeyWeenie::DoUseWithResponse(CWeenieObject *player, CWeenieObject *with)
 
 				if (with->IsContainer() && with->_nextReset < 0)
 				{
-					if (double resetInterval = with->InqFloatQuality(RESET_INTERVAL_FLOAT, 0))
-						with->_nextReset = Timer::cur_time + (resetInterval * g_pConfig->RespawnTimeMultiplier());
-					else if (double regenInterval = with->InqFloatQuality(REGENERATION_INTERVAL_FLOAT, 0)) //if we don't have a reset interval, fall back to regen interval
-						with->_nextReset = Timer::cur_time + (regenInterval * g_pConfig->RespawnTimeMultiplier());
+					// Unlocked chests have 10 minutes before the chest resets.
+					with->_nextReset = Timer::cur_time + 600;
 				}
 
 				int structureNum = 0;
