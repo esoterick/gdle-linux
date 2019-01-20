@@ -69,7 +69,7 @@ public:
 	bool RemoveBan(in_addr ipaddr);
 	std::string GetBanList();
 
-	DWORD GetNumClients();
+	DWORD GetUniques();
 
 private:
 

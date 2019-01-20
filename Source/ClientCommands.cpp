@@ -2969,7 +2969,7 @@ CLIENT_COMMAND(player, "<command>", "Player commands.", BASIC_ACCESS, SERVER_CAT
 				playerList += csprintf("\n%s", entry.second->GetName().c_str());
 			}
 		}
-		playerList += csprintf("\nEnd of Player List (%u)", (DWORD)pPlayers->size());
+		playerList += csprintf("\nEnd of Player List (%u) - Unique IPs (%u)", (DWORD)pPlayers->size(), g_pNetwork->GetUniques());
 
 		pPlayer->SendText(playerList.c_str(), LTT_DEFAULT);
 	}
