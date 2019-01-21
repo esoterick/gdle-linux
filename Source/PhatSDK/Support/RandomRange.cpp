@@ -152,8 +152,8 @@ int getRandomNumber(int minInclusive, int maxInclusive, eRandomFormula formula, 
 	default:
 	case eRandomFormula::equalDistribution:
 	{
-		return rng.Next(minInclusive, maxInclusive + 1);
-		//return Random::GenInt(minInclusive, maxInclusive);
+		//return rng.Next(minInclusive, maxInclusive + 1);
+		return Random::GenInt(minInclusive, maxInclusive);
 	}
 	}
 }
