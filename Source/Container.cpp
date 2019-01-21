@@ -1254,8 +1254,8 @@ int CContainerWeenie::DoUseResponse(CWeenieObject *other)
 
 	if (DWORD unlocker = InqIIDQuality(LAST_UNLOCKER_IID, 0))
 	{
-		// Unopened and unlocked chests are open to everyone after 2 minutes.
-		if (unlocker != other->GetID() && _nextReset - 480 >= Timer::cur_time)
+		// Unopened and unlocked chests are open to everyone after 30 seconds.
+		if (unlocker != other->GetID() && _nextReset - 570 >= Timer::cur_time)
 		{
 			other->SendText(csprintf("This chest is claimed by the person who unlocked it."), LTT_DEFAULT);
 			return WERROR_NONE;
