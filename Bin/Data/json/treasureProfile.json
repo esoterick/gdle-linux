@@ -20640,6 +20640,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
@@ -20930,6 +20931,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
@@ -21220,6 +21222,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
@@ -21510,6 +21513,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
@@ -21800,6 +21804,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
@@ -22090,6 +22095,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
@@ -22380,6 +22386,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
@@ -22630,6 +22637,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
@@ -22920,6 +22928,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
@@ -23210,6 +23219,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
@@ -23500,6 +23510,7 @@
     },
     {
       "spellName": "Two Handed Weapon Mastery",
+      "spellCategory": "weaponSkillMastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
       "cantrips": [5072, 5070, 5034, 6073]
     },
