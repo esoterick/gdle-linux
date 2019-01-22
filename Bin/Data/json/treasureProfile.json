@@ -22921,8 +22921,8 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
-      "cantrips": [5072, 5070, 5034, 6073
-    },]
+      "cantrips": [5072, 5070, 5034, 6073]
+    },
     {
       "spellName": "Coordination",
       "spells": [ 1379, 1380, 1381, 1382, 1383, 1384, 2058, 4297 ],
