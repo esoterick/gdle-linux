@@ -156,7 +156,7 @@ void CPlayerWeenie::BeginLogout()
 		return;
 
 	_beginLogoutTime = max(Timer::cur_time, (double)m_iPKActivity);
-	if (IsPK()) _beginLogoutTime += 5.0;
+	if (IsPK()) _beginLogoutTime += 15.0;
 	_logoutTime = _beginLogoutTime + 5.0;
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
