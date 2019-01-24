@@ -16256,9 +16256,97 @@
     }
   },
   {
+    "key": "counterfeitwritcratefakepearls",
+    "value": {
+      "fullname": "Counterfeit Writ Quest Crate of Fake Pearls Pickup",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "NiffSnitchUse",
+    "value": {
+      "fullname": "Counterfeit Writ Quest Arcanum Turn in",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "NiffSnitchGive",
+    "value": {
+      "fullname": "Counterfeit Writ Quest Arcanum Turn in",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "CounterfeitWritStart",
+    "value": {
+      "fullname": "Counterfeit Writ Quest On Use Shanrek",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "forger'shideoutportal",
+    "value": {
+      "fullname": "Forger's Hideout Portal Flag - 1 week",
+      "maxsolves": -1,
+      "mindelta": 518400
+    }
+  },
+  {
+    "key": "darlingscollar",
+    "value": {
+      "fullname": "Lost Pet Darlings Collar Pickup",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "bluebloodgem",
+    "value": {
+      "fullname": "Ricardo's Blood Gem - Blue",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "greenbloodgem",
+    "value": {
+      "fullname": "Ricardo's Blood Gem - Green",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "redbloodgem",
+    "value": {
+      "fullname": "Ricardo's Blood Gem - Red",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "notefromaunbernawa",
+    "value": {
+      "fullname": "Note from Aun Bernawa to Hea Toneawa",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
     "key": "HeroToken",
     "value": {
-      "fullname": "Pickup timer for Hero Tokens",
+      "fullname": "Pickup Timer for Hero Tokens",
+      "maxsolves": -1,
+      "mindelta": 72000
+    }
+  },
+  {
+    "key": "fiunhealingmachine",
+    "value": {
+      "fullname": "Assembled Healing Machine Turn-in to Scorus",
       "maxsolves": -1,
       "mindelta": 72000
     }
