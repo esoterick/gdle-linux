@@ -20,6 +20,8 @@ public:
 
 	void ResetTrade(CPlayerWeenie *playerFrom);
 
+	void TradeFailure(CPlayerWeenie *playerFrom, DWORD item);
+
 	CPlayerWeenie* GetOtherPlayer(CPlayerWeenie *player);
 
 	void CheckDistance();
