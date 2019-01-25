@@ -8,6 +8,7 @@ struct AccountInformation_t
 	std::string username;
 	unsigned int dateCreated;
 	unsigned int access;
+	bool banned;
 };
 
 struct CharacterDesc_t
@@ -86,6 +87,7 @@ public:
 	bool CreateCharacter(unsigned int account_id, unsigned int weenie_id, const char *name);
 	bool DeleteCharacter(unsigned int weenie_id);
 	bool SetCharacterInstanceTS(unsigned int weenie_id, unsigned int instance_ts);
+	bool UpdateBan(unsigned int account_id, bool ban);
 
 	std::list<unsigned int> GetWeeniesAt(unsigned int block_id);
 	bool AddOrUpdateWeenieToBlock(unsigned int weenie_id, unsigned int block_id);
