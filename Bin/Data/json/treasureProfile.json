@@ -20641,8 +20641,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
@@ -20932,8 +20938,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
@@ -21223,8 +21235,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
@@ -21514,8 +21532,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
@@ -21805,8 +21829,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
@@ -22096,8 +22126,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
@@ -22387,8 +22423,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
@@ -22638,8 +22680,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
@@ -22929,8 +22977,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
@@ -23220,8 +23274,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
@@ -23511,8 +23571,14 @@
     {
       "spellName": "Two Handed Weapon Mastery",
       "spellCategory": "weaponSkillMastery",
-      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105],
+      "spells": [5099, 5100, 5101, 5102, 5103, 5104, 5105, 5032],
       "cantrips": [5072, 5070, 5034, 6073]
+    },
+    {
+      "spellName": "Dual Wield Mastery",
+      "spellCategory": "weaponSkillMastery",
+      "spells": [5803, 5804, 5805, 5806, 5807, 5808, 5809, 5810],
+      "cantrips": [5884, 5889, 5894, 6050]
     },
     {
       "spellName": "Coordination",
