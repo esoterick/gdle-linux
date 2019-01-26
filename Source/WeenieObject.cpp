@@ -896,7 +896,13 @@ void CWeenieObject::NotifyGeneratedFailure(CWeenieObject *weenie)
 
 void CWeenieObject::OnGeneratedFailure(CWeenieObject *weenie)
 {
+	if (!weenie)
+		return;
+
 	DWORD weenie_id = weenie->GetID();
+
+	if (!m_Qualities._generator_registry)
+		return;
 
 	GeneratorRegistryNode *node = m_Qualities._generator_registry->_registry.lookup(weenie_id);
 
