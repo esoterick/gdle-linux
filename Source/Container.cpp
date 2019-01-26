@@ -8,6 +8,7 @@
 #include "WeenieFactory.h"
 #include "WorldLandBlock.h"
 #include "Config.h"
+#include "SpellCastingManager.h"
 
 CContainerWeenie::CContainerWeenie()
 {
@@ -1113,6 +1114,10 @@ void CContainerWeenie::OnContainerOpened(CWeenieObject *other)
 	_openedById = other->GetID();
 	other->_lastOpenedRemoteContainerId = GetID();
 	_failedPreviousCheckToClose = false;
+
+	DWORD spell = 0;
+	if (m_Qualities.InqDataID(SPELL_DID, spell))
+		MakeSpellcastingManager()->CastSpellInstant(_openedById, spell);
 }
 
 void CContainerWeenie::OnContainerClosed(CWeenieObject *requestedBy)
