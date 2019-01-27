@@ -48,20 +48,17 @@ bool CInferredPortalData::LoadCacheData(DWORD id, DWORD magic1, DWORD magic2, Pa
 		data.UnPack(&reader);
 		delete[] buffer;
 
-
-		/*json test;
-		_treasureTableData._treasureList.PackJson(test);
-
-		std::ofstream out("data/json/wieldedTreasure.json");
-		out << std::setw(4) << test << std::endl;
-		out.flush();
-		out.close();*/
-
 		return true;
 	}
 
 	return false;
+	//json test;
+	//_regionData.PackJson(test);
 
+	//std::ofstream out(dataPath / "region.json");
+	//out << std::setw(4) << test << std::endl;
+	//out.flush();
+	//out.close();
 }
 
 void CInferredPortalData::Init()
@@ -88,9 +85,6 @@ void CInferredPortalData::Init()
 
 	// Treasure Factory
 	LoadCacheData(3, 0x7DC126EB, 0x5F41B9AD, _treasureTableData);
-
-	// WieldedTreasureType DIDs
-	LoadJsonData(dataPath / "wieldedTreasure.json", _treasureTableData._treasureList);
 
 	// Recipe Factory
 	LoadCacheData(4, 0x5F41B9AD, 0x7DC126EB, _craftTableData);

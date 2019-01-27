@@ -2,6 +2,7 @@
 #include "Key.h"
 #include "UseManager.h"
 #include "Player.h"
+#include "Config.h"
 
 CKeyWeenie::CKeyWeenie()
 {
@@ -41,6 +42,13 @@ int CKeyWeenie::DoUseWithResponse(CWeenieObject *player, CWeenieObject *with)
 				DecrementStackOrStructureNum();
 				with->SetLocked(FALSE);
 				with->EmitSound(Sound_LockSuccess, 1.0f);
+				with->m_Qualities.SetInstanceID(LAST_UNLOCKER_IID, player->id);
+
+				if (with->IsContainer() && with->_nextReset < 0)
+				{
+					// Unlocked chests have 10 minutes before the chest resets.
+					with->_nextReset = Timer::cur_time + 600;
+				}
 
 				int structureNum = 0;
 				if (m_Qualities.InqInt(STRUCTURE_INT, structureNum, TRUE) && structureNum > 0)

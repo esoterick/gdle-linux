@@ -743,12 +743,13 @@ void CGiveEvent::OnUseAnimSuccess(DWORD motion)
 	if (giveTarget)
 	{
 		CContainerWeenie *target = giveTarget->AsContainer();
-		if (!target)
+		CWeenieObject *source = GetSourceItem();
+		if (!target || !source)
 		{
 			_weenie->NotifyInventoryFailedEvent(_source_item_id, WERROR_NONE);
 			return Done(WERROR_OBJECT_GONE);
 		}
-		_weenie->AsMonster()->FinishGiveItem(target, GetSourceItem(), _transfer_amount);
+		_weenie->AsMonster()->FinishGiveItem(target, source, _transfer_amount);
 		Done();
 	}
 	else

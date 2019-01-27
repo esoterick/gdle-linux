@@ -805,6 +805,32 @@ std::string CNetwork::GetBanList()
 	return banList;
 }
 
+DWORD CNetwork::GetUniques()
+{
+	if (!m_NumClients)
+		return 0;
+
+	std::list<std::string> _addresses;
+	std::string addr = "";
+
+	for (DWORD i = 0; i < m_NumClients; i++)
+	{
+		if (CClient *client = m_ClientArray[i])
+		{
+			addr = inet_ntoa(client->GetHostAddress()->sin_addr);
+
+			if (addr != "")
+				_addresses.push_back(addr);
+		}
+	}
+
+	_addresses.unique();
+
+	DWORD count = _addresses.size();
+
+	return count;
+}
+
 
 
 

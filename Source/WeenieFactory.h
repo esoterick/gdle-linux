@@ -1,7 +1,7 @@
 
 #pragma once
 
-class CWeenieFactory
+class CWeenieFactory : public ThreadedFileLoader
 {
 public:
 	CWeenieFactory();

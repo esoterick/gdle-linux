@@ -8,6 +8,7 @@
 #include "WeenieFactory.h"
 #include "WorldLandBlock.h"
 #include "Config.h"
+#include "SpellCastingManager.h"
 
 CContainerWeenie::CContainerWeenie()
 {
@@ -1113,6 +1114,10 @@ void CContainerWeenie::OnContainerOpened(CWeenieObject *other)
 	_openedById = other->GetID();
 	other->_lastOpenedRemoteContainerId = GetID();
 	_failedPreviousCheckToClose = false;
+
+	DWORD spell = 0;
+	if (m_Qualities.InqDataID(SPELL_DID, spell))
+		MakeSpellcastingManager()->CastSpellInstant(_openedById, spell);
 }
 
 void CContainerWeenie::OnContainerClosed(CWeenieObject *requestedBy)
@@ -1129,12 +1134,16 @@ void CContainerWeenie::OnContainerClosed(CWeenieObject *requestedBy)
 
 	if (InqStringQuality(QUEST_STRING, "") != "")
 		ResetToInitialState(); //quest chests reset instantly
-	else if (_nextReset < 0)
+	else if (_nextReset < 0 || InqIIDQuality(LAST_UNLOCKER_IID, 0))
 	{
+		// Use the chest's built in regen or reset interval after it's been closed.
 		if (double resetInterval = InqFloatQuality(RESET_INTERVAL_FLOAT, 0))
 			_nextReset = Timer::cur_time + (resetInterval * g_pConfig->RespawnTimeMultiplier());
 		else if (double regenInterval = InqFloatQuality(REGENERATION_INTERVAL_FLOAT, 0)) //if we don't have a reset interval, fall back to regen interval
 			_nextReset = Timer::cur_time + (regenInterval * g_pConfig->RespawnTimeMultiplier());
+
+		// Open the chest for everyone.
+		m_Qualities.RemoveInstanceID(LAST_UNLOCKER_IID);
 	}
 }
 
@@ -1146,10 +1155,11 @@ void CContainerWeenie::NotifyGeneratedPickedUp(CWeenieObject *weenie)
 
 void CContainerWeenie::ResetToInitialState()
 {
-	if (_openedById)
-		OnContainerClosed();
-
 	m_Qualities.RemoveInstanceID(OWNER_IID);
+	m_Qualities.RemoveInstanceID(LAST_UNLOCKER_IID);
+
+	if (_openedById)
+		OnContainerClosed(g_pWorld->FindObject(_openedById));
 
 	SetLocked(m_bInitiallyLocked ? TRUE : FALSE);
 
@@ -1247,6 +1257,16 @@ int CContainerWeenie::DoUseResponse(CWeenieObject *other)
 			return WERROR_CHEST_ALREADY_OPEN;
 	}
 
+	if (DWORD unlocker = InqIIDQuality(LAST_UNLOCKER_IID, 0))
+	{
+		// Unopened and unlocked chests are open to everyone after 30 seconds.
+		if (unlocker != other->GetID() && _nextReset - 570 >= Timer::cur_time)
+		{
+			other->SendText(csprintf("This chest is claimed by the person who unlocked it."), LTT_DEFAULT);
+			return WERROR_NONE;
+		}
+	}
+
 	std::string questString;
 	if (m_Qualities.InqString(QUEST_STRING, questString) && !questString.empty())
 	{
@@ -1300,27 +1320,27 @@ void CContainerWeenie::InventoryTick()
 	{
 		wielded->WieldedTick();
 
-#ifdef _DEBUG
-		wielded->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		wielded->DebugValidate();
+//#endif
 	}
 
 	for (auto item : m_Items)
 	{
 		item->InventoryTick();
 
-#ifdef _DEBUG
-		item->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		item->DebugValidate();
+//#endif
 	}
 
 	for (auto pack : m_Packs)
 	{
 		pack->InventoryTick();
 
-#ifdef _DEBUG
-		pack->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		pack->DebugValidate();
+//#endif
 	}
 }
 
@@ -1342,27 +1362,27 @@ void CContainerWeenie::Tick()
 	{
 		wielded->WieldedTick();
 
-#ifdef _DEBUG
-		wielded->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		wielded->DebugValidate();
+//#endif
 	}
 
 	for (auto item : m_Items)
 	{
 		item->InventoryTick();
 
-#ifdef _DEBUG
-		item->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		item->DebugValidate();
+//#endif
 	}
 
 	for (auto pack : m_Packs)
 	{
 		pack->InventoryTick();
 
-#ifdef _DEBUG
-		pack->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		pack->DebugValidate();
+//#endif
 	}
 
 	_nextInventoryTick = Timer::cur_time + Random::GenFloat(0.4, 0.6);

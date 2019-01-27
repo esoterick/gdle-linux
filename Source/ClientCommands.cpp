@@ -2969,7 +2969,7 @@ CLIENT_COMMAND(player, "<command>", "Player commands.", BASIC_ACCESS, SERVER_CAT
 				playerList += csprintf("\n%s", entry.second->GetName().c_str());
 			}
 		}
-		playerList += csprintf("\nEnd of Player List (%u)", (DWORD)pPlayers->size());
+		playerList += csprintf("\nEnd of Player List (%u) - Unique IPs (%u)", (DWORD)pPlayers->size(), g_pNetwork->GetUniques());
 
 		pPlayer->SendText(playerList.c_str(), LTT_DEFAULT);
 	}
@@ -4843,9 +4843,29 @@ CLIENT_COMMAND(getcreditother, "", "Gets the current unassigned skill credits of
 	}
 
 	auto targetName = targetID->GetName();
-	DWORD currentcredits = targetID->GetSkillCredits();
+	DWORD currentcredits = targetID->AsPlayer()->GetTotalSkillCredits();
+	DWORD expectedCredits = targetID->AsPlayer()->GetExpectedSkillCredits();
+	const char *AunR = "";
+	const char *Oswald = "";
+	if (targetID->InqQuest("arantahkill1")) //Aun Ralirea
+		AunR = "Aun Ralirea";
+
+	if (targetID->InqQuest("ChasingOswaldDone")) //Finding Oswald
+		Oswald = "Finding Oswald";
 	
-	pPlayer->SendText(csprintf("%s has %d skill credits unassigned.", targetName.c_str(), currentcredits), LTT_DEFAULT);
+	//todo add Luminance Skill Credit Checks (2 credits).
+
+	BinaryWriter popupMessage;
+	popupMessage.Write<DWORD>(0x4);
+	popupMessage.WriteString(csprintf("%s has %d skill credits total. \n\n A character of level %d should have %d skill credits. \n\n Skill Credit Quests Complete: \n %s \n %s", 
+		targetName.c_str(), 
+		currentcredits, 
+		targetID->InqIntQuality(LEVEL_INT, 0, TRUE),
+		expectedCredits,
+		AunR,
+		Oswald));
+
+	pPlayer->SendNetMessage(&popupMessage, PRIVATE_MSG, TRUE, FALSE);
 
 
 	return false;
