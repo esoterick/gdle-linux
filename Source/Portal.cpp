@@ -58,7 +58,13 @@ void CPortal::CheckedTeleport(CWeenieObject *pOther)
 		{
 			if (player->CheckPKActivity())
 			{
-				pOther->SendText("You have been involved in Player Killer combat too recently!", LTT_MAGIC);
+				pOther->NotifyWeenieError(WERROR_PORTAL_PK_ATTACKED_TOO_RECENTLY);
+				return;
+			}
+			
+			if (player->IsInPortalSpace() || player->InqFloatQuality(LAST_PORTAL_TELEPORT_TIMESTAMP_FLOAT, 0) >= Timer::cur_time)
+			{
+				player->NotifyWeenieError(WERROR_PORTAL_TOO_RECENTLY);
 				return;
 			}
 		}
@@ -72,12 +78,12 @@ void CPortal::CheckedTeleport(CWeenieObject *pOther)
 			{
 				if (!player->InqQuest(restriction.c_str()))
 				{
-					pOther->SendText("You try to enter the portal but there is no effect.", LTT_MAGIC);
+					pOther->NotifyWeenieError(WERROR_PORTAL_QUEST_RESTRICTED);
 					return;
 				}
 			}
 		}
-
+		
 		int minLevel = InqIntQuality(MIN_LEVEL_INT, 0);
 		int maxLevel = InqIntQuality(MAX_LEVEL_INT, 0);
 
@@ -85,11 +91,11 @@ void CPortal::CheckedTeleport(CWeenieObject *pOther)
 
 		if (minLevel && currentLevel < minLevel)
 		{
-			pOther->SendText("You are not powerful enough to use this portal yet.", LTT_MAGIC);
+			pOther->NotifyWeenieError(WERROR_PORTAL_LEVEL_TOO_LOW);
 		}
 		else if (maxLevel && currentLevel > maxLevel)
 		{
-			pOther->SendText("You are too powerful to use this portal.", LTT_MAGIC);
+			pOther->NotifyWeenieError(WERROR_PORTAL_LEVEL_TOO_HIGH);
 		}
 		else
 		{
