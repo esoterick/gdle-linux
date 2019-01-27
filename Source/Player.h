@@ -199,6 +199,7 @@ public:
 	bool IsLoggingOut() { return _logoutTime >= 0.0; }
 	bool IsRecalling() { return _recallTime >= 0.0; }
 	void BeginRecall(const Position &targetPos);
+	void CPlayerWeenie::CancelLifestoneProtection();
 
 	virtual bool IsBusy() override;
 	virtual void OnTeleported() override;
