@@ -33,7 +33,8 @@ CREATE TABLE `accounts` (
   `password_salt` varchar(17) NOT NULL,
   `date_created` int(11) NOT NULL COMMENT 'unix timestamp',
   `access` int(11) NOT NULL COMMENT '0=basic 3=advocate 4=sentinel 6=admin',
-  `created_ip_address` varchar(64) NOT NULL
+  `created_ip_address` varchar(64) NOT NULL,
+  `banned` tinyint(4) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 INSERT INTO `accounts` (`id`, `username`, `password`, `password_salt`, `date_created`, `access`, `created_ip_address`) VALUES
