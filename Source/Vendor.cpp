@@ -285,7 +285,7 @@ const std::list<ItemProfile *> CVendor::GetFilteredItems(std::list<ItemProfile *
 			continue;
 		}	
 
-		auto sellerItemValue = sellerItem->GetValue();
+		auto sellerItemValue = sellerItem->InqIntQuality(STACK_SIZE_INT, TRUE) > 1 ? sellerItem->InqIntQuality(STACK_UNIT_VALUE_INT, TRUE) : sellerItem->GetValue();
 		auto sellerItemType = sellerItem->InqIntQuality(ITEM_TYPE_INT, 0, TRUE);
 		auto sellerItemHasMana = sellerItem->InqIntQuality(ITEM_MAX_MANA_INT, 0, TRUE);
 

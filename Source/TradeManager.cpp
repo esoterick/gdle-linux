@@ -60,12 +60,7 @@ void TradeManager::AddToTrade(CPlayerWeenie *playerFrom, DWORD item)
 
 	if (!pItem || pItem->GetWorldTopLevelOwner() != playerFrom || pItem->IsAttunedOrContainsAttuned() || pItem->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_CONTAINER || pItem->AsPlayer())
 	{
-		playerFrom->SendText("You cannot trade that item!", LTT_ERROR);
-		BinaryWriter cannotTrade;
-		cannotTrade.Write<DWORD>(0x207);
-		cannotTrade.Write<DWORD>(item);
-		cannotTrade.Write<DWORD>(0);
-		playerFrom->SendNetMessage(&cannotTrade, PRIVATE_MSG, TRUE, FALSE);
+		TradeFailure(playerFrom, item);
 		return;
 	}
 
@@ -80,7 +75,14 @@ void TradeManager::AddToTrade(CPlayerWeenie *playerFrom, DWORD item)
 		itemList = &m_lPartnerItems;
 	}
 
-	itemList->push_back(item);
+	// Client doesn't send trade accept if item count is over 50.
+	if (itemList->size() < 50)
+		itemList->push_back(item);
+	else
+	{
+		TradeFailure(playerFrom, item);
+		return;
+	}
 
 	m_bInitiatorAccepted = false;
 	m_bPartnerAccepted = false;
@@ -264,6 +266,16 @@ void TradeManager::ResetTrade(CPlayerWeenie *playerFrom)
 	resetTrade.Write<DWORD>(playerFrom->GetID());
 	playerFrom->SendNetMessage(&resetTrade, PRIVATE_MSG, TRUE, FALSE);
 	GetOtherPlayer(playerFrom)->SendNetMessage(&resetTrade, PRIVATE_MSG, TRUE, FALSE);
+}
+
+void TradeManager::TradeFailure(CPlayerWeenie *playerFrom, DWORD item)
+{
+	playerFrom->SendText("You cannot trade that item!", LTT_ERROR);
+	BinaryWriter cannotTrade;
+	cannotTrade.Write<DWORD>(0x207);
+	cannotTrade.Write<DWORD>(item);
+	cannotTrade.Write<DWORD>(0);
+	playerFrom->SendNetMessage(&cannotTrade, PRIVATE_MSG, TRUE, FALSE);
 }
 
 CPlayerWeenie* TradeManager::GetOtherPlayer(CPlayerWeenie *player)

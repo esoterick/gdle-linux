@@ -278,7 +278,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 				target->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 				break;
 			}
-				
+
 		}
 
 		target->GiveSharedXP(amount, true);
@@ -320,12 +320,12 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		target->m_Qualities.InqSkill((STypeSkill)emote.stat, skill);
 
 		DWORD amount = emote.amount;
-	
+
 		//const DWORD amountNeededForMaxXp = skill.GetXpNeededForMaxXp();
 		//amount = min(amount, amountNeededForMaxXp);
 
 		//if (amount > 0)
-			target->GiveSkillXP((STypeSkill)emote.stat, amount, false);
+		target->GiveSkillXP((STypeSkill)emote.stat, amount, false);
 		break;
 	}
 	case AwardLevelProportionalSkillXP_EmoteType:
@@ -357,7 +357,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		//xp_to_give = min(xp_to_give, amountNeededForMaxXp);
 
 		//if (xp_to_give > 0)
-			target->GiveSkillXP((STypeSkill)emote.stat, xp_to_give, false);
+		target->GiveSkillXP((STypeSkill)emote.stat, xp_to_give, false);
 		break;
 	}
 	case AwardSkillPoints_EmoteType:
@@ -862,6 +862,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 	case Goto_EmoteType:
 	{
 		ChanceExecuteEmoteSet(GotoSet_EmoteCategory, emote.msg, target_id);
+		break;
 	}
 	case InqBoolStat_EmoteType:
 	{
@@ -1496,79 +1497,63 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 			int numSkillCredits = player->InqIntQuality(AVAILABLE_SKILL_CREDITS_INT, 0, TRUE);
 
+			SKILL_ADVANCEMENT_CLASS debugSkillSacInit = skill._sac; //for validation logging.
+			int debugInitAvailCredits = numSkillCredits; //for validation logging.
+
 			switch (skill._sac)
 			{
 			default:
+			{
 				break;
-
+			}
 			case SPECIALIZED_SKILL_ADVANCEMENT_CLASS:
 			{
 				SkillTable *pSkillTable = SkillSystem::GetSkillTable();
 				const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skillToAlter);
 				if (pSkillBase != NULL)
 				{
-
-					HeritageGroup_CG *heritageGroup = CachedCharGenData->mHeritageGroupList.lookup(player->InqIntQuality(HERITAGE_GROUP_INT, 0, true));
-					if (heritageGroup)
+					//Captures no train cost skills (Arcane Lore, Jump, Loyalty, Magic Defense & Run) here. These drop ONLY to trained sac. Salvaging is a unique case.
+					if ((pSkillBase->_trained_cost <= 0 && skillToAlter != SALVAGING_SKILL) || skillToAlter == ARCANE_LORE_SKILL)
 					{
-						//first we check our heritage specific skills as we cannot untrain those.
-						for (DWORD i = 0; i < heritageGroup->mSkillList.num_used; i++)
+						DWORD64 xpToAward = skill._pp;
+						skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
+						skill._pp = 526;
+						skill._level_from_pp = 5;
+						skill._init_level = 0;
+						player->m_Qualities.SetSkill(skillToAlter, skill);
+						player->NotifySkillStatUpdated(skillToAlter);
+
+						numSkillCredits += pSkillBase->_specialized_cost - pSkillBase->_trained_cost;
+						player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
+						player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
+
+						if (xpToAward > 0)
 						{
-							if (heritageGroup->mSkillList.array_data[i].skillNum == skillToAlter)
-							{
-								DWORD64 xpToAward = skill._pp;
-								skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
-								skill._pp = 526;
-								skill._level_from_pp = 5;
-								skill._init_level = 0;
-								player->m_Qualities.SetSkill(skillToAlter, skill);
-								player->NotifySkillStatUpdated(skillToAlter);
-
-								numSkillCredits += pSkillBase->_specialized_cost - pSkillBase->_trained_cost;
-								player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
-								player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
-
-								if (xpToAward > 0)
-								{
-									player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0) + xpToAward);
-									player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
-								}
-
-								player->SendText(csprintf("Your %s skill has been reset.  All the experience that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
-								break;
-							}
+							player->m_Qualities.SetInt64(AVAILABLE_EXPERIENCE_INT64, player->InqInt64Quality(AVAILABLE_EXPERIENCE_INT64, 0) + xpToAward);
+							player->NotifyInt64StatUpdated(AVAILABLE_EXPERIENCE_INT64);
 						}
 
-						// break here on Arcane as the _trained_cost is actually 4 but should be treated as if it was 0.
-						if (skillToAlter == ARCANE_LORE_SKILL)
-							break;
-
+						player->SendText(csprintf("Your %s skill has been reset.  All the experience that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
+						break;
 					}
-					if (pSkillBase->_trained_cost > 0)
+
+					if (pSkillBase->_trained_cost > 0 && skillToAlter != ARCANE_LORE_SKILL) //all the other skills except salvaging and Arcane Lore. Lore's _trained_cost is actually 4 but should be treated as if it was 0.
 					{
-						bool isTinker = (skillToAlter == SALVAGING_SKILL ||
-							skillToAlter == WEAPON_APPRAISAL_SKILL ||
+						bool isTinker = (skillToAlter == WEAPON_APPRAISAL_SKILL ||
 							skillToAlter == ARMOR_APPRAISAL_SKILL ||
 							skillToAlter == MAGIC_ITEM_APPRAISAL_SKILL ||
 							skillToAlter == ITEM_APPRAISAL_SKILL);
 
 						if (isTinker)
 						{
-							switch (skillToAlter)
-							{
-							case WEAPON_APPRAISAL_SKILL: player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT, 0); break;
-							case ARMOR_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT, 0); break;
-							case ITEM_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT, 0); break;
-							case MAGIC_ITEM_APPRAISAL_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT, 0); break;
-							case SALVAGING_SKILL:  player->m_Qualities.SetInt(AUGMENTATION_SPECIALIZE_SALVAGING_INT, 0); break;
-							}
+							numSkillCredits += pSkillBase->_trained_cost; // We only want to return the trained cost (as there was no credit cost to spec tinkering skills).
 						}
 						else
 						{
 							numSkillCredits += pSkillBase->_specialized_cost;
-							player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
-							player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
 						}
+						player->m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, numSkillCredits);
+						player->NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
 
 						DWORD64 xpToAward = 0;
 
@@ -1588,14 +1573,17 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 						}
 
 						player->SendText(csprintf("Your specialized %s skill has been removed. All the experience and skill credits that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
+						break;
 					}
-					else
+
+					//Salvaging is NEVER unspec'd once spec'd (no credit skill - just xp. So only return xp on unspec).
+					if (skillToAlter == SALVAGING_SKILL)
 					{
 						DWORD64 xpToAward = skill._pp;
-						skill._sac = TRAINED_SKILL_ADVANCEMENT_CLASS;
+						skill._init_level = 10;
 						skill._pp = 526;
 						skill._level_from_pp = 5;
-						skill._init_level = 0;
+
 						player->m_Qualities.SetSkill(skillToAlter, skill);
 						player->NotifySkillStatUpdated(skillToAlter);
 
@@ -1606,11 +1594,8 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 						}
 
 						player->SendText(csprintf("Your %s skill has been reset.  All the experience that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
-
 					}
 				}
-
-
 				break;
 			}
 
@@ -1650,7 +1635,6 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 						if (skillToAlter == ARCANE_LORE_SKILL)
 							break;
-
 					}
 
 					if (pSkillBase->_trained_cost > 0)
@@ -1680,7 +1664,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 					else
 					{
 						DWORD64 xpToAward = skill._pp;
-						skill._pp = 0;
+						skill._pp = 526;
 						skill._level_from_pp = 5;
 						skill._init_level = 0;
 						player->m_Qualities.SetSkill(skillToAlter, skill);
@@ -1693,14 +1677,12 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 						}
 
 						player->SendText(csprintf("Your %s skill has been reset.  All the experience that you spent on this skill have been refunded to you.", pSkillBase->_name.c_str()), LTT_DEFAULT);
-
 					}
 				}
-
 				break;
 			}
 			}
-
+			SkillRefundValidationLog(target_id, skillToAlter, debugSkillSacInit, debugInitAvailCredits);
 
 		}
 		break;
@@ -1752,10 +1734,10 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 
 	case DeleteSelf_EmoteType:
 	{
-		if (!_weenie->m_Qualities._emote_table)
+		if (!_weenie->m_Qualities._emote_table || _weenie->AsPlayer()) //don't know how we'd find ourselves deleting a player weenie...but just in case.
 			break;
 
-		_weenie->MarkForDestroy();
+		_weenie->Remove();
 		break;
 	}
 
@@ -1856,6 +1838,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 				target->NotifyFloatStatUpdated((STypeFloat)emote.stat, FALSE);
 			}
 		}
+		break;
 	}
 	case StartBarber_EmoteType:
 	{
@@ -2029,4 +2012,57 @@ void EmoteManager::ConfirmationResponse(bool accepted, DWORD target_id)
 			_confirmMsgList.erase(target_id);
 		}
 	}
+}
+
+void EmoteManager::SkillRefundValidationLog(DWORD target_id, STypeSkill skillToAlter, SKILL_ADVANCEMENT_CLASS debugSkillSacInit, int debugInitAvailCredits)
+{
+	//---------Validation Logging---------------
+	CPlayerWeenie *player = g_pWorld->FindPlayer(target_id);
+	if (!player)
+		return;
+
+	Skill skill;
+	if (!player->m_Qualities.InqSkill(skillToAlter, skill))
+		return;
+
+	if (debugSkillSacInit != skill._sac) //Only do a credit report if the Skill Advancement Class changes. This is an indication we should have a change in credits. If a report generates 0 credit refund. We have a problem.
+	{
+		SkillTable *pSkillTable = SkillSystem::GetSkillTable();
+
+		int refundedCredits = player->InqIntQuality(AVAILABLE_SKILL_CREDITS_INT, 0, TRUE) - debugInitAvailCredits;
+		SERVER_INFO << "Char:" << player->GetName() << " Skill:" << pSkillTable->GetSkillName(skillToAlter) << " Sac_Change:" << Skill::SkillSacToName(debugSkillSacInit) << "->" << Skill::SkillSacToName(skill._sac) << " Credit_Refund:" << refundedCredits;
+	}
+
+	if (skillToAlter == 54) //Last skill tested by Fianhe (1-54). Will suffice as an end of skill reset trigger.
+	{
+		//Insure that the default skills are back at trained (or specialized in the case of salvaging)
+		std::list<STypeSkill> defaultSkillGroup = { ARCANE_LORE_SKILL, RUN_SKILL, JUMP_SKILL, MAGIC_DEFENSE_SKILL, LOYALTY_SKILL, SALVAGING_SKILL };
+		std::string PassFail = "PASS";
+		for (auto skillName : defaultSkillGroup)
+		{
+			SkillTable *pSkillTable = SkillSystem::GetSkillTable();
+			const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skillName);
+			if (pSkillBase != NULL)
+			{
+				Skill skill;
+				if (!player->m_Qualities.InqSkill(skillName, skill))
+					continue;
+				if (skill._sac != TRAINED_SKILL_ADVANCEMENT_CLASS && skillName != SALVAGING_SKILL)
+				{
+					PassFail = "FAIL";
+					break;
+				}
+
+				if (skillName == SALVAGING_SKILL && !(skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS || skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS))
+				{
+					PassFail = "FAIL";
+					break;
+				}
+
+			}
+		}
+
+		SERVER_INFO << "Char:" << player->GetName() << "DefaultSkills:" << PassFail << "Level:" << player->InqIntQuality(LEVEL_INT, 0, TRUE) << "Credits:" << player->GetTotalSkillCredits() << "Expected:" << player->GetExpectedSkillCredits();
+	}
+
 }

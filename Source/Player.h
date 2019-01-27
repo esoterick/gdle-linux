@@ -232,6 +232,8 @@ public:
 	CCraftOperation *TryGetAlternativeOperation(CWeenieObject *target, CWeenieObject *tool, CCraftOperation *op);
 
 	void SetSanctuaryAsLogin();
+	DWORD CPlayerWeenie::GetTotalSkillCredits(bool removeCreditQuests = false);
+	DWORD CPlayerWeenie::GetExpectedSkillCredits(bool countCreditQuests = true);
 
 protected:
 	CClient *m_pClient;

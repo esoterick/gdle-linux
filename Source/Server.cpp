@@ -82,14 +82,23 @@ DWORD CPhatServer::InternalThreadProc()
 	if (Init())
 	{
 		m_running = true;
+		float fr = 1000.0f / 30.0f;
+		float tms = 1.0f / static_cast<float>(CLOCKS_PER_SEC / 1000);
 
 		while (m_running)
 		{
+			clock_t t = clock();
+
 			Tick();
+
+			t = clock() - t;
+			float s = static_cast<float>(t) * tms;
+			int rest = std::max(1, static_cast<int>(fr - s));
+
 			if (g_pConfig->FastTick())
 				std::this_thread::yield();
 			else
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				std::this_thread::sleep_for(std::chrono::milliseconds(rest));
 		}
 	}
 
@@ -438,6 +447,8 @@ void CPhatServer::Tick(void)
 	m_Stats.StartServerFrame();
 
 	ObjCaches::UseTime();
+
+	g_pObjectIDGen->Think();
 
 	g_pNetwork->Think();
 	g_pWorld->Think();

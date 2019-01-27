@@ -155,7 +155,8 @@ void CPlayerWeenie::BeginLogout()
 	if (IsLoggingOut())
 		return;
 
-	_beginLogoutTime = max(Timer::cur_time + 5.0, (double)m_iPKActivity);
+	_beginLogoutTime = max(Timer::cur_time, (double)m_iPKActivity);
+	if (IsPK()) _beginLogoutTime += 15.0;
 	_logoutTime = _beginLogoutTime + 5.0;
 
 	ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
@@ -313,7 +314,9 @@ void CPlayerWeenie::MakeAware(CWeenieObject *pEntity, bool bForceUpdate)
 {
 #ifndef PUBLIC_BUILD
 	int vis;
-	if (pEntity->m_Qualities.InqBool(VISIBILITY_BOOL, vis) && !m_bAdminVision)
+
+	// Admins should always be aware of themselves. Allows logging in while invisible.
+	if (pEntity != this && pEntity->m_Qualities.InqBool(VISIBILITY_BOOL, vis) && !m_bAdminVision)
 		return;
 #else
 	int vis;
@@ -781,7 +784,10 @@ void CPlayerWeenie::OnDeath(DWORD killer_id)
 	_recallTime = -1.0; // cancel any portal recalls
 
 	m_bReviveAfterAnim = true;
+	m_bChangingStance = false;
 	CMonsterWeenie::OnDeath(killer_id);
+
+	m_bChangingStance = false;
 
 	m_Qualities.SetFloat(DEATH_TIMESTAMP_FLOAT, Timer::cur_time);
 	NotifyFloatStatUpdated(DEATH_TIMESTAMP_FLOAT);
@@ -2385,6 +2391,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 		for each (TYPEMod<STypeInt, int> intMod in op->_mods[index]._intMod)
 		{
 			bool applyToCreatedItem = false;
+			bool applyToTool = false;
 			bool removeFromTarget = false;
 			CWeenieObject *modificationSource = NULL;
 			switch (intMod._unk) //this is a guess
@@ -2394,6 +2401,10 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				break;
 			case 1:
 				modificationSource = pTool;
+				break;
+			case 2:
+				modificationSource = pTool;
+				applyToTool = true;
 				break;
 			case 60:
 				//dying armor entries have a second entry to armor reduction that has -30 armor and _unk value of 60
@@ -2407,7 +2418,7 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 				break; //should never happen
 			}
 
-			int value = pTarget->InqIntQuality(intMod._stat, 0, true);
+			int value = applyToTool ? pTool->InqIntQuality(intMod._stat, 0, true): pTarget->InqIntQuality(intMod._stat, 0, true);
 			switch (intMod._operationType)
 			{
 			case 1: //=
@@ -2452,6 +2463,11 @@ void CPlayerWeenie::PerformUseModifications(int index, CCraftOperation *op, CWee
 			if (removeFromTarget)
 			{
 				pTarget->m_Qualities.RemoveInt(intMod._stat);
+			}
+			if (applyToTool)
+			{
+				pTool->m_Qualities.SetInt(intMod._stat, value);
+				pTool->NotifyIntStatUpdated(intMod._stat, false);
 			}
 			else
 			{
@@ -3238,6 +3254,13 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 
 	if (g_pConfig->FixOldChars())
 	{
+		//Refund Credits for those who lost them at Asheron's Castle.
+		DWORD currentcredits = GetTotalSkillCredits();
+		DWORD expectedCredits = GetExpectedSkillCredits();
+
+		if (currentcredits < expectedCredits)
+			GiveSkillCredits(expectedCredits - currentcredits, true);
+
 		int heritage = InqIntQuality(HERITAGE_GROUP_INT, 1);
 
 		// fix scale and other misc things for different heritage groups
@@ -3480,6 +3503,7 @@ void CPlayerWeenie::SetSanctuaryAsLogin()
 	if (m_Qualities.InqPosition(SANCTUARY_POSITION, m_StartPosition) && m_StartPosition.objcell_id)
 	{
 		m_Qualities.SetPosition(LOCATION_POSITION, m_StartPosition);
+		SendNetMessage(ServerText("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", LTT_DEFAULT), PRIVATE_MSG, TRUE);
 	}
 }
 
@@ -4622,4 +4646,92 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 	}
 
 	return op;
+}
+
+DWORD CPlayerWeenie::GetTotalSkillCredits(bool removeCreditQuests) //Total current credits on player in all skills.
+{
+	int totalCredits = InqIntQuality(AVAILABLE_SKILL_CREDITS_INT, 0, TRUE);
+
+	for (int i = 1; i < 55; ++i) //54 usable skills
+	{
+		STypeSkill skillName = (STypeSkill)i;
+
+		SkillTable *pSkillTable = SkillSystem::GetSkillTable();
+		const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skillName);
+		if (pSkillBase != NULL)
+		{
+			Skill skill;
+			if (!m_Qualities.InqSkill(skillName, skill))
+				continue;
+
+			if (skillName == SALVAGING_SKILL) //No credit skill. Ignore.
+				continue;
+
+			//no spec cost for tinker skills.
+			if ((skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS || skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS) &&
+				(skillName == WEAPON_APPRAISAL_SKILL ||
+					skillName == ARMOR_APPRAISAL_SKILL ||
+					skillName == MAGIC_ITEM_APPRAISAL_SKILL ||
+					skillName == ITEM_APPRAISAL_SKILL))
+			{
+				totalCredits += pSkillBase->_trained_cost;
+				continue;
+			}
+
+			if (skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS && skillName == ARCANE_LORE_SKILL) //ignore the 4 points to train arcane lore. We start with it and it cannot be untrained.
+				continue;
+
+			//these are base skills. Can't be untrianed/have no training cost. Lore needs an extra catch due to the errant training cost.
+			if (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS &&
+				(pSkillBase->_trained_cost <= 0 || skillName == ARCANE_LORE_SKILL))
+				//skills of this nature -> ARCANE_LORE_SKILL, RUN_SKILL, JUMP_SKILL, MAGIC_DEFENSE_SKILL, LOYALTY_SKILL
+			{
+				totalCredits += pSkillBase->_specialized_cost - pSkillBase->_trained_cost;
+				continue;
+			}
+
+			//all the rest
+			if (skill._sac == TRAINED_SKILL_ADVANCEMENT_CLASS)
+				totalCredits += pSkillBase->_trained_cost;
+
+			if (skill._sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+				totalCredits += pSkillBase->_specialized_cost;
+		}
+	}
+	if (removeCreditQuests) //defaults to including these.
+	{
+		if (InqQuest("arantahkill1")) //Aun Ralirea
+			totalCredits -= 1;
+
+		if (InqQuest("ChasingOswaldDone")) //Oswald
+			totalCredits -= 1;
+
+		//todo add Luminance Skill Credit Checks (2 credits).
+	}
+	return totalCredits;
+}
+
+DWORD CPlayerWeenie::GetExpectedSkillCredits(bool countCreditQuests)
+{
+	DWORD expectedCredits = 52; //Base starting credits. 102 credits is the MAX # credits attainable.
+	if (countCreditQuests) //default true
+	{
+		if (InqQuest("arantahkill1")) //Aun Ralirea
+			expectedCredits += 1;
+
+		if (InqQuest("ChasingOswaldDone")) //Oswald
+			expectedCredits += 1;
+
+		//todo add Luminance Skill Credit Checks (2 credits).
+	}
+
+	int currentLevel = InqIntQuality(LEVEL_INT, 0, TRUE);
+	int testLevel = 1; //first credit gain occurs at level 2
+
+	while (testLevel <= currentLevel && testLevel < ExperienceSystem::GetMaxLevel())
+	{
+		testLevel++;
+		expectedCredits += ExperienceSystem::GetCreditsForLevel(testLevel);
+	}
+	return expectedCredits;
 }

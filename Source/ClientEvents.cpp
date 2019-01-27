@@ -905,11 +905,11 @@ void CClientEvents::ActionComplete(int error)
 
 void CClientEvents::Identify(DWORD target_id)
 {
-	if (_next_allowed_identify > Timer::cur_time)
-	{
-		// do not allow to ID too fast
-		return;
-	}
+	//if (_next_allowed_identify > Timer::cur_time)
+	//{
+	//	// do not allow to ID too fast
+	//	return;
+	//}
 
 	/*
 	CWeenieObject *pTarget = g_pWorld->FindWithinPVS(m_pPlayer, target_id);
@@ -934,7 +934,7 @@ void CClientEvents::Identify(DWORD target_id)
 		m_pPlayer->SetLastAssessed(pTarget->GetID());
 	}
 
-	_next_allowed_identify = Timer::cur_time + 0.5;
+	//_next_allowed_identify = Timer::cur_time + 0.5;
 }
 
 void CClientEvents::SpendAttributeXP(STypeAttribute key, DWORD exp)
@@ -4034,11 +4034,11 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 			break;
 		}
 
-		/*if (m_pPlayer->m_bChangingStance)
+		if (m_pPlayer->m_bChangingStance)
 		{
-			DEBUG_DATA << "Player changing stance during 0xF61C. Ignoring.";
+			//DEBUG_DATA << "Player changing stance during 0xF61C. Ignoring.";
 			break;
-		}*/
+		}
 
 		if (m_pPlayer->IsDead())
 		{

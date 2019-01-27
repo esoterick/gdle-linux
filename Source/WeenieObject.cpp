@@ -888,6 +888,44 @@ void CWeenieObject::EnsureLink(CWeenieObject *source)
 	}
 }
 
+void CWeenieObject::NotifyGeneratedFailure(CWeenieObject *weenie)
+{
+	// Don't erase entry from m_GeneratorSpawns here as NotifyGeneratedDeath still runs after this.
+	OnGeneratedFailure(weenie);
+}
+
+void CWeenieObject::OnGeneratedFailure(CWeenieObject *weenie)
+{
+	if (!weenie)
+		return;
+
+	DWORD weenie_id = weenie->GetID();
+
+	if (!m_Qualities._generator_registry)
+		return;
+
+	GeneratorRegistryNode *node = m_Qualities._generator_registry->_registry.lookup(weenie_id);
+
+	if (node)
+	{
+		// Remove from the registry here as we don't want OnGeneratedDeath to trigger the respawn delay.
+		m_Qualities._generator_registry->_registry.remove(weenie->GetID());
+
+		if (!m_Qualities._generator_queue)
+			m_Qualities._generator_queue = new GeneratorQueue();
+
+		// Ensure this node is not stuck in queue
+		GeneratorQueueNode queueNode;
+		queueNode.slot = node->slot;
+		queueNode.when = Timer::cur_time;
+		m_Qualities._generator_queue->_queue.push_back(queueNode);
+	}
+
+	// Set next regen to try again.
+	_nextRegen = Timer::cur_time;
+}
+
+
 void CWeenieObject::NotifyGeneratedDeath(CWeenieObject *weenie)
 {
 	OnGeneratedDeath(weenie);
@@ -2177,7 +2215,15 @@ DWORD CWeenieObject::GiveSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT
 	DWORD oldLevel = 0;
 	m_Qualities.InqSkill(key, oldLevel, TRUE);
 
-	skill._sac = sac;
+	bool skillSpecByAug = IsSkillAugmented(key);
+	if (skillSpecByAug) //If skill has been augmented for sac (tinkering skills), than we should immediately jump to specialized.
+	{
+		skill._sac = SPECIALIZED_SKILL_ADVANCEMENT_CLASS;
+		skill._init_level = 10;
+	}
+	else
+		skill._sac = sac;
+
 	skill._level_from_pp = ExperienceSystem::SkillLevelFromExperience(skill._sac, skill._pp);
 
 	// after
@@ -2198,8 +2244,10 @@ DWORD CWeenieObject::GiveSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT
 			skillName = pSkillBase->_name;
 		}
 	}
-
-	SendText(csprintf("You are now trained in %s!", skillName.c_str()), LTT_ADVANCEMENT);
+	if (skillSpecByAug)
+		SendText(csprintf("You are now specialized in %s!", skillName.c_str()), LTT_ADVANCEMENT);
+	else
+		SendText(csprintf("You are now trained in %s!", skillName.c_str()), LTT_ADVANCEMENT);
 
 	DWORD raised = newLevel - oldLevel;
 	if (raised)
@@ -2209,6 +2257,42 @@ DWORD CWeenieObject::GiveSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT
 
 	NotifySkillStatUpdated(key);
 	return raised;
+}
+
+bool CWeenieObject::IsSkillAugmented(STypeSkill key)
+{
+	STypeInt augskillint = UNDEF_INT;
+	switch (key)
+	{
+	case ARMOR_APPRAISAL_SKILL:
+	{
+		augskillint = AUGMENTATION_SPECIALIZE_ARMOR_TINKERING_INT;
+		break;
+	}
+	case ITEM_APPRAISAL_SKILL:
+	{
+		augskillint = AUGMENTATION_SPECIALIZE_ITEM_TINKERING_INT;
+		break;
+	}
+	case MAGIC_ITEM_APPRAISAL_SKILL:
+	{
+		augskillint = AUGMENTATION_SPECIALIZE_MAGIC_ITEM_TINKERING_INT;
+		break;
+	}
+	case WEAPON_APPRAISAL_SKILL:
+	{
+		augskillint = AUGMENTATION_SPECIALIZE_WEAPON_TINKERING_INT;
+		break;
+	}
+	//salvaging is never unspecialized so it isn't needed here as we will never be advancing it again once spec'd.
+	default:
+		return false;
+	}
+
+	if (InqIntQuality(augskillint, 0) == 1)
+		return true;
+	else
+		return false;
 }
 
 DWORD CWeenieObject::GiveSkillXP(STypeSkill key, DWORD amount, bool silent)
@@ -2932,10 +3016,13 @@ void CWeenieObject::InventoryTick()
 
 					Remove();
 					RecalculateEncumbrance();
-					owner->SendText(csprintf("Its lifespan finished, your %s crumbles to dust.", GetName().c_str()), LTT_DEFAULT);
+					if (owner)
+					{
+						owner->SendText(csprintf("Its lifespan finished, your %s crumbles to dust.", GetName().c_str()), LTT_DEFAULT);
 
-					if (AsClothing() && m_bWorldIsAware)
-						owner->UpdateModel();
+						if (AsClothing() && m_bWorldIsAware)
+							owner->UpdateModel();
+					}
 				}
 			}
 			else
@@ -3312,7 +3399,8 @@ void CWeenieObject::GenerateOnDemand(int amount) //Called by Emote_Type 72 Gener
 {
 	if (amount != 0)
 	{
-		g_pWeenieFactory->AddFromGeneratorTable(this, true);
+		for (int i = 0; i < amount; i++)
+			g_pWeenieFactory->AddFromGeneratorTable(this, true);
 	}
 
 	else (m_Qualities._generator_registry);
@@ -4509,27 +4597,21 @@ void CWeenieObject::TakeDamage(DamageEventData &damageData)
 
 		CWeenieObject *shield = GetWieldedCombat(COMBAT_USE::COMBAT_USE_SHIELD);
 
-		if (shield)
+		if (shield && !IsInPeaceMode())
 		{
 			SKILL_ADVANCEMENT_CLASS sac = SKILL_ADVANCEMENT_CLASS::UNTRAINED_SKILL_ADVANCEMENT_CLASS;
 			damageData.target->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac);
 			float cap = shield->InqFloatQuality(ABSORB_MAGIC_DAMAGE_FLOAT, 0.0);
-			float st = sac != SPECIALIZED_SKILL_ADVANCEMENT_CLASS ? .8 : 1;
-
 			unsigned long shieldSkill;
-			damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, false);
-
-			float capPercent = (static_cast<float>(shieldSkill) / 433.0) * cap * st;
-			float reduction = 0;
-			
+			damageData.target->m_Qualities.InqSkill(SHIELD_SKILL, shieldSkill, true);
 			if (cap > 0.0 && shieldSkill >= 100)
 			{
-				// Needed?  boils down to the same formula as capPercent above
-				//reduction = 1 * (float(capPercent * st * shieldSkill * 0.0030) - (capPercent * st * .3));
-				reduction = capPercent;
-			}
+				float st = sac != SPECIALIZED_SKILL_ADVANCEMENT_CLASS ? .8 : 1;
 
-			damageData.damageAfterMitigation *= 1.0 - reduction;
+				float reduction = max(min(float(1 * ((cap * st * shieldSkill * 0.0030) - (cap * st * .3))), cap * st), 0.0f);
+
+				damageData.damageAfterMitigation *= 1.0 - reduction;
+			}
 		}
 	}
 
@@ -6807,7 +6889,8 @@ void CWeenieObject::Remove()
 	m_Qualities.SetInt(PARENT_LOCATION_INT, 0);
 	unset_parent();
 	ReleaseFromBlock();
-	MarkForDestroy();
+	g_pWorld->EnsureRemoved(this);
+	Destroy();
 }
 
 void CWeenieObject::DebugValidate()

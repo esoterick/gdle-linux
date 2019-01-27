@@ -190,8 +190,8 @@ void CWorldLandBlock::SpawnDynamics()
 				if (!encounterIndex && !wcid)
 					continue;
 
-				float x_shift = 24.0f * cell_x;
-				float y_shift = 24.0f * cell_y;
+				float x_shift = std::clamp(cell_x * 24.0f, 0.5f, 191.5f);
+				float y_shift = std::clamp(cell_y * 24.0f, 0.5f, 191.5f);
 
 				Position pos;
 				pos.objcell_id = ((DWORD)m_wHeader << 16) | 1;
@@ -380,6 +380,18 @@ void CWorldLandBlock::SpawnDynamics()
 						regNode.ts = Timer::cur_time;
 						regNode.m_bTreasureType = false;
 						target_weenie->m_Qualities._generator_registry->_registry.add(source_weenie->id, &regNode);
+					}
+
+					if (source_weenie && source_weenie->AsMonster() && !source_weenie->cell)
+					{
+						//LOG_PRIVATE(World, Warning, "Trying to spawn a monster in an invalid position! Deleting instead.\n", source_id);
+
+						if (target_weenie)
+						{
+							target_weenie->NotifyGeneratedFailure(source_weenie);
+						}
+
+						g_pWorld->RemoveEntity(source_weenie);
 					}
 				}
 			}
