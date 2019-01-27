@@ -1320,27 +1320,27 @@ void CContainerWeenie::InventoryTick()
 	{
 		wielded->WieldedTick();
 
-#ifdef _DEBUG
-		wielded->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		wielded->DebugValidate();
+//#endif
 	}
 
 	for (auto item : m_Items)
 	{
 		item->InventoryTick();
 
-#ifdef _DEBUG
-		item->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		item->DebugValidate();
+//#endif
 	}
 
 	for (auto pack : m_Packs)
 	{
 		pack->InventoryTick();
 
-#ifdef _DEBUG
-		pack->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		pack->DebugValidate();
+//#endif
 	}
 }
 
@@ -1362,27 +1362,27 @@ void CContainerWeenie::Tick()
 	{
 		wielded->WieldedTick();
 
-#ifdef _DEBUG
-		wielded->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		wielded->DebugValidate();
+//#endif
 	}
 
 	for (auto item : m_Items)
 	{
 		item->InventoryTick();
 
-#ifdef _DEBUG
-		item->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		item->DebugValidate();
+//#endif
 	}
 
 	for (auto pack : m_Packs)
 	{
 		pack->InventoryTick();
 
-#ifdef _DEBUG
-		pack->DebugValidate();
-#endif
+//#ifdef _DEBUG
+//		pack->DebugValidate();
+//#endif
 	}
 
 	_nextInventoryTick = Timer::cur_time + Random::GenFloat(0.4, 0.6);
