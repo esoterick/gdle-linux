@@ -3492,6 +3492,8 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		return WERROR_NONE;
 	}
 	
+	m_pWeenie->AsPlayer()->CancelLifestoneProtection();
+
 	BeginCast();
 	return WERROR_NONE;
 }
