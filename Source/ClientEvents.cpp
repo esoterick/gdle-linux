@@ -3775,10 +3775,11 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 	}
 	case DIE_COMMAND: // "/die" command
 	{
-		if (!m_pPlayer->IsDead() && !m_pPlayer->IsInPortalSpace() && !m_pPlayer->IsBusyOrInAction())
+		if (!m_pPlayer->IsDead() && !m_pPlayer->IsInPortalSpace() && m_pPlayer->_deathTimer < 0)
 		{
+			m_pPlayer->UpdatePKActivity();
 			m_pPlayer->_deathTimer = Timer::cur_time + 10.5;
-			m_pPlayer->_dieTextTimer = Timer::cur_time + 1.9;
+			m_pPlayer->_dieTextTimer = Timer::cur_time + 2.0;
 		}
 
 		break;
