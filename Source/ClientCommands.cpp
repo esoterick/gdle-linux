@@ -4773,7 +4773,7 @@ CLIENT_COMMAND(godly, "", "Gives you great attributes.", BASIC_ACCESS, CHARACTER
 
 	pPlayer->m_Qualities.SetAttribute(STRENGTH_ATTRIBUTE, 1000000);
 	pPlayer->m_Qualities.SetAttribute(ENDURANCE_ATTRIBUTE, 1000000);
-	pPlayer->m_Qualities.SetAttribute(QUICKNESS_ATTRIBUTE, 800);
+	pPlayer->m_Qualities.SetAttribute(QUICKNESS_ATTRIBUTE, 790);
 	pPlayer->m_Qualities.SetAttribute(COORDINATION_ATTRIBUTE, 1000000);
 	pPlayer->m_Qualities.SetAttribute(FOCUS_ATTRIBUTE, 1000000);
 	pPlayer->m_Qualities.SetAttribute(SELF_ATTRIBUTE, 1000000);
