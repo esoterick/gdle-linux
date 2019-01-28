@@ -44,6 +44,7 @@ public:
 
 	virtual bool FastTick() { return m_bFastTick; }
 	virtual bool UseIncrementalID() { return m_bUseIncrementalIDs; }
+	virtual int32_t IDScanType() { return m_idScanType; }
 
 	virtual bool HardcoreMode() { return m_bHardcoreMode; }
 	virtual bool HardcoreModePlayersOnly() { return m_bHardcoreModePlayersOnly; }
@@ -105,6 +106,7 @@ public:
 	virtual bool AllowOlthoi() { return m_bAllowOlthoi; }
 
 	virtual bool FixOldChars() { return m_bFixOldChars; }
+	const char *GetBanString() { return m_BanString.c_str(); }
 
 protected:
 	virtual void PostLoad() override;
@@ -124,6 +126,7 @@ protected:
 
 	bool m_bFastTick = false;
 	bool m_bUseIncrementalIDs = false;
+	int32_t m_idScanType = 0;
 
 	bool m_bHardcoreMode = false;
 	bool m_bHardcoreModePlayersOnly = false;
@@ -199,6 +202,8 @@ protected:
 	bool m_bAllowPKCommands = 0;
 	bool m_bAllowOlthoi = 0;
 	bool m_bFixOldChars = 1;
+
+	std::string m_BanString;
 };
 
 extern CPhatACServerConfig *g_pConfig;

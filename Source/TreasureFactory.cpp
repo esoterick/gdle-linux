@@ -2075,7 +2075,7 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 	{
 		double meleeMod = round(getRandomDouble(wieldTier->minMeleeDefenseBonus / 100, wieldTier->maxMeleeDefenseBonus / 100, eRandomFormula::favorMid, 2, creationInfo.qualityModifier), 2);
 		if (meleeMod > 0)
-			newItem->m_Qualities.SetFloat(MANA_CONVERSION_MOD_FLOAT, meleeMod);
+			newItem->m_Qualities.SetFloat(WEAPON_DEFENSE_FLOAT, 1.0 + meleeMod);
 	}
 
 	if (wieldTier->minLevel > 0)
@@ -2083,13 +2083,13 @@ void CTreasureFactory::MutateCaster(CWeenieObject *newItem, CWieldTier *wieldTie
 		if (hasRequirement1)
 		{
 			newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_2_INT, eWieldRequirements::level);
-			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 2);
+			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 1);
 			newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_2_INT, wieldTier->minLevel);
 		}
 		else
 		{
 			newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_INT, eWieldRequirements::level);
-			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 2);
+			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 1);
 			newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_INT, wieldTier->minLevel);
 		}
 	}
@@ -2202,13 +2202,13 @@ void CTreasureFactory::MutateArmor(CWeenieObject *newItem, CWieldTier *wieldTier
 		if (hasRequirement1)
 		{
 			newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_2_INT, eWieldRequirements::level);
-			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 2);
+			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 1);
 			newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_2_INT, wieldTier->minLevel);
 		}
 		else
 		{
 			newItem->m_Qualities.SetInt(WIELD_REQUIREMENTS_INT, eWieldRequirements::level);
-			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 2);
+			newItem->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 1);
 			newItem->m_Qualities.SetInt(WIELD_DIFFICULTY_INT, wieldTier->minLevel);
 		}
 	}

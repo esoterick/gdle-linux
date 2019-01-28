@@ -1131,13 +1131,13 @@ void CWorld::Think()
 		m_pGameMode->Think();
 	}
 
-#ifdef _DEBUG
-	for (auto worldObject : m_mAllObjects)
-	{
-		if (worldObject.second)
-			worldObject.second->DebugValidate();
-	}
-#endif
+//#ifdef _DEBUG
+//	for (auto worldObject : m_mAllObjects)
+//	{
+//		if (worldObject.second)
+//			worldObject.second->DebugValidate();
+//	}
+//#endif
 }
 
 CGameMode *CWorld::GetGameMode()

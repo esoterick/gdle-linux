@@ -235,8 +235,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,24
- PRODUCTVERSION 1,0,0,24
+ FILEVERSION 1,0,0,27
+ PRODUCTVERSION 1,0,0,27
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -251,9 +251,9 @@ BEGIN
     BEGIN
         BLOCK "040004b0"
         BEGIN
-            VALUE "FileVersion", "1.0.0.24"
+            VALUE "FileVersion", "1.0.0.27"
             VALUE "ProductName", "GDLEnhanced"
-            VALUE "ProductVersion", "1.0.0.24"
+            VALUE "ProductVersion", "1.0.0.27"
         END
     END
     BLOCK "VarFileInfo"

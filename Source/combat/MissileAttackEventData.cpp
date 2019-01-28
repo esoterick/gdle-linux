@@ -107,6 +107,8 @@ void CMissileAttackEvent::PostCharge()
 
 void CMissileAttackEvent::OnReadyToAttack()
 {
+	_weenie->AsPlayer()->CancelLifestoneProtection();
+
 	if (_do_attack_animation)
 	{
 		MovementParameters params;

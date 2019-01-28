@@ -33,7 +33,8 @@ CREATE TABLE `accounts` (
   `password_salt` varchar(17) NOT NULL,
   `date_created` int(11) NOT NULL COMMENT 'unix timestamp',
   `access` int(11) NOT NULL COMMENT '0=basic 3=advocate 4=sentinel 6=admin',
-  `created_ip_address` varchar(64) NOT NULL
+  `created_ip_address` varchar(64) NOT NULL,
+  `banned` tinyint(4) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 INSERT INTO `accounts` (`id`, `username`, `password`, `password_salt`, `date_created`, `access`, `created_ip_address`) VALUES
@@ -183,6 +184,30 @@ CREATE TABLE `weenies` (
   `block_id` int(11) UNSIGNED NOT NULL,
   `data` mediumblob NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `character_squelch` (
+	`character_id` INT(11) UNSIGNED NOT NULL DEFAULT '0',
+	`squelched_id` INT(11) UNSIGNED NOT NULL DEFAULT '0',
+	`account_id` INT(11) UNSIGNED NOT NULL DEFAULT '0',
+	`isip` BIT(1) NULL DEFAULT b'0',
+	`isspeech` BIT(1) NULL DEFAULT b'0',
+	`istell` BIT(1) NULL DEFAULT b'0',
+	`iscombat` BIT(1) NULL DEFAULT b'0',
+	`ismagic` BIT(1) NULL DEFAULT b'0',
+	`isemote` BIT(1) NULL DEFAULT b'0',
+	`isadvancement` BIT(1) NULL DEFAULT b'0',
+	`isappraisal` BIT(1) NULL DEFAULT b'0',
+	`isspellcasting` BIT(1) NULL DEFAULT b'0',
+	`isallegiance` BIT(1) NULL DEFAULT b'0',
+	`isfellowhip` BIT(1) NULL DEFAULT b'0',
+	`iscombatenemy` BIT(1) NULL DEFAULT b'0',
+	`isrecall` BIT(1) NULL DEFAULT b'0',
+	`iscrafting` BIT(1) NULL DEFAULT b'0',
+	PRIMARY KEY (`character_id`, `squelched_id`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB;
+
 
 --
 -- Indexes for dumped tables

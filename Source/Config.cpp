@@ -108,6 +108,7 @@ void CPhatACServerConfig::PostLoad()
 
 	m_bFastTick = atoi(GetValue("fast_tick", "0")) != 0;
 	m_bUseIncrementalIDs = atoi(GetValue("use_incremental_ids", "1")) != 0;
+	m_idScanType = atoi(GetValue("id_scan_type", "0"));
 
 	m_bHardcoreMode = atoi(GetValue("hardcore_mode", "0")) != 0;
 	m_bHardcoreModePlayersOnly = atoi(GetValue("hardcore_mode_players_only", "0")) != 0;
@@ -186,6 +187,8 @@ void CPhatACServerConfig::PostLoad()
 	m_bAllowPKCommands = (atoi(GetValue("allow_pk_commands", "0"))) != 0;
 	m_bAllowOlthoi = (atoi(GetValue("allow_olthoi", "0"))) != 0;
 	m_bFixOldChars = (atoi(GetValue("fix_old_chars", "0"))) != 0;
+
+	m_BanString = GetValue("ban_string", "");
 }
 
 double CPhatACServerConfig::GetMultiplierForQuestTime(int questTime)

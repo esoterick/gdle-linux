@@ -46,6 +46,7 @@ void CalculateDamage(DamageEventData *dmgEvent, SpellCastData *spellData)
 			{
 				//do not apply crit multiplier - treat this as a normal hit
 				critDefended = true;
+				dmgEvent->attackConditions = 1;
 			}			
 		}
 

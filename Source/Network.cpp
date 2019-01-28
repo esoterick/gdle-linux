@@ -467,6 +467,27 @@ void CNetwork::KickClient(CClient *pClient)
 	pClient->Kill(NULL, NULL);
 }
 
+void CNetwork::KickBannedClient(CClient *pClient, long duration)
+{
+	if (!pClient)
+		return;
+
+	// newlines to push turbine support url out of the window.
+	std::string msg;
+	msg += "\n\n";
+	msg += g_pConfig->GetBanString();
+	msg += "\n\n\n\n";
+
+	BinaryWriter KBC;
+	KBC.Write<long>(0xF7C1);
+	KBC.Write<long>(duration); // ban duration in seconds
+	KBC.WriteString(msg);
+
+	pClient->SendNetMessage(KBC.GetData(), KBC.GetSize(), PRIVATE_MSG);
+	pClient->ThinkOutbound();
+	pClient->Kill(NULL, NULL);
+}
+
 void CNetwork::KickClient(WORD slot)
 {
 	KickClient(GetClient(slot));
@@ -677,6 +698,22 @@ void CNetwork::ConnectionRequest(sockaddr_in *addr, BlobPacket_s *p)
 		SendConnectlessBlob(addr, Woot, BT_LOGINREPLY, 0x00000000, 0, true);
 
 		DELETEBLOB(Woot);
+
+		// Check the account in the database to prevent users from changing their ip
+		if (IsBannedIP(addr->sin_addr) || accountInfo.banned == true)
+		{
+			long duration = GetBanDuration(addr->sin_addr);
+
+			if (duration >= 0)
+				KickBannedClient(client, duration);
+			else
+			{
+				RemoveBan(addr->sin_addr);
+				g_pDBIO->UpdateBan(accountInfo.id, 0);
+			}
+
+			return;
+		}
 	}
 	else
 	{
@@ -703,10 +740,7 @@ void CNetwork::ProcessConnectionless(sockaddr_in *peer, BlobPacket_s *blob)
 
 	if (dwFlags == BT_LOGIN)
 	{
-		if (!IsBannedIP(peer->sin_addr))
-		{
-			ConnectionRequest(peer, blob);
-		}
+		ConnectionRequest(peer, blob);
 
 		return;
 	}
@@ -716,10 +750,12 @@ void CNetwork::ProcessConnectionless(sockaddr_in *peer, BlobPacket_s *blob)
 
 DEFINE_PACK(CBanDescription)
 {
-	pWriter->Write<DWORD>(1); // version
+	pWriter->Write<DWORD>(2); // version
 	pWriter->WriteString(m_AdminName);
 	pWriter->WriteString(m_Reason);
 	pWriter->Write<DWORD>(m_Timestamp);
+	pWriter->Write<long>(m_BanDuration);
+	pWriter->Write<DWORD>(m_AccountID);
 }
 
 DEFINE_UNPACK(CBanDescription)
@@ -728,6 +764,11 @@ DEFINE_UNPACK(CBanDescription)
 	m_AdminName = pReader->ReadString();
 	m_Reason = pReader->ReadString();
 	m_Timestamp = pReader->Read<DWORD>();
+	if (version > 1)
+	{
+		m_BanDuration = pReader->Read<long>();
+		m_AccountID = pReader->Read<DWORD>();
+	}
 	return true;
 }
 
@@ -751,6 +792,27 @@ bool CNetwork::IsBannedIP(in_addr ipaddr)
 	return m_Bans.m_BanTable.lookup(ipaddr.s_addr) ? true : false;
 }
 
+long CNetwork::GetBanDuration(in_addr ipaddr)
+{
+	long timestamp = m_Bans.m_BanTable.lookup(ipaddr.s_addr)->m_Timestamp;
+	long duration = m_Bans.m_BanTable.lookup(ipaddr.s_addr)->m_BanDuration;
+
+	if (!duration)
+		return 0;
+
+	return (timestamp + duration) - time(0);
+}
+
+DWORD CNetwork::GetBanID(in_addr ipaddr)
+{
+	DWORD id = m_Bans.m_BanTable.lookup(ipaddr.s_addr)->m_AccountID;
+
+	if (!id)
+		return 0;
+
+	return id;
+}
+
 void CNetwork::LoadBans()
 {
 	void *data = NULL;
@@ -769,13 +831,28 @@ void CNetwork::SaveBans()
 	g_pDBIO->CreateOrUpdateGlobalData(DBIO_GLOBAL_BAN_DATA, banData.GetData(), banData.GetSize());
 }
 
-void CNetwork::AddBan(in_addr ipaddr, const char *admin, const char *reason)
+void CNetwork::AddBan(in_addr ipaddr, const char *admin, const char *reason, DWORD account_id)
 {
 	CBanDescription *pBan = &m_Bans.m_BanTable[ipaddr.s_addr];
 
 	pBan->m_AdminName = admin;
 	pBan->m_Reason = reason;
 	pBan->m_Timestamp = time(0);
+	pBan->m_BanDuration = 0;
+	pBan->m_AccountID = account_id;
+
+	SaveBans();
+}
+
+void CNetwork::AddBan(in_addr ipaddr, const char *admin, const char *reason, long duration, DWORD account_id)
+{
+	CBanDescription *pBan = &m_Bans.m_BanTable[ipaddr.s_addr];
+
+	pBan->m_AdminName = admin;
+	pBan->m_Reason = reason;
+	pBan->m_Timestamp = time(0);
+	pBan->m_BanDuration = duration;
+	pBan->m_AccountID = account_id;
 
 	SaveBans();
 }
@@ -799,10 +876,36 @@ std::string CNetwork::GetBanList()
 	for (auto &entry : m_Bans.m_BanTable)
 	{
 		CBanDescription *pBan = &entry.second;
-		banList += csprintf("\n%s - Admin: %s @ %s Reason: %s\n", inet_ntoa(*(in_addr *)&entry.first), pBan->m_AdminName.c_str(), timestampDateString(pBan->m_Timestamp), pBan->m_Reason.c_str());
+		banList += csprintf("\n%s - Admin: %s @ %s Reason: %s Duration: %d\n", inet_ntoa(*(in_addr *)&entry.first), pBan->m_AdminName.c_str(), timestampDateString(pBan->m_Timestamp), pBan->m_Reason.c_str(), GetBanDuration(*(in_addr *)&entry.first));
 	}
 
 	return banList;
+}
+
+DWORD CNetwork::GetUniques()
+{
+	if (!m_NumClients)
+		return 0;
+
+	std::list<std::string> _addresses;
+	std::string addr = "";
+
+	for (DWORD i = 0; i < m_NumClients; i++)
+	{
+		if (CClient *client = m_ClientArray[i])
+		{
+			addr = inet_ntoa(client->GetHostAddress()->sin_addr);
+
+			if (addr != "")
+				_addresses.push_back(addr);
+		}
+	}
+
+	_addresses.unique();
+
+	DWORD count = _addresses.size();
+
+	return count;
 }
 
 

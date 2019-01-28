@@ -844,6 +844,8 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		}
 	}
 
+	DWORD spelldid = 0;
+
 	if (!pEntity->IsCreature() && pEntity->m_Qualities._spell_book)
 	{
 		profile._spellBook = new SmartArray<DWORD>();
@@ -851,6 +853,30 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 
 		for (auto &spell : pEntity->m_Qualities._spell_book->_spellbook)
 			profile._spellBook->add((DWORD *)&spell.first);
+
+		// Has spellbook, check if spell_did exists, if not, add.
+		if (pEntity->m_Qualities.InqDataID(SPELL_DID, spelldid))
+		{
+			int i = 0;
+
+			while (i < profile._spellBook->num_used)
+			{
+				if (profile._spellBook->array_data[i] == spelldid)
+					break;
+
+				i++;
+			}
+
+			if (i == profile._spellBook->num_used)
+				profile._spellBook->add(&spelldid);
+		}
+	}
+	else if (pEntity->m_Qualities.InqDataID(SPELL_DID, spelldid))
+	{
+		// Does not have spellbook, add spell_did
+		profile._spellBook = new SmartArray<DWORD>();
+		profile._spellBook->grow(spelldid);
+		profile._spellBook->add(&spelldid);
 	}
 
 	if (pEntity->IsCreature() && !pEntity->m_Qualities.GetBool(NPC_LOOKS_LIKE_OBJECT_BOOL, false))
@@ -979,7 +1005,7 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 		if (!pEntity->AsCaster())
 		{
 			int baseWeaponDamage = pEntity->InqIntQuality(DAMAGE_INT, 0, TRUE);
-			profile.weapon_profile->weapon_damage = pEntity->GetAttackDamage();
+			profile.weapon_profile->weapon_damage = pEntity->m_Qualities.m_WeenieType == Ammunition_WeenieType ? baseWeaponDamage : pEntity->GetAttackDamage();
 
 			// Don't enchant Ammunition
 			if ((baseWeaponDamage != profile.weapon_profile->weapon_damage) && pEntity->m_Qualities.m_WeenieType != Ammunition_WeenieType)

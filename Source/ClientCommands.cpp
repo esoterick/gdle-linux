@@ -174,6 +174,20 @@ CLIENT_COMMAND(myloc, "", "Info on your current location.", BASIC_ACCESS, EXPLOR
 	return false;
 }
 
+CLIENT_COMMAND(loc_other, "", "Info on your last assessed target's location.", SENTINEL_ACCESS, EXPLORE_CATEGORY)
+{
+	CWeenieObject *other = g_pWorld->FindObject(pPlayer->m_LastAssessed);
+	if (!other)
+		return false;
+
+	pPlayer->SendText(csprintf("%08X %.2f %.2f %.2f %.2f %.2f %.2f %.2f",
+		other->m_Position.objcell_id,
+		other->m_Position.frame.m_origin.x, other->m_Position.frame.m_origin.y, other->m_Position.frame.m_origin.z,
+		other->m_Position.frame.m_angles.w, other->m_Position.frame.m_angles.x, other->m_Position.frame.m_angles.y, other->m_Position.frame.m_angles.z), LTT_DEFAULT);
+
+	return false;
+}
+
 #if 0
 CLIENT_COMMAND(startgame, "[gameid]", "Spawns something by name (right now works for monsters, NPCs, players.)", ADMIN_ACCESS)
 {
@@ -1055,11 +1069,13 @@ CLIENT_COMMAND(getinfo, "", "Get Info from targetted object.", BASIC_ACCESS, GEN
 		return false;
 
 	std::string info;
-	info += csprintf("WCID: %u \nWClass: %s @ %08X",
+	info += csprintf("WCID: %u \nWClass: %s Name: %s \n Loc: %08X %.2f %.2f %.2f %.2f %.2f %.2f %.2f",
 
 		target->m_Qualities.id,
 		GetWCIDName(target->m_Qualities.id),
-		target->m_Position.objcell_id);
+		target->m_Qualities.GetString(NAME_STRING,""), target->m_Position.objcell_id,
+		target->m_Position.frame.m_origin.x, target->m_Position.frame.m_origin.y, target->m_Position.frame.m_origin.z,
+		target->m_Position.frame.m_angles.w, target->m_Position.frame.m_angles.x, target->m_Position.frame.m_angles.y, target->m_Position.frame.m_angles.z);
 
 	pPlayer->SendText(info.c_str(), LTT_DEFAULT);
 
@@ -1655,7 +1671,7 @@ SERVER_COMMAND(kick, "<player name>", "Kicks the specified player.", SENTINEL_AC
 	return false;
 }
 
-SERVER_COMMAND(ban, "<add/remove/list> <player name (if adding) or IP (if removing)> <reason (if adding)>", "Kicks the specified player.", SENTINEL_ACCESS, SERVER_CATEGORY)
+SERVER_COMMAND(ban, "<add/remove/list> <player name (if adding) or IP (if removing)> <reason (if adding)> <duration in seonds (if adding)>", "Kicks the specified player.", SENTINEL_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 1)
 		return true;
@@ -1668,16 +1684,33 @@ SERVER_COMMAND(ban, "<add/remove/list> <player name (if adding) or IP (if removi
 	}
 	else if (!_stricmp(argv[0], "add"))
 	{
+		// Need a reason
 		if (argc < 3)
 			return true;
 
 		CPlayerWeenie *other = g_pWorld->FindPlayer(argv[1]);
-		if (other && other->GetClient())
+		CClient *client = other->GetClient();
+
+		if (other && client)
 		{
-			g_pNetwork->AddBan(other->GetClient()->GetHostAddress()->sin_addr, pPlayer->GetName().c_str(), argv[2]);
-			g_pNetwork->KickClient(other->GetClient());
+			// If no duration then default to a perma ban
+			if (argc < 4)
+			{
+				// Perma Ban
+				g_pNetwork->AddBan(client->GetHostAddress()->sin_addr, pPlayer->GetName().c_str(), argv[2], client->GetAccountInfo().id);
+				g_pNetwork->KickBannedClient(client, 0);
+				g_pDBIO->UpdateBan(client->GetAccountInfo().id, 1);
+			}
+			else if (atol(argv[3]) > 0)
+			{ 
+				// Timed Ban
+				g_pNetwork->AddBan(client->GetHostAddress()->sin_addr, pPlayer->GetName().c_str(), argv[2], atol(argv[3]), client->GetAccountInfo().id);
+				g_pNetwork->KickBannedClient(client, atol(argv[3]));
+				g_pDBIO->UpdateBan(client->GetAccountInfo().id, 1);
+			}
 
 			pPlayer->SendText("Ban added.", LTT_DEFAULT);
+			SERVER_INFO << "Client" << client->GetSlot() << "(" << client->GetAccount() << ") has been banned.";
 		}
 		else
 		{
@@ -1692,10 +1725,15 @@ SERVER_COMMAND(ban, "<add/remove/list> <player name (if adding) or IP (if removi
 			return true;
 
 		DWORD ipaddr = inet_addr(argv[1]);
+		DWORD accountid = g_pNetwork->GetBanID(*(in_addr *)&ipaddr);
+
 		if (ipaddr != 0 && ipaddr != 0xFFFFFFFF)
 		{
 			if (g_pNetwork->RemoveBan(*(in_addr *)&ipaddr))
+			{
 				pPlayer->SendText("Ban removed.", LTT_DEFAULT);
+				g_pDBIO->UpdateBan(accountid, 0);
+			}
 			else
 				pPlayer->SendText(csprintf("Couldn't find ban for IP \"%s\"", argv[1]), LTT_DEFAULT);
 		}
@@ -1987,8 +2025,10 @@ CLIENT_COMMAND(fixbusy, "", "Makes you unbusy if you are stuck.", BASIC_ACCESS, 
 		pPlayer->m_UseManager->Cancel();
 	pPlayer->NotifyUseDone(0);
 	pPlayer->NotifyWeenieError(0);
+	pPlayer->m_bChangingStance = false;
 
 	pPlayer->ChangeCombatMode(NONCOMBAT_COMBAT_MODE, false);
+	pPlayer->m_bChangingStance = false;
 
 	return false;
 }
@@ -2419,17 +2459,49 @@ CLIENT_COMMAND(setmodel, "[monster]", "Changes your model to a monster.", ADMIN_
 #endif
 
 
-CLIENT_COMMAND(invisible, "", "Go Invisible", ADMIN_ACCESS, CHARACTER_CATEGORY)
+CLIENT_COMMAND(invis, "<on/off>", "Turn invisibility on or off", ADMIN_ACCESS, CHARACTER_CATEGORY)
 {
-	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	pPlayer->EmitEffect(PS_Hidden, fSpeed);
+	if (argc < 1)
+		return true;
+
+	if (!_stricmp(argv[0], "on") || !_stricmp(argv[0], "1"))
+	{
+		pPlayer->SendText("You are now invisible.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetBool(VISIBILITY_BOOL, false);
+		pPlayer->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
+	}
+	else if (!_stricmp(argv[0], "off") || !_stricmp(argv[0], "0"))
+	{
+		pPlayer->SendText("You are now visible.", LTT_DEFAULT);
+		pPlayer->m_Qualities.RemoveBool(VISIBILITY_BOOL);
+		pPlayer->NotifyBoolStatUpdated(VISIBILITY_BOOL, false);
+	}
+	else
+		return true;
+
 	return false;
 }
 
-CLIENT_COMMAND(visible, "", "Go Visible", ADMIN_ACCESS, CHARACTER_CATEGORY)
+CLIENT_COMMAND(radar, "<on/off>", "Turn Radar visibility on or off.", ADMIN_ACCESS, CHARACTER_CATEGORY)
 {
-	float fSpeed = (argc >= 2) ? (float)atof(argv[1]) : 1.0f;
-	pPlayer->EmitEffect(PS_UnHide, fSpeed);
+	if (argc < 1)
+		return true;
+
+	if (!_stricmp(argv[0], "on") || !_stricmp(argv[0], "1"))
+	{
+		pPlayer->SendText("You are now visible on radar.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetInt(SHOWABLE_ON_RADAR_INT, 4);
+		pPlayer->NotifyIntStatUpdated(SHOWABLE_ON_RADAR_INT, false);
+	}
+	else if (!_stricmp(argv[0], "off") || !_stricmp(argv[0], "0"))
+	{
+		pPlayer->SendText("You are no longer visible on radar.", LTT_DEFAULT);
+		pPlayer->m_Qualities.SetInt(SHOWABLE_ON_RADAR_INT, 1);
+		pPlayer->NotifyIntStatUpdated(SHOWABLE_ON_RADAR_INT, false);
+	}
+	else
+		return true;
+
 	return false;
 }
 
@@ -2919,7 +2991,7 @@ CLIENT_COMMAND(player, "<command>", "Player commands.", BASIC_ACCESS, SERVER_CAT
 				playerList += csprintf("\n%s", entry.second->GetName().c_str());
 			}
 		}
-		playerList += csprintf("\nEnd of Player List (%u)", (DWORD)pPlayers->size());
+		playerList += csprintf("\nEnd of Player List (%u) - Unique IPs (%u)", (DWORD)pPlayers->size(), g_pNetwork->GetUniques());
 
 		pPlayer->SendText(playerList.c_str(), LTT_DEFAULT);
 	}
@@ -3387,8 +3459,8 @@ CLIENT_COMMAND(setquest, "<name> [# of times to stamp]", "", SENTINEL_ACCESS, CH
 	{
 		pPlayer->_questTable.SetQuestCompletions(argv[0], atoi(argv[1]));
 		pPlayer->SendText(csprintf("%s stamped %s times.", argv[0], argv[1]), LTT_DEFAULT);
-		return false;
 	}
+	return false;
 }
 
 CLIENT_COMMAND(incquest, "<name>", "", SENTINEL_ACCESS, CHARACTER_CATEGORY)
@@ -4701,7 +4773,7 @@ CLIENT_COMMAND(godly, "", "Gives you great attributes.", BASIC_ACCESS, CHARACTER
 
 	pPlayer->m_Qualities.SetAttribute(STRENGTH_ATTRIBUTE, 1000000);
 	pPlayer->m_Qualities.SetAttribute(ENDURANCE_ATTRIBUTE, 1000000);
-	pPlayer->m_Qualities.SetAttribute(QUICKNESS_ATTRIBUTE, 800);
+	pPlayer->m_Qualities.SetAttribute(QUICKNESS_ATTRIBUTE, 790);
 	pPlayer->m_Qualities.SetAttribute(COORDINATION_ATTRIBUTE, 1000000);
 	pPlayer->m_Qualities.SetAttribute(FOCUS_ATTRIBUTE, 1000000);
 	pPlayer->m_Qualities.SetAttribute(SELF_ATTRIBUTE, 1000000);
@@ -4793,9 +4865,29 @@ CLIENT_COMMAND(getcreditother, "", "Gets the current unassigned skill credits of
 	}
 
 	auto targetName = targetID->GetName();
-	DWORD currentcredits = targetID->GetSkillCredits();
-	
-	pPlayer->SendText(csprintf("%s has %d skill credits unassigned.", targetName.c_str(), currentcredits), LTT_DEFAULT);
+	DWORD currentcredits = targetID->AsPlayer()->GetTotalSkillCredits();
+	DWORD expectedCredits = targetID->AsPlayer()->GetExpectedSkillCredits();
+	const char *AunR = "";
+	const char *Oswald = "";
+	if (targetID->InqQuest("arantahkill1")) //Aun Ralirea
+		AunR = "Aun Ralirea";
+
+	if (targetID->InqQuest("ChasingOswaldDone")) //Finding Oswald
+		Oswald = "Finding Oswald";
+
+	//todo add Luminance Skill Credit Checks (2 credits).
+
+	BinaryWriter popupMessage;
+	popupMessage.Write<DWORD>(0x4);
+	popupMessage.WriteString(csprintf("%s has %d skill credits total. \n\n A character of level %d should have %d skill credits. \n\n Skill Credit Quests Complete: \n %s \n %s",
+		targetName.c_str(),
+		currentcredits,
+		targetID->InqIntQuality(LEVEL_INT, 0, TRUE),
+		expectedCredits,
+		AunR,
+		Oswald));
+
+	pPlayer->SendNetMessage(&popupMessage, PRIVATE_MSG, TRUE, FALSE);
 
 
 	return false;

@@ -17,6 +17,15 @@ public:
 	std::vector<std::string> GetBannedWords();
 	std::set<DWORD> GetRestrictedLandblocks();
 
+private:
+
+	using load_func_t = std::function<void(json&)>;
+	bool LoadJsonData(std::filesystem::path path, load_func_t cb);
+	bool LoadJsonData(std::filesystem::path path, PackableJson &data);
+	bool LoadCacheData(DWORD id, DWORD magic1, DWORD magic2, PackObj &data);
+
+public:
+
 	using position_list_t = PackableListWithJson<Position>;
 	using house_portal_table_t = PackableHashTableWithJson<DWORD, position_list_t>;
 	//using mutation_table_t = PackableHashTableWithJson<DWORD, CMutationFilter *>;
