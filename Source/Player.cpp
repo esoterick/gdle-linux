@@ -209,7 +209,7 @@ void CPlayerWeenie::Tick()
 			SendText("The power of Bael'Zharon flows through you, you are once more a player killer.", LTT_MAGIC);
 		}
 	}
-
+	
 	if (m_pClient)
 	{
 		if (m_NextSave <= Timer::cur_time)
@@ -290,7 +290,35 @@ void CPlayerWeenie::Tick()
 		m_Qualities.SetFloat(LAST_TELEPORT_START_TIMESTAMP_FLOAT, 0);
 		m_Qualities.SetFloat(LAST_PORTAL_TELEPORT_TIMESTAMP_FLOAT, Timer::cur_time + 3); //set timeout for next portal use now that we have materialized (for portals).
 	}
+	
+	if (_deathTimer > 0)
+	{
+		if (_deathTimer <= Timer::cur_time)
+		{
+			SetHealth(0, true);
+			OnDeath(GetID());
+			_deathTimer = -1.0;
+			_dieTextTimer = -1.0;
+			_dieTextCounter = 0;
+		}
+		else if (_dieTextTimer > 0 && _dieTextTimer <= Timer::cur_time)
+		{
+			switch (_dieTextCounter)
+			{
+			case 0: SpeakLocal("I feel faint..."); break;
+			case 1: SpeakLocal("My sight is growing dim..."); break;
+			case 2: SpeakLocal("My life is flashing before my eyes..."); break;
+			case 3: SpeakLocal("I see a light"); break;
+			case 4: SpeakLocal("Oh cruel, cruel world!"); break;
+			default: break;
+			}
+
+			_dieTextTimer = Timer::cur_time + 2.0;
+			_dieTextCounter++;
+		}
+	}
 }
+
 
 bool CPlayerWeenie::IsBusy()
 {

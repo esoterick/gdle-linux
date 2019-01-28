@@ -186,6 +186,9 @@ public:
 
 	double _nextTryFixBrokenPosition = 0.0;
 	double _nextRareUse = 0.0;
+	double _deathTimer = -1.0;
+	double _dieTextTimer = -1.0;
+	int _dieTextCounter = 0;
 
 	virtual void OnGivenXP(long long amount, bool allegianceXP) override;
 

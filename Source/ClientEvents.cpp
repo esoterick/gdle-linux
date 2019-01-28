@@ -3777,9 +3777,8 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 	{
 		if (!m_pPlayer->IsDead() && !m_pPlayer->IsInPortalSpace() && !m_pPlayer->IsBusyOrInAction())
 		{
-			// this is a bad way of doing this...
-			m_pPlayer->SetHealth(0, true);
-			m_pPlayer->OnDeath(m_pPlayer->GetID());
+			m_pPlayer->_deathTimer = Timer::cur_time + 10.5;
+			m_pPlayer->_dieTextTimer = Timer::cur_time + 1.9;
 		}
 
 		break;
