@@ -75,14 +75,14 @@ void TradeManager::AddToTrade(CPlayerWeenie *playerFrom, DWORD item)
 		itemList = &m_lPartnerItems;
 	}
 
-	// Client doesn't send trade accept if item count is over 50.
-	if (itemList->size() < 50)
+	// Client doesn't send trade accept if item count is over 50. TODO: Find a way to implement without breaking trade bots.
+	//if (itemList->size() < 50)
 		itemList->push_back(item);
-	else
-	{
-		TradeFailure(playerFrom, item);
-		return;
-	}
+	//else
+	//{
+	//	TradeFailure(playerFrom, item);
+	//	return;
+	//}
 
 	m_bInitiatorAccepted = false;
 	m_bPartnerAccepted = false;
