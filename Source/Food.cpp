@@ -24,6 +24,9 @@ int CFoodWeenie::Use(CPlayerWeenie *pOther)
 	if (!pOther->FindContainedItem(GetID()))
 		return WERROR_OBJECT_GONE;
 
+	if (pOther->IsInPortalSpace())
+		return WERROR_ACTIONS_LOCKED;
+
 	CFoodUseEvent *useEvent = new CFoodUseEvent;
 	useEvent->_target_id = GetID();
 	useEvent->_do_use_animation = Motion_Eat;

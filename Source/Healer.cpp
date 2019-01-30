@@ -26,6 +26,12 @@ int CHealerWeenie::UseWith(CPlayerWeenie *player, CWeenieObject *with)
 		return WERROR_NONE;
 	}
 
+	if (player->IsInPortalSpace())
+	{
+		player->NotifyUseDone(0);
+		return WERROR_ACTIONS_LOCKED;
+	}
+
 	DWORD healing_skill = 0;
 	if (!player->InqSkill(HEALING_SKILL, healing_skill, TRUE) || !healing_skill)
 	{

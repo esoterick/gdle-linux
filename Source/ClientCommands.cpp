@@ -1671,7 +1671,7 @@ SERVER_COMMAND(kick, "<player name>", "Kicks the specified player.", SENTINEL_AC
 	return false;
 }
 
-SERVER_COMMAND(ban, "<add/remove/list> <player name (if adding) or IP (if removing)> <reason (if adding)>", "Kicks the specified player.", SENTINEL_ACCESS, SERVER_CATEGORY)
+SERVER_COMMAND(ban, "<add/remove/list> <player name (if adding) or IP (if removing)> <reason (if adding)> <duration in seonds (if adding)>", "Kicks the specified player.", SENTINEL_ACCESS, SERVER_CATEGORY)
 {
 	if (argc < 1)
 		return true;
@@ -1684,16 +1684,33 @@ SERVER_COMMAND(ban, "<add/remove/list> <player name (if adding) or IP (if removi
 	}
 	else if (!_stricmp(argv[0], "add"))
 	{
+		// Need a reason
 		if (argc < 3)
 			return true;
 
 		CPlayerWeenie *other = g_pWorld->FindPlayer(argv[1]);
-		if (other && other->GetClient())
+		CClient *client = other->GetClient();
+
+		if (other && client)
 		{
-			g_pNetwork->AddBan(other->GetClient()->GetHostAddress()->sin_addr, pPlayer->GetName().c_str(), argv[2]);
-			g_pNetwork->KickClient(other->GetClient());
+			// If no duration then default to a perma ban
+			if (argc < 4)
+			{
+				// Perma Ban
+				g_pNetwork->AddBan(client->GetHostAddress()->sin_addr, pPlayer->GetName().c_str(), argv[2], client->GetAccountInfo().id);
+				g_pNetwork->KickBannedClient(client, 0);
+				g_pDBIO->UpdateBan(client->GetAccountInfo().id, 1);
+			}
+			else if (atol(argv[3]) > 0)
+			{ 
+				// Timed Ban
+				g_pNetwork->AddBan(client->GetHostAddress()->sin_addr, pPlayer->GetName().c_str(), argv[2], atol(argv[3]), client->GetAccountInfo().id);
+				g_pNetwork->KickBannedClient(client, atol(argv[3]));
+				g_pDBIO->UpdateBan(client->GetAccountInfo().id, 1);
+			}
 
 			pPlayer->SendText("Ban added.", LTT_DEFAULT);
+			SERVER_INFO << "Client" << client->GetSlot() << "(" << client->GetAccount() << ") has been banned.";
 		}
 		else
 		{
@@ -1708,10 +1725,15 @@ SERVER_COMMAND(ban, "<add/remove/list> <player name (if adding) or IP (if removi
 			return true;
 
 		DWORD ipaddr = inet_addr(argv[1]);
+		DWORD accountid = g_pNetwork->GetBanID(*(in_addr *)&ipaddr);
+
 		if (ipaddr != 0 && ipaddr != 0xFFFFFFFF)
 		{
 			if (g_pNetwork->RemoveBan(*(in_addr *)&ipaddr))
+			{
 				pPlayer->SendText("Ban removed.", LTT_DEFAULT);
+				g_pDBIO->UpdateBan(accountid, 0);
+			}
 			else
 				pPlayer->SendText(csprintf("Couldn't find ban for IP \"%s\"", argv[1]), LTT_DEFAULT);
 		}
@@ -3437,8 +3459,8 @@ CLIENT_COMMAND(setquest, "<name> [# of times to stamp]", "", SENTINEL_ACCESS, CH
 	{
 		pPlayer->_questTable.SetQuestCompletions(argv[0], atoi(argv[1]));
 		pPlayer->SendText(csprintf("%s stamped %s times.", argv[0], argv[1]), LTT_DEFAULT);
-		return false;
 	}
+	return false;
 }
 
 CLIENT_COMMAND(incquest, "<name>", "", SENTINEL_ACCESS, CHARACTER_CATEGORY)
@@ -4751,7 +4773,7 @@ CLIENT_COMMAND(godly, "", "Gives you great attributes.", BASIC_ACCESS, CHARACTER
 
 	pPlayer->m_Qualities.SetAttribute(STRENGTH_ATTRIBUTE, 1000000);
 	pPlayer->m_Qualities.SetAttribute(ENDURANCE_ATTRIBUTE, 1000000);
-	pPlayer->m_Qualities.SetAttribute(QUICKNESS_ATTRIBUTE, 800);
+	pPlayer->m_Qualities.SetAttribute(QUICKNESS_ATTRIBUTE, 790);
 	pPlayer->m_Qualities.SetAttribute(COORDINATION_ATTRIBUTE, 1000000);
 	pPlayer->m_Qualities.SetAttribute(FOCUS_ATTRIBUTE, 1000000);
 	pPlayer->m_Qualities.SetAttribute(SELF_ATTRIBUTE, 1000000);
@@ -4852,14 +4874,14 @@ CLIENT_COMMAND(getcreditother, "", "Gets the current unassigned skill credits of
 
 	if (targetID->InqQuest("ChasingOswaldDone")) //Finding Oswald
 		Oswald = "Finding Oswald";
-	
+
 	//todo add Luminance Skill Credit Checks (2 credits).
 
 	BinaryWriter popupMessage;
 	popupMessage.Write<DWORD>(0x4);
-	popupMessage.WriteString(csprintf("%s has %d skill credits total. \n\n A character of level %d should have %d skill credits. \n\n Skill Credit Quests Complete: \n %s \n %s", 
-		targetName.c_str(), 
-		currentcredits, 
+	popupMessage.WriteString(csprintf("%s has %d skill credits total. \n\n A character of level %d should have %d skill credits. \n\n Skill Credit Quests Complete: \n %s \n %s",
+		targetName.c_str(),
+		currentcredits,
 		targetID->InqIntQuality(LEVEL_INT, 0, TRUE),
 		expectedCredits,
 		AunR,

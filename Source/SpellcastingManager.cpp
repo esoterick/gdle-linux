@@ -3325,6 +3325,8 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		// m_pWeenie->SendText(csprintf("DEBUG: Actions Locked, Casting = true, Turning = %s", m_bTurningToObject ? "true" : "false"), LTT_ALL_CHANNELS);
 		return WERROR_ACTIONS_LOCKED;
 	}
+	if (m_pWeenie->IsInPortalSpace())
+		return WERROR_ACTIONS_LOCKED;
 
 	if (m_pWeenie->get_minterp()->interpreted_state.actions.size())
 	{
@@ -3492,6 +3494,8 @@ int CSpellcastingManager::TryBeginCast(DWORD target_id, DWORD spell_id)
 		return WERROR_NONE;
 	}
 	
+	m_pWeenie->AsPlayer()->CancelLifestoneProtection();
+
 	BeginCast();
 	return WERROR_NONE;
 }

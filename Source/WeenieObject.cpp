@@ -381,6 +381,9 @@ bool CWeenieObject::IsDead()
 
 bool CWeenieObject::IsInPortalSpace()
 {
+	if (InqFloatQuality(LAST_TELEPORT_START_TIMESTAMP_FLOAT, 0))
+		return true;
+
 	return false;
 }
 
@@ -608,7 +611,10 @@ void CWeenieObject::Revive()
 	SetHealth((int)(GetMaxHealth() * InqFloatQuality(HEALTH_UPON_RESURRECTION_FLOAT, 1.0f)));
 	SetStamina((int)(GetMaxStamina() * InqFloatQuality(STAMINA_UPON_RESURRECTION_FLOAT, 1.0f)));
 	SetMana((int)(GetMaxMana() * InqFloatQuality(MANA_UPON_RESURRECTION_FLOAT, 1.0f)));
-}
+
+	m_Qualities.SetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 1);
+	m_Qualities.SetFloat(LIFESTONE_PROTECTION_TIMESTAMP_FLOAT, (Timer::cur_time + 60.0));
+}	
 
 bool CWeenieObject::TeleportToSpawn()
 {
@@ -4133,6 +4139,13 @@ void CWeenieObject::TryToDealDamage(DamageEventData &data)
 			return;
 	}
 
+	if (data.target->AsPlayer() && data.target->AsPlayer()->m_Qualities.GetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 0))
+	{
+		data.target->EmitEffect(PS_ShieldUpBlue, 1.0);
+		data.target->NotifyWeenieError(WERROR_LIFESTONE_PROTECTION);
+		return;
+	}
+
 	if (data.damage_form & DF_PHYSICAL)
 	{
 		std::list<long> bodyParts;
@@ -6652,6 +6665,12 @@ void CWeenieObject::OnTeleported()
 
 	if (m_AttackManager)
 		m_AttackManager->Cancel();
+
+	if (AsPlayer())
+		AsPlayer()->CancelLifestoneProtection(); //terminate lifestone protection on teleport (catch all for portal use and /recalls. Casted portals are captured in SpellCastingManager.cpp)
+
+	if (AsPlayer())
+		m_Qualities.SetFloat(LAST_TELEPORT_START_TIMESTAMP_FLOAT, Timer::cur_time + 7.0);
 }
 
 void CWeenieObject::Movement_Teleport(const Position &position, bool bWasDeath)

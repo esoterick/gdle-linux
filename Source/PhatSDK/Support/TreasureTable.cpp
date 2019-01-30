@@ -8,6 +8,27 @@ DEFINE_PACK(TreasureEntry)
 	UNFINISHED();
 }
 
+DEFINE_PACK_JSON(TreasureEntry)
+{
+	writer["WeenieClassId"] = _wcid;
+	writer["PaletteId"] = _ptid;
+	writer["Unknown1"] = m_08_AlwaysZero; // always zero
+	writer["Shade"] = _shade;
+	writer["StackSize"] = _amount;
+	writer["StackSizeVariance"] = _amountVariance;
+	writer["Probability"] = _chance;
+	writer["Unknown3"] = m_1C_AlwaysZero; // always zero
+	writer["Unknown4"] = m_20_AlwaysZero; // always zero
+	writer["Unknown5"] = m_24_AlwaysZero; // always zero
+	writer["SetStart"] = _setStart; // bool
+	writer["HasSubSet"] = _hasSubSet; // bool
+	writer["ContinuesPreviousSet"] = _continuesPreviousSet; // bool
+	writer["Unknown9"] = m_34_AlwaysZero; // always zero
+	writer["Unknown10"] = m_38_AlwaysZero; // always zero
+	writer["Unknown11"] = m_3C_AlwaysZero; // always zero
+	writer["Unknown12"] = m_40_AlwaysZero; // always zero
+}
+
 DEFINE_UNPACK(TreasureEntry)
 {
 	_wcid = (WClassIDEnum) pReader->Read<DWORD>();
@@ -29,6 +50,30 @@ DEFINE_UNPACK(TreasureEntry)
 	m_40_AlwaysZero = pReader->Read<DWORD>(); // always zero
 
 	return true;
+}
+
+DEFINE_UNPACK_JSON(TreasureEntry)
+{
+	_wcid = (WClassIDEnum)reader["WeenieClassId"];
+	_ptid = reader["PaletteId"];
+	m_08_AlwaysZero = reader["Unknown1"]; // always zero
+	_shade = reader["Shade"];
+	_amount = reader["StackSize"];
+	_amountVariance = reader["StackSizeVariance"];
+	_chance = reader["Probability"];
+	m_1C_AlwaysZero = reader["Unknown3"]; // always zero
+	m_20_AlwaysZero = reader["Unknown4"]; // always zero
+	m_24_AlwaysZero = reader["Unknown5"]; // always zero
+	_setStart = reader["SetStart"]; // bool
+	_hasSubSet = reader["HasSubSet"]; // bool
+	_continuesPreviousSet = reader["ContinuesPreviousSet"]; // bool
+	m_34_AlwaysZero = reader["Unknown9"]; // always zero
+	m_38_AlwaysZero = reader["Unknown10"]; // always zero
+	m_3C_AlwaysZero = reader["Unknown11"]; // always zero
+	m_40_AlwaysZero = reader["Unknown12"]; // always zero
+
+	return true;
+
 }
 
 DEFINE_PACK(TreasureEntry2)

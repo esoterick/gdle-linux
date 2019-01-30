@@ -175,23 +175,24 @@ DEFINE_UNPACK(AllegianceHierarchy)
 		node->UnPack(pReader);
 		_nodes.push_back(node);
 	}
-	if (allAllegiancesUpdated) {
-		m_storedMOTD = pReader->ReadString();
-		m_storedMOTDSetBy = pReader->ReadString();
-		for (int i = 0; i < 3; i++) {
-			m_officerTitleList[i] = pReader->ReadString();
-			if (m_officerTitleList[i].empty())
-				switch (i)
-				{
-				case 0: m_officerTitleList[i] = "Speaker"; break;
-				case 1: m_officerTitleList[i] = "Seneschal"; break;
-				case 2:m_officerTitleList[i] = "Castellan"; break;
-				}
-		}
-		m_officerList.UnPack(pReader);
-		m_BanList.UnPack(pReader);
-		m_chatGagList.UnPack(pReader);
+
+	m_storedMOTD = pReader->ReadString();
+	m_storedMOTDSetBy = pReader->ReadString();
+
+	for (int i = 0; i < 3; i++) {
+		m_officerTitleList[i] = pReader->ReadString();
+		if (m_officerTitleList[i].empty())
+			switch (i)
+			{
+			case 0: m_officerTitleList[i] = "Speaker"; break;
+			case 1: m_officerTitleList[i] = "Seneschal"; break;
+			case 2:m_officerTitleList[i] = "Castellan"; break;
+			}
 	}
+
+	m_officerList.UnPack(pReader);
+	m_BanList.UnPack(pReader);
+	m_chatGagList.UnPack(pReader);
 
 	return true;
 }

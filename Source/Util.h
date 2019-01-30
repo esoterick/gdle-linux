@@ -103,6 +103,66 @@ public:
 	virtual ~TLockable() = default;
 };
 
+class ThreadedFileLoader
+{
+protected:
+	using file_load_func_t = std::function<void(std::filesystem::path)>;
+	void PerformLoad(std::filesystem::path root, file_load_func_t loadfn)
+	{
+		auto itr = std::filesystem::recursive_directory_iterator(root, std::filesystem::directory_options::skip_permission_denied);
+		const auto end = std::filesystem::recursive_directory_iterator();
+
+		std::list< std::future<void> > tasks;
+
+		uint32_t maxTasks = std::thread::hardware_concurrency();
+
+		while (itr != end)
+		{
+			std::filesystem::path path = itr->path();
+			if (itr->is_regular_file() && path.extension().compare(".json") == 0)
+			{
+				tasks.push_back(std::async(std::launch::async, [path, loadfn]()
+				{
+					loadfn(path);
+				}));
+			}
+
+			try
+			{
+				itr++;
+			}
+			catch (std::exception &ex)
+			{
+			}
+
+			while (tasks.size() > maxTasks)
+			{
+				auto task = tasks.begin();
+				while (task != tasks.end())
+				{
+					auto status = task->wait_for(std::chrono::milliseconds(0));
+					if (status == std::future_status::ready)
+					{
+						task = tasks.erase(task);
+					}
+					else
+					{
+						task++;
+					}
+				}
+				std::this_thread::yield();
+			}
+		}
+
+		while (tasks.size() > 0)
+		{
+			tasks.front().wait();
+			tasks.pop_front();
+		}
+
+	}
+};
+
 class CClient;
 struct BlockData;
 

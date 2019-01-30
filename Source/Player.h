@@ -186,6 +186,9 @@ public:
 
 	double _nextTryFixBrokenPosition = 0.0;
 	double _nextRareUse = 0.0;
+	double _deathTimer = -1.0;
+	double _dieTextTimer = -1.0;
+	int _dieTextCounter = 0;
 
 	virtual void OnGivenXP(long long amount, bool allegianceXP) override;
 
@@ -199,10 +202,16 @@ public:
 	bool IsLoggingOut() { return _logoutTime >= 0.0; }
 	bool IsRecalling() { return _recallTime >= 0.0; }
 	void BeginRecall(const Position &targetPos);
+	void CPlayerWeenie::CancelLifestoneProtection();
+
+	bool HasPortalUseCooldown() { return InqFloatQuality(LAST_PORTAL_TELEPORT_TIMESTAMP_FLOAT, 0) >= 1.0; }
+	bool HasTeleportUseCooldown() { return InqFloatQuality(LAST_TELEPORT_START_TIMESTAMP_FLOAT, 0) >= 1.0; }
 
 	virtual bool IsBusy() override;
 	virtual void OnTeleported() override;
 	bool IsPlayerSquelched(const DWORD dwGUID, bool checkAccount = TRUE);
+
+	//bool HasTeleportCooldown() { return; }
 
 	CCorpseWeenie *_pendingCorpse = NULL;
 	DWORD GetAccountHouseId();
