@@ -52,11 +52,15 @@ void CVendor::ResetItems()
 
 void CVendor::AddVendorItem(DWORD wcid, int ptid, float shade, int amount)
 {
+	
+	if (wcid == 1)
+		return;
+
 	CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid);
 
 	if (!weenie)
 		return;
-
+	   
 	if (ptid)
 		weenie->m_Qualities.SetInt(PALETTE_TEMPLATE_INT, ptid);
 
@@ -74,6 +78,9 @@ void CVendor::AddVendorItem(DWORD wcid, int ptid, float shade, int amount)
 
 void CVendor::AddVendorItem(DWORD wcid, int amount)
 {
+	if (wcid == 1)
+		return;
+
 	CWeenieObject *weenie = g_pWeenieFactory->CreateWeenieByClassID(wcid);
 		
 	if (!weenie)
