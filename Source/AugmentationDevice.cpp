@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "AugmentationDevice.h"
 #include "UseManager.h"
@@ -33,6 +32,12 @@ int CAugmentationDeviceWeenie::UseEx(CPlayerWeenie *player, bool bConfirmed)
 	// Save these for later for the confirmation response
 	player->m_pCraftingTool = this;
 	player->m_pCraftingTarget = player;
+	
+	if (player->m_pCraftingTool == NULL || player->m_pCraftingTarget == NULL || !player->FindContainedItem(GetID()))
+	{
+		// Item missing.
+		return WERROR_NONE;
+	}
 
 	if (!bConfirmed)
 	{
