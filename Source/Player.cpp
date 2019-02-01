@@ -3255,11 +3255,11 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 	if (g_pConfig->FixOldChars())
 	{
 		//Refund Credits for those who lost them at Asheron's Castle.
-		DWORD currentcredits = GetTotalSkillCredits();
-		DWORD expectedCredits = GetExpectedSkillCredits();
-
-		if (currentcredits < expectedCredits)
-			GiveSkillCredits(expectedCredits - currentcredits, true);
+		int currentcredits = GetTotalSkillCredits();
+		int expectedCredits = GetExpectedSkillCredits();
+		
+		if (currentcredits != expectedCredits)
+			AdjustSkillCredits(expectedCredits - currentcredits, true);
 
 		int heritage = InqIntQuality(HERITAGE_GROUP_INT, 1);
 
@@ -4726,12 +4726,11 @@ DWORD CPlayerWeenie::GetExpectedSkillCredits(bool countCreditQuests)
 	}
 
 	int currentLevel = InqIntQuality(LEVEL_INT, 0, TRUE);
-	int testLevel = 1; //first credit gain occurs at level 2
-
-	while (testLevel <= currentLevel && testLevel < ExperienceSystem::GetMaxLevel())
+	currentLevel = min(currentLevel, 275);
+	for (int x = 1; x < currentLevel + 1; x++)
 	{
-		testLevel++;
-		expectedCredits += ExperienceSystem::GetCreditsForLevel(testLevel);
+		expectedCredits += ExperienceSystem::GetCreditsForLevel(x);
 	}
+	
 	return expectedCredits;
 }

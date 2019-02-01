@@ -375,7 +375,7 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 		if (!target)
 			break;
 
-		target->GiveSkillCredits(emote.amount, true);
+		target->AdjustSkillCredits(emote.amount, true);
 		break;
 	}
 	case AwardLevelProportionalXP_EmoteType:

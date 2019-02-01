@@ -2008,7 +2008,7 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 	m_Qualities.SetInt64(TOTAL_EXPERIENCE_INT64, newTotalXP);
 	NotifyInt64StatUpdated(TOTAL_EXPERIENCE_INT64);
 
-	GiveSkillCredits(skillCredits, false);
+	AdjustSkillCredits(skillCredits, false);
 
 	if (bLeveled)
 	{
@@ -2419,25 +2419,24 @@ DWORD CWeenieObject::GiveSkillPoints(STypeSkill key, DWORD amount)
 	return amount;
 }
 
-void CWeenieObject::GiveSkillCredits(DWORD amount, bool showText)
+void CWeenieObject::AdjustSkillCredits(int amount, bool showText)
 {
-	if (amount <= 0)
+	if (amount == 0)
 		return;
 
-	if (!amount)
-		return;
+	std::string creditChange = "earned";
+	if (amount < 0)
+	{
+		creditChange = "lost";
+		amount = 0;
+	}
 
-	DWORD unassignedCredits = 0;
-	m_Qualities.InqInt(AVAILABLE_SKILL_CREDITS_INT, *(int *)&unassignedCredits);
-	m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, unassignedCredits + amount);
+	m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, GetSkillCredits() + amount);
 	NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
 
 	if (showText)
 	{
-		if (_phys_obj)
-			_phys_obj->EmitSound(Sound_RaiseTrait, 1.0, true);
-
-		SendText(csprintf("You have earned %u skill %s!", amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
+		SendText(csprintf("You have %s %d skill %s!", creditChange.c_str(), amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
 	}
 }
 

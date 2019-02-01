@@ -4906,7 +4906,7 @@ CLIENT_COMMAND(givecreditother, "<player name> [value]", "Gives your last assess
 	amount = max(amount, (DWORD)1);
 	amount = min(amount, (DWORD)100);
 
-	targetID->GiveSkillCredits(amount, true);
+	targetID->AdjustSkillCredits(amount, true);
 	DWORD postcredits = targetID->GetSkillCredits();
 	if (postcredits - amount == initialcredits)
 		pPlayer->SendText(csprintf("%s has been awarded %d skill credits! Initial skill credits were %d, post command credits are %d.", targetName.c_str(), amount, initialcredits, postcredits), LTT_DEFAULT);
@@ -4933,7 +4933,7 @@ CLIENT_COMMAND(givecredit, "[value]", "Gives you some skill credits for testing.
 	amount = max(amount, (DWORD)1);
 	amount = min(amount, (DWORD)100);
 
-	pPlayer->GiveSkillCredits(amount, true);
+	pPlayer->AdjustSkillCredits(amount, true);
 
 	return false;
 }
