@@ -4891,18 +4891,20 @@ CLIENT_COMMAND(givecreditother, "<player name> [value]", "Gives your last assess
 		pPlayer->SendText("Last Assessed player target does not match named target!", LTT_DEFAULT);
 		return true;
 	}
-	DWORD initialcredits = targetID->GetSkillCredits();
-	DWORD amount = 0;
+	int initialcredits = targetID->GetSkillCredits();
+	int amount = 0;
 	if (argc >= 1)
 	{
-		amount = strtoul(argv[1], NULL, 10);
+		amount = stoi(argv[1], NULL, 10);
 	}
 	else
 		return true;
 
-	amount = max(amount, (DWORD)1);
-	amount = min(amount, (DWORD)100);
-
+	// Cant go below Initialcredits if initialcredits at 0 or if amount would take available below 0
+	// Can give neg credits
+	if ((amount + initialcredits) < 0)
+		amount = (-initialcredits);
+	
 	targetID->GiveSkillCredit(amount);
 	DWORD postcredits = targetID->GetSkillCredits();
 	if (postcredits - amount == initialcredits)
