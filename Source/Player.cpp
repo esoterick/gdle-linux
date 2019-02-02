@@ -3303,6 +3303,13 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 		m_Qualities.RemoveInstanceID(CONTAINER_IID);
 	}
 
+	DWORD patronID = 0;
+	m_Qualities.InqInstanceID(PATRON_IID, patronID);
+
+	if (g_pDBIO->GetCharacterInfo(GetID()).account_id == g_pDBIO->GetCharacterInfo(patronID).account_id)
+	{
+		g_pAllegianceManager->TryBreakAllegiance(this, patronID);
+	}
 
 	if (g_pConfig->FixOldChars())
 	{
