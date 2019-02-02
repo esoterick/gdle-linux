@@ -23,9 +23,9 @@ void MAllegianceSwear_001D::Parse(BinaryReader * reader)
 
 void MAllegianceSwear_001D::Process()
 {
-	if (CWeenieObject* target = g_pWorld->FindObject(m_dwTarget))
+	if(CPlayerWeenie *targetWeenie = g_pWorld->FindPlayer(m_dwTarget))
 	{
-		g_pAllegianceManager->TrySwearAllegiance(m_pPlayer, target);
+		g_pAllegianceManager->TrySwearAllegiance(m_pPlayer, targetWeenie);
 		g_pAllegianceManager->SendAllegianceProfile(m_pPlayer);
 	}
 }

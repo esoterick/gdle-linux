@@ -2008,7 +2008,7 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 	m_Qualities.SetInt64(TOTAL_EXPERIENCE_INT64, newTotalXP);
 	NotifyInt64StatUpdated(TOTAL_EXPERIENCE_INT64);
 
-	AdjustSkillCredits(skillCredits, false);
+	GiveSkillCredit(skillCredits);
 
 	if (bLeveled)
 	{
@@ -2419,8 +2419,22 @@ DWORD CWeenieObject::GiveSkillPoints(STypeSkill key, DWORD amount)
 	return amount;
 }
 
-void CWeenieObject::AdjustSkillCredits(int amount, bool showText)
+void CWeenieObject::GiveSkillCredit(int amount)
 {
+	int newAmount = (int)(GetSkillCredits()) + amount;
+	SetAvailSkillsAndNotifyPlayer(newAmount);
+	SendText(csprintf("You have gained %d skill %s!", amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
+}
+
+void CWeenieObject::SetAvailSkillsAndNotifyPlayer(int amount)
+{
+	m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, amount);
+	NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
+}
+
+void CWeenieObject::AdjustSkillCredits(int expected, int current, bool showText)
+{
+	int amount = expected - current;
 	if (amount == 0)
 		return;
 
@@ -2428,16 +2442,13 @@ void CWeenieObject::AdjustSkillCredits(int amount, bool showText)
 	if (amount < 0)
 	{
 		creditChange = "lost";
-		amount = 0;
 	}
 
-	m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, GetSkillCredits() + amount);
-	NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
+	if (!showText)
+		creditChange = "";
 
-	if (showText)
-	{
-		SendText(csprintf("You have %s %d skill %s!", creditChange.c_str(), amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
-	}
+	SetAvailSkillsAndNotifyPlayer(max((int)(GetSkillCredits()) + amount, 0));
+	SendText(csprintf("You have %s %d skill %s!", creditChange.c_str(), abs(amount), amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
 }
 
 DWORD CWeenieObject::GetSkillCredits()

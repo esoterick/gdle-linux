@@ -374,7 +374,10 @@ public:
 	DWORD GiveSkillPoints(STypeSkill key, DWORD amount);
 	DWORD GiveSkillAdvancementClass(STypeSkill key, SKILL_ADVANCEMENT_CLASS sac);
 	DWORD GetSkillCredits();
-	void AdjustSkillCredits(int amount, bool showText);
+	void GiveSkillCredit(int amount);
+
+	void SetAvailSkillsAndNotifyPlayer(int amount);
+	void AdjustSkillCredits(int expected, int current, bool showText);
 	bool IsSkillAugmented(STypeSkill key);
 
 	void TryToUnloadAllegianceXP(bool bShowText);

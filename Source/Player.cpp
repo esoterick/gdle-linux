@@ -3254,12 +3254,9 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 
 	if (g_pConfig->FixOldChars())
 	{
+
 		//Refund Credits for those who lost them at Asheron's Castle.
-		int currentcredits = GetTotalSkillCredits();
-		int expectedCredits = GetExpectedSkillCredits();
-		
-		if (currentcredits != expectedCredits)
-			AdjustSkillCredits(expectedCredits - currentcredits, true);
+		AdjustSkillCredits(GetExpectedSkillCredits(), GetTotalSkillCredits(), true);
 
 		int heritage = InqIntQuality(HERITAGE_GROUP_INT, 1);
 
@@ -4655,6 +4652,23 @@ DWORD CPlayerWeenie::GetTotalSkillCredits(bool removeCreditQuests) //Total curre
 	for (int i = 1; i < 55; ++i) //54 usable skills
 	{
 		STypeSkill skillName = (STypeSkill)i;
+
+		switch (skillName)
+		{
+		case UNDEF_SKILL:
+		case AXE_SKILL:
+		case BOW_SKILL:
+		case CROSSBOW_SKILL:
+		case DAGGER_SKILL:
+		case MACE_SKILL:
+		case SLING_SKILL:
+		case SPEAR_SKILL:
+		case STAFF_SKILL:
+		case SWORD_SKILL:
+		case THROWN_WEAPON_SKILL:
+		case UNARMED_COMBAT_SKILL:
+			continue;
+		}
 
 		SkillTable *pSkillTable = SkillSystem::GetSkillTable();
 		const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skillName);
