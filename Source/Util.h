@@ -12,7 +12,9 @@ namespace Random
 
 	uint32_t GenUInt(uint32_t min, uint32_t max);
 	int32_t GenInt(int32_t min, int32_t max);
+	double GenFloat();
 	double GenFloat(double min, double max);
+	float GenFloat(float min, float max);
 };
 
 class PhatString : public std::string

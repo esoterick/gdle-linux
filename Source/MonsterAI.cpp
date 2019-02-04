@@ -414,7 +414,7 @@ void MonsterAIManager::GenerateRandomAttack(DWORD *motion, ATTACK_HEIGHT *height
 {
 	*motion = 0;
 	*height = ATTACK_HEIGHT::UNDEF_ATTACK_HEIGHT;
-	*power = Random::GenFloat(0, 1);
+	*power = (float)Random::GenFloat();
 
 	if (m_pWeenie->_combatTable)
 	{
@@ -956,7 +956,7 @@ void MonsterAIManager::UpdateMissileModeAttack()
 			// do physics attack
 			DWORD motion = 0;
 			ATTACK_HEIGHT height = (ATTACK_HEIGHT)Random::GenUInt(1, 3);
-			float power = Random::GenFloat(0, 1);
+			float power = (float)Random::GenFloat();
 
 			m_pWeenie->TryMissileAttack(pTarget->GetID(), height, power);
 

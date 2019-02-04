@@ -48,7 +48,8 @@ int getRandomNumberWithFavoredValue(int minInclusive, int maxInclusive, double f
 	if (favorStrength < DBL_EPSILON)
 	{
 		// favourStrength is zero so were just return a uniform random number
-		int dReturn = floor((rand() / (long double)RAND_MAX) * (maxInclusive - minInclusive + 1)) + minInclusive;
+		//int dReturn = floor((rand() / (long double)RAND_MAX) * (maxInclusive - minInclusive + 1)) + minInclusive;
+		int dReturn = floor(Random::GenFloat() * (maxInclusive - minInclusive + 1)) + minInclusive;
 
 		return min(max(minInclusive, dReturn), maxInclusive);
 	}
@@ -70,7 +71,8 @@ int getRandomNumberWithFavoredValue(int minInclusive, int maxInclusive, double f
 	// and the area left of (maxInclusive+0.5)
 	double totArea = (2 - pow(a, favorValue - (maxInclusive + 0.5))) - minArea;
 	// here goes...
-	double r = (rand() / (long double)RAND_MAX) * totArea + minArea;
+	//double r = (rand() / (long double)RAND_MAX) * totArea + minArea;
+	double r = Random::GenFloat() * totArea + minArea;
 
 	int iReturn = 0;
 
