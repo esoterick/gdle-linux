@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "WeenieObject.h"
 #include "PhysicsObj.h"
@@ -2014,10 +2013,10 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 	m_Qualities.SetInt64(TOTAL_EXPERIENCE_INT64, newTotalXP);
 	NotifyInt64StatUpdated(TOTAL_EXPERIENCE_INT64);
 
-	GiveSkillCredits(skillCredits, false);
-
 	if (bLeveled)
 	{
+	    GiveSkillCredit(skillCredits);
+	    
 		AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(GetID());
 		if(node)
 			node->_level = currentLevel;
@@ -2425,26 +2424,36 @@ DWORD CWeenieObject::GiveSkillPoints(STypeSkill key, DWORD amount)
 	return amount;
 }
 
-void CWeenieObject::GiveSkillCredits(DWORD amount, bool showText)
+void CWeenieObject::GiveSkillCredit(int amount)
 {
-	if (amount <= 0)
-		return;
+	int newAmount = (int)(GetSkillCredits()) + amount;
+	SetAvailSkillsAndNotifyPlayer(newAmount);
+	SendText(csprintf("You have gained %d skill %s!", amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
+}
 
-	if (!amount)
-		return;
-
-	DWORD unassignedCredits = 0;
-	m_Qualities.InqInt(AVAILABLE_SKILL_CREDITS_INT, *(int *)&unassignedCredits);
-	m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, unassignedCredits + amount);
+void CWeenieObject::SetAvailSkillsAndNotifyPlayer(int amount)
+{
+	m_Qualities.SetInt(AVAILABLE_SKILL_CREDITS_INT, amount);
 	NotifyIntStatUpdated(AVAILABLE_SKILL_CREDITS_INT);
+}
 
-	if (showText)
+void CWeenieObject::AdjustSkillCredits(int expected, int current, bool showText)
+{
+	int amount = expected - current;
+	if (amount == 0)
+		return;
+
+	std::string creditChange = "earned";
+	if (amount < 0)
 	{
-		if (_phys_obj)
-			_phys_obj->EmitSound(Sound_RaiseTrait, 1.0, true);
-
-		SendText(csprintf("You have earned %u skill %s!", amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
+		creditChange = "lost";
 	}
+
+	if (!showText)
+		creditChange = "";
+
+	SetAvailSkillsAndNotifyPlayer(max((int)(GetSkillCredits()) + amount, 0));
+	SendText(csprintf("You have %s %d skill %s!", creditChange.c_str(), abs(amount), amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
 }
 
 DWORD CWeenieObject::GetSkillCredits()

@@ -3306,12 +3306,9 @@ void CPlayerWeenie::SetLoginPlayerQualities()
 
 	if (g_pConfig->FixOldChars())
 	{
-		//Refund Credits for those who lost them at Asheron's Castle.
-		DWORD currentcredits = GetTotalSkillCredits();
-		DWORD expectedCredits = GetExpectedSkillCredits();
 
-		if (currentcredits < expectedCredits)
-			GiveSkillCredits(expectedCredits - currentcredits, true);
+		//Refund Credits for those who lost them at Asheron's Castle.
+		AdjustSkillCredits(GetExpectedSkillCredits(), GetTotalSkillCredits(), true);
 
 		int heritage = InqIntQuality(HERITAGE_GROUP_INT, 1);
 
@@ -4708,6 +4705,23 @@ DWORD CPlayerWeenie::GetTotalSkillCredits(bool removeCreditQuests) //Total curre
 	{
 		STypeSkill skillName = (STypeSkill)i;
 
+		switch (skillName)
+		{
+		case UNDEF_SKILL:
+		case AXE_SKILL:
+		case BOW_SKILL:
+		case CROSSBOW_SKILL:
+		case DAGGER_SKILL:
+		case MACE_SKILL:
+		case SLING_SKILL:
+		case SPEAR_SKILL:
+		case STAFF_SKILL:
+		case SWORD_SKILL:
+		case THROWN_WEAPON_SKILL:
+		case UNARMED_COMBAT_SKILL:
+			continue;
+		}
+
 		SkillTable *pSkillTable = SkillSystem::GetSkillTable();
 		const SkillBase *pSkillBase = pSkillTable->GetSkillBase(skillName);
 		if (pSkillBase != NULL)
@@ -4778,13 +4792,12 @@ DWORD CPlayerWeenie::GetExpectedSkillCredits(bool countCreditQuests)
 	}
 
 	int currentLevel = InqIntQuality(LEVEL_INT, 0, TRUE);
-	int testLevel = 1; //first credit gain occurs at level 2
-
-	while (testLevel <= currentLevel && testLevel < ExperienceSystem::GetMaxLevel())
+	currentLevel = min(currentLevel, 275);
+	for (int x = 1; x < currentLevel + 1; x++)
 	{
-		testLevel++;
-		expectedCredits += ExperienceSystem::GetCreditsForLevel(testLevel);
+		expectedCredits += ExperienceSystem::GetCreditsForLevel(x);
 	}
+	
 	return expectedCredits;
 }
 
