@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "WeenieObject.h"
 #include "PhysicsObj.h"
@@ -2008,10 +2007,10 @@ void CWeenieObject::GiveXP(long long amount, bool showText, bool allegianceXP)
 	m_Qualities.SetInt64(TOTAL_EXPERIENCE_INT64, newTotalXP);
 	NotifyInt64StatUpdated(TOTAL_EXPERIENCE_INT64);
 
-	GiveSkillCredit(skillCredits);
-
 	if (bLeveled)
 	{
+	    GiveSkillCredit(skillCredits);
+	    
 		AllegianceTreeNode *node = g_pAllegianceManager->GetTreeNode(GetID());
 		if(node)
 			node->_level = currentLevel;
