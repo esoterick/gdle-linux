@@ -5,10 +5,11 @@
 #include "WClassID.h"
 #include "TreasureFactory.h"
 
-class TreasureEntry : public PackObj
+class TreasureEntry : public PackObj, public PackableJson
 {
 public:
 	DECLARE_PACKABLE()
+	DECLARE_PACKABLE_JSON();
 
 	WClassIDEnum _wcid = WClassIDEnum::W_UNDEF_CLASS;
 	DWORD _ptid = 0;
@@ -206,7 +207,7 @@ public:
 	DWORD RollCasterBuffSpell(int spellCode, int tier);
 	DWORD RollCasterWarSpell(int spellCode, int tier);
 
-	PackableHashTable<DWORD, PackableList<TreasureEntry>> _treasureList; // hashA
+	PackableHashTableWithJson<DWORD, PackableListWithJson<TreasureEntry>> _treasureList; // hashA
 	PackableHashTable<DWORD, TreasureEntry2> _treasureGenerationProfiles; // hashB
 	PackableHashTable<DWORD, PackableList<TreasureEntry5>> _treasure3[4]; // hashC x 4
 	TreasureEntry7 _treasure7[48]; // listyA x 48

@@ -1,3 +1,4 @@
+DELIMITER //
 CREATE DEFINER=`root`@`localhost` PROCEDURE `blob_update_weenie`(
     IN weenieId INT(11) UNSIGNED,
     IN topLevelId INT(11) UNSIGNED,
@@ -12,5 +13,5 @@ INSERT INTO weenies (id, top_level_object_id, block_id, DATA)
         top_level_object_id=topLevelId,
         block_id=blockId,
         DATA=weenieData;
-
-END
+END //
+DELIMITER ;

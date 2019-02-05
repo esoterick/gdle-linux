@@ -15,6 +15,8 @@ public:
 	std::string m_AdminName;
 	std::string m_Reason;
 	DWORD m_Timestamp;
+	long m_BanDuration;
+	DWORD m_AccountID;
 };
 
 class CNetworkBanList : public PackObj
@@ -55,6 +57,7 @@ public:
 	void CompleteLogoutAll();
 
 	void KickClient(class CClient* pClient);
+	void KickBannedClient(class CClient* pClient, long duration);
 	void KickClient(WORD slot);
 	void KillClient(WORD slot);
 	void QueuePacket(SOCKADDR_IN *peer, void *data, DWORD len) { QueuePacket(peer, data, len, false); };
@@ -65,9 +68,11 @@ public:
 	};
 	void SendConnectlessBlob(SOCKADDR_IN *peer, BlobPacket_s *blob, DWORD dwFlags, DWORD dwSequence, WORD wTime, bool useReadStream);
 
-	void AddBan(in_addr ipaddr, const char *admin, const char *reason);
+	void AddBan(in_addr ipaddr, const char *admin, const char *reason, DWORD account_id);
+	void AddBan(in_addr ipaddr, const char *admin, const char *reason, long duration, DWORD account_id);
 	bool RemoveBan(in_addr ipaddr);
 	std::string GetBanList();
+	DWORD GetBanID(in_addr ipaddr);
 
 	DWORD GetUniques();
 
@@ -76,6 +81,7 @@ private:
 	bool IsBannedIP(in_addr ipaddr);
 	void LoadBans();
 	void SaveBans();
+	long GetBanDuration(in_addr ipaddr);
 
 	WORD AllocOpenClientSlot();
 

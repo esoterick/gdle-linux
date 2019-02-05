@@ -106,6 +106,7 @@ public:
 	virtual bool AllowOlthoi() { return m_bAllowOlthoi; }
 
 	virtual bool FixOldChars() { return m_bFixOldChars; }
+	const char *GetBanString() { return m_BanString.c_str(); }
 
 protected:
 	virtual void PostLoad() override;
@@ -201,6 +202,8 @@ protected:
 	bool m_bAllowPKCommands = 0;
 	bool m_bAllowOlthoi = 0;
 	bool m_bFixOldChars = 1;
+
+	std::string m_BanString;
 };
 
 extern CPhatACServerConfig *g_pConfig;

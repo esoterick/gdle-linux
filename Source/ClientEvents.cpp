@@ -365,6 +365,17 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 			wielded->m_Qualities.SetInt(SHIELD_VALUE_INT, wielded->InqIntQuality(ARMOR_LEVEL_INT, 0));
 		}
 
+		// TEMP -- Update Weapon/Armor to properly show WieldLevel on ID through mag tools instead of "Bow 150/180" -- retro fix		
+		if (wielded->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_CASTER || wielded->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR ||
+			wielded->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_CLOTHING)
+		{
+			if(wielded->InqIntQuality(WIELD_SKILLTYPE_2_INT, 0) == BOW_SKILL)
+				wielded->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 1);
+
+			if (wielded->InqIntQuality(WIELD_SKILLTYPE_INT, 0) == BOW_SKILL)
+				wielded->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 1);
+		}
+
 		// Remove all loot items with wcid > g_pConfig->WcidForPurge()
 		if (g_pConfig->InventoryPurgeOnLogin())
 		{
@@ -402,6 +413,17 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR && item->InqIntQuality(LOCATIONS_INT, 0) == SHIELD_LOC)
 		{
 			item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
+		}
+
+		// TEMP -- Update Weapon/Armor to properly show WieldLevel on ID through mag tools instead of "Bow 150/180" -- retro fix		
+		if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_CASTER || item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR ||
+			item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_CLOTHING)
+		{
+			if (item->InqIntQuality(WIELD_SKILLTYPE_2_INT, 0) == BOW_SKILL)
+				item->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 1);
+
+			if (item->InqIntQuality(WIELD_SKILLTYPE_INT, 0) == BOW_SKILL)
+				item->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 1);
 		}
 
 		// Remove all loot items with wcid > g_pConfig->WcidForPurge()
@@ -451,6 +473,16 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 						item->m_Qualities.SetInt(SHIELD_VALUE_INT, item->InqIntQuality(ARMOR_LEVEL_INT, 0));
 					}
 
+					// TEMP -- Update Weapon/Armor to properly show WieldLevel on ID through mag tools instead of "Bow 150/180" -- retro fix		
+					if (item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_CASTER || item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_ARMOR ||
+						item->InqIntQuality(ITEM_TYPE_INT, 0) == TYPE_CLOTHING)
+					{
+						if (item->InqIntQuality(WIELD_SKILLTYPE_2_INT, 0) == BOW_SKILL)
+							item->m_Qualities.SetInt(WIELD_SKILLTYPE_2_INT, 1);
+
+						if (item->InqIntQuality(WIELD_SKILLTYPE_INT, 0) == BOW_SKILL)
+							item->m_Qualities.SetInt(WIELD_SKILLTYPE_INT, 1);
+					}
 
 					// Remove all loot items with wcid > g_pConfig->WcidForPurge()
 					if (g_pConfig->InventoryPurgeOnLogin())
@@ -3743,11 +3775,11 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 	}
 	case DIE_COMMAND: // "/die" command
 	{
-		if (!m_pPlayer->IsDead() && !m_pPlayer->IsInPortalSpace() && !m_pPlayer->IsBusyOrInAction())
+		if (!m_pPlayer->IsDead() && !m_pPlayer->IsInPortalSpace() && m_pPlayer->_deathTimer < 0)
 		{
-			// this is a bad way of doing this...
-			m_pPlayer->SetHealth(0, true);
-			m_pPlayer->OnDeath(m_pPlayer->GetID());
+			m_pPlayer->UpdatePKActivity();
+			m_pPlayer->_deathTimer = Timer::cur_time + 10.5;
+			m_pPlayer->_dieTextTimer = Timer::cur_time + 2.0;
 		}
 
 		break;

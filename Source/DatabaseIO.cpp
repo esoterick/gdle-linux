@@ -70,7 +70,7 @@ bool CDatabaseIO::VerifyAccount(const char *username, const char *password, Acco
 
 	std::string saltedPassword = std::string(password) + passwordSalt;
 	std::string hashedSaltedPassword = SHA512(saltedPassword.c_str(), saltedPassword.length()).substr(0, 64);
-	if (g_pDB2->Query("SELECT id, username, date_created, access FROM accounts WHERE (username!='admin' AND username='%s' AND password='%s') OR (username='admin' AND %d) LIMIT 1", usernameEscaped.c_str(), hashedSaltedPassword.c_str(), bIsAdmin))
+	if (g_pDB2->Query("SELECT id, username, date_created, access, banned FROM accounts WHERE (username!='admin' AND username='%s' AND password='%s') OR (username='admin' AND %d) LIMIT 1", usernameEscaped.c_str(), hashedSaltedPassword.c_str(), bIsAdmin))
 	{
 		CSQLResult *pResult = g_pDB2->GetResult();
 		if (pResult)
@@ -83,6 +83,7 @@ bool CDatabaseIO::VerifyAccount(const char *username, const char *password, Acco
 				pAccountInfo->username = CSQLResult::SafeString(ResultRow[1]);
 				pAccountInfo->dateCreated = CSQLResult::SafeUInt(ResultRow[2]);
 				pAccountInfo->access = CSQLResult::SafeUInt(ResultRow[3]);
+				pAccountInfo->banned = CSQLResult::SafeInt(ResultRow[4]);
 				delete pResult;
 			}
 			else
@@ -174,6 +175,12 @@ bool CDatabaseIO::CreateAccount(const char *username, const char *password, int 
 
 	return true;
 }
+
+bool CDatabaseIO::UpdateBan(unsigned int account_id, bool ban)
+{
+	return g_pDB2->Query("UPDATE accounts SET banned = %u WHERE id = %u", ban, account_id);
+}
+
 
 std::list<unsigned int> CDatabaseIO::GetWeeniesAt(unsigned int block_id)
 {

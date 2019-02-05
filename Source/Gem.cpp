@@ -22,6 +22,16 @@ int CGemWeenie::Use(CPlayerWeenie *player)
 		return WERROR_NONE;
 	}
 
+	if(player->IsInPortalSpace())
+	{
+		std::string name = InqStringQuality(NAME_STRING, "");
+		if (name.find("Portal Gem") == std::string::npos && name.find("Portal Sending Gem") == std::string::npos) //free pass to portal gems as in retail.
+		{
+			player->NotifyUseDone(WERROR_ACTIONS_LOCKED);
+			return WERROR_NONE;
+		}
+	}
+
 	if (InqDIDQuality(SPELL_DID,0) && _nextUse > Timer::cur_time) // If this gem casts a spell and the _nextUse has not elapsed yet then cancel the use.
 	{
 		player->NotifyUseDone(WERROR_NONE);

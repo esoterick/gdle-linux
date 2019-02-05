@@ -60,6 +60,10 @@ CPlayerWeenie::CPlayerWeenie(CClient *pClient, DWORD dwGUID, WORD instance_ts)
 	m_Qualities.SetInt(CREATION_TIMESTAMP_INT, (int)time(NULL));
 	m_Qualities.SetFloat(CREATION_TIMESTAMP_FLOAT, Timer::cur_time);
 
+	//clear portal use timestamps on login. 
+	m_Qualities.SetFloat(LAST_PORTAL_TELEPORT_TIMESTAMP_FLOAT, 0);
+	m_Qualities.SetFloat(LAST_TELEPORT_START_TIMESTAMP_FLOAT, 0);
+
 	//if (pClient && pClient->GetAccessLevel() >= SENTINEL_ACCESS)
 	//	SetRadarBlipColor(Sentinel_RadarBlipEnum);
 
@@ -205,7 +209,7 @@ void CPlayerWeenie::Tick()
 			SendText("The power of Bael'Zharon flows through you, you are once more a player killer.", LTT_MAGIC);
 		}
 	}
-
+	
 	if (m_pClient)
 	{
 		if (m_NextSave <= Timer::cur_time)
@@ -269,7 +273,52 @@ void CPlayerWeenie::Tick()
 		}
 
 	}
+
+	if (m_Qualities.GetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 0) && m_Qualities.GetFloat(LIFESTONE_PROTECTION_TIMESTAMP_FLOAT, -1) <= Timer::cur_time)
+	{
+		m_Qualities.SetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 0);
+		SendText("You're no longer protected by the Lifestone's magic!", LTT_MAGIC);
+	}
+
+	if (HasPortalUseCooldown() && InqFloatQuality(LAST_PORTAL_TELEPORT_TIMESTAMP_FLOAT, 0) <= Timer::cur_time)
+	{
+		m_Qualities.SetFloat(LAST_PORTAL_TELEPORT_TIMESTAMP_FLOAT, 0);
+	}
+
+	if (HasTeleportUseCooldown() && InqFloatQuality(LAST_TELEPORT_START_TIMESTAMP_FLOAT, 0) <= Timer::cur_time)
+	{
+		m_Qualities.SetFloat(LAST_TELEPORT_START_TIMESTAMP_FLOAT, 0);
+		m_Qualities.SetFloat(LAST_PORTAL_TELEPORT_TIMESTAMP_FLOAT, Timer::cur_time + 3); //set timeout for next portal use now that we have materialized (for portals).
+	}
+	
+	if (_deathTimer > 0)
+	{
+		if (_deathTimer <= Timer::cur_time)
+		{
+			SetHealth(0, true);
+			OnDeath(GetID());
+			_deathTimer = -1.0;
+			_dieTextTimer = -1.0;
+			_dieTextCounter = 0;
+		}
+		else if (_dieTextTimer > 0 && _dieTextTimer <= Timer::cur_time)
+		{
+			switch (_dieTextCounter)
+			{
+			case 0: SpeakLocal("I feel faint..."); break;
+			case 1: SpeakLocal("My sight is growing dim..."); break;
+			case 2: SpeakLocal("My life is flashing before my eyes..."); break;
+			case 3: SpeakLocal("I see a light"); break;
+			case 4: SpeakLocal("Oh cruel, cruel world!"); break;
+			default: break;
+			}
+
+			_dieTextTimer = Timer::cur_time + 2.0;
+			_dieTextCounter++;
+		}
+	}
 }
+
 
 bool CPlayerWeenie::IsBusy()
 {
@@ -1188,6 +1237,9 @@ int CPlayerWeenie::UseEx(bool bConfirmed)
 	}
 	default:
 	{
+		if (AsPlayer()->IsInPortalSpace())
+			return WERROR_ACTIONS_LOCKED;
+
 		CCraftOperation *op = g_pPortalDataEx->GetCraftOperation(pTool->m_Qualities.id, pTarget->m_Qualities.id);
 		if (!op)
 		{
@@ -4747,4 +4799,13 @@ DWORD CPlayerWeenie::GetExpectedSkillCredits(bool countCreditQuests)
 	}
 	
 	return expectedCredits;
+}
+
+void CPlayerWeenie::CancelLifestoneProtection()
+{
+	if (this && AsPlayer() && m_Qualities.GetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 0))
+	{
+		m_Qualities.SetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 0);
+		SendText("Your actions have dispelled the Lifestone's magic!", LTT_MAGIC);
+	}
 }
