@@ -383,7 +383,8 @@ void CMeleeAttackEvent::HandlePerformAttack(CWeenieObject *target, DamageEventDa
 		_weenie->AsPlayer()->UpdatePKActivity();
 	}
 
-	_weenie->AsPlayer()->CancelLifestoneProtection();
+	if (_weenie->AsPlayer())
+		_weenie->AsPlayer()->CancelLifestoneProtection();
 
 	DWORD meleeDefense = 0;
 	if (target->InqSkill(MELEE_DEFENSE_SKILL, meleeDefense, FALSE) && meleeDefense > 0)
