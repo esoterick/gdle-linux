@@ -2426,9 +2426,12 @@ DWORD CWeenieObject::GiveSkillPoints(STypeSkill key, DWORD amount)
 
 void CWeenieObject::GiveSkillCredit(int amount)
 {
-	int newAmount = (int)(GetSkillCredits()) + amount;
-	SetAvailSkillsAndNotifyPlayer(newAmount);
-	SendText(csprintf("You have gained %d skill %s!", amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
+	if (amount > 0)
+	{
+		int newAmount = (int)(GetSkillCredits()) + amount;
+		SetAvailSkillsAndNotifyPlayer(newAmount);
+		SendText(csprintf("You have gained %d skill %s!", amount, amount == 1 ? "credit" : "credits"), LTT_ADVANCEMENT);
+	}
 }
 
 void CWeenieObject::SetAvailSkillsAndNotifyPlayer(int amount)
