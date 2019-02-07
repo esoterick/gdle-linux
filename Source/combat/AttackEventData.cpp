@@ -28,8 +28,6 @@ void CAttackEventData::Setup()
 	_max_attack_distance = DISTANCE_REQUIRED_FOR_MELEE_ATTACK;
 	_max_attack_angle = MAX_MELEE_ATTACK_CONE_ANGLE;
 	_timeout = Timer::cur_time + 15.0;
-
-	_attack_charge_time = Timer::cur_time + _attack_power;
 }
 
 void CAttackEventData::PostCharge()
@@ -69,7 +67,7 @@ void CAttackEventData::Begin()
 		return;
 	}
 
-	if ((_attack_charge_time > 0.0 && Timer::cur_time >= _attack_charge_time) || (AsMissileAttackEvent() && _attack_charge_time < 0.0))
+	if (_attack_charge_time < 0.0)
 	{
 		PostCharge();
 	}

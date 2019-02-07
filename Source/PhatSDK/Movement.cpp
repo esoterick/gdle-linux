@@ -110,7 +110,7 @@ MovementParameters::MovementParameters()
 	hold_key_to_apply = HoldKey_Invalid;
 	action_stamp = 0;
 	
-	bitfield = 0x1EE0F; // this is actually a bug in the code, but I believe this is the value they intended
+	bitfield = 0x1F09EE0F; // changed to match bitfield from retail pcaps.
 	/*
 	equivalent to this maybe
 	stop_completely = 1;

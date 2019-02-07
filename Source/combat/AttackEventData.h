@@ -45,6 +45,9 @@ public:
 	// This is not actually used by the system. Revisit later.
 	virtual float CalculateDef() { return 1.0f; }
 
+	virtual float AttackTimeMod() { return 1.0f; }
+	virtual bool ShouldNotifyAttackDone() { return true; }
+
 	virtual class CMeleeAttackEvent *AsMeleeAttackEvent() { return NULL; }
 	virtual class CMissileAttackEvent *AsMissileAttackEvent() { return NULL; }
 

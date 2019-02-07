@@ -82,13 +82,13 @@ void AttackManager::OnAttackDone(DWORD error)
 				_queuedAttackData = NULL;
 			}
 
-			if (!_attackData->AsMissileAttackEvent())
+			if (_attackData->ShouldNotifyAttackDone())
 			{
 				_weenie->NotifyAttackDone();
+				_weenie->NotifyCommenceAttack();
 			}
-			else
-				_attackData->_attack_charge_time = Timer::cur_time + (_attackData->_attack_power);
 
+			_attackData->_attack_charge_time = Timer::cur_time + (_attackData->_attack_power * _attackData->AttackTimeMod());
 			_attackData->Begin();
 		}
 		else
@@ -141,6 +141,7 @@ void AttackManager::OnMotionDone(DWORD motion, BOOL success)
 		if (motion == Motion_Reload)
 		{
 			_weenie->NotifyAttackDone();
+			_weenie->NotifyCommenceAttack();
 		}
 	}
 }

@@ -93,7 +93,7 @@ void CMissileAttackEvent::PostCharge()
 		}
 	}
 
-	if (m_bTurned)
+	if (m_bTurned || InAttackCone())
 	{
 		OnReadyToAttack();
 	}
@@ -478,8 +478,12 @@ void CMissileAttackEvent::FireMissile()
 		}
 	}
 
-	if (g_pWorld->CreateEntity(missile))
-		missile->EmitEffect(PS_Launch, 0.0f);
+	if (!g_pWorld->CreateEntity(missile))
+	{
+		_weenie->DoForcedStopCompletely();
+		_weenie->NotifyWeenieError(WERROR_COMBAT_MISFIRE);
+		return;
+	}
 
 	if (!isAtlatl)
 	{

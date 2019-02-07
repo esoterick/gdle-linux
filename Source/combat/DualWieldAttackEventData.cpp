@@ -71,7 +71,6 @@ void CDualWieldAttackEvent::Setup()
 
 	// DW is 20% faster
 	_attack_speed *= 1.2f; // Higher is faster.
-	_attack_charge_time = Timer::cur_time + (_attack_power * 0.8f);
 
 	if (!_offhand_attack_motion)
 	{

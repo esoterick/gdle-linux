@@ -135,7 +135,7 @@ BinaryWriter *CPhysicsObj::Animation_GetAnimationInfo(bool bMoveToUpdate)
 
 			CPhysicsObj *pTarget = CPhysicsObj::GetObject(moveToManager->sought_object_id);
 			if (pTarget && !pTarget->parent)
-				m_Position.heading(pTarget->m_Position);
+				heading = m_Position.heading(pTarget->m_Position);
 
 			AnimInfo->Write<float>(heading);
 			moveToManager->movement_params.PackNet(MovementTypes::TurnToObject, AnimInfo);
