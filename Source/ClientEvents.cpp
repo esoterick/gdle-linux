@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 
 #include "Client.h"
@@ -4140,9 +4139,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		m_pPlayer->calc_acceleration();
 		m_pPlayer->set_on_walkable(moveToState.contact);
 
-		m_pPlayer->get_minterp()->standing_longjump = moveToState.longjump_mode ? TRUE : FALSE;
 		*/
 
+        m_pPlayer->get_minterp()->standing_longjump = moveToState.longjump_mode ? TRUE : FALSE;
 		m_pPlayer->last_move_was_autonomous = true;
 		m_pPlayer->cancel_moveto();
 
