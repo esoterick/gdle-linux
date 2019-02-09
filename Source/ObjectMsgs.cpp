@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "WeenieObject.h"
 #include "PhysicsObj.h"
@@ -615,16 +614,21 @@ BinaryWriter *IdentifyObject(CWeenieObject *pSource, CWeenieObject *pEntity, DWO
 			SKILL_ADVANCEMENT_CLASS sac = SKILL_ADVANCEMENT_CLASS::UNTRAINED_SKILL_ADVANCEMENT_CLASS;
 			pSource->m_Qualities.InqSkillAdvancementClass(SHIELD_SKILL, sac);
 
-			if (sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+			int *armorLevel = profile._intStatsTable->lookup(ARMOR_LEVEL_INT);
+			if (armorLevel)
 			{
-				profile._intStatsTable->add(SHIELD_VALUE_INT, profile._intStatsTable->lookup(ARMOR_LEVEL_INT));
-			}
-			else
-			{
-				int *halfShieldValue = profile._intStatsTable->lookup(ARMOR_LEVEL_INT);
-				int halfTrueValue = *halfShieldValue;
-				halfTrueValue /= 2;
-				profile._intStatsTable->add(SHIELD_VALUE_INT, &halfTrueValue);
+
+				if (sac == SPECIALIZED_SKILL_ADVANCEMENT_CLASS)
+				{
+					profile._intStatsTable->add(SHIELD_VALUE_INT, armorLevel);
+				}
+				else
+				{
+					int *halfShieldValue = armorLevel;
+					int halfTrueValue = *halfShieldValue;
+					halfTrueValue /= 2;
+					profile._intStatsTable->add(SHIELD_VALUE_INT, &halfTrueValue);
+				}
 			}
 		}
 
