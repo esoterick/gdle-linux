@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 
 #include "Client.h"
@@ -4215,7 +4214,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		m_pPlayer->Animation_Update();
 		// m_pPlayer->m_bAnimUpdate = TRUE;
 
-		m_pPlayer->Movement_UpdatePos();
+		//m_pPlayer->Movement_UpdatePos();
 		break;
 	}
 	case MOVEMENT_DO_MOVEMENT_COMMAND:
