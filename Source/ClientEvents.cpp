@@ -680,7 +680,8 @@ void CClientEvents::Attack(DWORD target, DWORD height, float power)
 		return;
 	}
 
-	m_pPlayer->TryMeleeAttack(target, (ATTACK_HEIGHT)height, power);
+	if (!m_pPlayer->IsAttacking())
+		m_pPlayer->TryMeleeAttack(target, (ATTACK_HEIGHT)height, power);
 }
 
 void CClientEvents::MissileAttack(DWORD target, DWORD height, float power)
@@ -696,8 +697,9 @@ void CClientEvents::MissileAttack(DWORD target, DWORD height, float power)
 		SERVER_WARN << "Bad missile attack power" << power << "sent by player" << m_pPlayer->GetID();
 		return;
 	}
-
-	m_pPlayer->TryMissileAttack(target, (ATTACK_HEIGHT)height, power);
+	
+	if (!m_pPlayer->IsAttacking())
+		m_pPlayer->TryMissileAttack(target, (ATTACK_HEIGHT)height, power);
 }
 
 
@@ -4215,7 +4217,7 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		m_pPlayer->Animation_Update();
 		// m_pPlayer->m_bAnimUpdate = TRUE;
 
-		// m_pPlayer->Movement_UpdatePos();
+		//m_pPlayer->Movement_UpdatePos();
 		break;
 	}
 	case MOVEMENT_DO_MOVEMENT_COMMAND:

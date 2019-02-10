@@ -22,6 +22,8 @@ public:
 
 	float CalculateDef() override;
 
+	virtual bool ShouldNotifyAttackDone() { return false; }
+
 	virtual class CMissileAttackEvent *AsMissileAttackEvent() { return this; }
 
 	DWORD _do_attack_animation = 0;

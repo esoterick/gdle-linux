@@ -377,6 +377,21 @@ void CGenericUseEvent::Finish()
 			Cancel(WERROR_HOOKER_NOT_USEABLE_OFF_HOOK);
 			return;
 		}
+
+		DWORD createWcid;
+		if (target->m_Qualities.InqDataID(USE_CREATE_ITEM_DID, createWcid))
+		{
+			CPlayerWeenie *player = g_pWorld->FindPlayer(_weenie->GetID());
+			if (player)
+			{
+				if (!player->SpawnInContainer(createWcid))
+				{
+					player->SendText("Not enough pack space!", LTT_ERROR);
+					Done(error);
+					return;
+				}
+			}
+		}
 		
 		if (_do_use_response)
 		{

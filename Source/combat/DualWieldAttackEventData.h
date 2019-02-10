@@ -16,6 +16,7 @@ public:
 
 	//virtual void OnReadyToAttack() override;
 	virtual void OnAttackAnimSuccess(DWORD motion) override;
+	virtual float AttackTimeMod() { return 0.8f; }
 	//void Finish();
 
 	//virtual void HandleAttackHook(const AttackCone &cone) override;
