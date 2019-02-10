@@ -6682,7 +6682,7 @@ void CWeenieObject::OnTeleported()
 		AsPlayer()->CancelLifestoneProtection(); //terminate lifestone protection on teleport (catch all for portal use and /recalls. Casted portals are captured in SpellCastingManager.cpp)
 
 	if (AsPlayer())
-		m_Qualities.SetFloat(LAST_TELEPORT_START_TIMESTAMP_FLOAT, Timer::cur_time + 7.0);
+		m_Qualities.SetFloat(LAST_TELEPORT_START_TIMESTAMP_FLOAT, Timer::cur_time + 5.0);
 }
 
 void CWeenieObject::Movement_Teleport(const Position &position, bool bWasDeath)
