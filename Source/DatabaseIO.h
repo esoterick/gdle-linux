@@ -95,7 +95,7 @@ public:
 	bool IDRangeTableExistsAndValid();
 	std::list<unsigned int> GetNextIDRange(unsigned int rangeStart, unsigned int count);
 	unsigned int GetHighestWeenieID(unsigned int min_range, unsigned int max_range);
-	std::list< std::pair<unsigned int, unsigned int> > CDatabaseIO::GetUnusedIdRanges(unsigned int min_range, unsigned int max_range);
+
 	bool IsCharacterNameOpen(const char *name);
 	bool IsPlayerCharacter(unsigned int weenie_id);
 	DWORD GetPlayerCharacterId(const char *name);

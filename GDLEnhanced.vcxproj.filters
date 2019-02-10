@@ -1466,6 +1466,9 @@
     <ClInclude Include="Source\combat\MissileAttackEventData.h">
       <Filter>Source Files\Object Capabilities\Combat</Filter>
     </ClInclude>
+    <ClInclude Include="Source\DatabaseUtil.h">
+      <Filter>Source Files\Database</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\client.ico">

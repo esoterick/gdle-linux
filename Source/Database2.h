@@ -4,6 +4,7 @@
 #include <mutex>
 #include <thread>
 
+#include "DatabaseUtil.h"
 
 #define MYSQL_CONNECT_TIMEOUT 3
 
@@ -95,6 +96,51 @@ public:
 	virtual CSQLResult *GetResult();
 	virtual void *GetInternalConnection();
 	virtual void *GetInternalAsyncConnection();
+
+	template<typename ...Args>
+	mysql_statement<sizeof...(Args)> QueryEx(const char * query, Args&... args)
+	{
+		MYSQL *sql = (MYSQL *)GetInternalConnection();
+
+		mysql_statement<sizeof...(args)> statement(sql, query);
+		if (statement)
+		{
+			if constexpr (sizeof...(args) > 0)
+				statement.bindargs(args...);
+
+			if (statement.execute())
+			{
+				return statement;
+			}
+		}
+
+		return mysql_statement<sizeof...(args)>(nullptr, "");
+	}
+
+	mysql_statement<0> QueryEx(const char * query)
+	{
+		MYSQL *sql = (MYSQL *)GetInternalConnection();
+
+		mysql_statement<0> statement(sql, query);
+		if (statement)
+		{
+			if (statement.execute())
+			{
+				return statement;
+			}
+		}
+
+		return mysql_statement<0>(nullptr, "");
+	}
+
+	template<int _Count>
+	mysql_statement<_Count> CreateQuery(const char * query)
+	{
+		MYSQL *sql = (MYSQL *)GetInternalConnection();
+
+		mysql_statement<_Count> statement(sql, query);
+		return statement;
+	}
 
 protected:
 	CSQLConnection *m_pConnection = NULL;
