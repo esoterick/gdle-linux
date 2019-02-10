@@ -463,7 +463,6 @@ void CNetwork::KickClient(CClient *pClient)
 	KC.Write<long>(0);
 
 	pClient->SendNetMessage(KC.GetData(), KC.GetSize(), PRIVATE_MSG);
-	pClient->ThinkOutbound();
 	pClient->Kill(NULL, NULL);
 }
 
@@ -484,7 +483,6 @@ void CNetwork::KickBannedClient(CClient *pClient, long duration)
 	KBC.WriteString(msg);
 
 	pClient->SendNetMessage(KBC.GetData(), KBC.GetSize(), PRIVATE_MSG);
-	pClient->ThinkOutbound();
 	pClient->Kill(NULL, NULL);
 }
 

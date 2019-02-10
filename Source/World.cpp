@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "World.h"
 #include "Client.h"
@@ -339,7 +338,7 @@ bool CWorld::CreateEntity(CWeenieObject *pEntity, bool bMakeAware)
 		return false;
 
 	CWeenieObject *pExistingWeenie = FindObject(pEntity->GetID());
-	if (pExistingWeenie)
+    if (pExistingWeenie)
 	{
 		if (pExistingWeenie == pEntity)
 		{
@@ -350,36 +349,11 @@ bool CWorld::CreateEntity(CWeenieObject *pEntity, bool bMakeAware)
 		{
 			LOG_PRIVATE(World, Warning, "Trying to spawn second (different) weenie with existing ID 0x%08X! Deleting instead.\n", pEntity->GetID());
 
-			if (pExistingWeenie->IsContained())
-			{
-				CContainerWeenie *pContainer = (CContainerWeenie*)FindObject(pExistingWeenie->GetContainerID());
-
-				if (pContainer && pContainer->AsCorpse())
-				{
-					// The dupe is in a corpse!
-					// Let's assume the corpse was already recovered.
-
-					while (pContainer->m_Items.size() > 0)
-					{
-						pContainer->m_Items[0]->Remove();
-					}
-
-					// Corpse is now empty. We can get rid of it.
-					pContainer->Remove();
-				}
-				else
-				{
-					delete pEntity;
-					return false;
-				}
-			}
-			else
-			{
-				delete pEntity;
-				return false;
-			}
+			// Already exists.
+			delete pEntity;
 		}
 
+		return false;
 	}
 
 	double createTime;

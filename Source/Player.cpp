@@ -277,6 +277,7 @@ void CPlayerWeenie::Tick()
 	if (m_Qualities.GetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 0) && m_Qualities.GetFloat(LIFESTONE_PROTECTION_TIMESTAMP_FLOAT, -1) <= Timer::cur_time)
 	{
 		m_Qualities.SetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 0);
+		m_Qualities.SetFloat(LIFESTONE_PROTECTION_TIMESTAMP_FLOAT, 0);
 		SendText("You're no longer protected by the Lifestone's magic!", LTT_MAGIC);
 	}
 
@@ -4803,9 +4804,10 @@ DWORD CPlayerWeenie::GetExpectedSkillCredits(bool countCreditQuests)
 
 void CPlayerWeenie::CancelLifestoneProtection()
 {
-	if (this && AsPlayer() && m_Qualities.GetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 0))
+	if (m_Qualities.GetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 0))
 	{
 		m_Qualities.SetBool(UNDER_LIFESTONE_PROTECTION_BOOL, 0);
+		m_Qualities.SetFloat(LIFESTONE_PROTECTION_TIMESTAMP_FLOAT, 0);
 		SendText("Your actions have dispelled the Lifestone's magic!", LTT_MAGIC);
 	}
 }

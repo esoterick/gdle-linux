@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 
 #include "Client.h"
@@ -179,7 +178,7 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 		return;
 	}
 
-	if (m_pPlayer || g_pWorld->FindPlayer(char_weenie_id))
+	if (m_pPlayer || g_pWorld->FindPlayer(char_weenie_id) || g_pDBIO->GetNumPendingSaves(char_weenie_id) > 0)
 	{
 		// LOG(Temp, Normal, "Character already logged in!\n");
 		LoginError(13); // update error codes
@@ -4140,9 +4139,9 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 		m_pPlayer->calc_acceleration();
 		m_pPlayer->set_on_walkable(moveToState.contact);
 
-		m_pPlayer->get_minterp()->standing_longjump = moveToState.longjump_mode ? TRUE : FALSE;
 		*/
 
+        m_pPlayer->get_minterp()->standing_longjump = moveToState.longjump_mode ? TRUE : FALSE;
 		m_pPlayer->last_move_was_autonomous = true;
 		m_pPlayer->cancel_moveto();
 

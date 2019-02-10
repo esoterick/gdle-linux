@@ -1,4 +1,3 @@
-
 #include "StdAfx.h"
 #include "PhysicsObj.h"
 #include "AnimHooks.h"
@@ -973,6 +972,9 @@ ULONG DestroyParticleHook::Pack(BYTE** ppData, ULONG iSize)
 
 BOOL DestroyParticleHook::UnPack(BYTE** ppData, ULONG iSize)
 {
+    if (emitter_id == 0)
+	    return true;
+    
     UNPACK(DWORD, emitter_id);
 
     return TRUE;
