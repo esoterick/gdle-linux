@@ -1804,12 +1804,24 @@ CCorpseWeenie *CMonsterWeenie::CreateCorpse(bool visible)
 	// spawn corpse
 	CCorpseWeenie *pCorpse = (CCorpseWeenie *)g_pWeenieFactory->CreateWeenieByClassID(W_CORPSE_CLASS);
 
-	pCorpse->CopyDIDStat(SETUP_DID, this);
-	pCorpse->CopyDIDStat(MOTION_TABLE_DID, this);
+	if (m_Qualities.GetBool(TREASURE_CORPSE_BOOL, false))
+	{
+		pCorpse->m_Qualities.SetDataID(SETUP_DID, 33558212);
+		pCorpse->m_Qualities.SetDataID(MOTION_TABLE_DID, 150995355);
+		pCorpse->m_Qualities.SetFloat(DEFAULT_SCALE_FLOAT, 0.4);
+		pCorpse->SetName(csprintf("Treasure of %s", GetName().c_str())); 
+	}		
+	else
+	{
+		pCorpse->CopyDIDStat(SETUP_DID, this);
+		pCorpse->CopyFloatStat(DEFAULT_SCALE_FLOAT, this); 
+		pCorpse->SetName(csprintf("Corpse of %s", GetName().c_str()));
+		pCorpse->CopyFloatStat(TRANSLUCENCY_FLOAT, this);
+		pCorpse->CopyDIDStat(MOTION_TABLE_DID, this);
+	}
+	
 	// pCorpse->CopyDIDStat(SOUND_TABLE_DID, this);
 	// pCorpse->CopyDIDStat(PHYSICS_EFFECT_TABLE_DID, this);
-	pCorpse->CopyFloatStat(DEFAULT_SCALE_FLOAT, this);
-	pCorpse->CopyFloatStat(TRANSLUCENCY_FLOAT, this);
 
 	pCorpse->CopyIntStat(LEVEL_INT, this); //copy the level so the treasure generator can have access to that value.
 
@@ -1817,8 +1829,8 @@ CCorpseWeenie *CMonsterWeenie::CreateCorpse(bool visible)
 	GetObjDesc(desc);
 	pCorpse->SetObjDesc(desc);
 
+	auto initpos = m_Position;
 	pCorpse->SetInitialPosition(m_Position);
-	pCorpse->SetName(csprintf("Corpse of %s", GetName().c_str()));
 	pCorpse->InitPhysicsObj();
 	//set velocity so that corpses are affected by gravity.
 	pCorpse->set_velocity(_phys_obj->m_velocityVector, 0);
@@ -1892,7 +1904,7 @@ void CMonsterWeenie::OnDeathAnimComplete()
 
 	// create corpse
 	CPlayerWeenie *player = AsPlayer();
-	if (!player)
+	if (!player && !m_Qualities.GetBool(NO_CORPSE_BOOL,false))
 	{
 		CCorpseWeenie *pCorpse = CreateCorpse();
 
