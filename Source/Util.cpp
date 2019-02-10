@@ -1,15 +1,22 @@
 
 #include "StdAfx.h"
 #include "TurbineFormats.h"
+#include <random>
 
 #pragma comment(lib, "psapi.lib")
 
 namespace Random
 {
+	static std::mt19937 _generator;
+	static std::uniform_real_distribution<double> _range_f(0.0f, 1.0f);
+
 	int m_iSeed;
 
 	void Init()
 	{
+		std::random_device rd;
+		_generator.seed(rd());
+
 		m_iSeed = (signed)((unsigned int)(time(0)*12345) << 2) - 144810491;
 	}
 
@@ -41,8 +48,11 @@ namespace Random
 		if (max <= min)
 			return min;
 
-		unsigned int range = max - min;
-		return (min + (GenRandom32() % (range + 1)));
+		std::uniform_int_distribution<uint32_t> range(min, max);
+		return range(_generator);
+
+		//unsigned int range = max - min;
+		//return (min + (GenRandom32() % (range + 1)));
 	}
 
 	int32_t GenInt(int32_t min, int32_t max)
@@ -50,8 +60,16 @@ namespace Random
 		if (max <= min)
 			return min;
 
-		unsigned int range = (unsigned)(max - min);
-		return (min + (int)(GenRandom32() % (range + 1)));
+		std::uniform_int_distribution<int32_t> range(min, max);
+		return range(_generator);
+
+		//unsigned int range = (unsigned)(max - min);
+		//return (min + (int)(GenRandom32() % (range + 1)));
+	}
+	
+	double GenFloat()
+	{
+		return _range_f(_generator);
 	}
 
 	double GenFloat(double min, double max)
@@ -60,7 +78,8 @@ namespace Random
 			return min;
 
 		double range = max - min;		
-		double value = min + (range * ((double)GenRandom32() / 0xFFFFFFFF));
+		//double value = min + (range * ((double)GenRandom32() / 0xFFFFFFFF));
+		double value = min + (range * _range_f(_generator));
 
 		return value;
 	}
@@ -71,7 +90,8 @@ namespace Random
 			return min;
 
 		double range = max - min;
-		double value = min + (range * ((double)GenRandom32() / 0xFFFFFFFF));
+		//double value = min + (range * ((double)GenRandom32() / 0xFFFFFFFF));
+		double value = min + (range * _range_f(_generator));
 
 		return (float)value;
 	}
