@@ -470,26 +470,34 @@ void CWorldLandBlock::Insert(CWeenieObject *pEntity, WORD wOld, BOOL bNew, bool 
 	if (CPlayerWeenie *player = pEntity->AsPlayer())
 	{
 		Position pos = pEntity->GetPosition();
+		PlayerWeenieMap::_Pairib pib =
 		m_PlayerMap.insert(std::pair<DWORD, CPlayerWeenie *>(pEntity->GetID(), player));
-		m_PlayerList.push_back(player);
+		if (pib.second)
+		{
+			m_PlayerList.push_back(player);
 
-		MakeNotDormant();
+			MakeNotDormant();
 
-		// spawn up adjacent landblocks only if outdoors, otherwise only load the block you're on.
-		if ((pos.objcell_id & 0xFFFF) < 0x100) //outdoors
-			ActivateLandblocksWithinPVS(pEntity->GetLandcell());
+			// spawn up adjacent landblocks only if outdoors, otherwise only load the block you're on.
+			if ((pos.objcell_id & 0xFFFF) < 0x100) //outdoors
+				ActivateLandblocksWithinPVS(pEntity->GetLandcell());
+		}
 	}
 
+	WeenieMap::_Pairib pib =
 	m_EntityMap.insert(std::pair<DWORD, CWeenieObject *>(pEntity->GetID(), pEntity));
-	m_EntitiesToAdd.push_back(pEntity);
+	if (pib.second)
+	{
+		m_EntitiesToAdd.push_back(pEntity);
 
-	pEntity->Attach(this);
+		pEntity->Attach(this);
 
-	if (bNew)
-		pEntity->RemovePreviousInstance();
+		if (bNew)
+			pEntity->RemovePreviousInstance();
 
-	if (bMakeAware)
-		ExchangePVS(pEntity, wOld);
+		if (bMakeAware)
+			ExchangePVS(pEntity, wOld);
+	}
 }
 
 CWeenieObject *CWorldLandBlock::FindEntity(DWORD dwGUID)
