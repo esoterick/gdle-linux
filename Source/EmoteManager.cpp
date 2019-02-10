@@ -1478,6 +1478,14 @@ void EmoteManager::ExecuteEmote(const Emote &emote, DWORD target_id)
 			dummyitem->Destroy();
 
 		break;
+	}	
+	case AddCharacterTitle_EmoteType:
+	{
+		CPlayerWeenie *target = g_pWorld->FindPlayer(target_id);
+		if (!target)
+			break;
+		target->AddTitle(emote.amount);
+		break;
 	}
 	case UntrainSkill_EmoteType: //type: 110 changes skill to untrained and returns the approriate number of skill credits. Acts like a skill lowering gem with minor tweaks.
 	{

@@ -1146,6 +1146,23 @@ CLIENT_COMMAND(sweartime, "<unix timestamp>", "Sets the time that the last asses
 	return false;
 }
 
+CLIENT_COMMAND(addtitle, "id", "Grants the last assessed player's the Title ID.", ADMIN_ACCESS, GENERAL_CATEGORY)
+{
+	CPlayerWeenie *target = g_pWorld->FindPlayer(pPlayer->m_LastAssessed);
+	if (!target)
+		return false;
+	if (target)
+	{
+		int input = atoi(argv[0]);
+		if (input > 0)
+			target->AddTitle(input);
+	}
+
+	return false;
+}
+
+
+
 CLIENT_COMMAND(passupbool, "<0 | 1>", "Sets the last assessed player's XP passup bool. If no argument is given, shows the current state.", ADMIN_ACCESS, GENERAL_CATEGORY)
 {
 	CWeenieObject *target = g_pWorld->FindObject(pPlayer->m_LastAssessed);
