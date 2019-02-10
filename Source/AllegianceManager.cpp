@@ -614,6 +614,9 @@ void AllegianceManager::TrySwearAllegiance(CWeenieObject *vassal, CWeenieObject 
 	if (vassal->GetID() == patron->GetID())
 		return;
 
+	if(g_pDBIO->GetCharacterInfo(vassal->GetID()).account_id == g_pDBIO->GetCharacterInfo(patron->GetID()).account_id)
+		return;
+
 	if (CPlayerWeenie *player = patron->AsPlayer())
 	{
 		if (player->GetCharacterOptions() & IgnoreAllegianceRequests_CharacterOption)
