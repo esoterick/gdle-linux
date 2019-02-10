@@ -209,6 +209,8 @@ void CClientEvents::LoginCharacter(DWORD char_weenie_id, const char *szAccount)
 
 	m_pPlayer->SetLoginPlayerQualities(); // overrides
 	m_pPlayer->RecalculateEncumbrance();
+	m_pPlayer->LoadTitles();
+	m_pPlayer->SendTitles();
 	m_pPlayer->LoginCharacter();
 	m_pPlayer->LoadSquelches();
 	last_age_update = chrono::system_clock::to_time_t(chrono::system_clock::now());
@@ -2704,7 +2706,8 @@ void CClientEvents::ProcessEvent(BinaryReader *pReader)
 	}
 	case SET_DISPLAY_TITLE:
 	{
-		// Read: uint titleID
+		DWORD dwTitleID = pReader->ReadDWORD();
+		m_pPlayer->SetTitle(dwTitleID);
 		break;
 	}
 	case CONFIRMATION_RESPONSE: // confirmation response

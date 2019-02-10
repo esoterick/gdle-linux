@@ -20,6 +20,13 @@ struct CharacterDesc_t
 	unsigned short instance_ts;
 };
 
+struct CharacterTitles_t
+{
+	unsigned int title_id;
+	bool isActive;
+};
+
+
 struct CharacterSquelch_t
 {
 	unsigned int squelched_id = 0;
@@ -120,6 +127,10 @@ public:
 	void IncrementPendingSave(DWORD weenie_id);
 	void DecrementPendingSave(DWORD weenie_id);
 	DWORD GetNumPendingSaves(DWORD weenie_id);
+
+	std::string LoadCharacterTitles(unsigned int character_id);
+	bool SaveCharacterTitles(unsigned int character_id, std::string titles);
+
 };
 
 

@@ -496,7 +496,7 @@ void CClient::CreateCharacter(BinaryReader *pReader)
 				weenie->m_Qualities.SetAttribute(QUICKNESS_ATTRIBUTE, cg.quickness);
 				weenie->m_Qualities.SetAttribute(FOCUS_ATTRIBUTE, cg.focus);
 				weenie->m_Qualities.SetAttribute(SELF_ATTRIBUTE, cg.self);
-
+				weenie->m_Qualities.SetInt(CHARACTER_TITLE_ID_INT, 1);
 				if (heritageGroup)
 				{
 					weenie->m_Qualities.SetString(HERITAGE_GROUP_STRING, heritageGroup->name.c_str());

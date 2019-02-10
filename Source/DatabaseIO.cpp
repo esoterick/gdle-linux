@@ -203,6 +203,34 @@ std::list<unsigned int> CDatabaseIO::GetWeeniesAt(unsigned int block_id)
 	return results;
 }
 
+std::string CDatabaseIO::LoadCharacterTitles(unsigned int character_id)
+{
+	std::string result;
+	if (g_pDB2->Query("SELECT titles FROM character_titles WHERE character_id = %u", character_id))
+	{
+		CSQLResult *pQueryResult = g_pDB2->GetResult();
+		if (pQueryResult)
+		{
+			while (SQLResultRow_t Row = pQueryResult->FetchRow())
+			{
+				result = Row[0];
+			};
+
+			delete pQueryResult;
+		}
+	}
+
+	return result;
+}
+
+bool CDatabaseIO::SaveCharacterTitles(unsigned int character_id, std::string titles)
+{
+	if (!g_pDB2->Query("REPLACE INTO character_titles (character_id, titles) VALUES (%u, '%s');", character_id, titles.c_str()))
+		return false;
+	return true;
+}
+
+
 bool CDatabaseIO::AddOrUpdateWeenieToBlock(unsigned int weenie_id, unsigned int block_id)
 {
 	return g_pDB2->Query("INSERT INTO blocks (weenie_id, block_id) VALUES (%u, %u) ON DUPLICATE KEY UPDATE block_id = %u", weenie_id, block_id, block_id);

@@ -238,7 +238,14 @@ public:
 	std::unordered_map<int, int> m_umCorpsePermissions;
 	std::unordered_map<int, int> m_umConsentList;
 
+	void LoadTitles();
+	void SendTitles();
+	void SetTitle(int titleId);
+	void AddTitle(int titleid);
+	void NotifyNewTitle(int titleId, bool set);
+	void SaveTitles();
 	CCraftOperation *TryGetAlternativeOperation(CWeenieObject *target, CWeenieObject *tool, CCraftOperation *op);
+	std::string GetTitleStringById(int titledid);
 
 	void SetSanctuaryAsLogin();
 	DWORD CPlayerWeenie::GetTotalSkillCredits(bool removeCreditQuests = false);
@@ -264,6 +271,8 @@ protected:
 
 	TradeManager *m_pTradeManager = NULL;
 	double m_fNextTradeCheck = 0;
+
+	std::vector<int> charTitles;
 
 private:
 	int m_iPKActivity = 0;
