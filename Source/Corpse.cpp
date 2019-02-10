@@ -138,6 +138,7 @@ void CCorpseWeenie::SaveEx(class CWeenieSave &save)
 void CCorpseWeenie::RemoveEx()
 {
 	g_pDBIO->RemoveWeenieFromBlock(GetID());
+	g_pDBIO->DeleteWeenie(GetID());
 }
 
 void CCorpseWeenie::LoadEx(class CWeenieSave &save)
@@ -145,7 +146,8 @@ void CCorpseWeenie::LoadEx(class CWeenieSave &save)
 	CContainerWeenie::LoadEx(save);
 
 	_objDesc = save.m_ObjDesc;
-	_begin_destroy_at = Timer::cur_time + m_Qualities.GetFloat(TIME_TO_ROT_FLOAT, 0.0);
+	double dbTimeToRot = m_Qualities.GetFloat(TIME_TO_ROT_FLOAT, 0.0);
+	_begin_destroy_at = Timer::cur_time + dbTimeToRot == 0 ? 60 * 60 : dbTimeToRot;
 	_shouldSave = true;
 	m_bDontClear = true;
 
