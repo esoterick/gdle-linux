@@ -4520,6 +4520,16 @@ CCraftOperation *CPlayerWeenie::TryGetAlternativeOperation(CWeenieObject *target
 		op = g_pPortalDataEx->_craftTableData._operations.lookup(3855);
 		break;
 	}
+	case W_MATERIALOAK_CLASS:
+	{
+		//Check if the item is a missile weapon and has workmanship.
+		if (target->m_Qualities.m_WeenieType != MissileLauncher_WeenieType || !target->m_Qualities.GetInt(ITEM_WORKMANSHIP_INT, 0))
+			return NULL;
+
+		//Grab oak recipe to use as a base.
+		op = g_pPortalDataEx->_craftTableData._operations.lookup(3857);
+		break;
+	}
 	case W_MATERIALOPAL_CLASS:
 	{
 		//Check if the item is a caster and has workmanship.
